@@ -1,0 +1,110 @@
+"""Player, monsters and the monster table.
+
+Monsters are plain data in MONSTERS so new ones can be added without code.
+"""
+from dataclasses import dataclass
+
+from . import config as C
+
+
+@dataclass(eq=False)
+class Entity:
+    x: int
+    y: int
+    name: str
+    glyph: str
+    colour: tuple
+    max_hp: int
+    hp: int
+    power: int
+    defence: int
+    accuracy: int = 0
+    evasion: int = 0
+
+    @property
+    def alive(self):
+        return self.hp > 0
+
+    def take_damage(self, amount):
+        dealt = min(self.hp, amount)
+        self.hp -= dealt
+        return dealt
+
+    def heal(self, amount):
+        healed = min(self.max_hp - self.hp, amount)
+        self.hp += healed
+        return healed
+
+
+@dataclass(eq=False)
+class Player(Entity):
+    level: int = 1
+    xp: int = 0
+    kills: int = 0
+
+    def xp_to_next(self):
+        return 20 + 15 * (self.level - 1)
+
+    def gain_xp(self, amount):
+        """Add XP and apply any level-ups; returns the list of new levels."""
+        self.xp += amount
+        gained = []
+        while self.xp >= self.xp_to_next():
+            self.xp -= self.xp_to_next()
+            self.level += 1
+            self.max_hp += 6
+            self.hp = min(self.max_hp, self.hp + 6)
+            self.power += 1
+            if self.level % 2 == 0:
+                self.defence += 1
+            if self.level % 3 == 0:
+                self.accuracy += 1
+            gained.append(self.level)
+        return gained
+
+
+@dataclass(eq=False)
+class Monster(Entity):
+    key: str = ""
+    xp_value: int = 0
+    alerted: bool = False
+    unseen_turns: int = 0
+
+
+def new_player(x, y):
+    s = C.PLAYER_START
+    return Player(x, y, "Crawler", "@", C.PLAYER_COLOUR, s["max_hp"], s["max_hp"],
+                  s["power"], s["defence"], s["accuracy"], s["evasion"])
+
+
+# min/max floor bound where a monster appears; weight is its relative frequency.
+MONSTERS = {
+    "gnawer":   dict(name="Sewer Gnawer", glyph="r", colour=(170, 140, 110), hp=6, power=3,
+                     defence=0, accuracy=0, evasion=1, xp=3, floors=(1, 2), weight=6),
+    "goblin":   dict(name="Knockoff Goblin", glyph="g", colour=(120, 190, 80), hp=9, power=4,
+                     defence=0, accuracy=0, evasion=0, xp=5, floors=(1, 3), weight=5),
+    "vacbot":   dict(name="Feral Vacuum Bot", glyph="v", colour=(160, 170, 190), hp=12, power=5,
+                     defence=2, accuracy=0, evasion=-1, xp=8, floors=(2, 4), weight=4),
+    "skeleton": dict(name="Grumpy Skeleton", glyph="s", colour=(225, 220, 200), hp=14, power=6,
+                     defence=1, accuracy=1, evasion=0, xp=10, floors=(2, 4), weight=4),
+    "brute":    dict(name="Tunnel Brute", glyph="B", colour=(200, 120, 70), hp=24, power=8,
+                     defence=2, accuracy=1, evasion=-1, xp=18, floors=(3, 5), weight=3),
+    "cultist":  dict(name="Hex Cultist", glyph="c", colour=(190, 90, 210), hp=16, power=9,
+                     defence=1, accuracy=2, evasion=1, xp=16, floors=(3, 6), weight=3),
+    "golem":    dict(name="Flesh Golem", glyph="G", colour=(210, 130, 140), hp=40, power=11,
+                     defence=4, accuracy=1, evasion=-2, xp=35, floors=(5, 6), weight=2),
+    "stalker":  dict(name="Shadow Stalker", glyph="S", colour=(110, 110, 230), hp=26, power=12,
+                     defence=2, accuracy=3, evasion=2, xp=30, floors=(5, 6), weight=2),
+}
+
+
+def monster_table(depth):
+    """Keys and weights of monsters allowed on this floor."""
+    keys = [k for k, m in MONSTERS.items() if m["floors"][0] <= depth <= m["floors"][1]]
+    return keys, [MONSTERS[k]["weight"] for k in keys]
+
+
+def spawn_monster(key, x, y):
+    m = MONSTERS[key]
+    return Monster(x, y, m["name"], m["glyph"], m["colour"], m["hp"], m["hp"], m["power"],
+                   m["defence"], m["accuracy"], m["evasion"], key=key, xp_value=m["xp"])
