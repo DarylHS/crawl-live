@@ -34,7 +34,13 @@ def _shot(app, name):
 def test_all_scenes_draw(app):
     _shot(app, "title")
     app.handle_key(_key(pygame.K_RETURN))
-    assert app.scene == "game"
+    assert app.scene == "pet_select"
+    for ch in "Rex":
+        app.handle_key(_key(getattr(pygame, f"K_{ch.lower()}"), ch))
+    app.handle_key(_key(pygame.K_RIGHT))
+    _shot(app, "pet_select")
+    app.handle_key(_key(pygame.K_RETURN))
+    assert app.scene == "game" and app.world.pet.name == "Rex" and app.world.pet.species == "dog"
     for _ in range(4):
         app.handle_key(_key(pygame.K_RIGHT))
     _shot(app, "game")
@@ -55,10 +61,13 @@ def test_all_scenes_draw(app):
     _shot(app, "victory")
 
     app.handle_key(_key(pygame.K_RETURN))       # new run from the end screen
-    assert app.world.state == "playing"
+    assert app.scene == "pet_select"
+    app.handle_key(_key(pygame.K_RETURN))
+    assert app.world.state == "playing" and app.world.pet
 
 
 def test_item_screens_draw(app):
+    app.handle_key(_key(pygame.K_RETURN))
     app.handle_key(_key(pygame.K_RETURN))
     w = app.world
     w.inventory = ["pan", "jersey", "tonic", "popper", "sock", "elixir"]
@@ -95,3 +104,52 @@ def test_item_screens_draw(app):
 
     w.state, w.death_cause = "dead", "Killed by a unit test"
     _shot(app, "death_viewers")
+
+
+def test_phase3_screens_draw(tmp_path):
+    pygame.init()
+    app = App(screen=pygame.Surface((C.SCREEN_W, C.SCREEN_H)), seed=3,
+              save_path=tmp_path / "slot.json")
+    app.handle_key(_key(pygame.K_RETURN))
+    app.handle_key(_key(pygame.K_RETURN))                # default cat
+    w = app.world
+    w.new_floor(3)
+    app.handle_key(_key(pygame.K_PERIOD, "."))           # any key opens the class picker
+    assert app.overlay == "class"
+    _shot(app, "class_race")
+    app.handle_key(_key(pygame.K_DOWN))
+    app.handle_key(_key(pygame.K_RETURN))                # elf
+    app.handle_key(_key(pygame.K_DOWN))
+    app.handle_key(_key(pygame.K_DOWN))
+    _shot(app, "class_class")
+    app.handle_key(_key(pygame.K_RETURN))                # analyst
+    assert w.cls == "analyst" and app.overlay is None
+
+    for row in w.floor.explored:
+        row[:] = [True] * len(row)
+    w.visible = {(m.x, m.y) for m in w.monsters} | w.visible
+    w.scout_turns = 20
+    _shot(app, "scout_report")
+
+    w.pet.downed = True
+    w.inventory = ["sock", "mug", "trophy", "pan"]
+    w.player.x, w.player.y = w.floor.safe_room.centre
+    w.update_fov()
+    app.handle_key(_key(pygame.K_m, "m"))
+    _shot(app, "safe_menu_p3")
+    labels = [o[0] for o in __import__("crawler.ui.menus", fromlist=["x"]).menu_options(w)]
+    app.cursor = labels.index("craft")
+    app.handle_key(_key(pygame.K_RETURN))
+    assert app.overlay == "craft"
+    _shot(app, "craft")
+    app.handle_key(_key(pygame.K_RETURN))                # sock tea
+    assert "tonic" in w.inventory
+    app.handle_key(_key(pygame.K_ESCAPE))
+    assert app.overlay == "safe"
+    app.cursor = labels.index("save")
+    app.handle_key(_key(pygame.K_RETURN))
+    assert app.scene == "title" and (tmp_path / "slot.json").exists()
+    _shot(app, "title_with_save")
+    app.handle_key(_key(pygame.K_l, "l"))
+    assert app.scene == "game" and app.world.cls == "analyst" and app.world.pet.downed
+    pygame.quit()

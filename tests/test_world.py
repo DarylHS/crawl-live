@@ -67,10 +67,15 @@ def test_descend_moves_to_next_floor_and_resets_timer():
     assert w.depth == 2 and w.timer == C.floor_turns(2)
 
 
-def test_descend_off_final_floor_is_victory():
+def test_final_floor_needs_the_boss_dead():
     w = World(seed=7)
     w.new_floor(C.NUM_FLOORS)
     w.player.x, w.player.y = w.floor.stairs[0]
+    assert w.exit_sealed and not w.descend()
+    boss = next(m for m in w.monsters if m.boss)
+    boss.hp = 0
+    w._after_hit(boss, "melee")
+    assert not w.exit_sealed
     w.descend()
     assert w.state == "victory"
 

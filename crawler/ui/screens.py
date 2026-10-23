@@ -11,7 +11,9 @@ CONTROLS = [
     ("G", "pick up items on your tile"),
     ("I", "inventory: use, equip, drop"),
     ("R", "rest to full HP (safe rooms only)"),
-    ("M", "safe-room menu: open loot boxes, rest"),
+    ("M", "safe-room menu: boxes, crafting, revive, save"),
+    ("C", "command your pet: follow / attack / stay"),
+    ("1", "use your class skill (from floor 3)"),
     ("?", "toggle this help"),
     ("Esc", "quit to title"),
 ]
@@ -30,7 +32,7 @@ def overlay(surface, alpha=200):
     surface.blit(shade, (0, 0))
 
 
-def draw_title(r, surface):
+def draw_title(r, surface, can_load=False):
     surface.fill(C.BG)
     cx = C.SCREEN_W // 2
     r.text(surface, "CRAWL LIVE!", (cx, 200), C.ACCENT, r.huge, centre=True)
@@ -40,6 +42,8 @@ def draw_title(r, surface):
         r.text(surface, line, (cx, 330 + i * 26), C.TEXT, r.font, centre=True)
     r.text(surface, "Press Enter to start", (cx, 500), C.GOOD, r.big, centre=True)
     r.text(surface, "? for controls   Esc to quit", (cx, 534), C.TEXT_DIM, r.font, centre=True)
+    if can_load:
+        r.text(surface, "L to continue your saved run", (cx, 562), C.INFO, r.font, centre=True)
 
 
 def draw_help(r, surface):

@@ -8,10 +8,13 @@ from collections import deque
 
 from . import config as C
 from .achievements import Achievements
-from .ai import take_monster_turns
+from .ai import cheb, take_monster_turns, take_pet_turn
+from .bosses import BOSSES, PHASE_TWO, boss_depth, spawn_boss
+from .classes import CHOICE_FLOOR, CLASSES, RACES, SKILLS, apply_choice
 from .combat import attack
-from .dungeon import STAIRS, compute_fov, generate_floor
-from .entities import monster_table, new_player, spawn_monster
+from .crafting import CRAFT_TURNS, RECIPES, can_craft
+from .dungeon import NEIGHBOURS_8, STAIRS, compute_fov, generate_floor
+from .entities import PETS, monster_table, new_pet, new_player, spawn_monster
 from .events import EventBus
 from .items import ITEMS, STAT_BONUSES, floor_loot_table
 from .loot import BOX_TIERS, roll_box
@@ -30,7 +33,10 @@ class MessageLog:
 
 
 class World:
-    def __init__(self, seed=None):
+    PET_MODES = ("follow", "attack", "stay")
+
+    def __init__(self, seed=None, pet=None):
+        """pet is (species, name) or None for a run without a companion."""
         self.seed = seed if seed is not None else random.randrange(1 << 30)
         self.rng = random.Random(self.seed)
         self.events = EventBus()
@@ -47,6 +53,12 @@ class World:
         self.loot_rng = random.Random(self.seed ^ 0x100F)
         self.last_reveal = None         # (tier, item key) of the latest box opened
         self.toasts = []                # (turn, text, tier)
+        self.pet = new_pet(pet[0], pet[1], 0, 0) if pet else None
+        self.race = self.cls = None
+        self.pending_choice = False     # the UI shows the class picker while True
+        self.skill_cooldown = 0
+        self.scout_turns = 0            # Analyst's Scout Report display time left
+        self.exit_sealed = False
         self.achievements = Achievements(self)
         self.showrunner = Showrunner(self)
         self.new_floor(1)
@@ -54,6 +66,15 @@ class World:
     @property
     def viewers(self):
         return self.showrunner.viewers
+
+    @property
+    def active_pet(self):
+        """The pet if it's on the map and able to act."""
+        return self.pet if self.pet and not self.pet.downed else None
+
+    @property
+    def skill(self):
+        return CLASSES[self.cls]["skill"] if self.cls else None
 
     # --- Floors --------------------------------------------------------
 
@@ -67,10 +88,18 @@ class World:
         self.floor_items = {}
         self._spawn_monsters()
         self._spawn_items()
+        self._spawn_boss()
+        self.exit_sealed = depth == C.NUM_FLOORS
+        self._place_pet()
         self._was_safe = False
         self.update_fov()
         self.messages.add(f"Floor {depth}. It collapses in {self.timer_text()}. Find the stairs.",
                           C.ACCENT)
+        if self.exit_sealed:
+            self.messages.add(f"The exits are sealed until {BOSSES[depth]['name']} falls.",
+                              C.DANGER)
+        if depth >= CHOICE_FLOOR and not self.cls:
+            self.pending_choice = True
         self.events.emit("floor_start", depth=depth, turn=self.turn)
 
     def _spawn_monsters(self):
@@ -94,6 +123,29 @@ class World:
             self.floor_items.setdefault(self.rng.choice(spots), []).append(
                 self.rng.choices(keys, weights)[0])
 
+    def _spawn_boss(self):
+        """The boss waits beside the furthest stairwell."""
+        floor = self.floor
+        sx, sy = floor.stairs[-1]
+        room = next(r for r in floor.rooms if r.contains(sx, sy))
+        taken = {(m.x, m.y) for m in self.monsters}
+        spots = [(x, y) for x, y in room.tiles()
+                 if floor.tiles[y][x] != STAIRS and (x, y) not in taken]
+        x, y = min(spots, key=lambda s: (max(abs(s[0] - sx), abs(s[1] - sy)), s))
+        self.monsters.append(spawn_boss(self.depth, x, y))
+
+    def _place_pet(self):
+        pet = self.active_pet
+        if not pet:
+            return
+        p = self.player
+        for dx, dy in NEIGHBOURS_8:
+            x, y = p.x + dx, p.y + dy
+            if self.floor.walkable(x, y) and not self.monster_at(x, y):
+                pet.x, pet.y = x, y
+                return
+        pet.x, pet.y = p.x, p.y          # boxed in: share the tile until it can move
+
     def update_fov(self):
         self.visible = compute_fov(self.floor, self.player.x, self.player.y)
         explored = self.floor.explored
@@ -101,6 +153,10 @@ class World:
             explored[y][x] = True
 
     # --- Queries -------------------------------------------------------
+
+    def pet_at(self, x, y):
+        pet = self.active_pet
+        return pet if pet and (pet.x, pet.y) == (x, y) else None
 
     def monster_at(self, x, y):
         for m in self.monsters:
@@ -134,6 +190,10 @@ class World:
                                   C.TEXT_DIM)
                 return False
             self._player_attack(target)
+        elif self.pet_at(tx, ty):
+            pet = self.pet
+            pet.x, pet.y, p.x, p.y = p.x, p.y, tx, ty       # swap places
+            self._on_enter_tile()
         elif self.floor.walkable(tx, ty):
             p.x, p.y = tx, ty
             self._on_enter_tile()
@@ -153,6 +213,10 @@ class World:
             return False
         if not self.on_stairs:
             self.messages.add("There are no stairs here.", C.TEXT_DIM)
+            return False
+        if self.exit_sealed:
+            self.messages.add(f"The exit is sealed. Defeat {BOSSES[self.depth]['name']} first.",
+                              C.DANGER)
             return False
         self.events.emit("descend", depth=self.depth, turn=self.turn,
                          timer_left=self.timer, timer_max=self.timer_max)
@@ -183,10 +247,166 @@ class World:
             p.heal(1)
             self._tick_clock()
         spent = self.turn - start_turn
+        if self.active_pet:
+            self.pet.hp = self.pet.max_hp
         self.messages.add(f"You rest for {self.timer_text(spent)} and recover "
                           f"{p.hp - start_hp} HP.", C.GOOD)
         self.events.emit("rest", turns=spent, healed=p.hp - start_hp)
         self.update_fov()
+        return True
+
+    def _spend_turns(self, n):
+        """Pass time without monsters acting (safe-room activities)."""
+        for _ in range(n):
+            if self.state != "playing":
+                return
+            self._tick_clock()
+
+    def _safe_room_activity_ok(self, turns):
+        if self.state != "playing":
+            return False
+        if not self.in_safe_room:
+            self.messages.add("You can only do that in a safe room.", C.TEXT_DIM)
+            return False
+        if self.timer <= turns + C.REST_MIN_TIMER:
+            self.messages.add("No time for that. The floor is coming down!", C.DANGER)
+            return False
+        return True
+
+    def craft(self, index):
+        """Craft recipe RECIPES[index] at the safe-room bench."""
+        recipe = RECIPES[index]
+        if not self._safe_room_activity_ok(CRAFT_TURNS):
+            return False
+        if not can_craft(recipe, self.inventory):
+            self.messages.add(f"You're missing parts for {recipe['name']}.", C.TEXT_DIM)
+            return False
+        for key in recipe["needs"]:
+            self.inventory.remove(key)
+        self.inventory.append(recipe["makes"])
+        self._spend_turns(CRAFT_TURNS)
+        self.messages.add(f"You craft {recipe['name']}: {ITEMS[recipe['makes']]['name']}.",
+                          C.GOOD)
+        self.events.emit("craft", recipe=recipe["key"], item=recipe["makes"])
+        return True
+
+    # --- Companion -----------------------------------------------------
+
+    def command_pet(self):
+        """Cycle the pet's mode. Free action."""
+        pet = self.pet
+        if not pet:
+            return False
+        pet.mode = self.PET_MODES[(self.PET_MODES.index(pet.mode) + 1) % len(self.PET_MODES)]
+        what = {"follow": "will follow you and defend itself",
+                "attack": "will hunt anything you can see",
+                "stay": "will hold its position"}[pet.mode]
+        self.messages.add(f"{pet.name} {what}.", C.INFO)
+        return True
+
+    def revive_pet(self):
+        pet = self.pet
+        if not pet or not pet.downed:
+            return False
+        if not self._safe_room_activity_ok(C.PET_REVIVE_TURNS):
+            return False
+        self._spend_turns(C.PET_REVIVE_TURNS)
+        pet.downed, pet.hp, pet.cooldown, pet.mode = False, pet.max_hp, 0, "follow"
+        self._place_pet()
+        self.messages.add(f"{pet.name} is back on its feet and annoyed about it.", C.GOOD)
+        self.events.emit("pet_revived", pet=pet.name)
+        return True
+
+    def pet_attack(self, target, mult=1, verb="hits"):
+        pet = self.pet
+        res = attack(pet, target, self.rng, mult=mult)
+        if not res.hit:
+            self.messages.add(f"{pet.name} misses the {target.name}.", C.TEXT_DIM)
+            return
+        self.messages.add(f"{pet.name} {verb} the {target.name} for {res.damage}.", pet.colour)
+        self._after_hit(target, "pet")
+
+    def pet_pounce(self, target):
+        pet = self.pet
+        pet.cooldown = PETS[pet.species]["cooldown"]
+        self.events.emit("pet_ability", pet=pet.name, ability="Pounce")
+        self.pet_attack(target, mult=2, verb="pounces on")
+
+    def pet_lick(self):
+        pet, p = self.pet, self.player
+        pet.cooldown = PETS[pet.species]["cooldown"]
+        healed = p.heal(4 + 2 * pet.level)
+        self.messages.add(f"{pet.name} licks your wounds. You recover {healed} HP. Gross.",
+                          C.GOOD)
+        self.events.emit("pet_ability", pet=pet.name, ability="Lick Wounds")
+
+    def monster_attack_pet(self, monster):
+        pet = self.pet
+        res = attack(monster, pet, self.rng)
+        if not res.hit:
+            return
+        self.messages.add(f"The {monster.name} hits {pet.name} for {res.damage}.", C.DANGER)
+        if res.killed:
+            pet.downed = True
+            self.messages.add(f"{pet.name} is down! Revive them in a safe room.", C.DANGER)
+            self.events.emit("pet_downed", pet=pet.name, depth=self.depth)
+
+    # --- Class & skills ------------------------------------------------
+
+    def choose_class(self, race, cls):
+        if race not in RACES or cls not in CLASSES or self.cls:
+            return False
+        apply_choice(self.player, race, cls)
+        self.race, self.cls, self.pending_choice = race, cls, False
+        name = f"{RACES[race]['name']} {CLASSES[cls]['name']}"
+        article = "an" if name[0] in "AEIOU" else "a"
+        self.messages.add(f"You are now {article} {name}. Press 1 for "
+                          f"{SKILLS[self.skill]['name']}.", C.ACCENT)
+        self.events.emit("class_chosen", race=race, cls=cls, title=name)
+        return True
+
+    def use_skill(self):
+        if self.state != "playing":
+            return False
+        if not self.cls:
+            self.messages.add(f"You get a class on floor {CHOICE_FLOOR}.", C.TEXT_DIM)
+            return False
+        key = self.skill
+        spec = SKILLS[key]
+        if self.skill_cooldown:
+            self.messages.add(f"{spec['name']} is recharging ({self.skill_cooldown} turns).",
+                              C.TEXT_DIM)
+            return False
+        if key != "scout_report" and self.in_safe_room:
+            self.messages.add("The System forbids violence in safe rooms.", C.TEXT_DIM)
+            return False
+        p = self.player
+        if key == "haymaker":
+            adjacent = [m for m in self.monsters if cheb(m, p) == 1]
+            if not adjacent:
+                self.messages.add("Nobody close enough to punch.", C.TEXT_DIM)
+                return False
+            target = min(adjacent, key=lambda m: m.hp)
+            res = attack(p, target, self.rng, mult=2, sure=True)
+            self.messages.add(f"HAYMAKER! The {target.name} takes {res.damage}.", C.ACCENT)
+            self._after_hit(target, "skill")
+        elif key == "arc_bolt":
+            seen = [m for m in self.monsters if (m.x, m.y) in self.visible
+                    and cheb(m, p) <= spec["range"]]
+            if not seen:
+                self.messages.add("No target in range.", C.TEXT_DIM)
+                return False
+            target = min(seen, key=lambda m: cheb(m, p))
+            dmg = target.take_damage(8 + 2 * p.level)
+            self.messages.add(f"Arc Bolt crackles into the {target.name} for {dmg}.", C.INFO)
+            self._after_hit(target, "skill")
+        else:
+            self.scout_turns = spec["duration"]
+            self.messages.add("Scout Report: odds are on the panel for the next 20 turns.",
+                              C.INFO)
+        self.skill_cooldown = spec["cooldown"]
+        self.events.emit("skill", skill=key)
+        self.end_turn()
         return True
 
     # --- Items ---------------------------------------------------------
@@ -302,9 +522,8 @@ class World:
             if max(abs(m.x - target.x), abs(m.y - target.y)) <= item["radius"]:
                 m.take_damage(item["damage"])
                 m.alerted = True
-                if not m.alive:
-                    self._kill_monster(m, "bomb")
-                    killed += 1
+                killed += not m.alive
+                self._after_hit(m, "bomb")
         self.events.emit("bomb", item=key, kills=killed)
         return True
 
@@ -346,16 +565,59 @@ class World:
         crit = " Critical hit!" if res.crit else ""
         self.messages.add(f"You hit the {target.name} for {res.damage}.{crit}")
         self.events.emit("player_hit", target=target.key, damage=res.damage, crit=res.crit)
-        if res.killed:
-            self._kill_monster(target, "melee")
+        self._after_hit(target, "melee")
+
+    def _after_hit(self, target, by):
+        """Kill the monster if it's dead, otherwise check for a boss phase change."""
+        if target not in self.monsters:
+            return
+        if not target.alive:
+            self._kill_monster(target, by)
+        elif target.boss and target.phase == 1 and target.hp <= target.max_hp // 2 \
+                and BOSSES[boss_depth(target)].get("final"):
+            self._boss_phase_two(target)
+
+    def _boss_phase_two(self, boss):
+        boss.phase = 2
+        boss.power += PHASE_TWO["power_bonus"]
+        boss.ranged = PHASE_TWO["ranged"]
+        taken = {(m.x, m.y) for m in self.monsters} | {(self.player.x, self.player.y)}
+        if self.active_pet:
+            taken.add((self.pet.x, self.pet.y))
+        spots = [(boss.x + dx, boss.y + dy) for dx, dy in NEIGHBOURS_8
+                 if self.floor.walkable(boss.x + dx, boss.y + dy)
+                 and not self.floor.is_safe(boss.x + dx, boss.y + dy)
+                 and (boss.x + dx, boss.y + dy) not in taken]
+        for key, (x, y) in zip(PHASE_TWO["adds"], spots):
+            add = spawn_monster(key, x, y)
+            add.alerted = True
+            self.monsters.append(add)
+        self.messages.add(f"{boss.name} roars: 'Security! Get me SECURITY!'", C.DANGER)
+        self.events.emit("boss_phase", boss=boss.name, phase=2)
 
     def _kill_monster(self, target, by):
         p = self.player
         self.monsters.remove(target)
         p.kills += 1
         self.messages.add(f"The {target.name} dies.", C.GOOD)
-        self.events.emit("kill", monster=target.key, depth=self.depth, turn=self.turn, by=by,
+        self.events.emit("kill", monster=target.key, monster_name=target.name, xp=target.xp_value,
+                         boss=target.boss, depth=self.depth, turn=self.turn, by=by,
                          player_hp=p.hp, player_max_hp=p.max_hp)
+        pet = self.active_pet
+        if pet:
+            if by == "pet":
+                pet.kills += 1
+                self.events.emit("pet_kill", pet=pet.name, monster_name=target.name)
+            for level in pet.gain_xp(target.xp_value if by == "pet" else target.xp_value // 2):
+                self.messages.add(f"{pet.name} is now level {level}.", pet.colour)
+                self.events.emit("pet_level_up", pet=pet.name, level=level)
+        if target.boss:
+            b = BOSSES[boss_depth(target)]
+            self.events.emit("boss_kill", boss=target.name, depth=self.depth)
+            self.add_box(b["box"], "boss")
+            if b.get("final"):
+                self.exit_sealed = False
+                self.messages.add("The exits unseal. Get out!", C.GOOD)
         if self.loot_rng.random() < C.ITEM_DROP_CHANCE:
             keys, weights = floor_loot_table(self.depth)
             self.floor_items.setdefault((target.x, target.y), []).append(
@@ -364,15 +626,18 @@ class World:
             self.messages.add(f"Level up! You are now level {level}.", C.ACCENT)
             self.events.emit("level_up", level=level)
 
-    def monster_attack(self, monster):
+    def monster_attack(self, monster, ranged=False):
         p = self.player
         res = attack(monster, p, self.rng)
+        how = "shoots" if ranged else "hits"
         if not res.hit:
-            self.messages.add(f"The {monster.name} misses you.", C.TEXT_DIM)
+            self.messages.add(f"The {monster.name} {'shoots and ' if ranged else ''}misses you.",
+                              C.TEXT_DIM)
             return
         crit = " A brutal crit!" if res.crit else ""
-        self.messages.add(f"The {monster.name} hits you for {res.damage}.{crit}", C.DANGER)
-        self.events.emit("damage_taken", source=monster.key, damage=res.damage, hp=p.hp)
+        self.messages.add(f"The {monster.name} {how} you for {res.damage}.{crit}", C.DANGER)
+        self.events.emit("damage_taken", source=monster.key, damage=res.damage, hp=p.hp,
+                         ranged=ranged)
         if res.killed:
             self._kill_player(f"Killed by a {monster.name} on floor {self.depth}")
 
@@ -403,6 +668,12 @@ class World:
         p = self.player
         if self.turn % C.REGEN_INTERVAL == 0:
             p.heal(1)
+            if self.active_pet:
+                self.pet.heal(1)
+        if self.skill_cooldown:
+            self.skill_cooldown -= 1
+        if self.scout_turns:
+            self.scout_turns -= 1
         while self._warnings_left and self.timer <= self._warnings_left[0] * self.timer_max:
             self._warnings_left.pop(0)
             self.messages.add(f"WARNING: floor collapse in {self.timer_text()}.", C.DANGER)
@@ -414,6 +685,7 @@ class World:
         # FOV depends only on the player's position, so one update per turn
         # (before monsters act, since sight is what alerts them) is enough.
         self.update_fov()
+        take_pet_turn(self)
         take_monster_turns(self)
         if self.state == "playing":
             self._tick_clock()

@@ -2,7 +2,10 @@
 import pygame
 
 from .. import config as C
+from ..classes import CLASSES, RACES, SKILLS
+from ..combat import expected_damage, hit_chance
 from ..dungeon import STAIRS, WALL
+from ..entities import PETS
 from ..items import ITEMS, glyph
 from ..loot import BOX_TIERS
 
@@ -63,10 +66,15 @@ class Renderer:
                 self._blit_glyph(surface, glyph(keys[-1]), ITEMS[keys[-1]]["colour"], x, y)
         for m in world.monsters:
             if (m.x, m.y) in visible:
+                if m.boss:
+                    pygame.draw.rect(surface, C.DANGER, (m.x * T, m.y * T, T, T), 1)
                 self._blit_glyph(surface, m.glyph, m.colour, m.x, m.y)
                 if m.hp < m.max_hp:
                     w = int((T - 2) * m.hp / m.max_hp)
                     surface.fill(C.DANGER, (m.x * T + 1, m.y * T + T - 2, w, 2))
+        pet = world.active_pet
+        if pet:
+            self._blit_glyph(surface, pet.glyph, pet.colour, pet.x, pet.y)
         p = world.player
         self._blit_glyph(surface, p.glyph, p.colour, p.x, p.y)
 
@@ -110,6 +118,25 @@ class Renderer:
             self.text(surface, str(value), (x + w - self.font.size(str(value))[0], y))
             y += 20
 
+        y += 4
+        if world.cls:
+            skill = SKILLS[world.skill]
+            ready = (f"{world.skill_cooldown} turns" if world.skill_cooldown else "ready")
+            self.text(surface, f"{RACES[world.race]['name']} {CLASSES[world.cls]['name']}",
+                      (x, y), C.ACCENT, self.small)
+            self.text(surface, f"1: {skill['name']} ({ready})", (x, y + 16),
+                      C.TEXT if not world.skill_cooldown else C.TEXT_DIM, self.small)
+            y += 36
+        pet = world.pet
+        if pet:
+            status = "DOWN: revive in a safe room" if pet.downed else \
+                f"HP {pet.hp}/{pet.max_hp}   mode: {pet.mode}"
+            self.text(surface, f"{pet.name}, L{pet.level} {PETS[pet.species]['name']}", (x, y),
+                      pet.colour, self.small)
+            self.text(surface, status, (x, y + 16), C.DANGER if pet.downed else C.TEXT_DIM,
+                      self.small)
+            y += 36
+
         if world.boxes:
             x2 = x
             for tier in BOX_TIERS:
@@ -123,13 +150,34 @@ class Renderer:
         if world.in_safe_room:
             self.text(surface, "SAFE ROOM", (x, y), C.GOOD, self.big)
             y += 26
-            self.text(surface, "R: rest   M: menu (boxes)", (x, y), C.TEXT_DIM, self.small)
+            self.text(surface, "R: rest   M: menu", (x, y), C.TEXT_DIM, self.small)
+            y += 16
         elif world.on_stairs:
             self.text(surface, "STAIRWELL", (x, y), C.ACCENT, self.big)
             y += 26
             self.text(surface, "> or Enter: descend", (x, y), C.TEXT_DIM, self.small)
+            y += 16
+        if world.scout_turns:
+            self.draw_scout_report(surface, world, x, y + 14, w)
 
         self.text(surface, "I pack G get ? help", (x, C.SCREEN_H - 26), C.TEXT_DIM, self.small)
+
+    def draw_scout_report(self, surface, world, x, y, w):
+        """Analyst skill: exact odds both ways for each visible monster."""
+        p = world.player
+        self.text(surface, f"SCOUT REPORT ({world.scout_turns})", (x, y), C.INFO, self.small)
+        y += 18
+        seen = sorted((m for m in world.monsters if (m.x, m.y) in world.visible),
+                      key=lambda m: max(abs(m.x - p.x), abs(m.y - p.y)))
+        if not seen:
+            self.text(surface, "Nothing in sight.", (x, y), C.TEXT_DIM, self.small)
+        for m in seen[:4]:
+            self.text(surface, f"{m.glyph} {m.name}  {m.hp}/{m.max_hp}", (x, y), m.colour,
+                      self.small)
+            self.text(surface, f"you {hit_chance(p, m):.0%} ~{expected_damage(p, m):.1f}  "
+                               f"it {hit_chance(m, p):.0%} ~{expected_damage(m, p):.1f}",
+                      (x, y + 15), C.TEXT_DIM, self.small)
+            y += 34
 
     # --- Log -----------------------------------------------------------
 

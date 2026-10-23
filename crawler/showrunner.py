@@ -118,6 +118,48 @@ LINES = {
         "A tragic finale. The sponsors send flowers.",
         "The System regrets nothing.",
     ],
+    "pet_kill": [
+        "{pet} claims a {name}. The pet merch is selling out.",
+        "{pet} did that. You were mostly decorative.",
+        "A {name}, mauled by {pet}. Adorable and horrifying.",
+        "{pet} gets the kill. Polls show viewers prefer {pet} to you.",
+        "{pet} just carried the episode.",
+    ],
+    "pet_downed": [
+        "{pet} is down! The audience gasps on cue.",
+        "Somebody get {pet} to a safe room. The ratings depend on it.",
+        "{pet} has fallen. The comments section is furious with you.",
+        "Losing {pet}? Bold creative choice.",
+        "{pet} needs a nap and a lawyer.",
+    ],
+    "pet_ability": [
+        "{pet} uses {ability}. Somebody clip that.",
+        "{ability}! {pet} is the real contestant here.",
+        "{pet} with the {ability}. Chef's kiss.",
+        "{ability}, courtesy of {pet}. Sponsors are taking notes.",
+        "{pet} remembers it has a special move: {ability}.",
+    ],
+    "boss_phase": [
+        "{boss} is ANGRY now. Excellent television.",
+        "Phase two! {boss} has called in favours.",
+        "{boss} rips off the polite mask. Finally.",
+        "And {boss} gets serious. Popcorn sales spike.",
+        "{boss} demands reinforcements and a bigger trailer.",
+    ],
+    "boss_kill": [
+        "{boss} is down! That was the expensive set piece.",
+        "You beat {boss}. The writers are scrambling.",
+        "{boss}: defeated. Somebody's getting fired upstairs.",
+        "The crowd roars. {boss} will be missed by its agent.",
+        "{boss} falls. Viewers are standing on their chairs.",
+    ],
+    "class_chosen": [
+        "{title}. Bold. Let's see if it lasts.",
+        "{title}, is it? The betting markets have adjusted.",
+        "Welcome, {title}. Your contract is non-negotiable.",
+        "{title}: an inspired choice, said nobody yet.",
+        "The System registers your class: {title}. No refunds.",
+    ],
     "victory": [
         "You survived. The producers are furious.",
         "Escape confirmed. Ratings: acceptable.",
@@ -141,7 +183,7 @@ class Showrunner:
         for ev in LINES:
             if ev not in ("multi_kill", "clutch"):
                 world.events.subscribe(ev, self._announce)
-        for ev in ("kill", "level_up", "descend", "achievement", "floor_start"):
+        for ev in ("kill", "level_up", "descend", "achievement", "floor_start", "boss_kill"):
             world.events.subscribe(ev, self._viewers)
         world.events.subscribe("turn", self._idle)
 
@@ -160,7 +202,8 @@ class Showrunner:
     def _viewers(self, name, d):
         w = self.world
         if name == "kill":
-            gain = 5 + 2 * MONSTERS[d["monster"]]["xp"]
+            xp = d["xp"] if "xp" in d else MONSTERS[d["monster"]]["xp"]
+            gain = 5 + 2 * xp + (15 if d.get("by") == "pet" else 0)
             self._kill_turns = [t for t in self._kill_turns if w.turn - t <= MULTI_WINDOW]
             self._kill_turns.append(w.turn)
             if len(self._kill_turns) >= 2:
@@ -177,6 +220,8 @@ class Showrunner:
         elif name == "descend":
             late = d["timer_left"] < 0.25 * d["timer_max"]
             self._gain(100 if late else 30)
+        elif name == "boss_kill":
+            self._gain(150)
         elif name == "floor_start":
             self.history.append((d["turn"], self.viewers))
 
@@ -197,7 +242,9 @@ class Showrunner:
         if self.rng.random() >= SPEAK_CHANCE.get(name, 1.0):
             return
         ctx = dict(d)
-        if "monster" in d:
+        if "monster_name" in d:
+            ctx["name"] = d["monster_name"]
+        elif "monster" in d:
             ctx["name"] = MONSTERS[d["monster"]]["name"]
         if "tier" in d:
             ctx["tier"] = d["tier"].capitalize()

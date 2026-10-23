@@ -43,11 +43,13 @@ CRIT_CHANCE = 0.05
 DAMAGE_SPREAD = 2            # base roll is power +/- this
 MONSTER_LOSE_TRACK = 10      # turns out of sight before a monster gives up
 MONSTER_WANDER_CHANCE = 0.25
+RANGED_ATTACK_CHANCE = 0.6   # chance a ranged monster in range shoots instead of closing in
+PET_REVIVE_TURNS = 30        # floor time spent reviving a downed pet in a safe room
 
 # --- Items & loot -------------------------------------------------------
 INVENTORY_SIZE = 16
 ITEM_DROP_CHANCE = 0.08      # chance a dying monster drops an item
-FLOOR_ITEM_CHANCE = 0.35     # chance each non-start room holds an item
+FLOOR_ITEM_CHANCE = 0.30     # chance each non-start room holds an item
 BOMB_RANGE = 6               # how far away a bomb can be thrown
 TOAST_TURNS = 8              # how long an achievement toast stays up
 

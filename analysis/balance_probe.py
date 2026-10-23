@@ -2,7 +2,9 @@
 safe room when hurt, then heads for the nearest stairs. Grows into
 analysis/bot.py in Phase 5.
 
-Usage: python analysis/balance_probe.py [runs]
+Usage: python analysis/balance_probe.py [runs] [cat|dog|none]
+
+Race and class rotate with the seed so every combination gets played.
 """
 import sys
 from collections import Counter
@@ -73,6 +75,11 @@ def choose(w):
                                     if (m.x, m.y) in w.visible):
             return ("use", bomb)
     adj = [m for m in w.monsters if cheb((m.x, m.y), pos) == 1]
+    if w.cls and not w.skill_cooldown and not w.in_safe_room:
+        seen_near = [m for m in w.monsters if (m.x, m.y) in w.visible and cheb((m.x, m.y), pos) <= 6]
+        if (w.skill == "haymaker" and adj) or (w.skill == "arc_bolt" and seen_near) \
+                or (w.skill == "scout_report" and seen_near and not w.scout_turns):
+            return ("skill", None)
     if adj and not w.in_safe_room:
         return ("move", (adj[0].x - p.x, adj[0].y - p.y))
     if w.on_stairs and (w.timer < w.timer_max * 0.4 or all(f.explored[r.centre[1]][r.centre[0]] for r in f.rooms)):
@@ -85,11 +92,18 @@ def choose(w):
             return ("move", mv)
     if hurt and w.in_safe_room and w.timer > 120:
         return ("rest", None)
+    if w.in_safe_room and w.pet and w.pet.downed and w.timer > 150:
+        return ("revive", None)
     target = None
+    boss = next((m for m in w.monsters if m.boss), None)
     if hurt and w.timer > 200:
         target = f.safe_room.centre
+    elif w.exit_sealed and boss:
+        target = (boss.x, boss.y)
     elif w.timer > w.timer_max * 0.4:
-        seen = [m for m in w.monsters if (m.x, m.y) in w.visible]
+        # Bosses are optional before the last floor: only take them on when healthy.
+        seen = [m for m in w.monsters if (m.x, m.y) in w.visible
+                and (not m.boss or p.hp > p.max_hp * 0.8)]
         if seen:
             target = (seen[0].x, seen[0].y)
         else:
@@ -104,9 +118,15 @@ def choose(w):
     return ("move", mv) if mv else ("wait", None)
 
 
-def play(seed):
-    w = World(seed)
+RACES = ("human", "elf")
+CLASSES = ("brawler", "arcanist", "analyst")
+
+
+def play(seed, pet="cat"):
+    w = World(seed, pet=(pet, "") if pet != "none" else None)
     while w.state == "playing":
+        if w.pending_choice:
+            w.choose_class(RACES[seed % 2], CLASSES[seed % 3])
         manage_items(w)
         act, arg = choose(w)
         if act == "move":
@@ -119,6 +139,10 @@ def play(seed):
             ok = w.pickup()
         elif act == "use":
             ok = w.use_item(arg)
+        elif act == "skill":
+            ok = w.use_skill()
+        elif act == "revive":
+            ok = w.revive_pet()
         else:
             ok = w.wait()
         if not ok:
@@ -128,9 +152,14 @@ def play(seed):
 
 if __name__ == "__main__":
     n = int(sys.argv[1]) if len(sys.argv) > 1 else 200
+    pet = sys.argv[2] if len(sys.argv) > 2 else "cat"
     outcome, levels, viewers, unlocked = Counter(), Counter(), [], Counter()
+    class_runs, class_wins = Counter(), Counter()
     for seed in range(n):
-        w = play(seed)
+        w = play(seed, pet)
+        if w.cls:
+            class_runs[w.cls] += 1
+            class_wins[w.cls] += w.state == "victory"
         key = "victory" if w.state == "victory" else (
             f"floor {w.depth} " + ("collapse" if "collapsed" in w.death_cause else "killed"))
         outcome[key] += 1
@@ -142,3 +171,6 @@ if __name__ == "__main__":
     viewers.sort()
     print(f"viewers: median {viewers[n // 2]:,}, p90 {viewers[n * 9 // 10]:,}, max {viewers[-1]:,}")
     print("achievements:", ", ".join(f"{k} {v / n:.0%}" for k, v in sorted(unlocked.items())))
+    print("win rate by class (runs reaching floor 3):",
+          ", ".join(f"{c} {class_wins[c] / class_runs[c]:.0%} of {class_runs[c]}"
+                    for c in sorted(class_runs)))

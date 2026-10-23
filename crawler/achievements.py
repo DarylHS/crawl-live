@@ -35,6 +35,10 @@ ACHIEVEMENTS = {
                           test=lambda t, d: {"weapon", "armour"} <= t.equipped),
     "demolition":    dict(name="Demolition", desc="Kill two or more monsters with one bomb.",
                           tier="silver", on="bomb", test=lambda t, d: d["kills"] >= 2),
+    "giant_slayer":  dict(name="Giant Slayer", desc="Defeat a floor boss.", tier="gold",
+                          on="boss_kill", test=lambda t, d: True),
+    "best_friends":  dict(name="Best Friends", desc="Get your pet to level 3.", tier="silver",
+                          on="pet_level_up", test=lambda t, d: d["level"] >= 3),
 }
 
 

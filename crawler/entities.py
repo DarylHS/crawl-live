@@ -69,6 +69,38 @@ class Monster(Entity):
     xp_value: int = 0
     alerted: bool = False
     unseen_turns: int = 0
+    ranged: int = 0                 # attack range in tiles; 0 = melee only
+    boss: bool = False
+    phase: int = 1                  # bosses change behaviour as they lose HP
+
+
+@dataclass(eq=False)
+class Pet(Entity):
+    species: str = ""
+    level: int = 1
+    xp: int = 0
+    kills: int = 0
+    mode: str = "follow"            # "follow" | "stay" | "attack"
+    cooldown: int = 0               # turns until the ability is ready
+    downed: bool = False
+
+    def xp_to_next(self):
+        return 15 + 10 * (self.level - 1)
+
+    def gain_xp(self, amount):
+        """Add XP and apply level-ups; returns the list of new levels."""
+        self.xp += amount
+        gained = []
+        while self.xp >= self.xp_to_next():
+            self.xp -= self.xp_to_next()
+            self.level += 1
+            self.max_hp += 4
+            self.hp = min(self.max_hp, self.hp + 4)
+            self.power += 1
+            if self.level % 3 == 0:
+                self.defence += 1
+            gained.append(self.level)
+        return gained
 
 
 def new_player(x, y):
@@ -90,7 +122,7 @@ MONSTERS = {
     "brute":    dict(name="Tunnel Brute", glyph="B", colour=(200, 120, 70), hp=24, power=8,
                      defence=2, accuracy=1, evasion=-1, xp=18, floors=(3, 5), weight=3),
     "cultist":  dict(name="Hex Cultist", glyph="c", colour=(190, 90, 210), hp=16, power=9,
-                     defence=1, accuracy=2, evasion=1, xp=16, floors=(3, 6), weight=3),
+                     defence=1, accuracy=2, evasion=1, xp=16, floors=(3, 6), weight=3, ranged=5),
     "golem":    dict(name="Flesh Golem", glyph="G", colour=(210, 130, 140), hp=40, power=11,
                      defence=4, accuracy=1, evasion=-2, xp=35, floors=(5, 6), weight=2),
     "stalker":  dict(name="Shadow Stalker", glyph="S", colour=(110, 110, 230), hp=26, power=12,
@@ -107,4 +139,24 @@ def monster_table(depth):
 def spawn_monster(key, x, y):
     m = MONSTERS[key]
     return Monster(x, y, m["name"], m["glyph"], m["colour"], m["hp"], m["hp"], m["power"],
-                   m["defence"], m["accuracy"], m["evasion"], key=key, xp_value=m["xp"])
+                   m["defence"], m["accuracy"], m["evasion"], key=key, xp_value=m["xp"],
+                   ranged=m.get("ranged", 0))
+
+
+# Companion species. ability is handled in ai.take_pet_turn.
+PETS = {
+    "cat": dict(name="Alley Cat", glyph="f", colour=(240, 180, 90), hp=16, power=4, defence=0,
+                accuracy=1, evasion=2, default_name="Mittens",
+                ability="pounce", ability_name="Pounce", cooldown=16,
+                desc="Fast and vain. Pounce: leaps up to 3 tiles onto a monster for double damage."),
+    "dog": dict(name="Scruffy Dog", glyph="d", colour=(200, 150, 110), hp=22, power=4, defence=1,
+                accuracy=0, evasion=0, default_name="Biscuit",
+                ability="lick", ability_name="Lick Wounds", cooldown=25,
+                desc="Loyal and sturdy. Lick Wounds: heals you when you're under half HP."),
+}
+
+
+def new_pet(species, name, x, y):
+    s = PETS[species]
+    return Pet(x, y, name or s["default_name"], s["glyph"], s["colour"], s["hp"], s["hp"],
+               s["power"], s["defence"], s["accuracy"], s["evasion"], species=species)
