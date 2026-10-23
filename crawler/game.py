@@ -119,7 +119,8 @@ class App:
         if key == pygame.K_ESCAPE:
             self.scene = "title"
         elif key in (pygame.K_LEFT, pygame.K_RIGHT, pygame.K_TAB):
-            self.pet_idx = (self.pet_idx + 1) % len(species)
+            step = -1 if key == pygame.K_LEFT else 1
+            self.pet_idx = (self.pet_idx + step) % len(species)
         elif key in DESCEND_KEYS:
             self.start_run((species[self.pet_idx], self.pet_name.strip()))
         elif key == pygame.K_BACKSPACE:

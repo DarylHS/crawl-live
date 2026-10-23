@@ -149,20 +149,23 @@ def draw_pet_select(r, surface, species_idx, name):
     r.text(surface, "PICK YOUR COMPANION", (cx, 140), C.ACCENT, r.big, centre=True)
     r.text(surface, "Every contestant gets one. It's in the contract.", (cx, 172), C.TEXT_DIM,
            r.font, centre=True)
+    box_w, gap = 260, 20
+    left = cx - (len(PETS) * box_w + (len(PETS) - 1) * gap) // 2
     for i, (key, spec) in enumerate(PETS.items()):
-        x = cx - 300 + i * 320
+        x = left + i * (box_w + gap)
         sel = i == species_idx
-        pygame.draw.rect(surface, C.ACCENT if sel else C.WALL_DIM, (x, 220, 280, 200),
+        pygame.draw.rect(surface, C.ACCENT if sel else C.WALL_DIM, (x, 220, box_w, 220),
                          2 if sel else 1)
-        r.text(surface, spec["glyph"], (x + 140, 270), spec["colour"], r.huge, centre=True)
-        r.text(surface, spec["name"], (x + 140, 325), C.TEXT, r.big, centre=True)
-        for j, line in enumerate(_wrap(r, spec["desc"], 250)):
-            r.text(surface, line, (x + 140, 355 + j * 17), C.TEXT_DIM, r.small, centre=True)
+        mid = x + box_w // 2
+        r.text(surface, spec["glyph"], (mid, 270), spec["colour"], r.huge, centre=True)
+        r.text(surface, spec["name"], (mid, 325), C.TEXT, r.big, centre=True)
+        for j, line in enumerate(_wrap(r, spec["desc"], box_w - 24)):
+            r.text(surface, line, (mid, 355 + j * 17), C.TEXT_DIM, r.small, centre=True)
     shown = name or PETS[list(PETS)[species_idx]]["default_name"]
-    r.text(surface, "Name:", (cx - 160, 470), C.TEXT_DIM, r.font)
-    r.text(surface, shown + ("_" if name else ""), (cx - 100, 466),
+    r.text(surface, "Name:", (cx - 160, 480), C.TEXT_DIM, r.font)
+    r.text(surface, shown + ("_" if name else ""), (cx - 100, 476),
            C.TEXT if name else C.TEXT_DIM, r.big)
-    r.text(surface, "Left/Right choose   type a name   Enter start   Esc back", (cx, 540),
+    r.text(surface, "Left/Right choose   type a name   Enter start   Esc back", (cx, 550),
            C.TEXT_DIM, r.font, centre=True)
 
 

@@ -72,6 +72,7 @@ class Monster(Entity):
     ranged: int = 0                 # attack range in tiles; 0 = melee only
     boss: bool = False
     phase: int = 1                  # bosses change behaviour as they lose HP
+    stunned: int = 0                # turns left unable to act
 
 
 @dataclass(eq=False)
@@ -153,6 +154,56 @@ PETS = {
                 accuracy=0, evasion=0, default_name="Biscuit",
                 ability="lick", ability_name="Lick Wounds", cooldown=25,
                 desc="Loyal and sturdy. Lick Wounds: heals you when you're under half HP."),
+    "budgie": dict(name="Chatty Budgie", glyph="b", colour=(120, 220, 140), hp=10, power=3,
+                   defence=0, accuracy=2, evasion=4, default_name="Pickles",
+                   ability="squawk", ability_name="Ear-Splitting Squawk", cooldown=20,
+                   desc="Fragile, hard to hit, never stops talking. Squawk: stuns nearby "
+                        "monsters for 2 turns."),
+    "mouse": dict(name="Scheming Mouse", glyph="m", colour=(190, 180, 200), hp=12, power=3,
+                  defence=0, accuracy=1, evasion=3, default_name="Skritch",
+                  ability="dirty_trick", ability_name="Dirty Trick", cooldown=10,
+                  desc="Cunning and cowardly. Dirty Trick: triple damage on a wounded monster. "
+                       "Runs away when hurt."),
+}
+
+# What each companion says, by event. The showrunner picks one at random.
+PET_QUIPS = {
+    "cat": {
+        "kill": ["Beneath me, frankly.", "Note the form. Ten out of ten.",
+                 "I'll be expecting a treat for that.", "Clean up that mess, would you?"],
+        "ability": ["Watch and learn.", "Pounce perfected. As usual.", "Try to keep up."],
+        "level_up": ["Finally, the recognition I deserve.", "Naturally."],
+        "downed": ["This is your fault.", "I am... resting. Elegantly."],
+    },
+    "dog": {
+        "kill": ["Got it! Got it! Did I do good?", "*proud tail wag*", "Is it a toy now?"],
+        "ability": ["*gentle lick*", "*worried whine, then a lick*", "You'll be okay! Lick!"],
+        "level_up": ["*tail goes to maximum speed*", "*zoomies*"],
+        "downed": ["*whimper*", "*sad thump of tail*"],
+    },
+    "budgie": {
+        "kill": ["PRETTY BIRD! PRETTY BIRD!", "*flawless impression of the monster dying*",
+                 "Who's a clever boy? ME!", "*plays a victory jingle it heard on the telly*"],
+        "ability": ["SQUAAAAWK!", "*does a perfect smoke alarm*", "*microwave beep, but louder*",
+                    "*car alarm, full volume*"],
+        "level_up": ["*learns a new ringtone*", "Pretty bird gets STRONGER!"],
+        "downed": ["Polly... down...", "*sad kettle whistle*"],
+    },
+    "mouse": {
+        "kill": ["Dead-dead! I did that. Me. Remember who did that, yes-yes?",
+                 "Easy-easy prey. I planned it. Every step!",
+                 "Its pockets are still warm. Mine now. Fair share!",
+                 "Tell the cameras it was me, not you. For the ratings."],
+        "ability": ["Stab-stab, from behind! Most cunning!",
+                    "Weak one, so I strike! This is called strategy.",
+                    "Hee-hee. Nobody watches the small ones."],
+        "level_up": ["Stronger! Soon I lead, you follow. Joke-joke. Mostly.",
+                     "Promotion! Long overdue. I'll be taking your share."],
+        "downed": ["Betrayed! Betrayed by everyone!", "Not my fault-fault! Tactical nap!"],
+        "flee": ["Strategic retreat! Very brave retreat!",
+                 "You hold them off! I'll guard... back here!",
+                 "Not running! Repositioning-repositioning!"],
+    },
 }
 
 

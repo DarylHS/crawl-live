@@ -13,6 +13,8 @@ from .entities import PETS
 CHASE_RADIUS = 25
 PET_LEASH = 2                   # a following pet stays within this many tiles
 POUNCE_RANGE = 3
+SQUAWK_RANGE = 3
+MOUSE_FLEE_FRAC = 0.4           # the mouse runs back to you below this much HP
 
 
 def cheb(a, b):
@@ -53,6 +55,9 @@ def take_monster_turns(world):
     for m in list(world.monsters):          # bosses can summon help mid-loop
         if world.state != "playing":
             return
+        if m.stunned:
+            m.stunned -= 1
+            continue
         seen = (m.x, m.y) in world.visible
         if seen:
             m.alerted, m.unseen_turns = True, 0
@@ -99,7 +104,28 @@ def take_pet_turn(world):
     pet_safe = floor.is_safe(pet.x, pet.y)
     occupied = {(m.x, m.y) for m in world.monsters}
 
+    if spec["ability"] == "dirty_trick" and pet.hp < pet.max_hp * MOUSE_FLEE_FRAC:
+        # Cowardice: run back to the player and don't pick fights.
+        if cheb(pet, player) > 1:
+            dist = floor.distance_map(player.x, player.y, max_dist=40)
+            step = _step_down(world, pet, dist, occupied, allow_safe=True)
+            if step:
+                pet.x, pet.y = step
+                world.pet_flees()
+        return
+
     if not pet.cooldown:
+        if spec["ability"] == "squawk" and not pet_safe:
+            near = [m for m in world.monsters if (m.x, m.y) in world.visible
+                    and cheb(m, player) <= SQUAWK_RANGE and not m.stunned]
+            if len(near) >= 2 or any(cheb(m, player) == 1 for m in near):
+                world.pet_squawk(near)
+                return
+        if spec["ability"] == "dirty_trick" and not pet_safe:
+            wounded = [m for m in world.monsters if cheb(pet, m) == 1 and m.hp <= m.max_hp // 2]
+            if wounded:
+                world.pet_dirty_trick(min(wounded, key=lambda m: m.hp))
+                return
         if (spec["ability"] == "lick" and player.hp < player.max_hp * 0.5
                 and cheb(pet, player) <= 1):
             world.pet_lick()

@@ -329,7 +329,7 @@ class World:
     def pet_pounce(self, target):
         pet = self.pet
         pet.cooldown = PETS[pet.species]["cooldown"]
-        self.events.emit("pet_ability", pet=pet.name, ability="Pounce")
+        self.events.emit("pet_ability", pet=pet.name, species=pet.species, ability="Pounce")
         self.pet_attack(target, mult=2, verb="pounces on")
 
     def pet_lick(self):
@@ -338,7 +338,27 @@ class World:
         healed = p.heal(4 + 2 * pet.level)
         self.messages.add(f"{pet.name} licks your wounds. You recover {healed} HP. Gross.",
                           C.GOOD)
-        self.events.emit("pet_ability", pet=pet.name, ability="Lick Wounds")
+        self.events.emit("pet_ability", pet=pet.name, species=pet.species, ability="Lick Wounds")
+
+    def pet_squawk(self, targets):
+        pet = self.pet
+        pet.cooldown = PETS[pet.species]["cooldown"]
+        for m in targets:
+            m.stunned = 1 if m.boss else 2          # bosses shake it off faster
+        self.messages.add(f"{pet.name} lets out an ear-splitting squawk! "
+                          f"{len(targets)} monster{'s' if len(targets) != 1 else ''} reel.",
+                          pet.colour)
+        self.events.emit("pet_ability", pet=pet.name, species=pet.species,
+                         ability="Ear-Splitting Squawk")
+
+    def pet_dirty_trick(self, target):
+        pet = self.pet
+        pet.cooldown = PETS[pet.species]["cooldown"]
+        self.events.emit("pet_ability", pet=pet.name, species=pet.species, ability="Dirty Trick")
+        self.pet_attack(target, mult=3, verb="sneak-stabs")
+
+    def pet_flees(self):
+        self.events.emit("pet_flee", pet=self.pet.name, species=self.pet.species)
 
     def monster_attack_pet(self, monster):
         pet = self.pet
@@ -349,7 +369,7 @@ class World:
         if res.killed:
             pet.downed = True
             self.messages.add(f"{pet.name} is down! Revive them in a safe room.", C.DANGER)
-            self.events.emit("pet_downed", pet=pet.name, depth=self.depth)
+            self.events.emit("pet_downed", pet=pet.name, species=pet.species, depth=self.depth)
 
     # --- Class & skills ------------------------------------------------
 
@@ -607,10 +627,11 @@ class World:
         if pet:
             if by == "pet":
                 pet.kills += 1
-                self.events.emit("pet_kill", pet=pet.name, monster_name=target.name)
+                self.events.emit("pet_kill", pet=pet.name, species=pet.species,
+                                 monster_name=target.name)
             for level in pet.gain_xp(target.xp_value if by == "pet" else target.xp_value // 2):
                 self.messages.add(f"{pet.name} is now level {level}.", pet.colour)
-                self.events.emit("pet_level_up", pet=pet.name, level=level)
+                self.events.emit("pet_level_up", pet=pet.name, species=pet.species, level=level)
         if target.boss:
             b = BOSSES[boss_depth(target)]
             self.events.emit("boss_kill", boss=target.name, depth=self.depth)

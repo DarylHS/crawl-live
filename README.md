@@ -30,7 +30,7 @@ python main.py            # or: python main.py --seed 1234 for a reproducible ru
 
 Each floor has a collapse timer (1 turn = 1 in-game minute). When it hits zero, the floor collapses and you die. Each floor has two stairwells, usually in the rooms furthest from where you start. One room per floor is a safe room (green): monsters can't enter it and nobody can fight inside it, and you can rest there to full HP if you're willing to spend the time. Monsters notice you when they come into your field of view and lose interest after a while out of sight. Kills and floor loot give you gear, potions and bombs. Achievements and sponsors (who send gifts as your viewer count grows) award loot boxes in five tiers, Bronze to Legendary, which can only be opened in a safe room. The System AI comments on everything you do, and your viewer count is your score.
 
-You pick a companion (a cat or a dog) at the start, and a race and class when you reach floor 3. Every floor has an optional boss guarding its furthest stairwell; on the last floor the exits stay sealed until the final boss is dead. Safe rooms also have a crafting bench and let you save.
+You pick a companion at the start (a vain cat, a loyal dog, a chatty budgie or a scheming, cowardly mouse), each with its own ability and running commentary,, and a race and class when you reach floor 3. Every floor has an optional boss guarding its furthest stairwell; on the last floor the exits stay sealed until the final boss is dead. Safe rooms also have a crafting bench and let you save.
 
 Survive six floors to win.
 

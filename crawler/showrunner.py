@@ -7,7 +7,7 @@ are data (LINES); it uses its own RNG so chatter never changes the dungeon.
 import random
 
 from . import config as C
-from .entities import MONSTERS
+from .entities import MONSTERS, PET_QUIPS
 
 START_VIEWERS = 50
 MIN_VIEWERS = 20
@@ -16,6 +16,10 @@ DECAY = 0.97                    # applied every IDLE_TURNS while idle
 MULTI_WINDOW = 4                # kills this close together count as a streak
 CLUTCH_FRAC = 0.25
 SPEAK_CHANCE = {"kill": 0.4, "damage_taken": 0.5}   # others always speak
+QUIP_CHANCE = 0.6               # how often the pet says something itself
+FLEE_QUIP_GAP = 8               # turns between the mouse's excuses while it runs
+PET_EVENTS = {"pet_kill": "kill", "pet_ability": "ability", "pet_level_up": "level_up",
+              "pet_downed": "downed", "pet_flee": "flee"}
 
 # (viewers needed, box tier, sponsor)
 SPONSOR_GIFTS = [
@@ -186,6 +190,9 @@ class Showrunner:
         for ev in ("kill", "level_up", "descend", "achievement", "floor_start", "boss_kill"):
             world.events.subscribe(ev, self._viewers)
         world.events.subscribe("turn", self._idle)
+        for ev in PET_EVENTS:
+            world.events.subscribe(ev, self._pet_quip)
+        self._last_flee_quip = -FLEE_QUIP_GAP
 
     # --- Viewers -------------------------------------------------------
 
@@ -231,6 +238,21 @@ class Showrunner:
             self.viewers = max(MIN_VIEWERS, int(self.viewers * DECAY))
 
     # --- Announcer -----------------------------------------------------
+
+    def _pet_quip(self, name, d):
+        """The companion speaks for itself, in character."""
+        lines = PET_QUIPS.get(d.get("species"), {}).get(PET_EVENTS[name])
+        if not lines:
+            return
+        if name == "pet_flee":
+            if self.world.turn - self._last_flee_quip < FLEE_QUIP_GAP:
+                return
+            self._last_flee_quip = self.world.turn
+        elif self.rng.random() >= QUIP_CHANCE:
+            return
+        pet = self.world.pet
+        self.world.messages.add(f"{d['pet']}: {self.rng.choice(lines)}",
+                                pet.colour if pet else C.TEXT)
 
     def _say(self, kind, **ctx):
         line = self.rng.choice(LINES[kind]).format_map(_Safe(ctx))

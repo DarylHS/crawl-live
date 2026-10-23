@@ -290,3 +290,65 @@ def test_load_rejects_wrong_version(tmp_path):
     d["version"] = 99
     with pytest.raises(ValueError):
         save.from_dict(d)
+
+
+# --- Budgie and mouse --------------------------------------------------------
+
+def test_four_companions_each_with_quips():
+    from crawler.entities import PET_QUIPS
+    assert set(PETS) == {"cat", "dog", "budgie", "mouse"}
+    for species in PETS:
+        quips = PET_QUIPS[species]
+        assert all(quips[k] for k in ("kill", "ability", "level_up", "downed"))
+        w = World(seed=1, pet=(species, ""))
+        assert w.pet.name == PETS[species]["default_name"]
+
+
+def test_budgie_squawk_stuns_nearby_monsters():
+    from crawler.ai import take_monster_turns, take_pet_turn
+    w = World(seed=20, pet=("budgie", "Pickles"))
+    _clear(w)
+    p = w.player
+    spots = _free_tiles_near(w, p.x, p.y, 2)[:2]
+    ms = [spawn_monster("golem", x, y) for x, y in spots]
+    w.monsters += ms
+    w.visible = {(m.x, m.y) for m in ms} | w.visible
+    take_pet_turn(w)
+    assert all(m.stunned == 2 for m in ms) and w.pet.cooldown == PETS["budgie"]["cooldown"]
+    where = [(m.x, m.y) for m in ms]
+    take_monster_turns(w)
+    assert [(m.x, m.y) for m in ms] == where and all(m.stunned == 1 for m in ms)
+
+
+def test_mouse_dirty_trick_on_wounded_monster():
+    from crawler.ai import take_pet_turn
+    w = World(seed=21, pet=("mouse", "Skritch"))
+    _clear(w)
+    pet = w.pet
+    x, y = _free_tiles_near(w, pet.x, pet.y, 1)[0]
+    m = spawn_monster("golem", x, y)
+    m.hp = m.max_hp // 2
+    w.monsters.append(m)
+    pet.accuracy = 100
+    for _ in range(5):                       # 95% hit cap
+        if pet.cooldown:
+            break
+        take_pet_turn(w)
+    assert pet.cooldown == PETS["mouse"]["cooldown"]
+
+
+def test_mouse_runs_away_when_hurt():
+    from crawler.ai import take_pet_turn
+    w = World(seed=22, pet=("mouse", "Skritch"))
+    _clear(w)
+    pet, p = w.pet, w.player
+    far = max(_free_tiles_near(w, p.x, p.y, 4), key=lambda s: max(abs(s[0] - p.x), abs(s[1] - p.y)))
+    pet.x, pet.y = far
+    x, y = _free_tiles_near(w, pet.x, pet.y, 1)[0]
+    m = spawn_monster("gnawer", x, y)
+    w.monsters.append(m)
+    pet.hp = 2
+    before = cheb(pet, p)
+    take_pet_turn(w)
+    assert cheb(pet, p) < before and m.hp == m.max_hp
+    assert any("Skritch:" in t for t, _ in w.messages.recent(5))
