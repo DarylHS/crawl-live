@@ -14,7 +14,7 @@ CHASE_RADIUS = 25
 PET_LEASH = 2                   # a following pet stays within this many tiles
 POUNCE_RANGE = 3
 SQUAWK_RANGE = 3
-MOUSE_FLEE_FRAC = 0.4           # the mouse runs back to you below this much HP
+MOUSE_FLEE_FRAC = 0.3           # the mouse runs back to you below this much HP
 
 
 def cheb(a, b):
@@ -122,7 +122,7 @@ def take_pet_turn(world):
                 world.pet_squawk(near)
                 return
         if spec["ability"] == "dirty_trick" and not pet_safe:
-            wounded = [m for m in world.monsters if cheb(pet, m) == 1 and m.hp <= m.max_hp // 2]
+            wounded = [m for m in world.monsters if cheb(pet, m) == 1 and m.hp <= m.max_hp * 0.6]
             if wounded:
                 world.pet_dirty_trick(min(wounded, key=lambda m: m.hp))
                 return

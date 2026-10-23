@@ -335,7 +335,7 @@ class World:
     def pet_lick(self):
         pet, p = self.pet, self.player
         pet.cooldown = PETS[pet.species]["cooldown"]
-        healed = p.heal(4 + 2 * pet.level)
+        healed = p.heal(6 + 2 * pet.level)
         self.messages.add(f"{pet.name} licks your wounds. You recover {healed} HP. Gross.",
                           C.GOOD)
         self.events.emit("pet_ability", pet=pet.name, species=pet.species, ability="Lick Wounds")

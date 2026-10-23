@@ -150,19 +150,19 @@ PETS = {
                 accuracy=1, evasion=2, default_name="Mittens",
                 ability="pounce", ability_name="Pounce", cooldown=16,
                 desc="Fast and vain. Pounce: leaps up to 3 tiles onto a monster for double damage."),
-    "dog": dict(name="Scruffy Dog", glyph="d", colour=(200, 150, 110), hp=22, power=4, defence=1,
+    "dog": dict(name="Scruffy Dog", glyph="d", colour=(200, 150, 110), hp=26, power=5, defence=1,
                 accuracy=0, evasion=0, default_name="Biscuit",
-                ability="lick", ability_name="Lick Wounds", cooldown=25,
+                ability="lick", ability_name="Lick Wounds", cooldown=18,
                 desc="Loyal and sturdy. Lick Wounds: heals you when you're under half HP."),
-    "budgie": dict(name="Chatty Budgie", glyph="b", colour=(120, 220, 140), hp=10, power=3,
+    "budgie": dict(name="Chatty Budgie", glyph="b", colour=(120, 220, 140), hp=10, power=4,
                    defence=0, accuracy=2, evasion=4, default_name="Pickles",
                    ability="squawk", ability_name="Ear-Splitting Squawk", cooldown=20,
                    desc="Fragile, hard to hit, never stops talking. Squawk: stuns nearby "
                         "monsters for 2 turns."),
-    "mouse": dict(name="Scheming Mouse", glyph="m", colour=(190, 180, 200), hp=12, power=3,
+    "mouse": dict(name="Scheming Mouse", glyph="m", colour=(190, 180, 200), hp=14, power=4,
                   defence=0, accuracy=1, evasion=3, default_name="Skritch",
-                  ability="dirty_trick", ability_name="Dirty Trick", cooldown=10,
-                  desc="Cunning and cowardly. Dirty Trick: triple damage on a wounded monster. "
+                  ability="dirty_trick", ability_name="Dirty Trick", cooldown=8,
+                  desc="Cunning and cowardly. Dirty Trick: triple damage on a hurt monster. "
                        "Runs away when hurt."),
 }
 
