@@ -1,6 +1,6 @@
 # Build phases
 
-This file is the hand-off between build sessions. Each session does the next unchecked phase, makes sure `python -m pytest -q` passes, ticks the phase off, adds notes below, commits and pushes to `claude/dungeon-crawler-game-6qy35n`. If a phase is left broken, the next session fixes that before starting anything new.
+This file is the hand-off between build sessions. Each session does the next unchecked phase, makes sure `python -m pytest -q` passes, ticks the phase off, adds notes below, commits and pushes to `main` of `DarylHS/crawl-live`. If a phase is left broken, the next session fixes that before starting anything new.
 
 ## Ground rules (apply to every phase)
 - Original names and text only. The game is *inspired by* Dungeon Crawler Carl, so no character names, places or quotes from the books.
@@ -79,3 +79,6 @@ This file is the hand-off between build sessions. Each session does the next unc
 - `Monster.stunned` (turns): stunned monsters skip their turn. `PET_QUIPS` in `entities.py` holds each species' in-character lines by event (kill, ability, level_up, downed, and flee for the mouse); `Showrunner._pet_quip` says one 60% of the time (flee excuses at most every 8 turns). Pet events now carry `species`; `pet_flee` is new.
 - Companion balance pass. A damage trace showed only the cat fought: in follow mode pets attacked only monsters next to themselves while trailing up to 2 tiles behind, and Pounce was the only way into melee (cat 245 damage per 1,000 turns, others 14-30). Following pets now close in on any visible monster within 2 tiles of the player. The floor 1 boss is now 24 HP / power 4 (it was a coin flip at level 1). Final stats: cat 16 HP / 4 atk; dog 26 / 5, Lick Wounds 6 + 2 x level every 18 turns; budgie 12 / 4; mouse 14 / 5, Dirty Trick at 60% monster HP every 8 turns, flees below 30% HP. Probe, 40 seeds each: cat 62%, dog 60%, budgie 50%, mouse 42% (±8 points of noise). The mouse is meant to be the riskier pick.
 - Monsters have `the` / `The` / `a` name helpers; bosses have proper names and take no article. Use these in any new message about a monster.
+
+### Repo move
+- The game moved from the `dungeon-crawler/` folder of `DarylHS/cyclistic-capstone-analysis` (branch `claude/dungeon-crawler-game-6qy35n`) into its own repo, `DarylHS/crawl-live`, with full history (`git subtree split`). Work now happens on `main` here.

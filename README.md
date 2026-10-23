@@ -5,7 +5,8 @@ A turn-based roguelike in Python + pygame, inspired by the *Dungeon Crawler Carl
 ## Play
 
 ```bash
-cd dungeon-crawler
+git clone https://github.com/DarylHS/crawl-live.git
+cd crawl-live
 pip install -r requirements.txt
 python main.py            # or: python main.py --seed 1234 for a reproducible run
 ```
@@ -53,7 +54,6 @@ See [PHASES.md](PHASES.md) for progress.
 ## Tests
 
 ```bash
-cd dungeon-crawler
 python -m pytest -q
 CRAWL_SCREENSHOTS=screenshots python -m pytest tests/test_render.py   # also saves PNGs of each screen
 ```
