@@ -95,7 +95,10 @@ def test_item_screens_draw(app):
     assert app.overlay == "safe"
     app.handle_key(_key(pygame.K_DOWN))
     _shot(app, "safe_menu")
-    app.handle_key(_key(pygame.K_RETURN))               # open the bronze box
+    app.handle_key(_key(pygame.K_RETURN))               # bronze box odds
+    assert app.overlay == "box"
+    _shot(app, "box_odds")
+    app.handle_key(_key(pygame.K_RETURN))               # open it
     assert app.overlay == "reveal" and w.last_reveal
     _shot(app, "box_reveal")
     app.handle_key(_key(pygame.K_RETURN))
@@ -123,7 +126,10 @@ def test_phase3_screens_draw(tmp_path):
     app.handle_key(_key(pygame.K_DOWN))
     _shot(app, "class_class")
     app.handle_key(_key(pygame.K_RETURN))                # analyst
-    assert w.cls == "analyst" and app.overlay is None
+    assert w.cls == "analyst"
+    if app.overlay == "contract":                       # floor 3 may come with a sponsor offer
+        app.handle_key(_key(pygame.K_n, "n"))
+    assert app.overlay is None
 
     for row in w.floor.explored:
         row[:] = [True] * len(row)
@@ -152,4 +158,60 @@ def test_phase3_screens_draw(tmp_path):
     _shot(app, "title_with_save")
     app.handle_key(_key(pygame.K_l, "l"))
     assert app.scene == "game" and app.world.cls == "analyst" and app.world.pet.downed
+    pygame.quit()
+
+
+def test_phase4_screens_draw(tmp_path):
+    pygame.init()
+    app = App(screen=pygame.Surface((C.SCREEN_W, C.SCREEN_H)), seed=5,
+              save_path=tmp_path / "slot.json")
+    app.handle_key(_key(pygame.K_RETURN))
+    app.handle_key(_key(pygame.K_RETURN))
+    w = app.world
+    w.new_floor(2)
+    w.pending_offer = "hazard_pay"
+    app.handle_key(_key(pygame.K_PERIOD, "."))
+    assert app.overlay == "contract"
+    _shot(app, "contract")
+    app.handle_key(_key(pygame.K_y, "y"))
+    assert w.contract == "hazard_pay" and app.overlay is None
+
+    w.gold = 200
+    w.boxes = ["silver"] * 4
+    w.player.x, w.player.y = w.floor.safe_room.centre
+    w.update_fov()
+    app.handle_key(_key(pygame.K_m, "m"))
+    labels = [o[0] for o in __import__("crawler.ui.menus", fromlist=["x"]).menu_options(w)]
+    app.cursor = labels.index("shop")
+    app.handle_key(_key(pygame.K_RETURN))
+    assert app.overlay == "shop"
+    app.handle_key(_key(pygame.K_RETURN))                # buy a tonic
+    assert "tonic" in w.inventory and w.gold < 200
+    _shot(app, "shop_buy")
+    app.handle_key(_key(pygame.K_TAB))
+    _shot(app, "shop_sell")
+    app.handle_key(_key(pygame.K_ESCAPE))
+    assert app.overlay == "safe"
+
+    labels = [o[0] for o in __import__("crawler.ui.menus", fromlist=["x"]).menu_options(w)]
+    app.cursor = labels.index("box")
+    app.handle_key(_key(pygame.K_RETURN))
+    assert app.overlay == "box" and app.box_tier == "silver"
+    _shot(app, "box_odds_silver")
+    app.handle_key(_key(pygame.K_t, "t"))                # trade 3 silver for a gold
+    assert w.boxes.count("gold") == 1 and w.boxes.count("silver") == 1
+    app.handle_key(_key(pygame.K_RETURN))                # open the remaining silver
+    assert app.overlay == "reveal"
+    _shot(app, "reveal_reroll")
+    gold = w.gold
+    app.handle_key(_key(pygame.K_r, "r"))                # reroll
+    assert w.gold < gold and len(w.box_log) == 2
+
+    w.state, w.death_cause = "dead", "Killed by a unit test on floor 2"
+    app.overlay = None
+    app.handle_key(_key(pygame.K_r, "r"))
+    assert app.overlay == "report"
+    _shot(app, "report")
+    app.handle_key(_key(pygame.K_ESCAPE))
+    assert app.overlay is None
     pygame.quit()

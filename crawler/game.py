@@ -10,6 +10,7 @@ from .crafting import RECIPES
 from .entities import PETS
 from .ui import menus, screens
 from .ui.hud import Renderer
+from .ui.report import draw_report
 from .world import World
 
 MOVES = {
@@ -40,6 +41,7 @@ class App:
         self.cursor = 0
         self.pet_idx, self.pet_name = 0, ""
         self.class_step, self.class_race = "race", None
+        self.box_tier, self.shop_mode = None, "buy"
         self.running = True
 
     def start_run(self, pet=None):
@@ -89,6 +91,8 @@ class App:
         elif world.state != "playing":
             if key in DESCEND_KEYS:
                 self.scene, self.pet_name = "pet_select", ""
+            elif key == pygame.K_r:
+                self.open_overlay("report")
         elif ch == ">" or key in DESCEND_KEYS:
             world.descend()
         elif key in MOVES:
@@ -110,9 +114,12 @@ class App:
             world.command_pet()
         elif key == pygame.K_1:
             world.use_skill()
-        if world.pending_choice and world.state == "playing" and not self.overlay:
-            self.open_overlay("class")
-            self.class_step, self.class_race = "race", None
+        if world.state == "playing" and not self.overlay:
+            if world.pending_choice:
+                self.open_overlay("class")
+                self.class_step, self.class_race = "race", None
+            elif world.pending_offer:
+                self.open_overlay("contract")
 
     def handle_pet_select_key(self, key, ch):
         species = list(PETS)
@@ -133,9 +140,54 @@ class App:
 
     def handle_overlay_key(self, key):
         world = self.world
-        if self.overlay == "reveal":
+        if self.overlay == "report":
             if key in DESCEND_KEYS or key == pygame.K_ESCAPE:
+                self.overlay = None
+            return
+        if self.overlay == "contract":
+            if key in (pygame.K_y, *DESCEND_KEYS):
+                world.accept_contract()
+            elif key in (pygame.K_n, pygame.K_ESCAPE):
+                world.decline_contract()
+            else:
+                return
+            self.overlay = None
+            if world.pending_choice:
+                self.open_overlay("class")
+            return
+        if self.overlay == "reveal":
+            if key == pygame.K_r:
+                world.reroll()
+            elif key in DESCEND_KEYS or key == pygame.K_ESCAPE:
                 self.overlay = "safe" if world.in_safe_room else None
+            return
+        if self.overlay == "box":
+            if key == pygame.K_ESCAPE:
+                self.overlay, self.cursor = "safe", 0
+            elif key == pygame.K_t:
+                world.trade_up(self.box_tier)
+                if self.box_tier not in world.boxes:
+                    self.overlay, self.cursor = "safe", 0
+            elif key in DESCEND_KEYS and world.open_box(self.box_tier):
+                self.overlay = "reveal"
+            return
+        if self.overlay == "shop":
+            rows = menus.shop_rows(world, self.shop_mode)
+            if key == pygame.K_ESCAPE:
+                self.overlay, self.cursor = "safe", 0
+            elif key == pygame.K_TAB:
+                self.shop_mode = "sell" if self.shop_mode == "buy" else "buy"
+                self.cursor = 0
+            elif key in (pygame.K_UP, pygame.K_w) and rows:
+                self.cursor = (self.cursor - 1) % len(rows)
+            elif key in (pygame.K_DOWN, pygame.K_s) and rows:
+                self.cursor = (self.cursor + 1) % len(rows)
+            elif key in DESCEND_KEYS and rows:
+                if self.shop_mode == "buy":
+                    world.shop_buy(rows[self.cursor])
+                else:
+                    world.shop_sell(rows[self.cursor])
+                    self.cursor = min(self.cursor, max(0, len(world.inventory) - 1))
             return
         if self.overlay == "class":
             self.handle_class_key(key)
@@ -182,12 +234,16 @@ class App:
             elif action == "craft":
                 self.overlay, self.cursor = "craft", 0
                 return
+            elif action == "box":
+                self.overlay, self.box_tier = "box", tier
+                return
+            elif action == "shop":
+                self.overlay, self.cursor, self.shop_mode = "shop", 0, "buy"
+                return
             elif action == "save":
                 save.save(world, self.save_path)
                 self.scene, self.overlay = "title", None
                 return
-            elif world.open_box(tier):
-                self.overlay = "reveal"
             self.cursor = min(self.cursor, len(menus.menu_options(world)) - 1)
         if world.state != "playing":
             self.overlay = None
@@ -225,6 +281,14 @@ class App:
                 menus.draw_safe_menu(r, s, self.world, self.cursor)
             elif self.overlay == "reveal":
                 menus.draw_reveal(r, s, self.world)
+            elif self.overlay == "box":
+                menus.draw_box_info(r, s, self.world, self.box_tier)
+            elif self.overlay == "shop":
+                menus.draw_shop(r, s, self.world, self.cursor, self.shop_mode)
+            elif self.overlay == "contract":
+                menus.draw_contract(r, s, self.world)
+            elif self.overlay == "report":
+                draw_report(r, s, self.world)
             elif self.overlay == "craft":
                 menus.draw_craft(r, s, self.world, self.cursor)
             elif self.overlay == "class":

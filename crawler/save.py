@@ -14,7 +14,7 @@ from .world import World
 
 SAVE_DIR = Path(__file__).resolve().parents[1] / "saves"
 SAVE_FILE = SAVE_DIR / "slot1.json"
-VERSION = 1
+VERSION = 2
 
 
 def _rng_state(rng):
@@ -43,6 +43,12 @@ def to_dict(w):
         last_reveal=w.last_reveal, toasts=w.toasts, messages=list(w.messages.lines),
         race=w.race, cls=w.cls, pending_choice=w.pending_choice,
         skill_cooldown=w.skill_cooldown, scout_turns=w.scout_turns, exit_sealed=w.exit_sealed,
+        gold=w.gold, contract=w.contract, pending_offer=w.pending_offer,
+        floor_stats=w.floor_stats, box_log=w.box_log, shop=w.shop.to_dict(),
+        shop_rng=_rng_state(w.shop.rng), deal_rng=_rng_state(w.deal_rng),
+        funfacts=dict(last_turn=w.funfacts.last_turn, said=sorted(w.funfacts.said),
+                      miss_streak=w.funfacts.miss_streak,
+                      streak_chance=w.funfacts.streak_chance, drought=w.funfacts.drought),
         player=asdict(w.player), pet=asdict(w.pet) if w.pet else None,
         monsters=[asdict(m) for m in w.monsters],
         floor=dict(width=f.width, height=f.height, depth=f.depth, tiles=f.tiles, safe=f.safe,
@@ -56,6 +62,7 @@ def to_dict(w):
                           equipped=sorted(w.achievements.tracker.equipped)),
         showrunner=dict(viewers=sr.viewers, peak=sr.peak, history=sr.history,
                         kill_turns=sr._kill_turns, last_fun=sr._last_fun, gift_idx=sr._gift_idx,
+                        last_flee_quip=sr._last_flee_quip, samples=sr.samples,
                         rng=_rng_state(sr.rng)),
     )
 
@@ -68,7 +75,7 @@ def from_dict(d):
     w.messages.lines.clear()
     for key in ("turn", "state", "death_cause", "depth", "timer", "timer_max", "inventory",
                 "boxes", "race", "cls", "pending_choice", "skill_cooldown", "scout_turns",
-                "exit_sealed"):
+                "exit_sealed", "gold", "contract", "pending_offer", "floor_stats", "box_log"):
         setattr(w, key, d[key])
     w._warnings_left, w._was_safe = d["warnings_left"], d["was_safe"]
     w.equipment = d["equipment"]
@@ -91,6 +98,12 @@ def from_dict(d):
 
     _set_rng(w.rng, d["rng"])
     _set_rng(w.loot_rng, d["loot_rng"])
+    _set_rng(w.deal_rng, d["deal_rng"])
+    w.shop.load(d["shop"])
+    _set_rng(w.shop.rng, d["shop_rng"])
+    ff, f2 = w.funfacts, d["funfacts"]
+    ff.last_turn, ff.said, ff.miss_streak = f2["last_turn"], set(f2["said"]), f2["miss_streak"]
+    ff.streak_chance, ff.drought = f2["streak_chance"], f2["drought"]
     a = d["achievements"]
     w.achievements.unlocked = a["unlocked"]
     t = w.achievements.tracker
@@ -98,6 +111,7 @@ def from_dict(d):
     s, sr = d["showrunner"], w.showrunner
     sr.viewers, sr.peak, sr.history = s["viewers"], s["peak"], [tuple(h) for h in s["history"]]
     sr._kill_turns, sr._last_fun, sr._gift_idx = s["kill_turns"], s["last_fun"], s["gift_idx"]
+    sr._last_flee_quip, sr.samples = s["last_flee_quip"], [tuple(x) for x in s["samples"]]
     _set_rng(sr.rng, s["rng"])
     w.update_fov()
     return w

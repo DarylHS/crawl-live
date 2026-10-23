@@ -20,7 +20,9 @@ python main.py            # or: python main.py --seed 1234 for a reproducible ru
 | `G` | Pick up items on your tile |
 | `I` | Inventory: Enter uses/equips, `U` unequips, `D` drops |
 | `R` | Rest to full HP (safe rooms only, costs floor time) |
-| `M` | Safe-room menu: open boxes, crafting, revive your pet, save (safe rooms only) |
+| `M` | Safe-room menu: loot boxes (odds, open, trade up), shop, crafting, revive your pet, save |
+| `R` | On a loot box reveal: hand the item back and reroll for a fee. On the end screen: run report |
+| `Y` / `N` | Accept or decline a sponsor contract |
 | `C` | Command your pet: follow / attack / stay |
 | `1` | Use your class skill (from floor 3) |
 | `L` | On the title screen: continue a saved run |
@@ -35,6 +37,19 @@ You pick a companion at the start (a vain cat, a loyal dog, a chatty budgie or a
 
 Survive six floors to win.
 
+### Learning while you play
+
+The game teaches a few ideas from probability and supply chains through the choices it asks you to make, not quizzes.
+
+| Feature | What you do | The idea behind it |
+|---|---|---|
+| Loot box odds | Every box shows its drop table, expected value and spread before you open it | Probability distributions, expected value, standard deviation |
+| Trade-ups and rerolls | Trade 3 boxes for 1 of the next tier, or pay to reroll what you got | Expected value vs variance, the house edge, when a gamble pays |
+| Sponsor contracts | Accept or decline a deal for the next floor; the offer shows what it means in gold, viewers and danger, from your own run | Weighing return against risk; a good average can still go wrong |
+| The shop | Buy and sell in safe rooms; stock, forecast demand, reorder points and deliveries are all on screen, and other crawlers buy too | Demand forecasting, safety stock, reorder points, lead time, stockouts |
+| Fun facts | The System AI explains the maths when something happens: a miss streak, a loot drought, a bad trade | Gambler's fallacy, independence, survivorship bias |
+| Run report | After a run, charts of damage by floor, your box luck against the average, and your viewer curve | Reading charts about your own play |
+
 ## Concepts from the books
 
 | Concept | Status |
@@ -42,7 +57,7 @@ Survive six floors to win.
 | Collapsing floors, stairwells, safe rooms | Phase 1 (done) |
 | Loot boxes, achievements, sarcastic System AI, viewers, sponsor gifts | Phase 2 (done) |
 | Companion pet, class choice on floor 3, bosses, crafting, save/load | Phase 3 (done) |
-| Learning while playing: visible odds, gambles, sponsor deals, shop sim | Phase 4 |
+| Learning while playing: visible odds, gambles, sponsor deals, shop sim | Phase 4 (done) |
 | Telemetry, bot player, analysis notebooks | Phase 5 |
 
 See [PHASES.md](PHASES.md) for progress.

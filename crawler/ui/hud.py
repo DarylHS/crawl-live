@@ -112,7 +112,7 @@ class Renderer:
         y += 30
         for label, value in (("Attack", p.power), ("Defence", p.defence),
                              ("Accuracy", p.accuracy), ("Evasion", p.evasion),
-                             ("Kills", p.kills), ("Turn", world.turn),
+                             ("Kills", p.kills), ("Gold", world.gold),
                              ("Viewers", f"{world.viewers:,}")):
             self.text(surface, label, (x, y), C.TEXT_DIM)
             self.text(surface, str(value), (x + w - self.font.size(str(value))[0], y))
@@ -127,6 +127,11 @@ class Renderer:
             self.text(surface, f"1: {skill['name']} ({ready})", (x, y + 16),
                       C.TEXT if not world.skill_cooldown else C.TEXT_DIM, self.small)
             y += 36
+        if world.contract:
+            from ..contracts import CONTRACTS
+            self.text(surface, f"Deal: {CONTRACTS[world.contract]['name']}", (x, y), C.ACCENT,
+                      self.small)
+            y += 18
         pet = world.pet
         if pet:
             status = "DOWN: revive in a safe room" if pet.downed else \
@@ -185,7 +190,20 @@ class Renderer:
         y0 = C.MAP_H * C.TILE
         surface.fill(C.PANEL_BG, (0, y0, C.MAP_W * C.TILE, C.LOG_H))
         surface.fill(C.WALL_DIM, (0, y0, C.MAP_W * C.TILE, 1))
-        lines = world.messages.recent(C.LOG_LINES)
+        # Wrap long messages so they never spill under the side panel.
+        max_w = C.MAP_W * C.TILE - 24
+        lines = []
+        for text, colour in world.messages.recent(C.LOG_LINES):
+            words, line = text.split(), ""
+            for word in words:
+                trial = f"{line} {word}".strip()
+                if self.font.size(trial)[0] > max_w and line:
+                    lines.append((line, colour))
+                    line = "  " + word
+                else:
+                    line = trial
+            lines.append((line, colour))
+        lines = lines[-C.LOG_LINES:]
         for i, (text, colour) in enumerate(lines):
             # Older lines fade toward the background.
             age = len(lines) - 1 - i

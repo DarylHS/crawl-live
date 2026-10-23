@@ -11,6 +11,7 @@ from .entities import MONSTERS, PET_QUIPS
 
 START_VIEWERS = 50
 MIN_VIEWERS = 20
+SAMPLE_EVERY = 10               # viewer curve resolution for the post-run report
 IDLE_TURNS = 10                 # turns without excitement before viewers drift away
 DECAY = 0.97                    # applied every IDLE_TURNS while idle
 MULTI_WINDOW = 4                # kills this close together count as a streak
@@ -181,6 +182,7 @@ class Showrunner:
         self.viewers = START_VIEWERS
         self.peak = START_VIEWERS
         self.history = []                   # (turn, viewers) at each floor start and end
+        self.samples = [(0, START_VIEWERS)]  # (turn, viewers) every SAMPLE_EVERY turns
         self._kill_turns = []
         self._last_fun = 0
         self._gift_idx = 0
@@ -197,7 +199,8 @@ class Showrunner:
     # --- Viewers -------------------------------------------------------
 
     def _gain(self, amount):
-        self.viewers += int(amount)
+        from .contracts import effect
+        self.viewers += int(amount * effect(self.world, "viewer_mult"))
         self.peak = max(self.peak, self.viewers)
         self._last_fun = self.world.turn
         while self._gift_idx < len(SPONSOR_GIFTS) and self.viewers >= SPONSOR_GIFTS[self._gift_idx][0]:
@@ -234,6 +237,8 @@ class Showrunner:
 
     def _idle(self, name, d):
         t = d["turn"]
+        if t % SAMPLE_EVERY == 0:
+            self.samples.append((t, self.viewers))
         if t % IDLE_TURNS == 0 and t - self._last_fun >= IDLE_TURNS:
             self.viewers = max(MIN_VIEWERS, int(self.viewers * DECAY))
 

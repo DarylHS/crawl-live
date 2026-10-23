@@ -30,3 +30,27 @@ def odds(tier):
 def roll_box(tier, rng):
     keys, weights = zip(*BOX_TIERS[tier]["table"])
     return rng.choices(keys, weights)[0]
+
+
+# --- Gambles -----------------------------------------------------------------
+
+TRADE_UP_COST = 3               # boxes of one tier traded for one of the next tier
+REROLL_FEE_FRAC = 0.3           # rerolling costs this share of the box's expected value
+
+
+def box_stats(tier):
+    """(expected value, standard deviation) of a box's contents, in gold."""
+    from .items import value
+    rows = odds(tier)
+    ev = sum(p * value(k) for k, p in rows)
+    var = sum(p * (value(k) - ev) ** 2 for k, p in rows)
+    return ev, var ** 0.5
+
+
+def next_tier(tier):
+    i = TIERS.index(tier)
+    return TIERS[i + 1] if i + 1 < len(TIERS) else None
+
+
+def reroll_fee(tier):
+    return max(2, round(REROLL_FEE_FRAC * box_stats(tier)[0]))

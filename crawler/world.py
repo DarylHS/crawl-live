@@ -11,13 +11,16 @@ from .achievements import Achievements
 from .ai import cheb, take_monster_turns, take_pet_turn
 from .bosses import BOSSES, PHASE_TWO, boss_depth, spawn_boss
 from .classes import CHOICE_FLOOR, CLASSES, RACES, SKILLS, apply_choice
-from .combat import attack
+from .combat import attack, hit_chance
+from .contracts import CONTRACTS, OFFER_CHANCE, OFFER_FROM_FLOOR, effect
 from .crafting import CRAFT_TURNS, RECIPES, can_craft
 from .dungeon import NEIGHBOURS_8, STAIRS, compute_fov, generate_floor
 from .entities import PETS, monster_table, new_pet, new_player, spawn_monster
 from .events import EventBus
+from .funfacts import FunFacts
 from .items import ITEMS, STAT_BONUSES, floor_loot_table
-from .loot import BOX_TIERS, roll_box
+from .loot import BOX_TIERS, TRADE_UP_COST, box_stats, next_tier, reroll_fee, roll_box
+from .shop import Shop
 from .showrunner import Showrunner
 
 
@@ -59,8 +62,16 @@ class World:
         self.skill_cooldown = 0
         self.scout_turns = 0            # Analyst's Scout Report display time left
         self.exit_sealed = False
+        self.gold = 0
+        self.contract = None            # key of the sponsor contract active this floor
+        self.pending_offer = None       # contract on offer; the UI asks while this is set
+        self.floor_stats = []           # one dict per floor, for the post-run report
+        self.box_log = []               # every box opened: tier, item, value, ev
+        self.shop = Shop(random.Random(self.seed ^ 0x5A0F))
+        self.deal_rng = random.Random(self.seed ^ 0xC0DE)
         self.achievements = Achievements(self)
         self.showrunner = Showrunner(self)
+        self.funfacts = FunFacts(self)
         self.new_floor(1)
 
     @property
@@ -79,6 +90,10 @@ class World:
     # --- Floors --------------------------------------------------------
 
     def new_floor(self, depth):
+        if self.depth:
+            self.shop.end_of_floor(self.depth)
+            self.events.emit("shop_restock", depth=self.depth)
+        self.contract = self.pending_offer = None
         self.depth = depth
         self.floor = generate_floor(self.rng, depth)
         self.player.x, self.player.y = self.floor.start_room.centre
@@ -100,7 +115,54 @@ class World:
                               C.DANGER)
         if depth >= CHOICE_FLOOR and not self.cls:
             self.pending_choice = True
+        self.floor_stats.append(dict(depth=depth, damage_taken=0, gold=0, kills=0,
+                                     viewers_start=self.viewers, viewers_end=self.viewers,
+                                     contract=None))
+        if depth >= OFFER_FROM_FLOOR and self.deal_rng.random() < OFFER_CHANCE:
+            self.pending_offer = self.deal_rng.choice(sorted(CONTRACTS))
+            self.events.emit("contract_offered", contract=self.pending_offer, depth=depth)
         self.events.emit("floor_start", depth=depth, turn=self.turn)
+
+    def _close_floor_stats(self):
+        if self.floor_stats:
+            self.floor_stats[-1]["viewers_end"] = self.viewers
+
+    # --- Sponsor contracts ---------------------------------------------
+
+    def accept_contract(self):
+        key = self.pending_offer
+        if not key:
+            return False
+        c = CONTRACTS[key]
+        self.contract, self.pending_offer = key, None
+        self.floor_stats[-1]["contract"] = key
+        for m in self.monsters:
+            m.power += c.get("monster_power", 0)
+            if "monster_hp_mult" in c:
+                m.max_hp = m.hp = round(m.max_hp * c["monster_hp_mult"])
+        if "timer_mult" in c:
+            self.timer = round(self.timer * c["timer_mult"])
+            self.timer_max = round(self.timer_max * c["timer_mult"])
+        self.messages.add(f"Contract signed with {c['sponsor']}: {c['name']}.", C.ACCENT)
+        if "bonus_box" in c:
+            self.add_box(c["bonus_box"], "signing bonus")
+        self.events.emit("contract_accepted", contract=key, depth=self.depth)
+        return True
+
+    def decline_contract(self):
+        if not self.pending_offer:
+            return False
+        self.events.emit("contract_declined", contract=self.pending_offer, depth=self.depth)
+        self.pending_offer = None
+        return True
+
+    def _earn_gold(self, amount, source):
+        amount = max(0, round(amount))
+        self.gold += amount
+        if self.floor_stats:
+            self.floor_stats[-1]["gold"] += amount
+        self.events.emit("gold", amount=amount, source=source, total=self.gold)
+        return amount
 
     def _spawn_monsters(self):
         keys, weights = monster_table(self.depth)
@@ -220,8 +282,10 @@ class World:
             return False
         self.events.emit("descend", depth=self.depth, turn=self.turn,
                          timer_left=self.timer, timer_max=self.timer_max)
+        self._close_floor_stats()
         if self.depth >= C.NUM_FLOORS:
             self.state = "victory"
+            self._close_floor_stats()
             self.messages.add("You escaped the final floor!", C.GOOD)
             self.events.emit("victory", depth=self.depth, turn=self.turn)
         else:
@@ -243,8 +307,9 @@ class World:
             self.messages.add("No time to rest. The floor is coming down!", C.DANGER)
             return False
         start_hp, start_turn = p.hp, self.turn
+        per_turn = effect(self, "rest_mult")
         while p.hp < p.max_hp and self.timer > C.REST_MIN_TIMER and self.state == "playing":
-            p.heal(1)
+            p.heal(per_turn)
             self._tick_clock()
         spent = self.turn - start_turn
         if self.active_pet:
@@ -288,6 +353,47 @@ class World:
         self.messages.add(f"You craft {recipe['name']}: {ITEMS[recipe['makes']]['name']}.",
                           C.GOOD)
         self.events.emit("craft", recipe=recipe["key"], item=recipe["makes"])
+        return True
+
+    # --- Shop ----------------------------------------------------------
+
+    def shop_buy(self, key):
+        if not self._in_safe_room_msg():
+            return False
+        price = self.shop.price(key)
+        if self.gold < price:
+            self.messages.add(f"You need {price} gold for that.", C.TEXT_DIM)
+            return False
+        if len(self.inventory) >= C.INVENTORY_SIZE:
+            self.messages.add("Your pack is full.", C.DANGER)
+            return False
+        if not self.shop.buy(key):
+            self.messages.add(f"Sold out of {ITEMS[key]['name']}.", C.DANGER)
+            self.events.emit("shop_sold_out", item=key, depth=self.depth)
+            return False
+        self.gold -= price
+        self.inventory.append(key)
+        self.messages.add(f"You buy a {ITEMS[key]['name']} for {price} gold.", C.GOOD)
+        self.events.emit("shop_buy", item=key, price=price, depth=self.depth)
+        return True
+
+    def shop_sell(self, index):
+        if not self._in_safe_room_msg() or not 0 <= index < len(self.inventory):
+            return False
+        key = self.inventory.pop(index)
+        price = self.shop.sell_price(key)
+        self.gold += price
+        self.shop.take_back(key)
+        self.messages.add(f"You sell the {ITEMS[key]['name']} for {price} gold.", C.TEXT_DIM)
+        self.events.emit("shop_sell", item=key, price=price, depth=self.depth)
+        return True
+
+    def _in_safe_room_msg(self):
+        if self.state != "playing":
+            return False
+        if not self.in_safe_room:
+            self.messages.add("The shop is only open in safe rooms.", C.TEXT_DIM)
+            return False
         return True
 
     # --- Companion -----------------------------------------------------
@@ -566,19 +672,61 @@ class World:
             self.messages.add("Your pack is full. Drop something first.", C.DANGER)
             return False
         self.boxes.remove(tier)
+        self._reveal(tier)
+        return True
+
+    def _reveal(self, tier, rerolled=False):
         key = roll_box(tier, self.loot_rng)
         self.inventory.append(key)
         self.last_reveal = (tier, key)
+        self.box_log.append(dict(tier=tier, item=key, value=ITEMS[key]["value"],
+                                 ev=round(box_stats(tier)[0], 2), rerolled=rerolled,
+                                 turn=self.turn))
         self.messages.add(f"The {BOX_TIERS[tier]['name']} box contains: {ITEMS[key]['name']}!",
                           BOX_TIERS[tier]["colour"])
-        self.events.emit("box_opened", tier=tier, item=key)
+        self.events.emit("box_opened", tier=tier, item=key, rerolled=rerolled)
+
+    def reroll(self):
+        """Hand back the item from the last box and roll that box again, for a fee."""
+        if self.state != "playing" or not self.last_reveal or not self.in_safe_room:
+            return False
+        tier, key = self.last_reveal
+        fee = reroll_fee(tier)
+        if key not in self.inventory:
+            return False
+        if self.gold < fee:
+            self.messages.add(f"A reroll costs {fee} gold.", C.TEXT_DIM)
+            return False
+        self.gold -= fee
+        self.inventory.remove(key)
+        self.events.emit("box_reroll", tier=tier, item=key, fee=fee)
+        self._reveal(tier, rerolled=True)
+        return True
+
+    def trade_up(self, tier):
+        """Swap TRADE_UP_COST boxes of a tier for one of the next tier. Free action."""
+        to = next_tier(tier)
+        if self.state != "playing" or not to or self.boxes.count(tier) < TRADE_UP_COST:
+            return False
+        if not self.in_safe_room:
+            self.messages.add("Trades happen in safe rooms.", C.TEXT_DIM)
+            return False
+        for _ in range(TRADE_UP_COST):
+            self.boxes.remove(tier)
+        self.boxes.append(to)
+        self.messages.add(f"Traded {TRADE_UP_COST} {BOX_TIERS[tier]['name']} boxes for a "
+                          f"{BOX_TIERS[to]['name']} box.", BOX_TIERS[to]["colour"])
+        self.events.emit("box_trade", tier=tier, to=to)
         return True
 
     # --- Combat --------------------------------------------------------
 
     def _player_attack(self, target):
         p = self.player
+        chance = hit_chance(p, target)
         res = attack(p, target, self.rng)
+        self.events.emit("player_attack", target=target.key, chance=chance, hit=res.hit,
+                         crit=res.crit)
         if not res.hit:
             self.messages.add(f"You miss {target.the}.", C.TEXT_DIM)
             return
@@ -619,7 +767,11 @@ class World:
         p = self.player
         self.monsters.remove(target)
         p.kills += 1
-        self.messages.add(f"{target.The} dies.", C.GOOD)
+        if self.floor_stats:
+            self.floor_stats[-1]["kills"] += 1
+        gold = target.xp_value * C.GOLD_PER_XP * self.loot_rng.uniform(0.6, 1.4) \
+            * effect(self, "gold_mult") * (2 if target.boss else 1)
+        self.messages.add(f"{target.The} dies. +{self._earn_gold(gold, 'kill')} gold.", C.GOOD)
         self.events.emit("kill", monster=target.key, monster_name=target.name, xp=target.xp_value,
                          boss=target.boss, depth=self.depth, turn=self.turn, by=by,
                          player_hp=p.hp, player_max_hp=p.max_hp)
@@ -657,12 +809,14 @@ class World:
             return
         crit = " A brutal crit!" if res.crit else ""
         self.messages.add(f"{monster.The} {how} you for {res.damage}.{crit}", C.DANGER)
+        self.floor_stats[-1]["damage_taken"] += res.damage
         self.events.emit("damage_taken", source=monster.key, damage=res.damage, hp=p.hp,
                          ranged=ranged)
         if res.killed:
             self._kill_player(f"Killed by {monster.a} on floor {self.depth}")
 
     def _kill_player(self, cause):
+        self._close_floor_stats()
         self.state = "dead"
         self.death_cause = cause
         self.messages.add(cause + ".", C.DANGER)

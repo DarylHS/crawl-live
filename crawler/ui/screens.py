@@ -11,7 +11,7 @@ CONTROLS = [
     ("G", "pick up items on your tile"),
     ("I", "inventory: use, equip, drop"),
     ("R", "rest to full HP (safe rooms only)"),
-    ("M", "safe-room menu: boxes, crafting, revive, save"),
+    ("M", "safe-room menu: boxes, shop, crafting, revive, save"),
     ("C", "command your pet: follow / attack / stay"),
     ("1", "use your class skill (from floor 3)"),
     ("?", "toggle this help"),
@@ -62,11 +62,11 @@ def _summary(r, surface, world, y):
     cx = C.SCREEN_W // 2
     p = world.player
     for i, line in enumerate((f"Reached floor {world.depth} of {C.NUM_FLOORS}",
-                              f"Level {p.level}   Kills {p.kills}   Turns {world.turn}",
+                              f"Level {p.level}   Kills {p.kills}   Turns {world.turn}   Gold {world.gold}",
                               f"Final viewers: {world.viewers:,}   (peak {world.showrunner.peak:,})",
                               f"Seed {world.seed}")):
         r.text(surface, line, (cx, y + i * 26), C.TEXT, r.font, centre=True)
-    r.text(surface, "Enter: new run   Esc: title", (cx, y + 136), C.TEXT_DIM, r.font,
+    r.text(surface, "Enter: new run   R: run report   Esc: title", (cx, y + 136), C.TEXT_DIM, r.font,
            centre=True)
 
 

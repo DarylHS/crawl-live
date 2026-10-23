@@ -2,7 +2,9 @@
 safe room when hurt, then heads for the nearest stairs. Grows into
 analysis/bot.py in Phase 5.
 
-Usage: python analysis/balance_probe.py [runs] [cat|dog|none]
+Usage: python analysis/balance_probe.py [runs] [cat|dog|budgie|mouse|none] [accept|decline]
+
+The last argument sets the bot's answer to every sponsor contract.
 
 Race and class rotate with the seed so every combination gets played.
 """
@@ -39,10 +41,19 @@ def score(key):
 
 
 def manage_items(w):
-    """Free actions: wear the best gear, and open every box while in a safe room."""
+    """Free actions: wear the best gear; in safe rooms open boxes, sell junk, buy potions."""
     if w.in_safe_room:
         while w.boxes and w.open_box(w.boxes[0]):
             pass
+        for i in reversed(range(len(w.inventory))):
+            if ITEMS[w.inventory[i]]["kind"] == "junk":
+                w.shop_sell(i)
+        potions = sum(ITEMS[k]["kind"] == "potion" for k in w.inventory)
+        for key in ("elixir", "brew", "tonic"):
+            while potions < 3 and w.shop.stock[key].on_hand and w.gold >= w.shop.price(key) + 10:
+                if not w.shop_buy(key):
+                    break
+                potions += 1
     for slot in ("weapon", "armour"):
         cur = w.equipment[slot]
         best = max((k for k in w.inventory if ITEMS[k]["kind"] == slot), key=score, default=None)
@@ -122,11 +133,13 @@ RACES = ("human", "elf")
 CLASSES = ("brawler", "arcanist", "analyst")
 
 
-def play(seed, pet="cat"):
+def play(seed, pet="cat", deals="decline"):
     w = World(seed, pet=(pet, "") if pet != "none" else None)
     while w.state == "playing":
         if w.pending_choice:
             w.choose_class(RACES[seed % 2], CLASSES[seed % 3])
+        if w.pending_offer:
+            w.accept_contract() if deals == "accept" else w.decline_contract()
         manage_items(w)
         act, arg = choose(w)
         if act == "move":
@@ -153,10 +166,12 @@ def play(seed, pet="cat"):
 if __name__ == "__main__":
     n = int(sys.argv[1]) if len(sys.argv) > 1 else 200
     pet = sys.argv[2] if len(sys.argv) > 2 else "cat"
+    deals = sys.argv[3] if len(sys.argv) > 3 else "decline"
     outcome, levels, viewers, unlocked = Counter(), Counter(), [], Counter()
     class_runs, class_wins = Counter(), Counter()
+    golds, boxes = [], []
     for seed in range(n):
-        w = play(seed, pet)
+        w = play(seed, pet, deals)
         if w.cls:
             class_runs[w.cls] += 1
             class_wins[w.cls] += w.state == "victory"
@@ -165,11 +180,15 @@ if __name__ == "__main__":
         outcome[key] += 1
         levels[w.depth] += w.player.level
         viewers.append(w.viewers)
+        golds.append(sum(f["gold"] for f in w.floor_stats))
+        boxes.append(len(w.box_log))
         unlocked.update(w.achievements.unlocked.keys())
     for k, v in sorted(outcome.items()):
         print(f"{k:22s} {v:4d} ({v / n:.0%})")
     viewers.sort()
     print(f"viewers: median {viewers[n // 2]:,}, p90 {viewers[n * 9 // 10]:,}, max {viewers[-1]:,}")
+    print(f"gold earned: median {sorted(golds)[n // 2]}, boxes opened: median "
+          f"{sorted(boxes)[n // 2]}")
     print("achievements:", ", ".join(f"{k} {v / n:.0%}" for k, v in sorted(unlocked.items())))
     print("win rate by class (runs reaching floor 3):",
           ", ".join(f"{c} {class_wins[c] / class_runs[c]:.0%} of {class_runs[c]}"

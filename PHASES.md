@@ -26,7 +26,7 @@ This file is the hand-off between build sessions. Each session does the next unc
   - Crafting bench in safe rooms (4 recipes, e.g. junk into bombs or potions).
   - Save/load (JSON in `saves/`) from safe rooms only; round-trip test.
   - Ranged monster AI (deferred from Phase 1).
-- [ ] **Phase 4: Learn while playing.** (No quizzes or blocking pop-ups; the learning comes from decisions and the announcer.)
+- [x] **Phase 4: Learn while playing.** (No quizzes or blocking pop-ups; the learning comes from decisions and the announcer.)
   - Odds disclosure: each loot box shows its real drop table before opening.
   - Box gambles: trade 3 lower boxes for 1 higher one, or reroll a box for a fee. Show EV and variance.
   - Sponsor contracts: offers like "+20% gold, but monsters hit 10% harder this floor"; accept or decline.
@@ -88,3 +88,16 @@ This file is the hand-off between build sessions. Each session does the next unc
 
 ### Repo move
 - The game moved from the `dungeon-crawler/` folder of `DarylHS/cyclistic-capstone-analysis` (branch `claude/dungeon-crawler-game-6qy35n`) into its own repo, `DarylHS/crawl-live`, with full history (`git subtree split`). Work now happens on `main` here.
+
+### Phase 4
+- New headless modules: `shop.py` (`Shop`, `Stock`, `BASE_DEMAND`; Poisson demand from other crawlers, exponential smoothing forecast with alpha 0.3, one-floor lead time, safety stock of 1 SD of lead-time demand, order-up-to two floors' cover; scarcity markup up to +60%; `shop.log` has one row per item per floor: depth, item, demand, sales, lost, delivered, on_hand, forecast, reorder_point, ordered, which is ready for notebook 03), `contracts.py` (`CONTRACTS`, `effect()`, `preview()`), `funfacts.py` (`FunFacts`), `report.py` (`run_report()`). UI: `ui/report.py`, plus box odds, shop and contract screens in `ui/menus.py`.
+- Gold: every item has a `value`; kills pay `xp x GOLD_PER_XP (0.5) x U(0.6, 1.4) x contract gold_mult` (bosses x2). `World.gold`, `_earn_gold()`. HUD shows gold.
+- Loot boxes: `loot.box_stats(tier)` gives exact EV and SD in gold; the box screen shows the drop table, EV and SD before opening. Trade 3 boxes for 1 of the next tier (`trade_up`, free, safe rooms). Every trade-up loses EV in gold (the house edge); the fun fact says so. Reroll (`reroll`, R on the reveal screen) hands back the item and rolls again for 30% of EV; the reveal screen shows the break-even (EV minus fee). `World.box_log` records every opening (tier, item, value, ev, rerolled, turn).
+- Sponsor contracts: offered at the start of floors 2+ (70%, `deal_rng`), one floor only. Gloop Blitz, Snack Sprint and Hazard Pay come with a signing-bonus box; Power Naps is a mild trade-off. `preview()` turns each into numbers from the player's run: average gold per floor, viewer gain, the expected damage change per hit from `combat.expected_damage`, timer change. The UI asks after the class picker.
+- Fun facts (rate-limited to one per 25 turns, some once per run): miss streaks (gambler's fallacy with the real probability), box droughts (chance of missing the rarest item k times), trade-ups (house edge), first crit, first contract (EV vs one run), shop stockouts (safety stock), surviving at 10% HP (survivorship bias).
+- Run report (R on the death/victory screen): damage taken by floor, cumulative box value vs expected, viewer curve with floor boundaries, contracts signed with that floor's gold and damage. `World.floor_stats` holds per-floor depth, damage_taken, gold, kills, viewers_start/end, contract; `Showrunner.samples` holds (turn, viewers) every 10 turns.
+- Events added: `player_attack` (target, chance, hit, crit), `gold`, `box_trade`, `box_reroll`, `shop_buy`, `shop_sell`, `shop_sold_out`, `shop_restock`, `contract_offered`, `contract_accepted`, `contract_declined`, `fun_fact`. `box_opened` has `rerolled`.
+- Save format is now version 2 and covers the shop, contracts, report data, fun-fact state and the two new RNG streams (shop and deals); a test checks the future is identical after a load across floor changes.
+- Balance (probe now sells junk and keeps 3 potions bought from the shop; 40 seeds each): cat 65% declining deals / 55% accepting every deal; dog 55% / 38%. Gold earned is about 900 a run (median). The first pass had gold at 3x and riskier deals with no signing bonus; accepting everything then cost 37 points, which made deals pure traps.
+- Message log lines now wrap instead of running under the side panel.
+- Deferred to Phase 5: telemetry and notebooks. The shop log, box log, floor stats and viewer samples are already structured for them.

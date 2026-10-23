@@ -52,6 +52,7 @@ ITEM_DROP_CHANCE = 0.08      # chance a dying monster drops an item
 FLOOR_ITEM_CHANCE = 0.30     # chance each non-start room holds an item
 BOMB_RANGE = 6               # how far away a bomb can be thrown
 TOAST_TURNS = 8              # how long an achievement toast stays up
+GOLD_PER_XP = 0.5            # average gold per point of monster XP
 
 # --- Colours ------------------------------------------------------------
 BG = (12, 11, 16)
