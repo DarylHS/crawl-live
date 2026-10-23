@@ -321,9 +321,9 @@ class World:
         pet = self.pet
         res = attack(pet, target, self.rng, mult=mult)
         if not res.hit:
-            self.messages.add(f"{pet.name} misses the {target.name}.", C.TEXT_DIM)
+            self.messages.add(f"{pet.name} misses {target.the}.", C.TEXT_DIM)
             return
-        self.messages.add(f"{pet.name} {verb} the {target.name} for {res.damage}.", pet.colour)
+        self.messages.add(f"{pet.name} {verb} {target.the} for {res.damage}.", pet.colour)
         self._after_hit(target, "pet")
 
     def pet_pounce(self, target):
@@ -365,7 +365,7 @@ class World:
         res = attack(monster, pet, self.rng)
         if not res.hit:
             return
-        self.messages.add(f"The {monster.name} hits {pet.name} for {res.damage}.", C.DANGER)
+        self.messages.add(f"{monster.The} hits {pet.name} for {res.damage}.", C.DANGER)
         if res.killed:
             pet.downed = True
             self.messages.add(f"{pet.name} is down! Revive them in a safe room.", C.DANGER)
@@ -408,7 +408,7 @@ class World:
                 return False
             target = min(adjacent, key=lambda m: m.hp)
             res = attack(p, target, self.rng, mult=2, sure=True)
-            self.messages.add(f"HAYMAKER! The {target.name} takes {res.damage}.", C.ACCENT)
+            self.messages.add(f"HAYMAKER! {target.The} takes {res.damage}.", C.ACCENT)
             self._after_hit(target, "skill")
         elif key == "arc_bolt":
             seen = [m for m in self.monsters if (m.x, m.y) in self.visible
@@ -418,7 +418,7 @@ class World:
                 return False
             target = min(seen, key=lambda m: cheb(m, p))
             dmg = target.take_damage(8 + 2 * p.level)
-            self.messages.add(f"Arc Bolt crackles into the {target.name} for {dmg}.", C.INFO)
+            self.messages.add(f"Arc Bolt crackles into {target.the} for {dmg}.", C.INFO)
             self._after_hit(target, "skill")
         else:
             self.scout_turns = spec["duration"]
@@ -580,10 +580,10 @@ class World:
         p = self.player
         res = attack(p, target, self.rng)
         if not res.hit:
-            self.messages.add(f"You miss the {target.name}.", C.TEXT_DIM)
+            self.messages.add(f"You miss {target.the}.", C.TEXT_DIM)
             return
         crit = " Critical hit!" if res.crit else ""
-        self.messages.add(f"You hit the {target.name} for {res.damage}.{crit}")
+        self.messages.add(f"You hit {target.the} for {res.damage}.{crit}")
         self.events.emit("player_hit", target=target.key, damage=res.damage, crit=res.crit)
         self._after_hit(target, "melee")
 
@@ -619,7 +619,7 @@ class World:
         p = self.player
         self.monsters.remove(target)
         p.kills += 1
-        self.messages.add(f"The {target.name} dies.", C.GOOD)
+        self.messages.add(f"{target.The} dies.", C.GOOD)
         self.events.emit("kill", monster=target.key, monster_name=target.name, xp=target.xp_value,
                          boss=target.boss, depth=self.depth, turn=self.turn, by=by,
                          player_hp=p.hp, player_max_hp=p.max_hp)
@@ -628,7 +628,7 @@ class World:
             if by == "pet":
                 pet.kills += 1
                 self.events.emit("pet_kill", pet=pet.name, species=pet.species,
-                                 monster_name=target.name)
+                                 monster_name=target.name, boss=target.boss)
             for level in pet.gain_xp(target.xp_value if by == "pet" else target.xp_value // 2):
                 self.messages.add(f"{pet.name} is now level {level}.", pet.colour)
                 self.events.emit("pet_level_up", pet=pet.name, species=pet.species, level=level)
@@ -652,15 +652,15 @@ class World:
         res = attack(monster, p, self.rng)
         how = "shoots" if ranged else "hits"
         if not res.hit:
-            self.messages.add(f"The {monster.name} {'shoots and ' if ranged else ''}misses you.",
+            self.messages.add(f"{monster.The} {'shoots and ' if ranged else ''}misses you.",
                               C.TEXT_DIM)
             return
         crit = " A brutal crit!" if res.crit else ""
-        self.messages.add(f"The {monster.name} {how} you for {res.damage}.{crit}", C.DANGER)
+        self.messages.add(f"{monster.The} {how} you for {res.damage}.{crit}", C.DANGER)
         self.events.emit("damage_taken", source=monster.key, damage=res.damage, hp=p.hp,
                          ranged=ranged)
         if res.killed:
-            self._kill_player(f"Killed by a {monster.name} on floor {self.depth}")
+            self._kill_player(f"Killed by {monster.a} on floor {self.depth}")
 
     def _kill_player(self, cause):
         self.state = "dead"

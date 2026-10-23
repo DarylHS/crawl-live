@@ -74,6 +74,21 @@ class Monster(Entity):
     phase: int = 1                  # bosses change behaviour as they lose HP
     stunned: int = 0                # turns left unable to act
 
+    # Bosses have proper names ("Foreman Gristle"), so they never take an article.
+    @property
+    def the(self):
+        return self.name if self.boss else f"the {self.name}"
+
+    @property
+    def The(self):
+        return self.name if self.boss else f"The {self.name}"
+
+    @property
+    def a(self):
+        if self.boss:
+            return self.name
+        return f"{'an' if self.name[0] in 'AEIOU' else 'a'} {self.name}"
+
 
 @dataclass(eq=False)
 class Pet(Entity):

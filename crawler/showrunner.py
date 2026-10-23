@@ -259,6 +259,8 @@ class Showrunner:
         self.world.messages.add("SYSTEM: " + line, C.INFO)
 
     def _announce(self, name, d):
+        if name in ("kill", "pet_kill") and d.get("boss"):
+            return                          # boss_kill has its own lines
         if name == "damage_taken" and d["hp"] > self.world.player.max_hp * 0.4:
             return
         if self.rng.random() >= SPEAK_CHANCE.get(name, 1.0):

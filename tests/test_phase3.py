@@ -352,3 +352,19 @@ def test_mouse_runs_away_when_hurt():
     take_pet_turn(w)
     assert cheb(pet, p) < before and m.hp == m.max_hp
     assert any("Skritch:" in t for t, _ in w.messages.recent(5))
+
+
+def test_boss_names_read_naturally():
+    w = World(seed=23)
+    boss = next(m for m in w.monsters if m.boss)
+    w.player.hp = 1
+    w.player.evasion = -100
+    for _ in range(40):
+        if w.state == "dead":
+            break
+        w.monster_attack(boss)
+    assert w.death_cause == f"Killed by {boss.name} on floor 1"
+    text = " ".join(t for t, _ in w.messages.recent(50))
+    assert "The The" not in text and "a The" not in text
+    m = spawn_monster("goblin", 0, 0)
+    assert (m.the, m.The, m.a) == ("the Knockoff Goblin", "The Knockoff Goblin", "a Knockoff Goblin")

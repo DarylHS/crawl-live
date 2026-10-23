@@ -7,7 +7,7 @@ the exit stays sealed until the boss dies, and it has a second phase at half HP.
 from .entities import Monster
 
 BOSSES = {
-    1: dict(name="The Grease Trap King", glyph="K", colour=(230, 200, 90), hp=32, power=5,
+    1: dict(name="The Grease Trap King", glyph="K", colour=(230, 200, 90), hp=24, power=4,
             defence=1, accuracy=0, evasion=0, xp=25, box="silver"),
     2: dict(name="The Overdue Librarian", glyph="L", colour=(220, 170, 120), hp=52, power=8,
             defence=2, accuracy=1, evasion=0, xp=40, box="silver"),
