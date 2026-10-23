@@ -8,7 +8,10 @@ CONTROLS = [
     ("Numpad 7 9 1 3", "move diagonally"),
     (". / Space / numpad 5", "wait a turn"),
     ("> / Enter", "descend a stairwell"),
+    ("G", "pick up items on your tile"),
+    ("I", "inventory: use, equip, drop"),
     ("R", "rest to full HP (safe rooms only)"),
+    ("M", "safe-room menu: open loot boxes, rest"),
     ("?", "toggle this help"),
     ("Esc", "quit to title"),
 ]
@@ -21,7 +24,7 @@ PREMISE = [
 ]
 
 
-def _overlay(surface, alpha=200):
+def overlay(surface, alpha=200):
     shade = pygame.Surface(surface.get_size(), pygame.SRCALPHA)
     shade.fill((*C.BG, alpha))
     surface.blit(shade, (0, 0))
@@ -40,7 +43,7 @@ def draw_title(r, surface):
 
 
 def draw_help(r, surface):
-    _overlay(surface)
+    overlay(surface)
     cx = C.SCREEN_W // 2
     r.text(surface, "CONTROLS", (cx, 180), C.ACCENT, r.big, centre=True)
     for i, (keys, what) in enumerate(CONTROLS):
@@ -56,14 +59,15 @@ def _summary(r, surface, world, y):
     p = world.player
     for i, line in enumerate((f"Reached floor {world.depth} of {C.NUM_FLOORS}",
                               f"Level {p.level}   Kills {p.kills}   Turns {world.turn}",
+                              f"Final viewers: {world.viewers:,}   (peak {world.showrunner.peak:,})",
                               f"Seed {world.seed}")):
         r.text(surface, line, (cx, y + i * 26), C.TEXT, r.font, centre=True)
-    r.text(surface, "Enter: new run   Esc: title", (cx, y + 110), C.TEXT_DIM, r.font,
+    r.text(surface, "Enter: new run   Esc: title", (cx, y + 136), C.TEXT_DIM, r.font,
            centre=True)
 
 
 def draw_death(r, surface, world):
-    _overlay(surface)
+    overlay(surface)
     cx = C.SCREEN_W // 2
     r.text(surface, "YOU DIED", (cx, 230), C.DANGER, r.huge, centre=True)
     r.text(surface, world.death_cause or "", (cx, 290), C.TEXT, r.big, centre=True)
@@ -71,7 +75,7 @@ def draw_death(r, surface, world):
 
 
 def draw_victory(r, surface, world):
-    _overlay(surface)
+    overlay(surface)
     cx = C.SCREEN_W // 2
     r.text(surface, "YOU SURVIVED", (cx, 230), C.GOOD, r.huge, centre=True)
     r.text(surface, "The ratings were... acceptable.", (cx, 290), C.TEXT, r.big, centre=True)

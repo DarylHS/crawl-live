@@ -13,7 +13,7 @@ This file is the hand-off between build sessions. Each session does the next unc
 ## Checklist
 
 - [x] **Phase 1: Core crawl.** Dungeon generation, FOV, movement, bump combat, monster AI, levelling, collapse timer, stairwells, safe rooms (rest), 6 floors, title/help/death/victory screens.
-- [ ] **Phase 2: Loot & show.**
+- [x] **Phase 2: Loot & show.**
   - Items (~15: 3 weapons, 3 armour, potions, bombs, junk), inventory screen (`i`), equip/use/drop, pick up (`g`), items on the floor.
   - Loot boxes: 5 tiers (Bronze, Silver, Gold, Platinum, Legendary), ~4 items each, weighted roll tables in `crawler/loot.py`. Boxes are opened only in safe rooms, with a reveal screen.
   - Achievements (`crawler/achievements.py`): subscribe to the existing `EventBus`; 8 starter achievements, each awarding a tiered box. Show a toast when one triggers.
@@ -48,3 +48,15 @@ This file is the hand-off between build sessions. Each session does the next unc
 - Monster pathing uses one BFS distance map from the player per turn (`Floor.distance_map`), with safe tiles excluded.
 - Balance probe (`analysis/balance_probe.py`: a bot that explores, fights what it sees, rests when hurt, then takes the stairs), 200 seeds with no items: about 4% win; deaths spread over floors 2-5; timer collapses about 2% per floor. Starting HP was raised to 36 and regen set to 1 HP per 7 turns. Expect a retune once items and potions exist.
 - All monsters are melee for now; ranged AI is deferred to Phase 3.
+
+### Phase 2
+- New modules (all headless): `items.py` (15 items as data: 3 weapons, 3 armour, 3 potions, 2 bombs, 4 junk; `FLOOR_LOOT` table; `describe()`), `loot.py` (`BOX_TIERS`, `TIERS`, `odds(tier)` giving exact probabilities for Phase 4's odds disclosure, `roll_box`), `achievements.py` (`ACHIEVEMENTS` data, 8 starters, each awards a box), `showrunner.py` (`LINES`, `SPONSOR_GIFTS`, viewer logic). UI: `ui/menus.py` (inventory, safe-room menu, box reveal).
+- `World` now owns `inventory` (keys, max `C.INVENTORY_SIZE`=16), `equipment` {weapon, armour}, `boxes` (list of tier strings), `floor_items` {(x, y): [keys]}, `toasts`, `last_reveal`, `achievements`, `showrunner`, `viewers` (property). Actions: `pickup()` (takes a turn), `drop(i)`, `equip(i)`, `unequip(slot)` (free), `use_item(i)` (potion/bomb take a turn; equip is free), `add_box(tier, source)`, `open_box(tier)` (safe room only, needs a free pack slot).
+- Equipment applies flat bonuses straight onto the player's stats, so `combat.hit_chance` / `expected_damage` already include gear (the Phase 3 Analyst skill needs nothing extra).
+- Bombs hit the nearest visible monster within `C.BOMB_RANGE` and everything within the item's `radius` of it, ignoring defence. Monsters have a `C.ITEM_DROP_CHANCE` of dropping floor loot; each non-start room has a `C.FLOOR_ITEM_CHANCE` of holding one item.
+- Loot rolls use `world.loot_rng` and the announcer uses its own RNG, so neither perturbs dungeon generation for a given seed.
+- Events added: `turn` (every clock tick, data `turn`), `item_pickup`, `item_drop`, `item_use`, `equip`, `unequip`, `bomb` (`kills`), `box_gained` (`tier`, `source`: achievement/sponsor), `box_opened` (`tier`, `item`), `achievement` (`key`, `title`, `tier`), `sponsor_gift` (`tier`, `sponsor`). `kill` gained a `by` field ("melee"/"bomb"). Note `emit(name, **data)` means a payload can't use `name` as a key. Telemetry (Phase 5) should expect `turn` to be frequent.
+- Viewers: start 50. Kill = 5 + 2 x monster XP, +25 per extra kill within 4 turns, +60 for a kill at 25% HP or less; level up +40; achievement +50; descend +30 (+100 under 25% timer). Decays 3% per 10 idle turns (floor 20), so long rests cost viewers. Sponsor boxes at 300/700/1500/3000/6000 viewers (Bronze to Legendary). The announcer only speaks on some kills and on damage when HP is under 40%. `Showrunner.history` records (turn, viewers) at each floor start, and `peak` is tracked, for the Phase 4 report screen.
+- Keys: `G` pick up, `I` inventory (Enter use/equip, `U` unequip, `D` drop), `M` safe-room menu (rest, open boxes), `R` still rests directly. The menu has room for shop/crafting/save entries via `menus.menu_options`.
+- Balance probe now equips the best gear, drinks potions under 45% HP, throws bombs at crowds and big monsters, picks up non-junk items and opens boxes in safe rooms. 100 seeds: about 46% win (was about 4% without items); deaths mostly floor 5 (16%) and spread over floors 2-6; collapses about 7% total. Viewers median about 1,000, p90 about 1,900; Gold and above sponsor boxes are rare for this bot. `cutting_it_fine` never fired (the bot descends early). The probe takes about 2.5s per run.
+- Deferred: the bot is a competent item user, so 46% is likely generous for a human, but a proper retune waits for the Phase 5 bot and data (candidates: item frequency, potion strength, viewer thresholds). Junk has no use yet (Phase 3 crafting). Box odds are not yet shown in the UI (Phase 4).

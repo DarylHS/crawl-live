@@ -16,20 +16,25 @@ python main.py            # or: python main.py --seed 1234 for a reproducible ru
 | Numpad 7 9 1 3 | Move diagonally |
 | `.` / Space / numpad 5 | Wait a turn |
 | `>` / Enter | Descend a stairwell |
+| `G` | Pick up items on your tile |
+| `I` | Inventory: Enter uses/equips, `U` unequips, `D` drops |
 | `R` | Rest to full HP (safe rooms only, costs floor time) |
+| `M` | Safe-room menu: open loot boxes, rest (safe rooms only) |
 | `?` | Help |
 | Esc | Back to title |
 
 ## How it plays
 
-Each floor has a collapse timer (1 turn = 1 in-game minute). When it hits zero, the floor collapses and you die. Each floor has two stairwells, usually in the rooms furthest from where you start. One room per floor is a safe room (green): monsters can't enter it and nobody can fight inside it, and you can rest there to full HP if you're willing to spend the time. Monsters notice you when they come into your field of view and lose interest after a while out of sight. Survive six floors to win.
+Each floor has a collapse timer (1 turn = 1 in-game minute). When it hits zero, the floor collapses and you die. Each floor has two stairwells, usually in the rooms furthest from where you start. One room per floor is a safe room (green): monsters can't enter it and nobody can fight inside it, and you can rest there to full HP if you're willing to spend the time. Monsters notice you when they come into your field of view and lose interest after a while out of sight. Kills and floor loot give you gear, potions and bombs. Achievements and sponsors (who send gifts as your viewer count grows) award loot boxes in five tiers, Bronze to Legendary, which can only be opened in a safe room. The System AI comments on everything you do, and your viewer count is your score.
+
+Survive six floors to win.
 
 ## Concepts from the books
 
 | Concept | Status |
 |---|---|
 | Collapsing floors, stairwells, safe rooms | Phase 1 (done) |
-| Loot boxes, achievements, sarcastic System AI, viewers, sponsors | Phase 2 |
+| Loot boxes, achievements, sarcastic System AI, viewers, sponsor gifts | Phase 2 (done) |
 | Companion pet, class choice on floor 3, bosses, crafting, save/load | Phase 3 |
 | Learning while playing: visible odds, gambles, sponsor deals, shop sim | Phase 4 |
 | Telemetry, bot player, analysis notebooks | Phase 5 |
@@ -38,7 +43,7 @@ See [PHASES.md](PHASES.md) for progress.
 
 ## Code layout
 
-`crawler/world.py` holds all game rules and has no pygame dependency, so tests (and later the bot) can play thousands of turns headless. `crawler/game.py` and `crawler/ui/` handle input and drawing. Monsters and balance numbers are data in `crawler/entities.py` and `crawler/config.py`.
+`crawler/world.py` holds all game rules and has no pygame dependency, so tests (and later the bot) can play thousands of turns headless. `crawler/game.py` and `crawler/ui/` handle input and drawing. Monsters and balance numbers are data in `crawler/entities.py` and `crawler/config.py`; items, loot tables, achievements and announcer lines are data in `items.py`, `loot.py`, `achievements.py` and `showrunner.py`.
 
 ## Tests
 

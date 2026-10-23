@@ -5,7 +5,7 @@ Rendering only happens after input, since the game is turn-based.
 import pygame
 
 from . import config as C
-from .ui import screens
+from .ui import menus, screens
 from .ui.hud import Renderer
 from .world import World
 
@@ -32,6 +32,8 @@ class App:
         self.scene = "title"        # "title" | "game"
         self.world: World | None = None
         self.show_help = False
+        self.overlay = None         # None | "inventory" | "safe" | "reveal"
+        self.cursor = 0
         self.running = True
 
     def start_run(self):
@@ -39,6 +41,7 @@ class App:
         self.seed = None            # only the first run uses a fixed seed
         self.scene = "game"
         self.show_help = False
+        self.overlay = None
 
     # --- Input ---------------------------------------------------------
 
@@ -60,7 +63,9 @@ class App:
             return
 
         world = self.world
-        if key == pygame.K_ESCAPE:
+        if self.overlay:
+            self.handle_overlay_key(key)
+        elif key == pygame.K_ESCAPE:
             self.scene = "title"
         elif world.state != "playing":
             if key in DESCEND_KEYS:
@@ -73,6 +78,55 @@ class App:
             world.wait()
         elif key == pygame.K_r:
             world.rest()
+        elif key == pygame.K_g:
+            world.pickup()
+        elif key == pygame.K_i:
+            self.open_overlay("inventory")
+        elif key == pygame.K_m:
+            if world.in_safe_room:
+                self.open_overlay("safe")
+            else:
+                world.messages.add("The menu is only available in a safe room.", C.TEXT_DIM)
+
+    def open_overlay(self, name):
+        self.overlay, self.cursor = name, 0
+
+    def handle_overlay_key(self, key):
+        world = self.world
+        if self.overlay == "reveal":
+            if key in DESCEND_KEYS or key == pygame.K_ESCAPE:
+                self.overlay = "safe" if world.in_safe_room else None
+            return
+        if key in (pygame.K_ESCAPE, pygame.K_i, pygame.K_m):
+            self.overlay = None
+            return
+        rows = (menus.inventory_rows(world) if self.overlay == "inventory"
+                else menus.menu_options(world))
+        if key in (pygame.K_UP, pygame.K_w) and rows:
+            self.cursor = (self.cursor - 1) % len(rows)
+        elif key in (pygame.K_DOWN, pygame.K_s) and rows:
+            self.cursor = (self.cursor + 1) % len(rows)
+        elif not rows or world.state != "playing":
+            return
+        elif self.overlay == "inventory":
+            where, ref, _ = rows[self.cursor]
+            if key in DESCEND_KEYS and where == "pack":
+                world.use_item(ref)
+            elif key == pygame.K_u and where == "equip":
+                world.unequip(ref)
+            elif key == pygame.K_d and where == "pack":
+                world.drop(ref)
+            self.cursor = min(self.cursor, max(0, len(menus.inventory_rows(world)) - 1))
+        elif key in DESCEND_KEYS:
+            action, tier, _ = rows[self.cursor]
+            if action == "rest":
+                world.rest()
+                self.overlay = None
+            elif world.open_box(tier):
+                self.overlay = "reveal"
+            self.cursor = min(self.cursor, len(menus.menu_options(world)) - 1)
+        if world.state != "playing":
+            self.overlay = None
 
     # --- Drawing -------------------------------------------------------
 
@@ -86,6 +140,12 @@ class App:
                 screens.draw_death(r, s, self.world)
             elif self.world.state == "victory":
                 screens.draw_victory(r, s, self.world)
+            if self.overlay == "inventory":
+                menus.draw_inventory(r, s, self.world, self.cursor)
+            elif self.overlay == "safe":
+                menus.draw_safe_menu(r, s, self.world, self.cursor)
+            elif self.overlay == "reveal":
+                menus.draw_reveal(r, s, self.world)
         if self.show_help:
             screens.draw_help(r, s)
 

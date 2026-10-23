@@ -56,3 +56,42 @@ def test_all_scenes_draw(app):
 
     app.handle_key(_key(pygame.K_RETURN))       # new run from the end screen
     assert app.world.state == "playing"
+
+
+def test_item_screens_draw(app):
+    app.handle_key(_key(pygame.K_RETURN))
+    w = app.world
+    w.inventory = ["pan", "jersey", "tonic", "popper", "sock", "elixir"]
+    w.equip(0)
+    w.floor_items[(w.player.x + 1, w.player.y)] = ["brew"]
+    w.add_box("bronze", "test")
+    w.add_box("legendary", "test")
+    w.toasts.append((w.turn, "Achievement: First Blood", "silver"))
+    _shot(app, "game_items")
+
+    app.handle_key(_key(pygame.K_i, "i"))
+    assert app.overlay == "inventory"
+    app.handle_key(_key(pygame.K_DOWN))
+    _shot(app, "inventory")
+    app.handle_key(_key(pygame.K_d, "d"))               # drop the selected item
+    assert len(w.inventory) == 4
+    app.handle_key(_key(pygame.K_ESCAPE))
+    assert app.overlay is None and app.scene == "game"
+
+    app.handle_key(_key(pygame.K_m, "m"))               # not in a safe room
+    assert app.overlay is None
+    w.player.x, w.player.y = w.floor.safe_room.centre
+    w.update_fov()
+    app.handle_key(_key(pygame.K_m, "m"))
+    assert app.overlay == "safe"
+    app.handle_key(_key(pygame.K_DOWN))
+    _shot(app, "safe_menu")
+    app.handle_key(_key(pygame.K_RETURN))               # open the bronze box
+    assert app.overlay == "reveal" and w.last_reveal
+    _shot(app, "box_reveal")
+    app.handle_key(_key(pygame.K_RETURN))
+    assert app.overlay == "safe"
+    app.handle_key(_key(pygame.K_ESCAPE))
+
+    w.state, w.death_cause = "dead", "Killed by a unit test"
+    _shot(app, "death_viewers")

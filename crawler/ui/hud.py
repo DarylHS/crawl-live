@@ -3,6 +3,8 @@ import pygame
 
 from .. import config as C
 from ..dungeon import STAIRS, WALL
+from ..items import ITEMS, glyph
+from ..loot import BOX_TIERS
 
 MONO = "dejavusansmono,menlo,consolas,couriernew,monospace"
 
@@ -56,6 +58,9 @@ class Renderer:
                 if tile == STAIRS:
                     self._blit_glyph(surface, ">", C.ACCENT if lit else C.TEXT_DIM, x, y)
 
+        for (x, y), keys in world.floor_items.items():
+            if (x, y) in visible:
+                self._blit_glyph(surface, glyph(keys[-1]), ITEMS[keys[-1]]["colour"], x, y)
         for m in world.monsters:
             if (m.x, m.y) in visible:
                 self._blit_glyph(surface, m.glyph, m.colour, m.x, m.y)
@@ -99,22 +104,32 @@ class Renderer:
         y += 30
         for label, value in (("Attack", p.power), ("Defence", p.defence),
                              ("Accuracy", p.accuracy), ("Evasion", p.evasion),
-                             ("Kills", p.kills), ("Turn", world.turn)):
+                             ("Kills", p.kills), ("Turn", world.turn),
+                             ("Viewers", f"{world.viewers:,}")):
             self.text(surface, label, (x, y), C.TEXT_DIM)
             self.text(surface, str(value), (x + w - self.font.size(str(value))[0], y))
             y += 20
 
-        y += 10
+        if world.boxes:
+            x2 = x
+            for tier in BOX_TIERS:
+                n = world.boxes.count(tier)
+                if n:
+                    label = f"{n}x{BOX_TIERS[tier]['name'][0]}"
+                    x2 = self.text(surface, label, (x2, y), BOX_TIERS[tier]["colour"],
+                                   self.small).right + 8
+            y += 18
+        y += 6
         if world.in_safe_room:
             self.text(surface, "SAFE ROOM", (x, y), C.GOOD, self.big)
             y += 26
-            self.text(surface, "R: rest to full HP", (x, y), C.TEXT_DIM, self.small)
+            self.text(surface, "R: rest   M: menu (boxes)", (x, y), C.TEXT_DIM, self.small)
         elif world.on_stairs:
             self.text(surface, "STAIRWELL", (x, y), C.ACCENT, self.big)
             y += 26
             self.text(surface, "> or Enter: descend", (x, y), C.TEXT_DIM, self.small)
 
-        self.text(surface, "? help   Esc quit", (x, C.SCREEN_H - 26), C.TEXT_DIM, self.small)
+        self.text(surface, "I pack G get ? help", (x, C.SCREEN_H - 26), C.TEXT_DIM, self.small)
 
     # --- Log -----------------------------------------------------------
 
@@ -130,8 +145,18 @@ class Renderer:
             col = tuple(int(c * fade + b * (1 - fade)) for c, b in zip(colour, C.PANEL_BG))
             self.text(surface, text, (12, y0 + 8 + i * 17), col)
 
+    def draw_toasts(self, surface, world):
+        live = [t for t in world.toasts if world.turn - t[0] < C.TOAST_TURNS][-3:]
+        for i, (_, text, tier) in enumerate(live):
+            w, h = 360, 30
+            rect = pygame.Rect((C.MAP_W * C.TILE - w) // 2, 10 + i * (h + 6), w, h)
+            surface.fill(C.PANEL_BG, rect)
+            pygame.draw.rect(surface, BOX_TIERS[tier]["colour"], rect, 2)
+            self.text(surface, text, rect.center, C.TEXT, self.font, centre=True)
+
     def draw_game(self, surface, world):
         surface.fill(C.BG)
         self.draw_map(surface, world)
         self.draw_panel(surface, world)
         self.draw_log(surface, world)
+        self.draw_toasts(surface, world)
