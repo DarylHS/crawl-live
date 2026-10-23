@@ -39,6 +39,12 @@ This file is the hand-off between build sessions. Each session does the next unc
   - Notebooks in `analysis/`: `01_run_analysis.ipynb` (EDA, survival by floor, viewer growth, causes of death), `02_loot_box_stats.ipynb` (EV per tier, chi-square test of observed vs stated rates, pity timers), `03_shop_forecasting.ipynb` (MAPE, bias, stockouts vs safety stock), `04_predict_death.ipynb` (scikit-learn classifier, train/test split by run to avoid leakage, feature importance). All must run with `jupyter nbconvert --execute`.
   - Balance pass using the bot's data; final README update.
 
+- [ ] **Phase 6: Visuals.** (Done last, so Phase 4's new screens get styled once.) Everything visual lives in `crawler/ui/` and `crawler/game.py`; game rules don't change.
+  - Swap glyphs for a free 16x16 tile set (Kenney or Dungeon Crawl Stone Soup tiles, both CC0). Keep the tile-to-sprite mapping as data, credit the source in the README, and keep a `--glyphs` option to fall back to the current look.
+  - Polish: smoother lighting falloff at the edge of sight, hit flashes and floating damage numbers, a small screen shake on crits and boss phases, an animated loot box reveal, and a consistent menu style.
+  - Distinct looks for the four companions and six bosses, so they read at a glance.
+  - Re-check every screen with the headless screenshots in `tests/test_render.py`.
+
 ## Notes from finished phases
 
 ### Phase 1
