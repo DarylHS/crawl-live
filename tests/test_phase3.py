@@ -368,3 +368,20 @@ def test_boss_names_read_naturally():
     assert "The The" not in text and "a The" not in text
     m = spawn_monster("goblin", 0, 0)
     assert (m.the, m.The, m.a) == ("the Knockoff Goblin", "The Knockoff Goblin", "a Knockoff Goblin")
+
+
+def test_following_pet_joins_the_players_fight():
+    w = World(seed=24, pet=("dog", "Rex"))
+    _clear(w)
+    p, pet = w.player, w.pet
+    # A monster next to the player but not next to the pet.
+    spot = next(s for s in _free_tiles_near(w, p.x, p.y, 1)
+                if max(abs(s[0] - pet.x), abs(s[1] - pet.y)) >= 2)
+    m = spawn_monster("golem", *spot)
+    m.stunned = 99                                      # keep it still
+    w.monsters.append(m)
+    w.visible = w.visible | {spot}
+    from crawler.ai import take_pet_turn
+    for _ in range(4):
+        take_pet_turn(w)
+    assert cheb(pet, m) == 1

@@ -11,7 +11,7 @@ from .dungeon import NEIGHBOURS_8
 from .entities import PETS
 
 CHASE_RADIUS = 25
-PET_LEASH = 2                   # a following pet stays within this many tiles
+PET_LEASH = 2                   # a following pet stays this close and defends you within it
 POUNCE_RANGE = 3
 SQUAWK_RANGE = 3
 MOUSE_FLEE_FRAC = 0.3           # the mouse runs back to you below this much HP
@@ -153,6 +153,12 @@ def take_pet_turn(world):
         seen = [m for m in world.monsters if (m.x, m.y) in world.visible]
         if seen:
             target = min(seen, key=lambda m: cheb(pet, m))
+    elif pet.mode == "follow":
+        # Help with whatever is fighting the player.
+        threats = [m for m in world.monsters if (m.x, m.y) in world.visible
+                   and cheb(m, player) <= PET_LEASH and not floor.is_safe(m.x, m.y)]
+        if threats:
+            target = min(threats, key=lambda m: cheb(pet, m))
     if target is None and pet.mode != "stay" and cheb(pet, player) > PET_LEASH:
         target = player
     if target is None:
