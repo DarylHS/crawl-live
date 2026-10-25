@@ -22,6 +22,8 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from crawler.dungeon import NEIGHBOURS_8
 from crawler.items import ITEMS
+from crawler.character import BACKSTORIES, GENDERS
+from crawler.classes import CLASSES as CLASS_TABLE, RACES as RACE_TABLE
 from crawler.entities import PETS
 from crawler.telemetry import RUNS_DIR, Telemetry, write_tables
 from crawler.world import World
@@ -67,7 +69,7 @@ def manage_items(w):
                 w.shop_sell(i)
         potions = sum(ITEMS[k]["kind"] == "potion" for k in w.inventory)
         for key in ("elixir", "brew", "tonic"):
-            while potions < 3 and w.shop.stock[key].on_hand and w.gold >= w.shop.price(key) + 10:
+            while potions < 3 and w.shop.stock[key].on_hand and w.gold >= w.buy_price(key) + 10:
                 if not w.shop_buy(key):
                     break
                 potions += 1
@@ -105,8 +107,16 @@ def choose(w):
     adj = [m for m in w.monsters if cheb((m.x, m.y), pos) == 1]
     if w.cls and not w.skill_cooldown and not w.in_safe_room:
         seen_near = [m for m in w.monsters if (m.x, m.y) in w.visible and cheb((m.x, m.y), pos) <= 6]
-        if (w.skill == "haymaker" and adj) or (w.skill == "arc_bolt" and seen_near) \
-                or (w.skill == "scout_report" and seen_near and not w.scout_turns):
+        kinds = [ITEMS[k]["kind"] for k in w.inventory]
+        sk = w.skill
+        pet_fighting = w.active_pet and any(cheb((m.x, m.y), (w.pet.x, w.pet.y)) == 1 for m in w.monsters)
+        if (sk == "haymaker" and adj) or (sk in ("arc_bolt", "pocket_popper") and seen_near) \
+                or (sk == "scout_report" and seen_near and not w.scout_turns) \
+                or (sk == "field_brew" and "junk" in kinds and kinds.count("potion") < 4) \
+                or (sk == "rile_up" and pet_fighting) \
+                or (sk == "crowd_work" and seen_near and not w.hype_turns) \
+                or (sk == "riposte" and adj and not w.riposte) \
+                or (sk == "supply_drop" and kinds.count("potion") < 2 and w.gold >= 25):
             return ("skill", None)
     if adj and not w.in_safe_room:
         return ("move", (adj[0].x - p.x, adj[0].y - p.y))
@@ -146,21 +156,29 @@ def choose(w):
     return ("move", mv) if mv else ("wait", None)
 
 
-RACES = ("human", "elf")
-CLASSES = ("brawler", "arcanist", "analyst")
+RACES = tuple(RACE_TABLE)
+CLASSES = tuple(CLASS_TABLE)
+STORIES = tuple(BACKSTORIES)
 
 
 def run_config(seed):
-    """Companion, race and class for a seed, rotated so combinations are balanced."""
-    return dict(pet=PET_ORDER[seed % len(PET_ORDER)], race=RACES[(seed // 4) % 2],
-                cls=CLASSES[(seed // 8) % 3])
+    """Companion, backstory, gender, race and class for a seed.
+
+    Each is drawn independently from a seeded RNG, so every combination turns up and
+    no choice is tied to another by the rotation.
+    """
+    pick = random.Random(seed * 7919 + 13)
+    return dict(pet=PET_ORDER[seed % len(PET_ORDER)], race=pick.choice(RACES),
+                cls=pick.choice(CLASSES), backstory=pick.choice(STORIES),
+                gender=pick.choice(list(GENDERS)))
 
 
 def play(seed, pet=None, deals="random", telemetry=False):
     """Play one run. deals is "random" (coin flip per offer), "accept" or "decline"."""
     cfg = run_config(seed)
     pet = pet or cfg["pet"]
-    w = World(seed, pet=(pet, "") if pet != "none" else None)
+    w = World(seed, pet=(pet, "") if pet != "none" else None,
+              hero=dict(name="Bot", gender=cfg["gender"], backstory=cfg["backstory"]))
     tel = Telemetry(w, source="bot", run_id=f"bot{seed:05d}", meta=dict(deals=deals)) \
         if telemetry else None
     coin = random.Random(seed ^ 0xB07)
@@ -184,6 +202,11 @@ def play(seed, pet=None, deals="random", telemetry=False):
             ok = w.use_item(arg)
         elif act == "skill":
             ok = w.use_skill()
+            if ok and w.remote_shop:
+                for key in ("brew", "tonic"):
+                    if w.shop.stock[key].on_hand and w.gold >= w.buy_price(key) and w.shop_buy(key):
+                        break
+                w.remote_shop = False
         elif act == "revive":
             ok = w.revive_pet()
         else:
@@ -198,7 +221,8 @@ def _worker(job):
     w, tables = play(seed, pet, deals, telemetry)
     summary = dict(outcome="victory" if w.state == "victory" else
                    f"floor {w.depth} " + ("collapse" if "collapsed" in w.death_cause else "killed"),
-                   pet=w.pet.species if w.pet else "none", cls=w.cls, won=w.state == "victory",
+                   pet=w.pet.species if w.pet else "none", cls=w.cls, race=w.race,
+                   backstory=w.backstory, won=w.state == "victory",
                    viewers=w.viewers, gold=sum(f["gold"] for f in w.floor_stats),
                    boxes=len(w.box_log), achievements=list(w.achievements.unlocked))
     return summary, tables
@@ -236,7 +260,7 @@ def main():
     print(f"{n} runs in {time.time() - t0:.0f}s with {args.workers} workers")
     for k, v in sorted(Counter(s["outcome"] for s in summaries).items()):
         print(f"  {k:22s} {v:5d} ({v / n:.0%})")
-    for key in ("pet", "cls"):
+    for key in ("pet", "backstory", "race", "cls"):
         groups = Counter(s[key] for s in summaries if s[key])
         wins = Counter(s[key] for s in summaries if s[key] and s["won"])
         print(f"  win rate by {key}: " + ", ".join(f"{g} {wins[g] / c:.0%} of {c}"

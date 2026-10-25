@@ -69,7 +69,8 @@ class World:
         if self.pet and self.trait("pet_head_start"):
             self.pet.max_hp += 4
             self.pet.hp += 4
-            self.pet.gain_xp(self.pet.xp_to_next())
+            for _ in range(2):
+                self.pet.gain_xp(self.pet.xp_to_next())
         self.hype_turns = 0             # Hype Man's Crowd Work time left
         self.riposte = 0                # Duellist's parries left
         self.remote_shop = False        # Quartermaster's Supply Drop is open
@@ -619,7 +620,7 @@ class World:
                               C.ACCENT)
         elif key == "riposte":
             self.riposte = spec["charges"]
-            self.messages.add("En garde. You'll parry the next 3 attacks.", C.INFO)
+            self.messages.add(f"En garde. You'll parry the next {spec['charges']} attacks.", C.INFO)
         self.skill_cooldown = spec["cooldown"]
         self.events.emit("skill", skill=key)
         self.end_turn()
@@ -713,7 +714,8 @@ class World:
                 self.messages.add("You're already at full health.", C.TEXT_DIM)
                 return False
             self.inventory.pop(index)
-            healed = p.heal(round(item["heal"] * self.trait("potion_mult", 1)))
+            healed = p.heal(round(item["heal"] * self.trait("potion_mult", 1)
+                                  * self.trait("class_potion_mult", 1)))
             self.messages.add(f"You drink the {item['name']} and recover {healed} HP.", C.GOOD)
             self.events.emit("item_use", item=key, healed=healed)
         else:

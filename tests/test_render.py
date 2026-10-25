@@ -34,6 +34,17 @@ def _shot(app, name):
 def test_all_scenes_draw(app):
     _shot(app, "title")
     app.handle_key(_key(pygame.K_RETURN))
+    assert app.scene == "identity"
+    for ch in "Daz":
+        app.handle_key(_key(getattr(pygame, f"K_{ch.lower()}"), ch))
+    app.handle_key(_key(pygame.K_RIGHT))                 # Man
+    _shot(app, "identity")
+    app.handle_key(_key(pygame.K_RETURN))
+    assert app.scene == "backstory"
+    for _ in range(5):
+        app.handle_key(_key(pygame.K_DOWN))              # Tradie
+    _shot(app, "backstory")
+    app.handle_key(_key(pygame.K_RETURN))
     assert app.scene == "pet_select"
     for ch in "Rex":
         app.handle_key(_key(getattr(pygame, f"K_{ch.lower()}"), ch))
@@ -41,6 +52,7 @@ def test_all_scenes_draw(app):
     _shot(app, "pet_select")
     app.handle_key(_key(pygame.K_RETURN))
     assert app.scene == "game" and app.world.pet.name == "Rex" and app.world.pet.species == "dog"
+    assert app.world.hero_name == "Daz" and app.world.gender == "male" and app.world.backstory == "tradie"
     for _ in range(4):
         app.handle_key(_key(pygame.K_RIGHT))
     _shot(app, "game")
@@ -61,14 +73,15 @@ def test_all_scenes_draw(app):
     _shot(app, "victory")
 
     app.handle_key(_key(pygame.K_RETURN))       # new run from the end screen
-    assert app.scene == "pet_select"
-    app.handle_key(_key(pygame.K_RETURN))
+    assert app.scene == "identity"
+    for _ in range(3):
+        app.handle_key(_key(pygame.K_RETURN))
     assert app.world.state == "playing" and app.world.pet
 
 
 def test_item_screens_draw(app):
-    app.handle_key(_key(pygame.K_RETURN))
-    app.handle_key(_key(pygame.K_RETURN))
+    for _ in range(4):                                   # title, identity, backstory, companion
+        app.handle_key(_key(pygame.K_RETURN))
     w = app.world
     w.inventory = ["pan", "jersey", "tonic", "popper", "sock", "elixir"]
     w.equip(0)
@@ -113,8 +126,8 @@ def test_phase3_screens_draw(tmp_path):
     pygame.init()
     app = App(screen=pygame.Surface((C.SCREEN_W, C.SCREEN_H)), seed=3,
               save_path=tmp_path / "slot.json", runs_dir=None)
-    app.handle_key(_key(pygame.K_RETURN))
-    app.handle_key(_key(pygame.K_RETURN))                # default cat
+    for _ in range(4):                                   # defaults, cat
+        app.handle_key(_key(pygame.K_RETURN))
     w = app.world
     w.new_floor(3)
     app.handle_key(_key(pygame.K_PERIOD, "."))           # any key opens the class picker
@@ -165,8 +178,8 @@ def test_phase4_screens_draw(tmp_path):
     pygame.init()
     app = App(screen=pygame.Surface((C.SCREEN_W, C.SCREEN_H)), seed=5,
               save_path=tmp_path / "slot.json", runs_dir=None)
-    app.handle_key(_key(pygame.K_RETURN))
-    app.handle_key(_key(pygame.K_RETURN))
+    for _ in range(4):                                   # title, identity, backstory, companion
+        app.handle_key(_key(pygame.K_RETURN))
     w = app.world
     w.new_floor(2)
     w.pending_offer = "hazard_pay"

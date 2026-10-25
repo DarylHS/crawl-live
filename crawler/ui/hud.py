@@ -92,7 +92,11 @@ class Renderer:
         p = world.player
         y = 14
         self.text(surface, "CRAWL LIVE!", (x, y), C.ACCENT, self.big)
-        y += 34
+        y += 28
+        from ..character import BACKSTORIES
+        who = world.hero_name + (f", {BACKSTORIES[world.backstory]['name']}" if world.backstory else "")
+        self.text(surface, who, (x, y), C.TEXT_DIM, self.small)
+        y += 20
         self.text(surface, f"Floor {world.depth} of {C.NUM_FLOORS}", (x, y))
         y += 26
 

@@ -6,6 +6,7 @@ import pygame
 
 from . import config as C
 from . import save
+from .character import BACKSTORIES, GENDERS
 from .crafting import RECIPES
 from .telemetry import RUNS_DIR, Telemetry, write_tables
 from .entities import PETS
@@ -37,18 +38,21 @@ class App:
         self.save_path = save_path
         self.runs_dir = runs_dir          # None turns off logging your runs
         self.telemetry = None
-        self.scene = "title"        # "title" | "pet_select" | "game"
+        self.scene = "title"        # "title" | "identity" | "backstory" | "pet_select" | "game"
         self.world: World | None = None
         self.show_help = False
         self.overlay = None         # None | "inventory" | "safe" | "reveal" | "craft" | "class"
         self.cursor = 0
         self.pet_idx, self.pet_name = 0, ""
+        self.hero_name, self.gender_idx, self.backstory_idx = "", 0, 0
         self.class_step, self.class_race = "race", None
         self.box_tier, self.shop_mode = None, "buy"
         self.running = True
 
     def start_run(self, pet=None):
-        self.world = World(self.seed, pet=pet)
+        hero = dict(name=self.hero_name.strip() or "Crawler", gender=list(GENDERS)[self.gender_idx],
+                    backstory=list(BACKSTORIES)[self.backstory_idx])
+        self.world = World(self.seed, pet=pet, hero=hero)
         self._attach_telemetry()
         self.seed = None            # only the first run uses a fixed seed
         self.scene = "game"
@@ -91,11 +95,25 @@ class App:
 
         if self.scene == "title":
             if key in DESCEND_KEYS:
-                self.scene, self.pet_name = "pet_select", ""
+                self.scene = "identity"
             elif key == pygame.K_l and save.has_save(self.save_path):
                 self.load_run()
             elif key == pygame.K_ESCAPE:
                 self.running = False
+            return
+        if self.scene == "identity":
+            self.handle_identity_key(key, ch)
+            return
+        if self.scene == "backstory":
+            n = len(BACKSTORIES)
+            if key == pygame.K_ESCAPE:
+                self.scene = "identity"
+            elif key in (pygame.K_UP, pygame.K_w):
+                self.backstory_idx = (self.backstory_idx - 1) % n
+            elif key in (pygame.K_DOWN, pygame.K_s):
+                self.backstory_idx = (self.backstory_idx + 1) % n
+            elif key in DESCEND_KEYS:
+                self.scene, self.pet_name = "pet_select", ""
             return
         if self.scene == "pet_select":
             self.handle_pet_select_key(key, ch)
@@ -108,7 +126,7 @@ class App:
             self.scene = "title"
         elif world.state != "playing":
             if key in DESCEND_KEYS:
-                self.scene, self.pet_name = "pet_select", ""
+                self.scene = "identity"             # same character, ready to tweak
             elif key == pygame.K_r:
                 self.open_overlay("report")
         elif ch == ">" or key in DESCEND_KEYS:
@@ -131,7 +149,8 @@ class App:
         elif key == pygame.K_c:
             world.command_pet()
         elif key == pygame.K_1:
-            world.use_skill()
+            if world.use_skill() and world.remote_shop:
+                self.overlay, self.cursor, self.shop_mode = "shop", 0, "buy"
         self._log_run_if_over()
         if world.state == "playing" and not self.overlay:
             if world.pending_choice:
@@ -140,10 +159,23 @@ class App:
             elif world.pending_offer:
                 self.open_overlay("contract")
 
+    def handle_identity_key(self, key, ch):
+        if key == pygame.K_ESCAPE:
+            self.scene = "title"
+        elif key in (pygame.K_LEFT, pygame.K_RIGHT, pygame.K_TAB):
+            step = -1 if key == pygame.K_LEFT else 1
+            self.gender_idx = (self.gender_idx + step) % len(GENDERS)
+        elif key in DESCEND_KEYS:
+            self.scene = "backstory"
+        elif key == pygame.K_BACKSPACE:
+            self.hero_name = self.hero_name[:-1]
+        elif ch and (ch.isalnum() or ch in " -'") and len(self.hero_name) < 16:
+            self.hero_name += ch
+
     def handle_pet_select_key(self, key, ch):
         species = list(PETS)
         if key == pygame.K_ESCAPE:
-            self.scene = "title"
+            self.scene = "backstory"
         elif key in (pygame.K_LEFT, pygame.K_RIGHT, pygame.K_TAB):
             step = -1 if key == pygame.K_LEFT else 1
             self.pet_idx = (self.pet_idx + step) % len(species)
@@ -192,9 +224,11 @@ class App:
             return
         if self.overlay == "shop":
             rows = menus.shop_rows(world, self.shop_mode)
+            remote = not world.in_safe_room
             if key == pygame.K_ESCAPE:
-                self.overlay, self.cursor = "safe", 0
-            elif key == pygame.K_TAB:
+                self.overlay, self.cursor = (None if remote else "safe"), 0
+                world.remote_shop = False          # closing a Supply Drop ends it
+            elif key == pygame.K_TAB and not remote:
                 self.shop_mode = "sell" if self.shop_mode == "buy" else "buy"
                 self.cursor = 0
             elif key in (pygame.K_UP, pygame.K_w) and rows:
@@ -204,6 +238,8 @@ class App:
             elif key in DESCEND_KEYS and rows:
                 if self.shop_mode == "buy":
                     world.shop_buy(rows[self.cursor])
+                    if remote and not world.remote_shop:
+                        self.overlay = None
                 else:
                     world.shop_sell(rows[self.cursor])
                     self.cursor = min(self.cursor, max(0, len(world.inventory) - 1))
@@ -286,6 +322,10 @@ class App:
         r, s = self.renderer, self.screen
         if self.scene == "title":
             screens.draw_title(r, s, save.has_save(self.save_path))
+        elif self.scene == "identity":
+            menus.draw_identity(r, s, self.hero_name, self.gender_idx)
+        elif self.scene == "backstory":
+            menus.draw_backstory(r, s, self.backstory_idx)
         elif self.scene == "pet_select":
             menus.draw_pet_select(r, s, self.pet_idx, self.pet_name)
         else:

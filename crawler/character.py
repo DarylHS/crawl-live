@@ -11,13 +11,13 @@ GENDERS = {
 }
 
 BACKSTORIES = {
-    "veteran":      dict(name="Military Veteran", perk="+1 defence, +1 accuracy",
+    "veteran":      dict(name="Military Veteran", perk="+1 accuracy, +1 evasion",
                          desc="Has done worse, in worse places, for less.",
-                         defence=1, accuracy=1),
-    "mixologist":   dict(name="Mixologist", perk="Potions heal 25% more",
+                         accuracy=1, evasion=1),
+    "mixologist":   dict(name="Mixologist", perk="Potions heal 40% more",
                          desc="Shaken, not stirred, still bleeding.",
-                         potion_mult=1.25),
-    "dog_walker":   dict(name="Dog Walker", perk="Companion starts at level 2 with +4 HP",
+                         potion_mult=1.4),
+    "dog_walker":   dict(name="Dog Walker", perk="Companion starts at level 3 with +4 HP",
                          desc="Handled eight leads at once. One companion is a holiday.",
                          pet_head_start=True),
     "comedian":     dict(name="Stand-up Comedian", perk="+50% viewers from kills",

@@ -47,7 +47,8 @@ class Telemetry:
             depth=w.depth, turn=w.turn, hp=p.hp, max_hp=p.max_hp, hp_frac=round(p.hp / p.max_hp, 3),
             level=p.level, power=p.power, defence=p.defence, accuracy=p.accuracy,
             evasion=p.evasion, potions=kinds.count("potion"), bombs=kinds.count("bomb"),
-            gold=w.gold, boxes=len(w.boxes), cls=w.cls or "none",
+            gold=w.gold, boxes=len(w.boxes), cls=w.cls or "none", race=w.race or "none",
+            backstory=w.backstory or "none",
             pet=pet.species if pet else "none", pet_level=pet.level if pet else 0,
             pet_down=bool(pet and pet.downed), timer_max=w.timer_max, viewers=w.viewers))
 
@@ -68,6 +69,7 @@ class Telemetry:
             "collapse" if "collapsed" in cause else "killed" if w.state == "dead" else "unfinished")
         run = dict(run_id=self.run_id, source=self.source, seed=w.seed,
                    pet=w.pet.species if w.pet else "none", race=w.race or "none",
+                   backstory=w.backstory or "none", gender=w.gender or "none",
                    cls=w.cls or "none", outcome=outcome, depth=w.depth, turns=w.turn,
                    kills=p.kills, level=p.level, gold=sum(f["gold"] for f in w.floor_stats),
                    viewers=w.viewers, peak_viewers=w.showrunner.peak, boxes=len(w.box_log),

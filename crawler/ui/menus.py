@@ -128,33 +128,98 @@ def class_rows(step):
     return list(RACES) if step == "race" else list(CLASSES)
 
 
-def draw_class_select(r, surface, world, step, race, cursor):
-    title = "CHOOSE YOUR RACE" if step == "race" else "CHOOSE YOUR CLASS"
-    _frame(r, surface, title, 100, 530)
-    r.text(surface, "The System has decided you're interesting enough for a class.",
-           (X0 + WIDTH // 2, 180), C.TEXT_DIM, r.small, centre=True)
-    if race:
-        r.text(surface, f"Race: {RACES[race]['name']}", (X0 + WIDTH // 2, 200), C.ACCENT,
-               r.small, centre=True)
-    y = 225
-    table = RACES if step == "race" else CLASSES
-    for i, key in enumerate(class_rows(step)):
-        spec = table[key]
-        lines = [spec["desc"]]
-        if "skill" in spec:
-            sk = SKILLS[spec["skill"]]
-            lines += _wrap(r, f"Skill (1): {sk['name']}, every {sk['cooldown']} turns. "
-                              f"{sk['desc']}", WIDTH - 60)
-        h = 30 + 17 * len(lines)
+def draw_chooser(r, surface, title, subtitle, names, cursor, detail, footer):
+    """Two-column picker: a list of names on the left, the selected one's details on the right.
+
+    detail is a list of (text, colour, font) lines; long lines are wrapped.
+    """
+    x0, w, y0, h = 140, 1000, 70, 600
+    overlay(surface)
+    pygame.draw.rect(surface, C.PANEL_BG, (x0, y0, w, h))
+    pygame.draw.rect(surface, C.WALL_LIT, (x0, y0, w, h), 1)
+    r.text(surface, title, (x0 + w // 2, y0 + 28), C.ACCENT, r.big, centre=True)
+    r.text(surface, subtitle, (x0 + w // 2, y0 + 56), C.TEXT_DIM, r.small, centre=True)
+    y = y0 + 90
+    for i, name in enumerate(names):
         if i == cursor:
-            surface.fill((50, 46, 70), (X0 + 10, y - 4, WIDTH - 20, h + 4))
-        r.text(surface, spec["name"], (X0 + 30, y), C.ACCENT if i == cursor else C.TEXT, r.big)
-        for j, line in enumerate(lines):
-            r.text(surface, line, (X0 + 30, y + 28 + j * 17), C.TEXT if j == 0 else C.TEXT_DIM,
-                   r.small)
-        y += h + 12
-    r.text(surface, "Up/Down select   Enter choose", (X0 + WIDTH // 2, 605), C.TEXT_DIM,
-           r.small, centre=True)
+            surface.fill((50, 46, 70), (x0 + 16, y - 3, 300, 26))
+        r.text(surface, name, (x0 + 30, y), C.ACCENT if i == cursor else C.TEXT)
+        y += 30
+    pygame.draw.line(surface, C.WALL_DIM, (x0 + 336, y0 + 84), (x0 + 336, y0 + h - 50))
+    y = y0 + 90
+    for text, colour, font in detail:
+        f = font or r.font
+        for line in _wrap(r, text, w - 400, f) if text else [""]:
+            r.text(surface, line, (x0 + 360, y), colour, f)
+            y += f.get_linesize() + 2
+        y += 6
+    r.text(surface, footer, (x0 + w // 2, y0 + h - 28), C.TEXT_DIM, r.small, centre=True)
+
+
+def draw_class_select(r, surface, world, step, race, cursor):
+    from ..character import BACKSTORIES
+    rows = class_rows(step)
+    key = rows[cursor]
+    if step == "race":
+        spec = RACES[key]
+        detail = [(spec["name"], C.ACCENT, r.big), (spec["desc"], C.TEXT, None)]
+        title, names = "CHOOSE YOUR RACE", [RACES[k]["name"] for k in rows]
+    else:
+        spec = CLASSES[key]
+        sk = SKILLS[spec["skill"]]
+        cd = "once per floor" if sk["cooldown"] >= 999 else f"every {sk['cooldown']} turns"
+        detail = [(spec["name"], C.ACCENT, r.big), (spec["desc"], C.TEXT, None),
+                  (f"Skill (key 1): {sk['name']}, {cd}", C.INFO, None),
+                  (sk["desc"], C.TEXT_DIM, None)]
+        if world.backstory in spec.get("pairs", ()):
+            detail.append((f"Pairs well with your backstory: "
+                           f"{BACKSTORIES[world.backstory]['name']}.", C.GOOD, None))
+        title, names = "CHOOSE YOUR CLASS", [CLASSES[k]["name"] for k in rows]
+    sub = "The System has decided you're interesting enough for a class."
+    if race:
+        sub += f"  Race: {RACES[race]['name']}."
+    draw_chooser(r, surface, title, sub, names, cursor, detail, "Up/Down select   Enter choose")
+
+
+def draw_identity(r, surface, name, gender_idx):
+    from ..character import GENDERS
+    surface.fill(C.BG)
+    cx = C.SCREEN_W // 2
+    r.text(surface, "WHO ARE YOU?", (cx, 150), C.ACCENT, r.big, centre=True)
+    r.text(surface, "The System needs a name for the death certificate.", (cx, 182), C.TEXT_DIM,
+           r.font, centre=True)
+    r.text(surface, "Name:", (cx - 170, 252), C.TEXT_DIM, r.font)
+    pygame.draw.rect(surface, C.WALL_DIM, (cx - 110, 242, 300, 36), 1)
+    r.text(surface, (name or "Crawler") + ("_" if name else ""), (cx - 100, 247),
+           C.TEXT if name else C.TEXT_DIM, r.big)
+    keys = list(GENDERS)
+    box_w, gap = 200, 20
+    left = cx - (len(keys) * box_w + (len(keys) - 1) * gap) // 2
+    for i, k in enumerate(keys):
+        x = left + i * (box_w + gap)
+        sel = i == gender_idx
+        pygame.draw.rect(surface, C.ACCENT if sel else C.WALL_DIM, (x, 320, box_w, 56), 2 if sel else 1)
+        r.text(surface, GENDERS[k]["name"], (x + box_w // 2, 348), C.ACCENT if sel else C.TEXT,
+               r.font, centre=True)
+    addr = GENDERS[keys[gender_idx]]["address"]
+    r.text(surface, f"The System will call you '{addr}'. Cosmetic only: no stat differences.",
+           (cx, 410), C.TEXT_DIM, r.font, centre=True)
+    r.text(surface, "Type a name   Left/Right choose   Enter next   Esc back", (cx, 520), C.TEXT_DIM,
+           r.font, centre=True)
+
+
+def draw_backstory(r, surface, cursor):
+    from ..character import BACKSTORIES
+    surface.fill(C.BG)
+    keys = list(BACKSTORIES)
+    b = BACKSTORIES[keys[cursor]]
+    detail = [(b["name"], C.ACCENT, r.big), (b["perk"], C.GOOD, None), (b["desc"], C.TEXT_DIM, None),
+              ("", C.TEXT, None),
+              ("Your life before the dungeon. It nudges your starting stats; your race and class "
+               "come on floor 3.", C.TEXT_DIM, r.small)]
+    draw_chooser(r, surface, "CHOOSE YOUR BACKSTORY", "What were you doing when the world ended?",
+                 [BACKSTORIES[k]["name"] for k in keys], cursor, detail,
+                 "Up/Down select   Enter next   Esc back")
 
 
 def draw_pet_select(r, surface, species_idx, name):
@@ -183,11 +248,12 @@ def draw_pet_select(r, surface, species_idx, name):
            C.TEXT_DIM, r.font, centre=True)
 
 
-def _wrap(r, text, width):
+def _wrap(r, text, width, font=None):
+    font = font or r.small
     lines, line = [], ""
     for word in text.split():
         trial = f"{line} {word}".strip()
-        if r.small.size(trial)[0] > width and line:
+        if font.size(trial)[0] > width and line:
             lines.append(line)
             line = word
         else:
@@ -262,7 +328,7 @@ def draw_shop(r, surface, world, cursor, mode):
             if i == cursor:
                 surface.fill((50, 46, 70), (X0 + 10, y - 2, WIDTH - 20, 22))
             out = s.on_hand == 0
-            price = shop.price(key)
+            price = world.buy_price(key)
             r.text(surface, ITEMS[key]["name"], (X0 + 30, y), C.TEXT_DIM if out else ITEMS[key]["colour"],
                    r.small)
             r.text(surface, f"{price}" + ("*" if price > ITEMS[key]["value"] else ""), (X0 + 215, y),
@@ -297,7 +363,7 @@ def draw_shop(r, surface, world, cursor, mode):
             if i == cursor:
                 surface.fill((50, 46, 70), (X0 + 10, y - 2, WIDTH - 20, 22))
             r.text(surface, ITEMS[key]["name"], (X0 + 30, y), ITEMS[key]["colour"], r.small)
-            r.text(surface, f"{shop.sell_price(key)} gold", (X0 + 330, y), C.TEXT, r.small)
+            r.text(surface, f"{world.sell_price(key)} gold", (X0 + 330, y), C.TEXT, r.small)
             y += 22
         if not rows:
             r.text(surface, "Nothing to sell.", (X0 + 30, y), C.TEXT_DIM, r.small)

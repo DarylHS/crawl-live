@@ -48,8 +48,8 @@ def test_game_logs_finished_player_runs(tmp_path):
     pygame.init()
     app = App(screen=pygame.Surface((C.SCREEN_W, C.SCREEN_H)), seed=2, runs_dir=tmp_path)
     ev = lambda k: pygame.event.Event(pygame.KEYDOWN, key=k, unicode="", mod=0)
-    app.handle_key(ev(pygame.K_RETURN))
-    app.handle_key(ev(pygame.K_RETURN))
+    for _ in range(4):
+        app.handle_key(ev(pygame.K_RETURN))
     app.world.timer = 1
     app.handle_key(ev(pygame.K_PERIOD))                  # the floor collapses
     assert app.world.state == "dead"
