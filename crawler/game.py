@@ -7,6 +7,7 @@ import pygame
 from . import config as C
 from . import save
 from .crafting import RECIPES
+from .telemetry import RUNS_DIR, Telemetry, write_tables
 from .entities import PETS
 from .ui import menus, screens
 from .ui.hud import Renderer
@@ -26,7 +27,7 @@ DESCEND_KEYS = {pygame.K_RETURN, pygame.K_KP_ENTER}
 
 
 class App:
-    def __init__(self, screen=None, seed=None, save_path=save.SAVE_FILE):
+    def __init__(self, screen=None, seed=None, save_path=save.SAVE_FILE, runs_dir=RUNS_DIR):
         if not pygame.get_init():
             pygame.init()
         self.screen = screen or pygame.display.set_mode((C.SCREEN_W, C.SCREEN_H))
@@ -34,6 +35,8 @@ class App:
         self.renderer = Renderer()
         self.seed = seed
         self.save_path = save_path
+        self.runs_dir = runs_dir          # None turns off logging your runs
+        self.telemetry = None
         self.scene = "title"        # "title" | "pet_select" | "game"
         self.world: World | None = None
         self.show_help = False
@@ -46,6 +49,7 @@ class App:
 
     def start_run(self, pet=None):
         self.world = World(self.seed, pet=pet)
+        self._attach_telemetry()
         self.seed = None            # only the first run uses a fixed seed
         self.scene = "game"
         self.show_help = False
@@ -58,6 +62,20 @@ class App:
             print(f"Could not load save: {exc}")
             return
         self.scene, self.overlay, self.show_help = "game", None, False
+        self._attach_telemetry()
+
+    def _attach_telemetry(self):
+        self.telemetry = Telemetry(self.world, source="player") if self.runs_dir else None
+
+    def _log_run_if_over(self):
+        """Write your finished run to runs/player_*.csv once, for the analysis notebooks."""
+        tel = self.telemetry
+        if tel and self.world.state != "playing":
+            try:
+                write_tables(tel.tables(), self.runs_dir, prefix="player_")
+            except OSError as exc:
+                print(f"Could not log run: {exc}")
+            self.telemetry = None
 
     # --- Input ---------------------------------------------------------
 
@@ -114,6 +132,7 @@ class App:
             world.command_pet()
         elif key == pygame.K_1:
             world.use_skill()
+        self._log_run_if_over()
         if world.state == "playing" and not self.overlay:
             if world.pending_choice:
                 self.open_overlay("class")

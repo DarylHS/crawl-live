@@ -3,3 +3,5 @@ __pycache__/
 *.pyc
 saves/
 screenshots/
+runs/player_*
+runs/*events.csv

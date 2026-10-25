@@ -1,21 +1,32 @@
-"""Balance probe: a bot explores and fights while time allows, rests in the
-safe room when hurt, then heads for the nearest stairs. Grows into
-analysis/bot.py in Phase 5.
+"""Headless bot: plays Crawl Live! many times and logs every run for analysis.
 
-Usage: python analysis/balance_probe.py [runs] [cat|dog|budgie|mouse|none] [accept|decline]
+The bot explores and fights while time allows, picks up and equips gear, sells
+junk, keeps three potions from the shop, opens boxes in safe rooms, rests when
+hurt, then heads for the nearest stairs (or the final boss once the exit is
+sealed). Each run's companion, race and class rotate with the seed, and every
+sponsor contract is accepted or declined by a coin flip, so the runs form a
+randomised experiment on deals.
 
-The last argument sets the bot's answer to every sponsor contract.
-
-Race and class rotate with the seed so every combination gets played.
+Usage:
+  python analysis/bot.py --runs 500 --workers 4        # writes runs/bot_*.csv
+  python analysis/bot.py --runs 100 --summary-only     # quick balance check
 """
+import argparse
+import random
 import sys
+import time
 from collections import Counter
+from multiprocessing import Pool
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from crawler.dungeon import NEIGHBOURS_8
 from crawler.items import ITEMS
+from crawler.entities import PETS
+from crawler.telemetry import RUNS_DIR, Telemetry, write_tables
 from crawler.world import World
+
+PET_ORDER = list(PETS)
 
 
 def cheb(a, b):
@@ -23,8 +34,14 @@ def cheb(a, b):
 
 
 def step_towards(w, tx, ty):
+    """One step downhill on a distance map from the target (cached until the target moves)."""
     f, p = w.floor, w.player
-    dist = f.distance_map(tx, ty)
+    cache = getattr(w, "_bot_route", None)
+    if cache and cache[0] is f and cache[1] == (tx, ty):
+        dist = cache[2]
+    else:
+        dist = f.distance_map(tx, ty)
+        w._bot_route = (f, (tx, ty), dist)
     best, move = dist[p.y * f.width + p.x], None
     for dx, dy in NEIGHBOURS_8:
         nx, ny = p.x + dx, p.y + dy
@@ -133,13 +150,26 @@ RACES = ("human", "elf")
 CLASSES = ("brawler", "arcanist", "analyst")
 
 
-def play(seed, pet="cat", deals="decline"):
+def run_config(seed):
+    """Companion, race and class for a seed, rotated so combinations are balanced."""
+    return dict(pet=PET_ORDER[seed % len(PET_ORDER)], race=RACES[(seed // 4) % 2],
+                cls=CLASSES[(seed // 8) % 3])
+
+
+def play(seed, pet=None, deals="random", telemetry=False):
+    """Play one run. deals is "random" (coin flip per offer), "accept" or "decline"."""
+    cfg = run_config(seed)
+    pet = pet or cfg["pet"]
     w = World(seed, pet=(pet, "") if pet != "none" else None)
+    tel = Telemetry(w, source="bot", run_id=f"bot{seed:05d}", meta=dict(deals=deals)) \
+        if telemetry else None
+    coin = random.Random(seed ^ 0xB07)
     while w.state == "playing":
         if w.pending_choice:
-            w.choose_class(RACES[seed % 2], CLASSES[seed % 3])
+            w.choose_class(cfg["race"], cfg["cls"])
         if w.pending_offer:
-            w.accept_contract() if deals == "accept" else w.decline_contract()
+            take = coin.random() < 0.5 if deals == "random" else deals == "accept"
+            w.accept_contract() if take else w.decline_contract()
         manage_items(w)
         act, arg = choose(w)
         if act == "move":
@@ -160,36 +190,61 @@ def play(seed, pet="cat", deals="decline"):
             ok = w.wait()
         if not ok:
             w.wait()
-    return w
+    return w, (tel.tables() if tel else None)
+
+
+def _worker(job):
+    seed, pet, deals, telemetry = job
+    w, tables = play(seed, pet, deals, telemetry)
+    summary = dict(outcome="victory" if w.state == "victory" else
+                   f"floor {w.depth} " + ("collapse" if "collapsed" in w.death_cause else "killed"),
+                   pet=w.pet.species if w.pet else "none", cls=w.cls, won=w.state == "victory",
+                   viewers=w.viewers, gold=sum(f["gold"] for f in w.floor_stats),
+                   boxes=len(w.box_log), achievements=list(w.achievements.unlocked))
+    return summary, tables
+
+
+def main():
+    ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawTextHelpFormatter)
+    ap.add_argument("--runs", type=int, default=200)
+    ap.add_argument("--start", type=int, default=0, help="first seed")
+    ap.add_argument("--workers", type=int, default=4)
+    ap.add_argument("--pet", choices=PET_ORDER + ["none"], help="force one companion")
+    ap.add_argument("--deals", choices=("random", "accept", "decline"), default="random")
+    ap.add_argument("--out", default=str(RUNS_DIR))
+    ap.add_argument("--summary-only", action="store_true", help="don't write CSVs")
+    ap.add_argument("--no-events", action="store_true", help="skip the large events table")
+    args = ap.parse_args()
+
+    log = not args.summary_only
+    jobs = [(s, args.pet, args.deals, log) for s in range(args.start, args.start + args.runs)]
+    if log:
+        for name in ("runs", "floors", "boxes", "shop", "events"):
+            path = Path(args.out) / f"bot_{name}.csv"
+            if path.exists() and args.start == 0:
+                path.unlink()               # a fresh generation replaces the old data
+    t0 = time.time()
+    summaries = []
+    with Pool(args.workers) as pool:
+        # chunksize > 1 keeps workers busy; results arrive in seed order for reproducible CSVs.
+        for summary, tables in pool.imap(_worker, jobs, chunksize=4):
+            summaries.append(summary)
+            if log:
+                write_tables(tables, args.out, prefix="bot_",
+                             skip=("events",) if args.no_events else ())
+    n = len(summaries)
+    print(f"{n} runs in {time.time() - t0:.0f}s with {args.workers} workers")
+    for k, v in sorted(Counter(s["outcome"] for s in summaries).items()):
+        print(f"  {k:22s} {v:5d} ({v / n:.0%})")
+    for key in ("pet", "cls"):
+        groups = Counter(s[key] for s in summaries if s[key])
+        wins = Counter(s[key] for s in summaries if s[key] and s["won"])
+        print(f"  win rate by {key}: " + ", ".join(f"{g} {wins[g] / c:.0%} of {c}"
+                                                  for g, c in sorted(groups.items())))
+    med = lambda xs: sorted(xs)[len(xs) // 2]
+    print(f"  median viewers {med([s['viewers'] for s in summaries]):,}, gold "
+          f"{med([s['gold'] for s in summaries])}, boxes {med([s['boxes'] for s in summaries])}")
 
 
 if __name__ == "__main__":
-    n = int(sys.argv[1]) if len(sys.argv) > 1 else 200
-    pet = sys.argv[2] if len(sys.argv) > 2 else "cat"
-    deals = sys.argv[3] if len(sys.argv) > 3 else "decline"
-    outcome, levels, viewers, unlocked = Counter(), Counter(), [], Counter()
-    class_runs, class_wins = Counter(), Counter()
-    golds, boxes = [], []
-    for seed in range(n):
-        w = play(seed, pet, deals)
-        if w.cls:
-            class_runs[w.cls] += 1
-            class_wins[w.cls] += w.state == "victory"
-        key = "victory" if w.state == "victory" else (
-            f"floor {w.depth} " + ("collapse" if "collapsed" in w.death_cause else "killed"))
-        outcome[key] += 1
-        levels[w.depth] += w.player.level
-        viewers.append(w.viewers)
-        golds.append(sum(f["gold"] for f in w.floor_stats))
-        boxes.append(len(w.box_log))
-        unlocked.update(w.achievements.unlocked.keys())
-    for k, v in sorted(outcome.items()):
-        print(f"{k:22s} {v:4d} ({v / n:.0%})")
-    viewers.sort()
-    print(f"viewers: median {viewers[n // 2]:,}, p90 {viewers[n * 9 // 10]:,}, max {viewers[-1]:,}")
-    print(f"gold earned: median {sorted(golds)[n // 2]}, boxes opened: median "
-          f"{sorted(boxes)[n // 2]}")
-    print("achievements:", ", ".join(f"{k} {v / n:.0%}" for k, v in sorted(unlocked.items())))
-    print("win rate by class (runs reaching floor 3):",
-          ", ".join(f"{c} {class_wins[c] / class_runs[c]:.0%} of {class_runs[c]}"
-                    for c in sorted(class_runs)))
+    main()

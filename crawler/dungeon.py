@@ -5,7 +5,6 @@ Rooms are connected in creation order, which guarantees every room is
 reachable; a few extra corridors add loops. One room is the safe room and
 the rooms furthest from the start hold the stairwells.
 """
-from collections import deque
 from dataclasses import dataclass
 
 from . import config as C
@@ -59,33 +58,50 @@ class Floor:
     def is_safe(self, x, y):
         return self.safe[y][x]
 
+    def _adjacency(self, avoid_safe):
+        """Walkable 8-way neighbours of every open tile, as flat indices.
+
+        Built once per floor on first use (walls and safe rooms never change
+        after generation), so each BFS only follows ready-made lists.
+        """
+        attr = "_adj_no_safe" if avoid_safe else "_adj_all"
+        adj = self.__dict__.get(attr)
+        if adj is None:
+            w, h, tiles, safe = self.width, self.height, self.tiles, self.safe
+            ok = [[tiles[y][x] != WALL and not (avoid_safe and safe[y][x]) for x in range(w)]
+                  for y in range(h)]
+            adj = [()] * (w * h)
+            for y in range(h):
+                for x in range(w):
+                    if tiles[y][x] == WALL:
+                        continue
+                    adj[y * w + x] = tuple((y + dy) * w + x + dx for dx, dy in NEIGHBOURS_8
+                                           if 0 <= x + dx < w and 0 <= y + dy < h
+                                           and ok[y + dy][x + dx])
+            setattr(self, attr, adj)
+        return adj
+
     def distance_map(self, sx, sy, max_dist=None, avoid_safe=False):
         """BFS step counts (8-way) from (sx, sy) as a flat list; -1 = unreachable.
 
         One BFS per turn lets every monster path to the player by stepping
         downhill, which is far cheaper than a path search per monster.
+        The start tile is always expanded, even if it is itself a safe tile.
         """
-        w = self.width
-        dist = [-1] * (w * self.height)
-        dist[sy * w + sx] = 0
-        queue = deque([(sx, sy)])
-        tiles, safe = self.tiles, self.safe
-        while queue:
-            x, y = queue.popleft()
-            d = dist[y * w + x] + 1
-            if max_dist is not None and d > max_dist:
-                continue
-            for dx, dy in NEIGHBOURS_8:
-                nx, ny = x + dx, y + dy
-                if not (0 <= nx < w and 0 <= ny < self.height):
-                    continue
-                i = ny * w + nx
-                if dist[i] != -1 or tiles[ny][nx] == WALL:
-                    continue
-                if avoid_safe and safe[ny][nx]:
-                    continue
-                dist[i] = d
-                queue.append((nx, ny))
+        adj = self._adjacency(avoid_safe)
+        dist = [-1] * (self.width * self.height)
+        start = sy * self.width + sx
+        dist[start] = 0
+        frontier, d = [start], 0
+        while frontier and (max_dist is None or d < max_dist):
+            d += 1
+            nxt = []
+            for i in frontier:
+                for j in adj[i]:
+                    if dist[j] == -1:
+                        dist[j] = d
+                        nxt.append(j)
+            frontier = nxt
         return dist
 
 

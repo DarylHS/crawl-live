@@ -101,6 +101,7 @@ class Shop:
             demand = wanted + self.bought[key] + self.missed[key]
             lost = (wanted - sold) + self.missed[key]
             s.history.append(demand)
+            forecast_before = s.forecast
             s.forecast = ALPHA * demand + (1 - ALPHA) * s.forecast
             delivered, s.on_hand, s.on_order = s.on_order, s.on_hand + s.on_order, 0
             rop, target = self.reorder_point(key), self.order_up_to(key)
@@ -108,7 +109,8 @@ class Shop:
                 s.on_order = max(0, math.ceil(target - s.on_hand))
             self.log.append(dict(depth=depth, item=key, demand=demand, sales=sold + self.bought[key],
                                  lost=lost, delivered=delivered, on_hand=s.on_hand,
-                                 forecast=round(s.forecast, 2), reorder_point=round(rop, 2),
+                                 forecast_before=round(forecast_before, 3),
+                                 forecast=round(s.forecast, 3), reorder_point=round(rop, 3),
                                  ordered=s.on_order))
             self.bought[key] = self.missed[key] = 0
 

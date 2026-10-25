@@ -14,7 +14,7 @@ from crawler.game import App
 @pytest.fixture
 def app():
     pygame.init()
-    a = App(screen=pygame.Surface((C.SCREEN_W, C.SCREEN_H)), seed=1)
+    a = App(screen=pygame.Surface((C.SCREEN_W, C.SCREEN_H)), seed=1, runs_dir=None)
     yield a
     pygame.quit()
 
@@ -112,7 +112,7 @@ def test_item_screens_draw(app):
 def test_phase3_screens_draw(tmp_path):
     pygame.init()
     app = App(screen=pygame.Surface((C.SCREEN_W, C.SCREEN_H)), seed=3,
-              save_path=tmp_path / "slot.json")
+              save_path=tmp_path / "slot.json", runs_dir=None)
     app.handle_key(_key(pygame.K_RETURN))
     app.handle_key(_key(pygame.K_RETURN))                # default cat
     w = app.world
@@ -164,7 +164,7 @@ def test_phase3_screens_draw(tmp_path):
 def test_phase4_screens_draw(tmp_path):
     pygame.init()
     app = App(screen=pygame.Surface((C.SCREEN_W, C.SCREEN_H)), seed=5,
-              save_path=tmp_path / "slot.json")
+              save_path=tmp_path / "slot.json", runs_dir=None)
     app.handle_key(_key(pygame.K_RETURN))
     app.handle_key(_key(pygame.K_RETURN))
     w = app.world
