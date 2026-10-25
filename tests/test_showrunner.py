@@ -117,7 +117,7 @@ def test_announcer_does_not_change_the_dungeon():
 
 def test_achievements_unlock_once_and_award_boxes():
     w = World(seed=3)
-    assert len(ACHIEVEMENTS) == 10
+    assert len(ACHIEVEMENTS) == 11
     _kill(w)
     assert "first_blood" in w.achievements.unlocked
     assert w.boxes.count("bronze") >= 1 and any("First Blood" in t[1] for t in w.toasts)

@@ -224,7 +224,8 @@ def _worker(job):
                    pet=w.pet.species if w.pet else "none", cls=w.cls, race=w.race,
                    backstory=w.backstory, won=w.state == "victory",
                    viewers=w.viewers, gold=sum(f["gold"] for f in w.floor_stats),
-                   boxes=len(w.box_log), achievements=list(w.achievements.unlocked))
+                   boxes=len(w.box_log), achievements=list(w.achievements.unlocked),
+                   skills=dict(w.training.levels))
     return summary, tables
 
 
@@ -243,7 +244,7 @@ def main():
     log = not args.summary_only
     jobs = [(s, args.pet, args.deals, log) for s in range(args.start, args.start + args.runs)]
     if log:
-        for name in ("runs", "floors", "boxes", "shop", "events"):
+        for name in ("runs", "floors", "boxes", "shop", "practice", "events"):
             path = Path(args.out) / f"bot_{name}.csv"
             if path.exists() and args.start == 0:
                 path.unlink()               # a fresh generation replaces the old data
@@ -268,6 +269,9 @@ def main():
     med = lambda xs: sorted(xs)[len(xs) // 2]
     print(f"  median viewers {med([s['viewers'] for s in summaries]):,}, gold "
           f"{med([s['gold'] for s in summaries])}, boxes {med([s['boxes'] for s in summaries])}")
+    means = {k: sum(s["skills"][k] for s in summaries) / n for k in summaries[0]["skills"]}
+    print("  mean practice level: " + ", ".join(f"{k} {v:.1f}" for k, v in
+                                                sorted(means.items(), key=lambda kv: -kv[1])))
 
 
 if __name__ == "__main__":

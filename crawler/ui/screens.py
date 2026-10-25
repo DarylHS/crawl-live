@@ -13,6 +13,7 @@ CONTROLS = [
     ("R", "rest to full HP (safe rooms only)"),
     ("M", "safe-room menu: boxes, shop, crafting, revive, save"),
     ("C", "command your pet: follow / attack / stay"),
+    ("K", "skills you have levelled by practising"),
     ("1", "use your class skill (from floor 3)"),
     ("Esc in a menu", "back / close"),
     ("?", "toggle this help"),

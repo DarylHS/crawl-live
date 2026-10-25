@@ -165,6 +165,16 @@ LINES = {
                   "{title}: an inspired choice, said nobody yet."],
     },
 
+    "practice_level": {
+        "mild": ["{title} {level}. Practice makes slightly less terrible.",
+                 "{title} is now level {level}."],
+        "spicy": ["{title} {level}! The System is legally required to acknowledge this.",
+                  "{title} level {level}. Your old career counsellor would be stunned.",
+                  "Congratulations on {title} {level}. A real skill. For a given value of real.",
+                  "{title} {level}. You're getting good at this. Concerning.",
+                  "{title} up to {level}. Somebody start a highlights reel. A short one."],
+    },
+
     # --- Loot box reactions (chosen by how good the item is against the box's average) ---
     "box_junk": {
         "mild": ["A {item}. From a {tier} box. Hm.",

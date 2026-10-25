@@ -9,11 +9,11 @@ from . import config as C
 
 ITEMS = {
     # weapons
-    "pan":       dict(name="Dented Frying Pan", kind="weapon", value=10, power=2, colour=(190, 190, 200),
+    "pan":       dict(name="Dented Frying Pan", kind="weapon", style="blunt", value=10, power=2, colour=(190, 190, 200),
                       desc="Seen better breakfasts."),
-    "cleaver":   dict(name="Pocket Cleaver", kind="weapon", value=22, power=3, accuracy=1,
+    "cleaver":   dict(name="Pocket Cleaver", kind="weapon", style="blade", value=22, power=3, accuracy=1,
                       colour=(200, 200, 215), desc="Small, rude and well balanced."),
-    "katana":    dict(name="Overpriced Katana", kind="weapon", value=60, power=5, accuracy=2,
+    "katana":    dict(name="Overpriced Katana", kind="weapon", style="blade", value=60, power=5, accuracy=2,
                       colour=(150, 220, 255), desc="Comes with a certificate of questionable origin."),
     # armour
     "jersey":    dict(name="Padded Gym Jersey", kind="armour", value=10, defence=1, colour=(140, 170, 220),

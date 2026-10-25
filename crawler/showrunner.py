@@ -63,7 +63,10 @@ class Showrunner:
 
     def _gain(self, amount):
         from .contracts import effect
-        self.viewers += int(amount * effect(self.world, "viewer_mult"))
+        w = self.world
+        amount = int(amount * effect(w, "viewer_mult") * (1 + 0.03 * w.practice("showmanship")))
+        self.viewers += amount
+        w.events.emit("viewers_gained", amount=amount)
         self.peak = max(self.peak, self.viewers)
         self._last_fun = self.world.turn
         while self._gift_idx < len(SPONSOR_GIFTS) and self.viewers >= SPONSOR_GIFTS[self._gift_idx][0]:
@@ -143,6 +146,8 @@ class Showrunner:
     def _announce(self, name, d):
         if name in ("kill", "pet_kill") and d.get("boss"):
             return                          # boss_kill has its own lines
+        if name == "practice_level" and d["level"] not in (1, 5, 10, 15):
+            return                          # milestones only, or it never shuts up
         if name == "damage_taken" and d["hp"] > self.world.player.max_hp * 0.4:
             return
         chattiness = min(1.3, max(0.3, C.SASS_LEVEL / 7))

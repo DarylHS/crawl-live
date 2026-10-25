@@ -169,7 +169,7 @@ class Renderer:
         if world.scout_turns:
             self.draw_scout_report(surface, world, x, y + 14, w)
 
-        self.text(surface, "I pack G get ? help", (x, C.SCREEN_H - 26), C.TEXT_DIM, self.small)
+        self.text(surface, "I pack K skills ? help", (x, C.SCREEN_H - 26), C.TEXT_DIM, self.small)
 
     def draw_scout_report(self, surface, world, x, y, w):
         """Analyst skill: exact odds both ways for each visible monster."""

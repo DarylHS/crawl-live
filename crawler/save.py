@@ -14,7 +14,7 @@ from .world import World
 
 SAVE_DIR = Path(__file__).resolve().parents[1] / "saves"
 SAVE_FILE = SAVE_DIR / "slot1.json"
-VERSION = 3
+VERSION = 4
 
 
 def _rng_state(rng):
@@ -45,6 +45,7 @@ def to_dict(w):
         skill_cooldown=w.skill_cooldown, scout_turns=w.scout_turns, exit_sealed=w.exit_sealed,
         gold=w.gold, contract=w.contract, pending_offer=w.pending_offer,
         hero_name=w.hero_name, gender=w.gender, backstory=w.backstory, hype_turns=w.hype_turns,
+        practice=w.training.to_dict(),
         riposte=w.riposte, remote_shop=w.remote_shop, plant_fed_floor=w._plant_fed_floor,
         floor_stats=w.floor_stats, box_log=w.box_log, shop=w.shop.to_dict(),
         shop_rng=_rng_state(w.shop.rng), deal_rng=_rng_state(w.deal_rng),
@@ -82,6 +83,7 @@ def from_dict(d):
         setattr(w, key, d[key])
     w._warnings_left, w._was_safe = d["warnings_left"], d["was_safe"]
     w._plant_fed_floor = d["plant_fed_floor"]
+    w.training.load(d["practice"])
     w.equipment = d["equipment"]
     w.floor_items = {(x, y): keys for x, y, keys in d["floor_items"]}
     w.last_reveal = tuple(d["last_reveal"]) if d["last_reveal"] else None

@@ -8,6 +8,7 @@ from ..entities import PETS
 from ..contracts import CONTRACTS, preview
 from ..items import ITEMS, describe, glyph
 from ..loot import BOX_TIERS, TRADE_UP_COST, box_stats, next_tier, odds, reroll_fee
+from ..practice import MAX_LEVEL, SKILLS as PRACTICE, xp_to_next
 from ..shop import BASE_DEMAND
 from .screens import overlay
 
@@ -93,7 +94,7 @@ def draw_reveal(r, surface, world):
     verdict = "above" if v > ev else "below" if v < ev else "exactly"
     r.text(surface, f"Worth {v} gold: {verdict} this box's average of {ev:.1f} (give or take "
                     f"{sd:.1f}).", (cx, 445), C.TEXT, r.small, centre=True)
-    fee = reroll_fee(tier)
+    fee = world.reroll_fee(tier)
     if key in world.inventory:
         r.text(surface, f"R: hand it back and reroll for {fee} gold (you have {world.gold}).",
                (cx, 470), C.TEXT_DIM, r.small, centre=True)
@@ -297,7 +298,7 @@ def draw_box_info(r, surface, world, tier):
                         f"Out: {ev2:.1f}, give or take {sd2:.1f}.", (X0 + 40, y + 20), C.TEXT_DIM,
                r.small)
     y += 56
-    r.text(surface, f"Rerolling a {box['name']} box after opening costs {reroll_fee(tier)} gold.",
+    r.text(surface, f"Rerolling a {box['name']} box after opening costs {world.reroll_fee(tier)} gold.",
            (X0 + 40, y), C.TEXT_DIM, r.small)
     r.text(surface, "Enter open   T trade up   Esc back", (X0 + WIDTH // 2, 600), C.TEXT_DIM,
            r.small, centre=True)
@@ -387,3 +388,34 @@ def draw_contract(r, surface, world):
             y += 18
         y += 4
     r.text(surface, "Y accept   N decline", (cx, 520), C.TEXT_DIM, r.font, centre=True)
+
+
+def draw_practice(r, surface, world):
+    """Practice skills: hidden until first used, then level, progress bar and effect."""
+    _frame(r, surface, "PRACTICE SKILLS", 20, 728)
+    t = world.training
+    y, group = 66, None
+    for key, sk in PRACTICE.items():
+        if sk["group"] != group:
+            group = sk["group"]
+            r.text(surface, group.upper(), (X0 + 22, y + 4), C.ACCENT, r.small)
+            y += 24
+        if key not in t.used:
+            r.text(surface, "???", (X0 + 22, y), C.TEXT_DIM)
+            r.text(surface, "Not discovered yet", (X0 + 222, y + 1), C.TEXT_DIM, r.small)
+            y += 28
+            continue
+        lvl = t.levels[key]
+        r.text(surface, sk["name"], (X0 + 22, y), C.TEXT)
+        r.text(surface, str(lvl), (X0 + 174 - r.font.size(str(lvl))[0], y), C.ACCENT)
+        bx, bw = X0 + 180, 32
+        pygame.draw.rect(surface, C.WALL_LIT, (bx, y + 4, bw, 8), 1)
+        frac = 1 if lvl >= MAX_LEVEL else t.xp[key] / xp_to_next(lvl)
+        if frac:
+            surface.fill(C.GOOD, (bx + 1, y + 5, int((bw - 2) * frac), 6))
+        r.text(surface, sk["effect"], (X0 + 222, y - 6), C.TEXT, r.small)
+        r.text(surface, sk["trains"], (X0 + 222, y + 8), C.TEXT_DIM,
+               r.small)
+        y += 28
+    r.text(surface, "Skills level up by doing the thing. K or Esc to close",
+           (X0 + WIDTH // 2, 728), C.TEXT_DIM, r.small, centre=True)

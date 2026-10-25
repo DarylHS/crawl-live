@@ -73,7 +73,8 @@ class Telemetry:
                    cls=w.cls or "none", outcome=outcome, depth=w.depth, turns=w.turn,
                    kills=p.kills, level=p.level, gold=sum(f["gold"] for f in w.floor_stats),
                    viewers=w.viewers, peak_viewers=w.showrunner.peak, boxes=len(w.box_log),
-                   achievements=len(w.achievements.unlocked), death_cause=cause, **self.meta)
+                   achievements=len(w.achievements.unlocked),
+                   practice_levels=sum(w.training.levels.values()), death_cause=cause, **self.meta)
         floors = []
         by_depth = {f["depth"]: f for f in w.floor_stats}
         for a in self.arrivals:
@@ -88,7 +89,10 @@ class Telemetry:
                                result=result, died_here=int(result in ("killed", "collapse"))))
         boxes = [dict(run_id=self.run_id, source=self.source, **b) for b in w.box_log]
         shop = [dict(run_id=self.run_id, source=self.source, **r) for r in w.shop.log]
-        return dict(runs=[run], floors=floors, boxes=boxes, shop=shop, events=self.events)
+        practice = [dict(run_id=self.run_id, source=self.source, skill=k, level=w.training.levels[k],
+                         used=int(k in w.training.used)) for k in w.training.levels]
+        return dict(runs=[run], floors=floors, boxes=boxes, shop=shop, practice=practice,
+                    events=self.events)
 
 
 def write_tables(tables, out_dir=RUNS_DIR, prefix="", skip=()):

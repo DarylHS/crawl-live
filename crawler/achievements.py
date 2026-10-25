@@ -39,6 +39,9 @@ ACHIEVEMENTS = {
                           on="boss_kill", test=lambda t, d: True),
     "best_friends":  dict(name="Best Friends", desc="Get your pet to level 3.", tier="silver",
                           on="pet_level_up", test=lambda t, d: d["level"] >= 3),
+    "jack_of_all_trades": dict(name="Jack of All Trades", desc="Get 8 practice skills to level 3.",
+                          tier="gold", on="practice_level",
+                          test=lambda t, d: d["many_at_3"] >= 8),
 }
 
 

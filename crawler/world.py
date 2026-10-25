@@ -21,6 +21,7 @@ from .events import EventBus
 from .funfacts import FunFacts
 from .items import ITEMS, STAT_BONUSES, floor_loot_table
 from .loot import BOX_TIERS, TRADE_UP_COST, box_stats, next_tier, reroll_fee, roll_box
+from .practice import SMALL_MONSTER_HP, Practice
 from .shop import Shop
 from .showrunner import Showrunner
 
@@ -86,6 +87,7 @@ class World:
         self.box_log = []               # every box opened: tier, item, value, ev
         self.shop = Shop(random.Random(self.seed ^ 0x5A0F))
         self.deal_rng = random.Random(self.seed ^ 0xC0DE)
+        self.training = Practice(self)
         self.achievements = Achievements(self)
         self.showrunner = Showrunner(self)
         self.funfacts = FunFacts(self)
@@ -107,11 +109,28 @@ class World:
         """What the System calls you."""
         return self.trait("address") or GENDERS.get(self.gender, {}).get("address", "crawler")
 
+    def practice(self, key):
+        """Level (0-15) of a practice skill."""
+        return self.training.levels[key]
+
+    def weapon_style(self):
+        weapon = self.equipment["weapon"]
+        return ITEMS[weapon].get("style", "blunt") if weapon else "unarmed"
+
+    def notice_range(self):
+        """How close a monster must be to notice you (Sneaking shortens it)."""
+        return C.FOV_RADIUS - self.practice("sneaking") // 4
+
     def buy_price(self, key):
-        return max(1, round(self.shop.price(key) * self.trait("buy_mult", 1)))
+        mult = self.trait("buy_mult", 1) * (1 - 0.02 * self.practice("haggling"))
+        return max(1, round(self.shop.price(key) * mult))
 
     def sell_price(self, key):
-        return max(1, round(self.shop.sell_price(key) * self.trait("sell_mult", 1)))
+        mult = self.trait("sell_mult", 1) * (1 + 0.03 * self.practice("haggling"))
+        return max(1, round(self.shop.sell_price(key) * mult))
+
+    def reroll_fee(self, tier):
+        return max(1, round(reroll_fee(tier) * (1 - 0.05 * self.practice("gambling"))))
 
     @property
     def active_pet(self):
@@ -132,7 +151,8 @@ class World:
         self.depth = depth
         self.floor = generate_floor(self.rng, depth)
         self.player.x, self.player.y = self.floor.start_room.centre
-        self.timer_max = self.timer = C.floor_turns(depth) + self.trait("timer_bonus", 0)
+        self.timer_max = self.timer = (C.floor_turns(depth) + self.trait("timer_bonus", 0)
+                                       + 2 * self.practice("cardio"))
         if self.skill == "supply_drop":
             self.skill_cooldown = 0             # once per floor
         self.remote_shop = False
@@ -217,7 +237,8 @@ class World:
         keys, weights = floor_loot_table(self.depth)
         floor = self.floor
         for room in floor.rooms:
-            if room is floor.start_room or self.rng.random() >= C.FLOOR_ITEM_CHANCE:
+            chance = C.FLOOR_ITEM_CHANCE + 0.02 * self.practice("scavenging")
+            if room is floor.start_room or self.rng.random() >= chance:
                 continue
             spots = [(x, y) for x, y in room.tiles() if floor.tiles[y][x] != STAIRS]
             self.floor_items.setdefault(self.rng.choice(spots), []).append(
@@ -296,6 +317,8 @@ class World:
             self._on_enter_tile()
         elif self.floor.walkable(tx, ty):
             p.x, p.y = tx, ty
+            sneaky = any(not m.alerted and cheb(m, p) <= 4 for m in self.monsters)
+            self.events.emit("step", sneaky=sneaky)
             self._on_enter_tile()
         else:
             return False
@@ -347,7 +370,8 @@ class World:
             self.messages.add("No time to rest. The floor is coming down!", C.DANGER)
             return False
         start_hp, start_turn = p.hp, self.turn
-        per_turn = effect(self, "rest_mult") * self.trait("rest_mult", 1)
+        per_turn = (effect(self, "rest_mult") * self.trait("rest_mult", 1)
+                    * (1 + 0.1 * self.practice("power_napping")))
         owed = 0.0
         while p.hp < p.max_hp and self.timer > C.REST_MIN_TIMER and self.state == "playing":
             owed += per_turn
@@ -384,7 +408,8 @@ class World:
     def craft(self, index):
         """Craft recipe RECIPES[index] at the safe-room bench."""
         recipe = RECIPES[index]
-        turns = max(1, round(CRAFT_TURNS * self.trait("craft_mult", 1)))
+        turns = max(1, round(CRAFT_TURNS * self.trait("craft_mult", 1)
+                             * (1 - 0.08 * self.practice("tinkering"))))
         if not self._safe_room_activity_ok(turns):
             return False
         if not can_craft(recipe, self.inventory):
@@ -393,6 +418,10 @@ class World:
         for key in recipe["needs"]:
             self.inventory.remove(key)
         self.inventory.append(recipe["makes"])
+        if (self.loot_rng.random() < 0.04 * self.practice("tinkering")
+                and len(self.inventory) < C.INVENTORY_SIZE):
+            self.inventory.append(recipe["makes"])
+            self.messages.add("Tinkering pays off: you get a spare.", C.GOOD)
         self._spend_turns(turns)
         self.messages.add(f"You craft {recipe['name']}: {ITEMS[recipe['makes']]['name']}.",
                           C.GOOD)
@@ -472,12 +501,14 @@ class World:
 
     def pet_attack(self, target, mult=1, verb="hits"):
         pet = self.pet
-        mult *= (2 if pet.enraged else 1) * (1.5 if self.hype_turns else 1)
+        mult *= ((2 if pet.enraged else 1) * (1.5 if self.hype_turns else 1)
+                 * (1 + 0.05 * self.practice("pet_bonding")))
         res = attack(pet, target, self.rng, mult=mult)
         if not res.hit:
             self.messages.add(f"{pet.name} misses {target.the}.", C.TEXT_DIM)
             return
         self.messages.add(f"{pet.name} {verb} {target.the} for {res.damage}.", pet.colour)
+        self.events.emit("pet_hit", pet=pet.name, damage=res.damage)
         self._after_hit(target, "pet")
 
     def pet_pounce(self, target):
@@ -715,7 +746,8 @@ class World:
                 return False
             self.inventory.pop(index)
             healed = p.heal(round(item["heal"] * self.trait("potion_mult", 1)
-                                  * self.trait("class_potion_mult", 1)))
+                                  * self.trait("class_potion_mult", 1)
+                                  * (1 + 0.08 * self.practice("first_aid"))))
             self.messages.add(f"You drink the {item['name']} and recover {healed} HP.", C.GOOD)
             self.events.emit("item_use", item=key, healed=healed)
         else:
@@ -744,7 +776,8 @@ class World:
 
     def _explode(self, key, target):
         item = ITEMS[key]
-        damage = round(item["damage"] * self.trait("bomb_mult", 1))
+        damage = round(item["damage"] * self.trait("bomb_mult", 1)
+                       * (1 + 0.08 * self.practice("lobbing")))
         self.messages.add(f"You throw the {item['name']}. BOOM.", C.ACCENT)
         killed = 0
         for m in list(self.monsters):
@@ -793,7 +826,7 @@ class World:
         if self.state != "playing" or not self.last_reveal or not self.in_safe_room:
             return False
         tier, key = self.last_reveal
-        fee = reroll_fee(tier)
+        fee = self.reroll_fee(tier)
         if key not in self.inventory:
             return False
         if self.gold < fee:
@@ -826,9 +859,17 @@ class World:
     def _player_attack(self, target):
         p = self.player
         chance = hit_chance(p, target)
-        res = attack(p, target, self.rng)
+        style = self.weapon_style()
+        small = not target.boss and target.max_hp <= SMALL_MONSTER_HP
+        bonus = {"unarmed": self.practice("fisticuffs") // 2, "blade": self.practice("blades") // 3,
+                 "blunt": self.practice("bludgeoning") // 3}[style]
+        bonus += self.practice("stomping") // 2 if small else 0
+        crit_bonus = 0.01 * self.practice("cheap_shots")
+        crit_bonus += 0.01 * self.practice("bludgeoning") if style == "blunt" else 0
+        mult = 1 + 0.03 * self.practice("giant_killer") if target.boss else 1
+        res = attack(p, target, self.rng, mult=mult, bonus=bonus, crit_bonus=crit_bonus)
         self.events.emit("player_attack", target=target.key, chance=chance, hit=res.hit,
-                         crit=res.crit)
+                         crit=res.crit, small=small, boss=target.boss)
         if not res.hit:
             self.messages.add(f"You miss {target.the}.", C.TEXT_DIM)
             return
@@ -872,10 +913,12 @@ class World:
         if self.floor_stats:
             self.floor_stats[-1]["kills"] += 1
         gold = target.xp_value * C.GOLD_PER_XP * self.loot_rng.uniform(0.6, 1.4) \
-            * effect(self, "gold_mult") * (2 if target.boss else 1)
+            * effect(self, "gold_mult") * (2 if target.boss else 1) \
+            * (1 + 0.05 * self.practice("pickpocketing"))
         self.messages.add(f"{target.The} dies. +{self._earn_gold(gold, 'kill')} gold.", C.GOOD)
         self.events.emit("kill", monster=target.key, monster_name=target.name, xp=target.xp_value,
-                         boss=target.boss, depth=self.depth, turn=self.turn, by=by,
+                         boss=target.boss, small=not target.boss and target.max_hp <= SMALL_MONSTER_HP,
+                         depth=self.depth, turn=self.turn, by=by,
                          player_hp=p.hp, player_max_hp=p.max_hp)
         pet = self.active_pet
         if pet:
@@ -918,6 +961,7 @@ class World:
         if not res.hit:
             self.messages.add(f"{monster.The} {'shoots and ' if ranged else ''}misses you.",
                               C.TEXT_DIM)
+            self.events.emit("dodged", source=monster.key)
             return
         crit = " A brutal crit!" if res.crit else ""
         self.messages.add(f"{monster.The} {how} you for {res.damage}.{crit}", C.DANGER)

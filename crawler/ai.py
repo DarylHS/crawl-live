@@ -58,7 +58,7 @@ def take_monster_turns(world):
         if m.stunned:
             m.stunned -= 1
             continue
-        seen = (m.x, m.y) in world.visible
+        seen = (m.x, m.y) in world.visible and cheb(m, player) <= world.notice_range()
         if seen:
             m.alerted, m.unseen_turns = True, 0
         elif m.alerted:

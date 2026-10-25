@@ -148,6 +148,8 @@ class App:
                 world.messages.add("The menu is only available in a safe room.", C.TEXT_DIM)
         elif key == pygame.K_c:
             world.command_pet()
+        elif key == pygame.K_k:
+            self.open_overlay("skills")
         elif key == pygame.K_1:
             if world.use_skill() and world.remote_shop:
                 self.overlay, self.cursor, self.shop_mode = "shop", 0, "buy"
@@ -191,8 +193,8 @@ class App:
 
     def handle_overlay_key(self, key):
         world = self.world
-        if self.overlay == "report":
-            if key in DESCEND_KEYS or key == pygame.K_ESCAPE:
+        if self.overlay in ("report", "skills"):
+            if key in DESCEND_KEYS or key in (pygame.K_ESCAPE, pygame.K_k):
                 self.overlay = None
             return
         if self.overlay == "contract":
@@ -348,6 +350,8 @@ class App:
                 menus.draw_contract(r, s, self.world)
             elif self.overlay == "report":
                 draw_report(r, s, self.world)
+            elif self.overlay == "skills":
+                menus.draw_practice(r, s, self.world)
             elif self.overlay == "craft":
                 menus.draw_craft(r, s, self.world, self.cursor)
             elif self.overlay == "class":

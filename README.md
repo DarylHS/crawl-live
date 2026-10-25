@@ -24,6 +24,7 @@ python main.py            # or: python main.py --seed 1234 for a reproducible ru
 | `R` | On a loot box reveal: hand the item back and reroll for a fee. On the end screen: run report |
 | `Y` / `N` | Accept or decline a sponsor contract |
 | `C` | Command your pet: follow / attack / stay |
+| `K` | Practice skills: what you have levelled by doing it, and what each level gives |
 | `1` | Use your class skill (from floor 3) |
 | `L` | On the title screen: continue a saved run |
 | `?` | Help |
@@ -44,6 +45,10 @@ You start by creating your crawler: a name, a gender (cosmetic; it changes how t
 The System AI's attitude is set by `SASS_LEVEL` in `crawler/config.py` (0-10, default 7).
 
 Survive six floors to win.
+
+### Practice skills
+
+Like the books, you get better at what you actually do. Twenty skills level up through use, from Stomping (squashing small monsters) and Pain Tolerance (getting hit and living) to Haggling, Power Napping and Pet Bonding. Each starts hidden as "???" until you first do the thing, then levels up to 15 with diminishing returns. Press `K` to see your levels, progress and what each level gives.
 
 ### Learning while you play
 
@@ -86,7 +91,7 @@ jupyter lab analysis/                               # or open the notebooks on G
 
 | Notebook | What it covers |
 |---|---|
-| [01 Run analysis](analysis/01_run_analysis.ipynb) | Outcomes, survival curves and per-floor hazard, causes of death, win rates with confidence intervals, and a randomised experiment on sponsor deals |
+| [01 Run analysis](analysis/01_run_analysis.ipynb) | Outcomes, survival curves and per-floor hazard, causes of death, win rates with confidence intervals, a randomised experiment on sponsor deals, and reverse causality in practice skills |
 | [02 Loot box statistics](analysis/02_loot_box_stats.ipynb) | Expected value and spread, a chi-square test of the stated odds and its power, the law of large numbers, the gambler's fallacy, pity timers, the house edge |
 | [03 Shop forecasting](analysis/03_shop_forecasting.ipynb) | Forecast bias, MAE, WAPE vs MAPE on intermittent demand, backtesting methods, fill rate and cycle service level, the stock-vs-service frontier |
 | [04 Predicting death](analysis/04_predict_death.ipynb) | Logistic regression vs gradient boosting, splitting by group, metrics for rare events, calibration, leakage, collinearity, permutation importance |
