@@ -58,13 +58,32 @@ The game teaches a few ideas from probability and supply chains through the choi
 | Loot boxes, achievements, sarcastic System AI, viewers, sponsor gifts | Phase 2 (done) |
 | Companion pet, class choice on floor 3, bosses, crafting, save/load | Phase 3 (done) |
 | Learning while playing: visible odds, gambles, sponsor deals, shop sim | Phase 4 (done) |
-| Telemetry, bot player, analysis notebooks | Phase 5 |
+| Telemetry, bot player, analysis notebooks | Phase 5 (done) |
 
 See [PHASES.md](PHASES.md) for progress.
 
 ## Code layout
 
 `crawler/world.py` holds all game rules and has no pygame dependency, so tests (and later the bot) can play thousands of turns headless. `crawler/game.py` and `crawler/ui/` handle input and drawing. Monsters and balance numbers are data in `crawler/entities.py` and `crawler/config.py`; items, loot tables, achievements and announcer lines are data in `items.py`, `loot.py`, `achievements.py` and `showrunner.py`.
+
+## Analysis
+
+Every run you finish is logged to `runs/player_*.csv`. A headless bot plays thousands of runs for comparison:
+
+```bash
+pip install -r analysis/requirements.txt
+python analysis/bot.py --runs 2000 --workers 4      # about 6 minutes on 4 cores; writes runs/bot_*.csv
+jupyter lab analysis/                               # or open the notebooks on GitHub, outputs included
+```
+
+| Notebook | What it covers |
+|---|---|
+| [01 Run analysis](analysis/01_run_analysis.ipynb) | Outcomes, survival curves and per-floor hazard, causes of death, win rates with confidence intervals, and a randomised experiment on sponsor deals |
+| [02 Loot box statistics](analysis/02_loot_box_stats.ipynb) | Expected value and spread, a chi-square test of the stated odds and its power, the law of large numbers, the gambler's fallacy, pity timers, the house edge |
+| [03 Shop forecasting](analysis/03_shop_forecasting.ipynb) | Forecast bias, MAE, WAPE vs MAPE on intermittent demand, backtesting methods, fill rate and cycle service level, the stock-vs-service frontier |
+| [04 Predicting death](analysis/04_predict_death.ipynb) | Logistic regression vs gradient boosting, splitting by group, metrics for rare events, calibration, leakage, collinearity, permutation importance |
+
+The committed data in `runs/` is 2,000 bot runs (the large events table is left out; regenerate it with the bot).
 
 ## Tests
 

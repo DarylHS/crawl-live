@@ -33,9 +33,9 @@ This file is the hand-off between build sessions. Each session does the next unc
   - Shop sim in safe rooms: stock forecast from crawler demand, reorder points, stockouts and price changes, with stock carried between floors.
   - System AI "Fun Facts": stats one-liners triggered by real events (gambler's fallacy after a losing streak, base rates, independence).
   - Post-run report screen: damage taken by floor, box EV realised vs expected, viewer curve.
-- [ ] **Phase 5: Analysis & balance.**
+- [x] **Phase 5: Analysis & balance.**
   - `crawler/telemetry.py`: subscribe to `"*"` on the EventBus and write tidy CSV (`runs/*.csv`: run_id, turn, floor, event, value columns).
-  - `analysis/bot.py`: headless bot built from `analysis/balance_probe.py`; generate ~500 runs using all CPU cores (`multiprocessing.Pool`). A run currently takes about 4 s single-threaded, so 2,000 runs one at a time would take over two hours; profile and speed up the hot paths (`Floor.distance_map`, the probe's per-step BFS) before generating data.
+  - `analysis/bot.py`: headless bot built from the balance probe, run in parallel with `multiprocessing.Pool`; profile and speed up the hot paths first.
   - Notebooks in `analysis/`: `01_run_analysis.ipynb` (EDA, survival by floor, viewer growth, causes of death), `02_loot_box_stats.ipynb` (EV per tier, chi-square test of observed vs stated rates, pity timers), `03_shop_forecasting.ipynb` (MAPE, bias, stockouts vs safety stock), `04_predict_death.ipynb` (scikit-learn classifier, train/test split by run to avoid leakage, feature importance). All must run with `jupyter nbconvert --execute`.
   - Balance pass using the bot's data; final README update.
 
@@ -101,3 +101,12 @@ This file is the hand-off between build sessions. Each session does the next unc
 - Balance (probe now sells junk and keeps 3 potions bought from the shop; 40 seeds each): cat 65% declining deals / 55% accepting every deal; dog 55% / 38%. Gold earned is about 900 a run (median). The first pass had gold at 3x and riskier deals with no signing bonus; accepting everything then cost 37 points, which made deals pure traps.
 - Message log lines now wrap instead of running under the side panel.
 - Deferred to Phase 5: telemetry and notebooks. The shop log, box log, floor stats and viewer samples are already structured for them.
+
+### Phase 5
+- `crawler/telemetry.py`: `Telemetry(world, source, run_id, meta)` subscribes to every event and `tables()` returns runs, floors (state on arrival + what happened + `died_here`), boxes, shop and events (long format: run_id, turn, floor, event, value, detail; `turn` ticks skipped). `write_tables()` appends to `runs/<prefix><table>.csv`. The game logs finished player runs as `runs/player_*.csv` (gitignored); pass `runs_dir=None` to `App` to turn logging off (the tests do).
+- `analysis/bot.py` replaces `balance_probe.py`: same policy plus a cached route map, `multiprocessing.Pool`, companion/race/class rotated by seed, and a coin flip on every sponsor offer, which makes deals a randomised experiment. `play(seed, pet=None, deals="random", telemetry=False)` returns `(world, tables)`.
+- Speed: `Floor.distance_map` now walks neighbour lists built once per floor (`Floor._adjacency`), with frontier-batched BFS. A run takes about 1 s (it was 4-6 s); 2,000 runs take about 6 minutes on 4 cores.
+- Data committed: `runs/bot_{runs,floors,boxes,shop}.csv` from 2,000 runs (seeds 0-1999). `bot_events.csv` (~38 MB) is gitignored. The shop log now includes `forecast_before`.
+- Notebooks in `analysis/` (built and executed with outputs; `analysis/common.py` holds loading, the validated palette and chart style): 01 run analysis, 02 loot box statistics, 03 shop forecasting, 04 predicting death. All run top to bottom with `jupyter nbconvert --to notebook --execute`.
+- Balance pass from the data: the floor 2 boss (The Overdue Librarian) caused 216 of 268 floor 2 deaths, so it's now 42 HP / power 7 (floor 2 hazard went from 13% to 8%). Budgie 14 HP and Squawk every 16 turns; mouse 16 HP; Pounce every 18 turns; Analyst +1 attack. Bot result: 53% win. By companion: cat 65%, dog 56%, budgie 51%, mouse 40%. By class: brawler 66%, arcanist 63%, analyst 44%.
+- Findings worth a design decision later: the mouse's flee behaviour and the Analyst's information-only skill both score low for the bot, which can't exploit them; Hazard Pay adds about 20 points to the chance of dying on its floor (randomised estimate); every trade-up loses 36-54% of value (a steep house edge); the shop under-forecasts because demand grows each floor, and fixing the bias moves the shop along its stock/service curve rather than shifting it.
