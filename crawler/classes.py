@@ -16,8 +16,9 @@ CLASSES = {
                      power=2, defence=1, skill="haymaker"),
     "arcanist": dict(name="Arcanist", desc="+1 accuracy. Throws lightning at problems.",
                      accuracy=1, skill="arc_bolt"),
-    "analyst":  dict(name="Analyst", desc="+1 accuracy, +1 evasion. Knows the odds and uses them.",
-                     accuracy=1, evasion=1, skill="scout_report"),
+    "analyst":  dict(name="Analyst", desc="+1 attack, accuracy and evasion. Knows the odds and "
+                                          "uses them.",
+                     power=1, accuracy=1, evasion=1, skill="scout_report"),
 }
 
 SKILLS = {

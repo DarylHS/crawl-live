@@ -9,7 +9,7 @@ from .entities import Monster
 BOSSES = {
     1: dict(name="The Grease Trap King", glyph="K", colour=(230, 200, 90), hp=24, power=4,
             defence=1, accuracy=0, evasion=0, xp=25, box="silver"),
-    2: dict(name="The Overdue Librarian", glyph="L", colour=(220, 170, 120), hp=52, power=8,
+    2: dict(name="The Overdue Librarian", glyph="L", colour=(220, 170, 120), hp=42, power=7,
             defence=2, accuracy=1, evasion=0, xp=40, box="silver"),
     3: dict(name="Foreman Gristle", glyph="F", colour=(235, 140, 70), hp=84, power=11,
             defence=3, accuracy=1, evasion=-1, xp=60, box="gold"),
