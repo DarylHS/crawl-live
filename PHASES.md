@@ -39,7 +39,8 @@ This file is the hand-off between build sessions. Each session does the next unc
   - Notebooks in `analysis/`: `01_run_analysis.ipynb` (EDA, survival by floor, viewer growth, causes of death), `02_loot_box_stats.ipynb` (EV per tier, chi-square test of observed vs stated rates, pity timers), `03_shop_forecasting.ipynb` (MAPE, bias, stockouts vs safety stock), `04_predict_death.ipynb` (scikit-learn classifier, train/test split by run to avoid leakage, feature importance). All must run with `jupyter nbconvert --execute`.
   - Balance pass using the bot's data; final README update.
 
-- [ ] **Phase 6: Visuals.** (Done last, so Phase 4's new screens get styled once.) Everything visual lives in `crawler/ui/` and `crawler/game.py`; game rules don't change.
+- [ ] **Phase 6: Visuals.** Owner is weighing a first-person view instead of a top-down tile set; see the proof of concept notes at the end.
+  - Original plan: (Done last, so Phase 4's new screens get styled once.) Everything visual lives in `crawler/ui/` and `crawler/game.py`; game rules don't change.
   - Swap glyphs for a free 16x16 tile set (Kenney or Dungeon Crawl Stone Soup tiles, both CC0). Keep the tile-to-sprite mapping as data, credit the source in the README, and keep a `--glyphs` option to fall back to the current look.
   - Polish: smoother lighting falloff at the edge of sight, hit flashes and floating damage numbers, a small screen shake on crits and boss phases, an animated loot box reveal, and a consistent menu style.
   - Distinct looks for the four companions and six bosses, so they read at a glance.
@@ -127,3 +128,9 @@ This file is the hand-off between build sessions. Each session does the next unc
 - Save format v4. Telemetry gains a `practice` table (one row per skill per run) and `practice_levels` on runs.
 - Balance: first pass took the bot from 53% to 79% wins. A switch-off-one-at-a-time ablation on 400 paired seeds found no single culprit (each skill 0-6 points), so the XP curve was made steeper and combat bonuses trimmed (fisticuffs per 2 levels, blades and blunt per 3, Stomping per 2, Giant Killer 3%, Cardio 2 min, Sneaking and Dodging per 4). Final bot win rate 63% over 2,000 runs (was 52% before practice skills). The bot never crafts, rarely haggles and rarely naps, so those skills are untested by it.
 - Notebook 01 has a new section on practice skills: average level per skill, and why "winners have more levels" is reverse causality (levels track turns survived).
+
+### First-person proof of concept (owner request)
+- `crawler/ui/firstperson.py` (`FirstPersonView`): a grid raycaster (DDA per column, numpy for the wall, floor and ceiling texturing), rendered at 320 x 200 and scaled up with hard pixels. Textures are generated in code and tinted per floor; safe rooms get green tiles, stairwells a gold grate on the floor plus a floating arrow. Monsters, bosses, pets and items are billboard sprites with a z-buffer; creatures use body plans (biped, beast, bird, robot, ghost, blob) drawn in their colour, with accessories for the bosses. Fog matches the light radius.
+- Facing (4 directions) lives in the view, not the rules: W/S/A/D map to `move_player(dx, dy)` relative to facing, Q/E turn for free. W attacks a monster ahead, or front-left / front-right if none is straight ahead, since monsters can still step diagonally. The camera glides between tiles. Overlays: minimap with facing arrow, compass, the name and HP of what's ahead, a red flash when hurt, and red chevrons for adjacent monsters you can't see.
+- `fp_demo.py` is a standalone playable demo (no menus). About 15-25 ms a frame in pure Python plus numpy. `tests/test_firstperson.py` renders every floor and checks sprites and relative movement.
+- To make it the real game: a view toggle in `App` (and in the settings), the menus and overlays working over the 3D view, a turn key in help/README, then a balance check by a human since the bot doesn't see the screen.

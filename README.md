@@ -11,6 +11,9 @@ pip install -r requirements.txt
 python main.py            # or: python main.py --seed 1234 for a reproducible run
 ```
 
+**First-person preview (experimental).** `python fp_demo.py` plays the same game through the crawler's eyes, like Wolfenstein 3D: W/S step forward and back, A/D strafe, Q/E turn, Tab for the overhead map. Rules and turns are unchanged; only the view differs. It doesn't have the menus yet (no inventory, shop or character creation), so it's for trying out the look.
+
+
 | Key | Action |
 |---|---|
 | Arrows / WASD / numpad | Move; bump into a monster to attack |
