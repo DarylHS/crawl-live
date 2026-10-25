@@ -11,12 +11,56 @@ def _kill(w, hp=None, monster="goblin", by="melee"):
                   player_hp=p.hp if hp is None else hp, player_max_hp=p.max_hp)
 
 
-def test_five_lines_per_event_and_all_format():
-    assert all(len(v) >= 5 for v in LINES.values())
+def test_every_event_has_mild_and_spicy_lines_that_format():
     w = World(seed=1)
+    ctx = dict(depth=1, name="x", level=2, tier="Gold", sponsor="S", achievement="A", pet="P",
+               ability="B", boss="Boss", title="Elf Duellist", item="Sock", value=2, ev="7",
+               deal="Gloop Blitz")
+    for kind, pools in LINES.items():
+        assert len(pools["mild"]) >= 2 and len(pools["spicy"]) >= 3, kind
+        assert len(pools["mild"]) + len(pools["spicy"]) >= 5, kind
+        for line in pools["mild"] + pools["spicy"]:
+            text = line.format_map(dict(ctx, hero="Daz", address="madam"))   # KeyError if unknown
+            assert "{" not in text, (kind, line)
     for kind in LINES:
-        w.showrunner._say(kind, depth=1, name="x", level=2, tier="Gold", sponsor="S", achievement="A")
-    assert all(not m[0].count("{") for m in w.messages.recent(100))
+        w.showrunner._say(kind, **ctx)
+    assert all("{" not in m[0] for m in w.messages.recent(200))
+
+
+def test_sass_level_controls_spice(monkeypatch):
+    from crawler import config as C
+    for level, expect in ((0, "mild"), (10, "spicy")):
+        monkeypatch.setattr(C, "SASS_LEVEL", level)
+        w = World(seed=2)
+        w.messages.lines.clear()
+        for _ in range(20):
+            w.showrunner._say("player_death")
+        said = {m[0].removeprefix("SYSTEM: ") for m in w.messages.recent(20)}
+        pool = {line.format_map({"address": w.address, "hero": w.hero_name})
+                for line in LINES["player_death"][expect]}
+        assert said <= pool
+
+
+def test_box_reactions_follow_the_roll():
+    from crawler.showrunner import box_kind
+    assert box_kind("silver", "trophy") == "box_junk"
+    assert box_kind("legendary", "katana") == "box_jackpot"
+    assert box_kind("silver", "brew") == "box_meh"
+    assert box_kind("silver", "vest") == "box_good"          # 22 vs 13.7 +/- 6.1
+    assert box_kind("platinum", "elixir") == "box_meh"       # 30 vs 30.9 +/- 10.0
+    assert box_kind("platinum", "fireworks") == "box_bad"    # 20 < 30.9 - 10.0
+    assert box_kind("legendary", "fireworks") == "box_bad"   # 20 vs 42.5 +/- 13.8
+    w = World(seed=3)
+    w.events.emit("box_opened", tier="legendary", item="katana", rerolled=False)
+    assert "Katana" in w.messages.recent(1)[0][0]
+
+
+def test_address_follows_gender_and_race():
+    w = World(seed=4, hero=dict(name="Daz", gender="male", backstory="veteran"))
+    assert w.address == "sir" and w.hero_name == "Daz"
+    w.new_floor(3)
+    w.choose_class("bog_troll", "brawler")
+    assert w.address == "creature"
 
 
 def test_viewers_rise_on_kills_and_streaks_pay_more():

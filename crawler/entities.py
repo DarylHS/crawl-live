@@ -41,6 +41,7 @@ class Player(Entity):
     level: int = 1
     xp: int = 0
     kills: int = 0
+    crit_chance: float = C.CRIT_CHANCE
 
     def xp_to_next(self):
         return 20 + 15 * (self.level - 1)
@@ -99,6 +100,7 @@ class Pet(Entity):
     mode: str = "follow"            # "follow" | "stay" | "attack"
     cooldown: int = 0               # turns until the ability is ready
     downed: bool = False
+    enraged: int = 0                # turns of double damage left (Beastmaster's Rile Up)
 
     def xp_to_next(self):
         return 15 + 10 * (self.level - 1)

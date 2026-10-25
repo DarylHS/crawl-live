@@ -35,14 +35,19 @@ def expected_damage(attacker, defender):
     n = hi - lo + 1
     normal = sum(_damage(b, False, defender) for b in range(lo, hi + 1)) / n
     crit = sum(_damage(b, True, defender) for b in range(lo, hi + 1)) / n
-    return hit_chance(attacker, defender) * ((1 - C.CRIT_CHANCE) * normal + C.CRIT_CHANCE * crit)
+    cc = crit_chance(attacker)
+    return hit_chance(attacker, defender) * ((1 - cc) * normal + cc * crit)
+
+
+def crit_chance(attacker):
+    return getattr(attacker, "crit_chance", C.CRIT_CHANCE)
 
 
 def attack(attacker, defender, rng, mult=1, sure=False):
     """Resolve one swing. mult scales the base roll; sure skips the hit roll."""
     if not sure and rng.random() >= hit_chance(attacker, defender):
         return AttackResult(False, False, 0, False)
-    crit = rng.random() < C.CRIT_CHANCE
-    base = rng.randint(*base_roll_range(attacker)) * mult
+    crit = rng.random() < crit_chance(attacker)
+    base = round(rng.randint(*base_roll_range(attacker)) * mult)
     dmg = defender.take_damage(_damage(base, crit, defender))
     return AttackResult(True, crit, dmg, not defender.alive)

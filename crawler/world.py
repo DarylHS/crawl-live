@@ -10,7 +10,8 @@ from . import config as C
 from .achievements import Achievements
 from .ai import cheb, take_monster_turns, take_pet_turn
 from .bosses import BOSSES, PHASE_TWO, boss_depth, spawn_boss
-from .classes import CHOICE_FLOOR, CLASSES, RACES, SKILLS, apply_choice
+from .character import BACKSTORIES, GENDERS
+from .classes import CHOICE_FLOOR, CLASSES, RACES, SKILLS, apply_choice, apply_stats
 from .combat import attack, hit_chance
 from .contracts import CONTRACTS, OFFER_CHANCE, OFFER_FROM_FLOOR, effect
 from .crafting import CRAFT_TURNS, RECIPES, can_craft
@@ -38,8 +39,9 @@ class MessageLog:
 class World:
     PET_MODES = ("follow", "attack", "stay")
 
-    def __init__(self, seed=None, pet=None):
-        """pet is (species, name) or None for a run without a companion."""
+    def __init__(self, seed=None, pet=None, hero=None):
+        """pet is (species, name) or None for a run without a companion.
+        hero is dict(name, gender, backstory) from character creation, or None."""
         self.seed = seed if seed is not None else random.randrange(1 << 30)
         self.rng = random.Random(self.seed)
         self.events = EventBus()
@@ -56,8 +58,22 @@ class World:
         self.loot_rng = random.Random(self.seed ^ 0x100F)
         self.last_reveal = None         # (tier, item key) of the latest box opened
         self.toasts = []                # (turn, text, tier)
-        self.pet = new_pet(pet[0], pet[1], 0, 0) if pet else None
+        hero = hero or {}
         self.race = self.cls = None
+        self.hero_name = hero.get("name") or "Crawler"
+        self.gender = hero.get("gender")
+        self.backstory = hero.get("backstory")
+        if self.backstory:
+            apply_stats(self.player, BACKSTORIES[self.backstory])
+        self.pet = new_pet(pet[0], pet[1], 0, 0) if pet else None
+        if self.pet and self.trait("pet_head_start"):
+            self.pet.max_hp += 4
+            self.pet.hp += 4
+            self.pet.gain_xp(self.pet.xp_to_next())
+        self.hype_turns = 0             # Hype Man's Crowd Work time left
+        self.riposte = 0                # Duellist's parries left
+        self.remote_shop = False        # Quartermaster's Supply Drop is open
+        self._plant_fed_floor = 0       # last floor a houseplant got its free safe-room heal
         self.pending_choice = False     # the UI shows the class picker while True
         self.skill_cooldown = 0
         self.scout_turns = 0            # Analyst's Scout Report display time left
@@ -78,6 +94,24 @@ class World:
     def viewers(self):
         return self.showrunner.viewers
 
+    def trait(self, name, default=None):
+        """A perk or modifier from the player's backstory, race or class."""
+        for table, key in ((BACKSTORIES, self.backstory), (RACES, self.race), (CLASSES, self.cls)):
+            if key and name in table[key]:
+                return table[key][name]
+        return default
+
+    @property
+    def address(self):
+        """What the System calls you."""
+        return self.trait("address") or GENDERS.get(self.gender, {}).get("address", "crawler")
+
+    def buy_price(self, key):
+        return max(1, round(self.shop.price(key) * self.trait("buy_mult", 1)))
+
+    def sell_price(self, key):
+        return max(1, round(self.shop.sell_price(key) * self.trait("sell_mult", 1)))
+
     @property
     def active_pet(self):
         """The pet if it's on the map and able to act."""
@@ -97,7 +131,10 @@ class World:
         self.depth = depth
         self.floor = generate_floor(self.rng, depth)
         self.player.x, self.player.y = self.floor.start_room.centre
-        self.timer_max = self.timer = C.floor_turns(depth)
+        self.timer_max = self.timer = C.floor_turns(depth) + self.trait("timer_bonus", 0)
+        if self.skill == "supply_drop":
+            self.skill_cooldown = 0             # once per floor
+        self.remote_shop = False
         self._warnings_left = list(C.TIMER_WARNINGS)
         self.monsters = []
         self.floor_items = {}
@@ -267,6 +304,8 @@ class World:
     def wait(self):
         if self.state != "playing":
             return False
+        if self.trait("photosynthesis"):
+            self.player.heal(1)                 # houseplants heal while standing still
         self.end_turn()
         return True
 
@@ -307,9 +346,12 @@ class World:
             self.messages.add("No time to rest. The floor is coming down!", C.DANGER)
             return False
         start_hp, start_turn = p.hp, self.turn
-        per_turn = effect(self, "rest_mult")
+        per_turn = effect(self, "rest_mult") * self.trait("rest_mult", 1)
+        owed = 0.0
         while p.hp < p.max_hp and self.timer > C.REST_MIN_TIMER and self.state == "playing":
-            p.heal(per_turn)
+            owed += per_turn
+            p.heal(int(owed))
+            owed -= int(owed)
             self._tick_clock()
         spent = self.turn - start_turn
         if self.active_pet:
@@ -341,7 +383,8 @@ class World:
     def craft(self, index):
         """Craft recipe RECIPES[index] at the safe-room bench."""
         recipe = RECIPES[index]
-        if not self._safe_room_activity_ok(CRAFT_TURNS):
+        turns = max(1, round(CRAFT_TURNS * self.trait("craft_mult", 1)))
+        if not self._safe_room_activity_ok(turns):
             return False
         if not can_craft(recipe, self.inventory):
             self.messages.add(f"You're missing parts for {recipe['name']}.", C.TEXT_DIM)
@@ -349,7 +392,7 @@ class World:
         for key in recipe["needs"]:
             self.inventory.remove(key)
         self.inventory.append(recipe["makes"])
-        self._spend_turns(CRAFT_TURNS)
+        self._spend_turns(turns)
         self.messages.add(f"You craft {recipe['name']}: {ITEMS[recipe['makes']]['name']}.",
                           C.GOOD)
         self.events.emit("craft", recipe=recipe["key"], item=recipe["makes"])
@@ -360,7 +403,7 @@ class World:
     def shop_buy(self, key):
         if not self._in_safe_room_msg():
             return False
-        price = self.shop.price(key)
+        price = self.buy_price(key)
         if self.gold < price:
             self.messages.add(f"You need {price} gold for that.", C.TEXT_DIM)
             return False
@@ -373,15 +416,18 @@ class World:
             return False
         self.gold -= price
         self.inventory.append(key)
+        if not self.in_safe_room:
+            self.remote_shop = False            # Supply Drop is good for one purchase
         self.messages.add(f"You buy a {ITEMS[key]['name']} for {price} gold.", C.GOOD)
         self.events.emit("shop_buy", item=key, price=price, depth=self.depth)
         return True
 
     def shop_sell(self, index):
-        if not self._in_safe_room_msg() or not 0 <= index < len(self.inventory):
+        if not self.in_safe_room or not self._in_safe_room_msg() \
+                or not 0 <= index < len(self.inventory):
             return False
         key = self.inventory.pop(index)
-        price = self.shop.sell_price(key)
+        price = self.sell_price(key)
         self.gold += price
         self.shop.take_back(key)
         self.messages.add(f"You sell the {ITEMS[key]['name']} for {price} gold.", C.TEXT_DIM)
@@ -391,7 +437,7 @@ class World:
     def _in_safe_room_msg(self):
         if self.state != "playing":
             return False
-        if not self.in_safe_room:
+        if not self.in_safe_room and not self.remote_shop:
             self.messages.add("The shop is only open in safe rooms.", C.TEXT_DIM)
             return False
         return True
@@ -425,6 +471,7 @@ class World:
 
     def pet_attack(self, target, mult=1, verb="hits"):
         pet = self.pet
+        mult *= (2 if pet.enraged else 1) * (1.5 if self.hype_turns else 1)
         res = attack(pet, target, self.rng, mult=mult)
         if not res.hit:
             self.messages.add(f"{pet.name} misses {target.the}.", C.TEXT_DIM)
@@ -484,6 +531,15 @@ class World:
             return False
         apply_choice(self.player, race, cls)
         self.race, self.cls, self.pending_choice = race, cls, False
+        if self.trait("no_armour") and self.equipment["armour"]:
+            key = self.equipment["armour"]
+            self._apply_bonuses(key, -1)
+            self.equipment["armour"] = None
+            if len(self.inventory) < C.INVENTORY_SIZE:
+                self.inventory.append(key)
+            else:
+                self.floor_items.setdefault((self.player.x, self.player.y), []).append(key)
+            self.messages.add(f"Your new bark won't fit in the {ITEMS[key]['name']}.", C.TEXT_DIM)
         name = f"{RACES[race]['name']} {CLASSES[cls]['name']}"
         article = "an" if name[0] in "AEIOU" else "a"
         self.messages.add(f"You are now {article} {name}. Press 1 for "
@@ -503,7 +559,7 @@ class World:
             self.messages.add(f"{spec['name']} is recharging ({self.skill_cooldown} turns).",
                               C.TEXT_DIM)
             return False
-        if key != "scout_report" and self.in_safe_room:
+        if key in ("haymaker", "arc_bolt", "pocket_popper", "riposte") and self.in_safe_room:
             self.messages.add("The System forbids violence in safe rooms.", C.TEXT_DIM)
             return False
         p = self.player
@@ -526,10 +582,44 @@ class World:
             dmg = target.take_damage(8 + 2 * p.level)
             self.messages.add(f"Arc Bolt crackles into {target.the} for {dmg}.", C.INFO)
             self._after_hit(target, "skill")
-        else:
+        elif key == "scout_report":
             self.scout_turns = spec["duration"]
             self.messages.add("Scout Report: odds are on the panel for the next 20 turns.",
                               C.INFO)
+        elif key == "field_brew":
+            junk = [i for i, k in enumerate(self.inventory) if ITEMS[k]["kind"] == "junk"]
+            if not junk:
+                self.messages.add("No junk to brew with. Even you have standards.", C.TEXT_DIM)
+                return False
+            old = self.inventory.pop(junk[0])
+            new = self.loot_rng.choices(("tonic", "brew", "elixir"), (6, 3, 1))[0]
+            self.inventory.append(new)
+            self.messages.add(f"You brew the {ITEMS[old]['name']} into a {ITEMS[new]['name']}. "
+                              f"Don't think about it.", C.GOOD)
+        elif key == "rile_up":
+            pet = self.active_pet
+            if not pet:
+                self.messages.add("You have nobody to rile up.", C.TEXT_DIM)
+                return False
+            pet.enraged = spec["duration"]
+            self.messages.add(f"{pet.name} is FURIOUS. Double damage for {spec['duration']} turns.",
+                              pet.colour)
+        elif key == "crowd_work":
+            self.hype_turns = spec["duration"]
+            self.messages.add("You work the crowd. Kills earn triple viewers for 10 turns.",
+                              C.ACCENT)
+        elif key == "pocket_popper":
+            target = self._bomb_target(spec["range"])
+            if not target:
+                return False
+            self._explode("popper", target)
+        elif key == "supply_drop":
+            self.remote_shop = True
+            self.messages.add("A sponsor drone lowers a shop crate. One purchase, then it leaves.",
+                              C.ACCENT)
+        elif key == "riposte":
+            self.riposte = spec["charges"]
+            self.messages.add("En garde. You'll parry the next 3 attacks.", C.INFO)
         self.skill_cooldown = spec["cooldown"]
         self.events.emit("skill", skill=key)
         self.end_turn()
@@ -578,8 +668,11 @@ class World:
         """Wear or wield an inventory item; whatever was in the slot goes back to the pack."""
         if self.state != "playing" or not 0 <= index < len(self.inventory):
             return False
+        slot = ITEMS[self.inventory[index]]["kind"]
+        if slot == "armour" and self.trait("no_armour"):
+            self.messages.add("Houseplants don't wear armour. You'd snap a stem.", C.TEXT_DIM)
+            return False
         key = self.inventory.pop(index)
-        slot = ITEMS[key]["kind"]
         old = self.equipment[slot]
         if old:
             self._apply_bonuses(old, -1)
@@ -620,7 +713,7 @@ class World:
                 self.messages.add("You're already at full health.", C.TEXT_DIM)
                 return False
             self.inventory.pop(index)
-            healed = p.heal(item["heal"])
+            healed = p.heal(round(item["heal"] * self.trait("potion_mult", 1)))
             self.messages.add(f"You drink the {item['name']} and recover {healed} HP.", C.GOOD)
             self.events.emit("item_use", item=key, healed=healed)
         else:
@@ -630,28 +723,35 @@ class World:
         return True
 
     def _throw_bomb(self, index):
-        p = self.player
         if self.in_safe_room:
             self.messages.add("The System forbids explosions in safe rooms.", C.TEXT_DIM)
             return False
-        seen = [m for m in self.monsters if (m.x, m.y) in self.visible
-                and max(abs(m.x - p.x), abs(m.y - p.y)) <= C.BOMB_RANGE]
+        target = self._bomb_target(C.BOMB_RANGE)
+        if not target:
+            return False
+        self._explode(self.inventory.pop(index), target)
+        return True
+
+    def _bomb_target(self, reach):
+        p = self.player
+        seen = [m for m in self.monsters if (m.x, m.y) in self.visible and cheb(m, p) <= reach]
         if not seen:
             self.messages.add("No target in range.", C.TEXT_DIM)
-            return False
-        key = self.inventory.pop(index)
+            return None
+        return min(seen, key=lambda m: cheb(m, p))
+
+    def _explode(self, key, target):
         item = ITEMS[key]
-        target = min(seen, key=lambda m: max(abs(m.x - p.x), abs(m.y - p.y)))
+        damage = round(item["damage"] * self.trait("bomb_mult", 1))
         self.messages.add(f"You throw the {item['name']}. BOOM.", C.ACCENT)
         killed = 0
         for m in list(self.monsters):
-            if max(abs(m.x - target.x), abs(m.y - target.y)) <= item["radius"]:
-                m.take_damage(item["damage"])
+            if cheb(m, target) <= item["radius"]:
+                m.take_damage(damage)
                 m.alerted = True
                 killed += not m.alive
                 self._after_hit(m, "bomb")
         self.events.emit("bomb", item=key, kills=killed)
-        return True
 
     # --- Loot boxes ----------------------------------------------------
 
@@ -801,6 +901,16 @@ class World:
 
     def monster_attack(self, monster, ranged=False):
         p = self.player
+        if self.riposte:
+            self.riposte -= 1
+            self.messages.add(f"You parry {monster.the}!", C.INFO)
+            if not ranged and cheb(monster, p) == 1:
+                res = attack(p, monster, self.rng)
+                if res.hit:
+                    self.messages.add(f"Riposte! {monster.The} takes {res.damage}.", C.ACCENT)
+                    self._after_hit(monster, "skill")
+            self.events.emit("riposte", monster=monster.key)
+            return
         res = attack(monster, p, self.rng)
         how = "shoots" if ranged else "hits"
         if not res.hit:
@@ -828,6 +938,11 @@ class World:
         safe = self.in_safe_room
         if safe and not self._was_safe:
             self.messages.add("Safe room. No combat allowed in here. R rests, M opens the menu.", C.GOOD)
+            if self.trait("photosynthesis") and self._plant_fed_floor != self.depth:
+                self._plant_fed_floor = self.depth
+                healed = self.player.heal(self.player.max_hp)
+                if healed:
+                    self.messages.add(f"The grow lights restore {healed} HP. Bliss.", C.GOOD)
         self._was_safe = safe
         here = self.floor_items.get((self.player.x, self.player.y))
         if here:
@@ -841,10 +956,14 @@ class World:
         self.timer -= 1
         self.events.emit("turn", turn=self.turn)
         p = self.player
-        if self.turn % C.REGEN_INTERVAL == 0:
+        if self.turn % max(1, C.REGEN_INTERVAL // self.trait("regen_mult", 1)) == 0:
             p.heal(1)
-            if self.active_pet:
-                self.pet.heal(1)
+        if self.turn % C.REGEN_INTERVAL == 0 and self.active_pet:
+            self.pet.heal(1)
+        if self.hype_turns:
+            self.hype_turns -= 1
+        if self.pet and self.pet.enraged:
+            self.pet.enraged -= 1
         if self.skill_cooldown:
             self.skill_cooldown -= 1
         if self.scout_turns:

@@ -143,7 +143,7 @@ def test_class_choice_offered_on_floor_three():
     assert w.pending_choice
     hp, ev = w.player.max_hp, w.player.evasion
     assert w.choose_class("elf", "analyst")
-    assert not w.pending_choice and w.player.evasion == ev + 3 and w.player.max_hp == hp
+    assert not w.pending_choice and w.player.evasion == ev + 3 and w.player.max_hp == hp - 4
     assert not w.choose_class("human", "brawler")        # only once
 
 

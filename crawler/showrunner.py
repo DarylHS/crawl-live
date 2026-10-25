@@ -8,6 +8,8 @@ import random
 
 from . import config as C
 from .entities import MONSTERS, PET_QUIPS
+from .items import ITEMS
+from .lines import JACKPOT_VALUE, LINES
 
 START_VIEWERS = 50
 MIN_VIEWERS = 20
@@ -16,7 +18,8 @@ IDLE_TURNS = 10                 # turns without excitement before viewers drift 
 DECAY = 0.97                    # applied every IDLE_TURNS while idle
 MULTI_WINDOW = 4                # kills this close together count as a streak
 CLUTCH_FRAC = 0.25
-SPEAK_CHANCE = {"kill": 0.4, "damage_taken": 0.5}   # others always speak
+# Events the System only comments on some of the time (scaled by SASS_LEVEL); others always.
+SPEAK_CHANCE = {"kill": 0.4, "damage_taken": 0.5, "shop_buy": 0.5, "shop_sell": 0.3, "craft": 0.7}
 QUIP_CHANCE = 0.6               # how often the pet says something itself
 FLEE_QUIP_GAP = 8               # turns between the mouse's excuses while it runs
 PET_EVENTS = {"pet_kill": "kill", "pet_ability": "ability", "pet_level_up": "level_up",
@@ -31,148 +34,6 @@ SPONSOR_GIFTS = [
     (6000, "legendary", "The Consortium of Mild Concern"),
 ]
 
-LINES = {
-    "floor_start": [
-        "Welcome to floor {depth}. Please enjoy your impending doom.",
-        "Floor {depth} is now live. Smile for the cameras.",
-        "Floor {depth}: now with 15% more collapse.",
-        "Another floor, another chance to disappoint sponsors.",
-        "Floor {depth}. The audience placed bets. You won't like the odds.",
-    ],
-    "kill": [
-        "A {name}, dispatched. Riveting.",
-        "That {name} had a family. Probably.",
-        "The crowd loves a tidy kill.",
-        "Another {name} down. The ratings tick up.",
-        "Brutal. Efficient. Slightly rude. Good television.",
-    ],
-    "multi_kill": [
-        "Multi-kill! The chat is going feral.",
-        "A streak! Sponsors are texting each other.",
-        "Two in one breath. Someone call the highlights team.",
-        "Excellent carnage. Viewers are up.",
-        "That's how you edit a trailer.",
-    ],
-    "clutch": [
-        "Barely alive and still swinging. Viewers love it.",
-        "Clutch! Your next of kin will be thrilled.",
-        "That was one hit from a very short episode.",
-        "Dramatic tension: achieved.",
-        "Low health, high ratings. The System approves.",
-    ],
-    "damage_taken": [
-        "Ouch. The audience felt that.",
-        "You're bleeding on the set.",
-        "Nice try at dodging. Points for effort.",
-        "That's going in the blooper reel.",
-        "Health is a resource. You are wasting it.",
-    ],
-    "level_up": [
-        "Level {level}. Congratulations, you are marginally less doomed.",
-        "Level {level}! Here is a participation sticker.",
-        "You grew. The System remains unmoved.",
-        "Level {level}: the audience claps politely.",
-        "Stronger, faster, still on a timer.",
-    ],
-    "descend": [
-        "Down you go. Mind the plot holes.",
-        "Descending. The cameras follow.",
-        "Running away is a valid genre.",
-        "Next floor. Try to look surprised.",
-        "Stairs: the only sensible contestant strategy.",
-    ],
-    "rest": [
-        "Napping on live television. Bold.",
-        "Resting. The viewers have gone for snacks.",
-        "Sleep tight. The timer isn't.",
-        "Recovered. Dull, but alive.",
-        "Ratings dip during rest. Just saying.",
-    ],
-    "timer_warning": [
-        "The floor is creaking. Perhaps hurry.",
-        "Collapse imminent. Dramatic music cue.",
-        "Tick tock. The ceiling has opinions.",
-        "Time is a flat circle, and it's closing.",
-        "Fewer minutes remain than you would like.",
-    ],
-    "achievement": [
-        "Achievement unlocked: {achievement}. A box for you!",
-        "Well, look at you: {achievement}. Gift incoming.",
-        "{achievement}. The System is faintly impressed.",
-        "Someone noticed {achievement}. Here's a prize.",
-        "Another trophy. {achievement}. Don't let it go to your head.",
-    ],
-    "box_opened": [
-        "Opening a {tier} box. The suspense is theoretical.",
-        "A {tier} box! Let's see what we're pretending is generous.",
-        "Unwrapping {tier}. Cue studio applause.",
-        "{tier} box open. Try not to cry.",
-        "The audience watches a {tier} box open. Peak entertainment.",
-    ],
-    "sponsor_gift": [
-        "{sponsor} sends a {tier} box. They want you to know they care.",
-        "A gift from {sponsor}: a {tier} box. Please say thank you.",
-        "{sponsor} loves you today. {tier} box delivered.",
-        "Viewers pooled their money. {sponsor} has sent a {tier} box.",
-        "{sponsor} would like you to use their {tier} box responsibly.",
-    ],
-    "player_death": [
-        "And that's a wrap. Thanks for dying on air.",
-        "You have been cancelled.",
-        "Dead. The ratings spike, briefly.",
-        "A tragic finale. The sponsors send flowers.",
-        "The System regrets nothing.",
-    ],
-    "pet_kill": [
-        "{pet} claims a {name}. The pet merch is selling out.",
-        "{pet} did that. You were mostly decorative.",
-        "A {name}, mauled by {pet}. Adorable and horrifying.",
-        "{pet} gets the kill. Polls show viewers prefer {pet} to you.",
-        "{pet} just carried the episode.",
-    ],
-    "pet_downed": [
-        "{pet} is down! The audience gasps on cue.",
-        "Somebody get {pet} to a safe room. The ratings depend on it.",
-        "{pet} has fallen. The comments section is furious with you.",
-        "Losing {pet}? Bold creative choice.",
-        "{pet} needs a nap and a lawyer.",
-    ],
-    "pet_ability": [
-        "{pet} uses {ability}. Somebody clip that.",
-        "{ability}! {pet} is the real contestant here.",
-        "{pet} with the {ability}. Chef's kiss.",
-        "{ability}, courtesy of {pet}. Sponsors are taking notes.",
-        "{pet} remembers it has a special move: {ability}.",
-    ],
-    "boss_phase": [
-        "{boss} is ANGRY now. Excellent television.",
-        "Phase two! {boss} has called in favours.",
-        "{boss} rips off the polite mask. Finally.",
-        "And {boss} gets serious. Popcorn sales spike.",
-        "{boss} demands reinforcements and a bigger trailer.",
-    ],
-    "boss_kill": [
-        "{boss} is down! That was the expensive set piece.",
-        "You beat {boss}. The writers are scrambling.",
-        "{boss}: defeated. Somebody's getting fired upstairs.",
-        "The crowd roars. {boss} will be missed by its agent.",
-        "{boss} falls. Viewers are standing on their chairs.",
-    ],
-    "class_chosen": [
-        "{title}. Bold. Let's see if it lasts.",
-        "{title}, is it? The betting markets have adjusted.",
-        "Welcome, {title}. Your contract is non-negotiable.",
-        "{title}: an inspired choice, said nobody yet.",
-        "The System registers your class: {title}. No refunds.",
-    ],
-    "victory": [
-        "You survived. The producers are furious.",
-        "Escape confirmed. Ratings: acceptable.",
-        "You won! A sequel has been announced against your wishes.",
-        "The finale was almost watchable.",
-        "Contestant survives. The odds-makers weep.",
-    ],
-}
 
 
 class Showrunner:
@@ -187,8 +48,10 @@ class Showrunner:
         self._last_fun = 0
         self._gift_idx = 0
         for ev in LINES:
-            if ev not in ("multi_kill", "clutch"):
+            if ev not in ("multi_kill", "clutch") and not ev.startswith("box_") \
+                    or ev in ("box_reroll", "box_trade"):
                 world.events.subscribe(ev, self._announce)
+        world.events.subscribe("box_opened", self._box_reaction)
         for ev in ("kill", "level_up", "descend", "achievement", "floor_start", "boss_kill"):
             world.events.subscribe(ev, self._viewers)
         world.events.subscribe("turn", self._idle)
@@ -260,15 +123,30 @@ class Showrunner:
                                 pet.colour if pet else C.TEXT)
 
     def _say(self, kind, **ctx):
-        line = self.rng.choice(LINES[kind]).format_map(_Safe(ctx))
-        self.world.messages.add("SYSTEM: " + line, C.INFO)
+        """Pick a line for the event, spicier as SASS_LEVEL rises, and post it."""
+        pools = LINES[kind]
+        spicy = self.rng.random() < min(1.0, max(0.0, (C.SASS_LEVEL - 4) / 4))
+        pool = pools["spicy"] if spicy and pools.get("spicy") else pools["mild"]
+        w = self.world
+        ctx = {"hero": w.hero_name, "address": w.address, **ctx}
+        line = self.rng.choice(pool).format_map(_Safe(ctx))
+        w.messages.add("SYSTEM: " + line, C.INFO)
+
+    def _box_reaction(self, name, d):
+        """React to what came out of a loot box, judged against the box's average."""
+        from .loot import BOX_TIERS, box_stats
+        item = ITEMS[d["item"]]
+        self._say(box_kind(d["tier"], d["item"]), item=item["name"],
+                  tier=BOX_TIERS[d["tier"]]["name"], value=item["value"],
+                  ev=f"{box_stats(d['tier'])[0]:.0f}")
 
     def _announce(self, name, d):
         if name in ("kill", "pet_kill") and d.get("boss"):
             return                          # boss_kill has its own lines
         if name == "damage_taken" and d["hp"] > self.world.player.max_hp * 0.4:
             return
-        if self.rng.random() >= SPEAK_CHANCE.get(name, 1.0):
+        chattiness = min(1.3, max(0.3, C.SASS_LEVEL / 7))
+        if self.rng.random() >= SPEAK_CHANCE.get(name, 1.0) * chattiness:
             return
         ctx = dict(d)
         if "monster_name" in d:
@@ -279,7 +157,26 @@ class Showrunner:
             ctx["tier"] = d["tier"].capitalize()
         if name == "achievement":
             ctx["achievement"] = d["title"]
+        if "contract" in d:
+            from .contracts import CONTRACTS
+            ctx["deal"] = CONTRACTS[d["contract"]]["name"]
         self._say(name, **ctx)
+
+
+def box_kind(tier, key):
+    """Which reaction a box result gets: junk, jackpot, or bad/meh/good against EV +/- 1 SD."""
+    from .loot import box_stats
+    ev, sd = box_stats(tier)
+    item = ITEMS[key]
+    if item["kind"] == "junk":
+        return "box_junk"
+    if item["value"] >= JACKPOT_VALUE:
+        return "box_jackpot"
+    if item["value"] < ev - sd:
+        return "box_bad"
+    if item["value"] > ev + sd:
+        return "box_good"
+    return "box_meh"
 
 
 class _Safe(dict):
