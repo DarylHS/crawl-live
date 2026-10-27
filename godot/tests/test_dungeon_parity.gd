@@ -33,10 +33,35 @@ func test_floor_traces_match_python(seed_value = use_parameters(range(50))) -> v
 			want["impl"] = got["impl"]
 		var diff := TestCase.strict_diff(got, want)
 		if diff != "":
-			var which: String = str(want.get("depth", "header"))
+			var which: String = "header" if want["k"] == "header" else str(int(want["depth"]))
 			fail_test("seed %d record %s differs: %s" % [seed_value, which, diff.left(200)])
 			return
 	assert_true(true)
+
+
+## Debug dump: the visible set as rows of '#' (seen) and '.', only the rows that contain something.
+static func _fov_rows(fl: DungeonFloor, vis: Dictionary) -> String:
+	var lines := PackedStringArray()
+	for y in fl.height:
+		var row := ""
+		for x in fl.width:
+			row += "#" if vis.has(Vector2i(x, y)) else "."
+		if "#" in row:
+			lines.append("%2d %s" % [y, row])
+	return "\n".join(lines)
+
+
+## Debug dump: a distance map as rows (distance mod 10, '.' unreachable), only rows with something reachable.
+static func _dist_rows(fl: DungeonFloor, d: PackedInt32Array) -> String:
+	var lines := PackedStringArray()
+	for y in fl.height:
+		var row := ""
+		for x in fl.width:
+			var v := d[y * fl.width + x]
+			row += "." if v < 0 else str(v % 10)
+		if row.replace(".", "") != "":
+			lines.append("%2d %s" % [y, row])
+	return "\n".join(lines)
 
 
 static func _bitmap_digest(fl: DungeonFloor, vis: Dictionary) -> String:
@@ -68,6 +93,7 @@ func test_fov_and_distance_maps_match_python() -> void:
 			if vis.size() != int(row[3]) or _bitmap_digest(fl, vis) != row[4]:
 				fail_test("FOV differs: seed %d depth %d origin %d,%d radius %d" % [
 						seed_value, depth, int(row[0]), int(row[1]), int(row[2])])
+				gut.p("Godot visible set (%d tiles, Python %d):\n%s" % [vis.size(), int(row[3]), _fov_rows(fl, vis)])
 				return
 			fov_checked += 1
 		for row in entry["dist"]:
@@ -82,6 +108,8 @@ func test_fov_and_distance_maps_match_python() -> void:
 			if reach != int(row[4]) or mx != int(row[5]) or digest != row[6]:
 				fail_test("distance map differs: seed %d depth %d start %d,%d max_dist %d avoid_safe %d" % [
 						seed_value, depth, int(row[0]), int(row[1]), int(row[2]), int(row[3])])
+				gut.p("Godot map (reach %d max %d, Python reach %d max %d):\n%s" % [
+						reach, mx, int(row[4]), int(row[5]), _dist_rows(fl, d)])
 				return
 			dist_checked += 1
 	assert_gt(fov_checked, 1000)

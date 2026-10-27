@@ -106,5 +106,5 @@ static func run_floors(seed_value: int, floors: int) -> Array:
 static func to_lines(records: Array) -> String:
 	var s := ""
 	for r in records:
-		s += PyJson.dumps(r, false) + "\n"
+		s += PyJson.dumps(r, false, -1, true) + "\n"
 	return s

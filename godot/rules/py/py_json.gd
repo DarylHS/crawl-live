@@ -14,8 +14,15 @@ extends RefCounted
 ## json.dumps(v). ensure_ascii := false keeps non-ASCII characters as they are (json.dumps(...,
 ## ensure_ascii=False)); indent >= 0 pretty prints with that many spaces per level (indent=n) and
 ## then uses "," plus newline between items, as Python does.
-static func dumps(v: Variant, ensure_ascii: bool = true, indent: int = -1) -> String:
-	return _dump(v, ensure_ascii, indent, 0)
+## compact := true is separators=(",", ":") (indent must then be -1), as the trace files use.
+static func dumps(v: Variant, ensure_ascii: bool = true, indent: int = -1, compact: bool = false) -> String:
+	_compact = compact
+	var text := _dump(v, ensure_ascii, indent, 0)
+	_compact = false
+	return text
+
+
+static var _compact := false
 
 
 static func _dump(v: Variant, ascii: bool, indent: int, level: int) -> String:
@@ -48,7 +55,7 @@ static func _dump(v: Variant, ascii: bool, indent: int, level: int) -> String:
 				return "{}"
 			var parts := PackedStringArray()
 			for k in d:
-				parts.append(_quote(_key_text(k), ascii) + ": " + _dump(d[k], ascii, indent, level + 1))
+				parts.append(_quote(_key_text(k), ascii) + (":" if _compact else ": ") + _dump(d[k], ascii, indent, level + 1))
 			return _join("{", "}", parts, indent, level)
 		TYPE_VECTOR2I:
 			return _dump([v.x, v.y], ascii, indent, level)
@@ -61,7 +68,7 @@ static func _dump(v: Variant, ascii: bool, indent: int, level: int) -> String:
 
 static func _join(open: String, close: String, parts: PackedStringArray, indent: int, level: int) -> String:
 	if indent < 0:
-		return open + ", ".join(parts) + close
+		return open + ("," if _compact else ", ").join(parts) + close
 	var pad := " ".repeat(indent * (level + 1))
 	return open + "\n" + pad + (",\n" + pad).join(parts) + "\n" + " ".repeat(indent * level) + close
 

@@ -50,14 +50,17 @@ func _init(w: int, h: int, d: int) -> void:
 		explored.append(erow)
 
 
+## True when (x, y) lies inside the grid.
 func in_bounds(x: int, y: int) -> bool:
 	return 0 <= x and x < width and 0 <= y and y < height
 
 
+## True for FLOOR or STAIRS tiles inside the grid (furniture and walls block movement).
 func walkable(x: int, y: int) -> bool:
 	return in_bounds(x, y) and (tiles[y][x] == FLOOR or tiles[y][x] == STAIRS)
 
 
+## True when (x, y) is in the safe room or its doorway (the caller keeps x, y in bounds).
 func is_safe(x: int, y: int) -> bool:
 	return safe[y][x] != 0
 

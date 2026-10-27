@@ -99,7 +99,7 @@ func test_room_helpers() -> void:
 	assert_false(a.contains(7, 3) or a.contains(2, 7))
 	assert_true(a.intersects(DungeonRoom.new(7, 3, 3, 3)))        # one tile gap needed: pad 1
 	assert_false(a.intersects(DungeonRoom.new(8, 3, 3, 3)))
-	assert_true(a.intersects(DungeonRoom.new(7, 3, 3, 3), 0) == false)
+	assert_false(a.intersects(DungeonRoom.new(7, 3, 3, 3), 0))
 	var t := DungeonRoom.new(1, 1, 2, 2).tiles()
 	assert_eq(t, [Vector2i(1, 1), Vector2i(2, 1), Vector2i(1, 2), Vector2i(2, 2)] as Array[Vector2i])
 

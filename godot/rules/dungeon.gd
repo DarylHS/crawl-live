@@ -101,7 +101,7 @@ static func _try_generate(rng: PyRandom, depth: int, width: int, height: int) ->
 		return null
 
 	# Stairwells in the furthest rooms, on an interior tile away from walls.
-	for room in others.slice(others.size() - GameConfig.STAIRS_PER_FLOOR):
+	for room in others.slice(maxi(0, others.size() - GameConfig.STAIRS_PER_FLOOR) if GameConfig.STAIRS_PER_FLOOR > 0 else 0):
 		var r: DungeonRoom = room
 		var x := rng.randint(r.x + 1, r.x + r.w - 2)
 		var y := rng.randint(r.y + 1, r.y + r.h - 2)

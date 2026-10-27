@@ -9,50 +9,82 @@ extends SceneTree
 ## Default --floors is 6; default output without --out is ./trace_<seed>.jsonl.
 
 
+const _VALUE_OPTS := ["--seed", "--seeds", "--floors", "--out", "--out-dir"]
+const _FLAG_OPTS := ["--floor-only", "--spawns"]
+
+
+func _fail(msg: String) -> void:
+	printerr("trace.gd: ", msg)
+	quit(2)
+
+
+## Relative paths are taken against the shell's working directory (Python's cwd), not the project.
+func _resolve(path: String) -> String:
+	if path.is_absolute_path():
+		return path
+	var cwd := OS.get_environment("PWD")
+	return path if cwd == "" else cwd.path_join(path)
+
+
 func _initialize() -> void:
 	var opts := {}
 	var args := OS.get_cmdline_user_args()
 	var i := 0
 	while i < args.size():
 		var a: String = args[i]
-		if a == "--floor-only" or a == "--spawns" or a == "--no-msg":
+		if a in _FLAG_OPTS:
 			opts[a] = true
-		elif a.begins_with("--") and i + 1 < args.size():
+		elif a in _VALUE_OPTS:
+			if i + 1 >= args.size():
+				_fail("option %s needs a value" % a)
+				return
 			opts[a] = args[i + 1]
 			i += 1
+		else:
+			_fail("unknown option or argument: " + a)
+			return
 		i += 1
 	if not opts.has("--floor-only") or opts.has("--spawns"):
-		printerr("trace.gd: only --floor-only (without --spawns) is implemented so far")
-		quit(2)
+		_fail("only --floor-only (without --spawns) is implemented so far")
 		return
+	for k in ["--seed", "--floors"]:
+		if opts.has(k) and not String(opts[k]).is_valid_int():
+			_fail("%s needs an integer, got '%s'" % [k, opts[k]])
+			return
 	var seeds: Array = []
 	if opts.has("--seeds"):
 		if not opts.has("--out-dir"):
-			printerr("--seeds needs --out-dir")
-			quit(2)
+			_fail("--seeds needs --out-dir")
 			return
-		var t: String = opts["--seeds"]
-		if t.contains("-"):
-			var p := t.split("-")
-			for s in range(int(p[0]), int(p[1]) + 1):
+		var parts := String(opts["--seeds"]).split("-")
+		for part in parts:
+			if not part.is_valid_int():
+				_fail("--seeds needs N or A-B, got '%s'" % opts["--seeds"])
+				return
+		if parts.size() == 1:
+			seeds.append(int(parts[0]))
+		elif parts.size() == 2:
+			for s in range(int(parts[0]), int(parts[1]) + 1):
 				seeds.append(s)
 		else:
-			seeds.append(int(t))
+			_fail("--seeds needs N or A-B, got '%s'" % opts["--seeds"])
+			return
 	else:
 		seeds.append(int(opts.get("--seed", "0")))
 	var floors := int(opts.get("--floors", "6"))
+	var out_dir := ""
 	if opts.has("--out-dir"):
-		DirAccess.make_dir_recursive_absolute(opts["--out-dir"])
+		out_dir = _resolve(opts["--out-dir"])
+		DirAccess.make_dir_recursive_absolute(out_dir)
 	for seed_value in seeds:
 		var path: String
-		if opts.has("--out-dir"):
-			path = "%s/floors_%d.jsonl" % [opts["--out-dir"], seed_value]
+		if out_dir != "":
+			path = "%s/floors_%d.jsonl" % [out_dir, seed_value]
 		else:
-			path = opts.get("--out", "trace_%d.jsonl" % seed_value)
+			path = _resolve(opts.get("--out", "trace_%d.jsonl" % seed_value))
 		var f := FileAccess.open(path, FileAccess.WRITE)
 		if f == null:
-			printerr("cannot write ", path)
-			quit(2)
+			_fail("cannot write " + path)
 			return
 		f.store_string(TraceFloors.to_lines(TraceFloors.run_floors(seed_value, floors)))
 		f.close()
