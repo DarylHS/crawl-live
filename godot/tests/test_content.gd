@@ -95,6 +95,7 @@ func test_table_is_cached() -> void:
 
 func test_unknown_table_is_null() -> void:
 	assert_null(Content.table("no_such_table"))
+	assert_push_error("missing res://data/no_such_table.json")
 
 
 # --- Types ------------------------------------------------------------------------------------
@@ -289,4 +290,4 @@ func test_every_leaf_matches_python(name = use_parameters(Array(Content.names())
 			if shown >= 3:
 				break
 	if shown == 0 and got.size() == want.size():
-		pass_test()
+		pass_test("no Python reference for this table")

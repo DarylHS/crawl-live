@@ -1,5 +1,5 @@
 extends TestCase
-## Runner self-checks (use --file=test_smoke).
+## Test-base self-checks.
 
 func test_assert_helpers_pass() -> void:
 	assert_eq(1, 1)
@@ -20,14 +20,11 @@ func test_assert_helpers_pass() -> void:
 
 
 func test_eq_is_type_strict() -> void:
-	# Meta check: the failure path records an entry; we then clear it so the file passes.
-	assert_eq(1, 1)
-	var before := _failures.size()
-	assert_eq(1, 1.0)
-	assert_eq_deep([1], [1.0])
-	assert_eq_deep({"a": 1, "b": 2}, {"b": 2, "a": 1})
-	assert_eq(_failures.size() - before, 3, "int vs float and key order must fail")
-	_failures = PackedStringArray()
+	# Int vs float and dictionary key order must count as different (GUT alone would pass them).
+	assert_ne(strict_diff(1, 1.0), "")
+	assert_ne(strict_diff([1], [1.0]), "")
+	assert_ne(strict_diff({"a": 1, "b": 2}, {"b": 2, "a": 1}), "")
+	assert_eq(strict_diff({"a": [1, {"b": 2.5}]}, {"a": [1, {"b": 2.5}]}), "")
 
 
 func test_param(p = use_parameters([[1, 2], [3, 4]])) -> void:

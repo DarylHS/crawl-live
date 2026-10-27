@@ -39,6 +39,7 @@ func test_get_state_layout() -> void:
 
 func test_choice_empty_returns_null() -> void:
 	assert_null(PyRandom.new(1).choice([]))
+	assert_push_error("cannot choose from an empty sequence")
 
 
 # --- words_used ---------------------------------------------------------------------------
