@@ -759,3 +759,20 @@ Probes were run headless with throwaway projects under the session scratchpad; r
 | `test_firstperson.py` | `tests/ui/test_fp_logic.gd` (angle, steps, `target_ahead`, `open_facing`, glide) and `tests/ui/test_fp_scene.gd` (scene builds for every floor, every creature has a sprite) | P4, P5 | Minimap pixel tests become checks on the minimap image data. |
 | `test_render.py` | `tests/ui/test_app_state.gd` (key handling, Tab, menus, held keys, combat lock, provoke flags; headless) and `tests/ui/test_scenes.gd` (every scene instantiates and draws a frame); `tools/screenshots.gd` under `xvfb-run` for the screenshot sweep | P4-P7 | `CRAWL_SCREENSHOTS` becomes `-- --screenshots=<dir>`. |
 | (new) | `tests/test_py_random.gd`, `test_py_math.gd`, `test_py_fmt.gd`, `test_content.gd`, `test_parity_fixtures.gd` | P0, S1 | |
+
+### B.1 Deferred tests (ported when their slice lands)
+
+Every pytest test not yet ported is named here, with the slice that must port it. Remove a line when it is ported.
+
+| Slice | pytest test | Why deferred |
+|---|---|---|
+| S6 | `test_attributes.py`: `test_spending_points_raises_the_score_and_the_sheet`, `test_backstory_race_and_class_nudge_scores`, `test_blades_use_the_better_of_str_and_dex`, `test_heavy_armour_caps_dexterity`, `test_level_up_points_and_hp`, `test_every_attribute_can_be_raised` | need `World` |
+| S6 | `test_practice.py`: `test_stat_gains_apply_once_per_level`, `test_sneaking_shortens_notice_range`, `test_haggling_and_gambling_change_prices`, `test_cardio_trains_by_walking_and_extends_the_next_timer` | need `World` |
+| S8 | `test_practice.py`: `test_stomping_adds_damage_against_small_monsters`, `test_hitting_trains_the_matching_weapon_skill` | need `World` attacks |
+| T4 | `test_practice.py`: `test_telemetry_has_one_practice_row_per_skill` | telemetry |
+| T5 | `test_practice.py`: `test_save_round_trip_keeps_practice` | saves |
+
+### B.2 Notes carried forward to later slices
+
+- **S6:** replace `S2Support.hero()` (tests/support/s2_support.gd) with `World.new(1).player` and delete the stand-in. `Entities.new_pet` takes a String name: turn Python's `None` into `""`. `Entities.init_mod` inlines `boss_depth` until `Bosses` lands in S4; switch it then.
+- **T5:** `Entity.from_dict` on a dictionary from `JSON.parse_string` leaves `attrs` values and `colour` parts as floats (int fields are truncated by `set()`). `SaveGame` must coerce by schema before `from_dict`. `Entity.to_dict` written with `PyJson.dumps` is already byte-identical to Python's `json.dumps(asdict(...))`.

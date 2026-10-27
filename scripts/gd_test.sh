@@ -11,11 +11,12 @@
 # 3. runs GUT (addons/gut, settings in godot/.gutconfig.json),
 # 4. passes only if the exit status is 0, GUT reports 'All tests passed!' and no SCRIPT ERROR /
 #    parse error / failed-to-load line appears.
-# Environment: GODOT (binary, default godot), GD_TEST_LOG (default /tmp/gd_test.log).
+# Environment: GODOT (binary, default godot), GD_TEST_LOG (default /tmp/gd_test_<hash of checkout path>.log,
+# so parallel worktrees never share a log).
 set -u
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 GODOT="${GODOT:-godot}"
-LOG="${GD_TEST_LOG:-/tmp/gd_test.log}"
+LOG="${GD_TEST_LOG:-${TMPDIR:-/tmp}/gd_test_$(echo "$ROOT" | md5sum | cut -c1-8).log}"
 REFDIR="$(mktemp -d)"
 trap 'rm -rf "$REFDIR"' EXIT
 
