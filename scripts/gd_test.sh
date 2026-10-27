@@ -8,6 +8,7 @@
 # 1. imports the project (class_name needs .godot/global_script_class_cache.cfg; a headless
 #    parse error can still exit 0, so step 4 also greps the log),
 # 2. regenerates the Python references and fixtures (make_fixtures.py) into a temp dir (not committed: the RNG one is 12.7 MB),
+# 2b. dungeon (S3): FOV/distance fixtures (DUNGEON_FIXTURES) and Python floor-only traces for seeds 0-49 (FLOOR_TRACES),
 # 3. runs GUT (addons/gut, settings in godot/.gutconfig.json),
 # 4. passes only if the exit status is 0, GUT reports 'All tests passed!' and no SCRIPT ERROR /
 #    parse error / failed-to-load line appears.
@@ -28,7 +29,9 @@ python3 "$ROOT/scripts/make_fixtures.py" "$REFDIR/fixtures.json" || { echo "FAIL
 python3 "$ROOT/scripts/make_fixtures_s2.py" "$REFDIR/fixtures_s2.json" || { echo "FAIL: make_fixtures_s2.py"; exit 1; }
 python3 "$ROOT/scripts/practice_reference.py" "$REFDIR/practice_ref.json" || { echo "FAIL: practice_reference.py"; exit 1; }
 python3 "$ROOT/scripts/make_fixtures_s4.py" "$REFDIR/fixtures_s4.json" || { echo "FAIL: make_fixtures_s4.py"; exit 1; }
-export PY_RANDOM_REF="$REFDIR/py_random_ref.json" CONTENT_REF="$REFDIR/content_ref.json" FIXTURES="$REFDIR/fixtures.json" FIXTURES_S2="$REFDIR/fixtures_s2.json" PRACTICE_REF="$REFDIR/practice_ref.json" FIXTURES_S4="$REFDIR/fixtures_s4.json"
+export PY_RANDOM_REF="$REFDIR/py_random_ref.json" CONTENT_REF="$REFDIR/content_ref.json" FIXTURES="$REFDIR/fixtures.json" FIXTURES_S2="$REFDIR/fixtures_s2.json" PRACTICE_REF="$REFDIR/practice_ref.json" FIXTURES_S4="$REFDIR/fixtures_s4.json" DUNGEON_FIXTURES="$REFDIR/dungeon_fixtures.json" FLOOR_TRACES="$REFDIR/floor_traces"
+python3 "$ROOT/scripts/make_dungeon_fixtures.py" "$REFDIR/dungeon_fixtures.json" || { echo "FAIL: make_dungeon_fixtures.py"; exit 1; }
+python3 "$ROOT/scripts/py_trace.py" --seeds 0-49 --floor-only --floors 6 --out-dir "$REFDIR/floor_traces" >/dev/null || { echo "FAIL: py_trace.py --floor-only"; exit 1; }
 
 ARGS=()
 for a in "$@"; do
