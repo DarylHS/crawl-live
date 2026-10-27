@@ -136,8 +136,7 @@ class Achievements:
         w = self.world
         self.unlocked[key] = w.turn
         box = BOX_TIERS[a["tier"]]["name"]
-        w.toasts.append((w.turn, f"Achievement: {a['name']}", a["tier"],
-                         f"{box} box. Open it in a safe room."))
+        w.add_toast(f"Achievement: {a['name']}", a["tier"], f"{box} box. Open it in a safe room.")
         w.messages.add(f"Achievement unlocked: {a['name']}! {a['desc']}", C.ACCENT)
         w.events.emit("achievement", key=key, title=a["name"], tier=a["tier"], turn=w.turn,
                       why=a["desc"], reward=f"a {box} box")

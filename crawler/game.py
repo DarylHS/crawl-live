@@ -1,18 +1,23 @@
 """pygame front end: scene state machine, input mapping and the main loop.
 
-Rendering only happens after input, since the game is turn-based.
+Rendering happens after input, since the game is turn-based, and on every frame
+while the first-person camera is still gliding into place or a key is held. In the
+first-person view, held keys (free look and walking) run in update(dt), which reads
+the injectable set App.held so headless tests can hold keys. In combat the view is
+locked to the grid: no free look or held walking, one step or 90 degree turn per key.
 """
 import pygame
 
 from . import config as C
-from . import save
+from . import save, settings
 from .attributes import ATTRS
 from .character import BACKSTORIES, GENDERS
 from .crafting import RECIPES
 from .telemetry import RUNS_DIR, Telemetry, write_tables
 from .entities import PETS
 from .ui import menus, screens
-from .ui.hud import Renderer
+from .ui.firstperson import FirstPersonView
+from .ui.hud import MAP_RECT, Renderer
 from .ui.report import draw_report
 from .world import World
 
@@ -26,10 +31,23 @@ MOVES = {
 }
 WAIT_KEYS = {pygame.K_PERIOD, pygame.K_SPACE, pygame.K_KP5}
 DESCEND_KEYS = {pygame.K_RETURN, pygame.K_KP_ENTER}
+# First-person view: steps relative to where you look, and free turns.
+# Keys not listed here (numpad) keep their absolute MOVES meaning.
+FP_STEPS = {
+    pygame.K_w: "forward", pygame.K_UP: "forward", pygame.K_s: "back", pygame.K_DOWN: "back",
+    pygame.K_a: "left", pygame.K_d: "right",
+}
+FP_TURNS = {pygame.K_q: -1, pygame.K_LEFT: -1, pygame.K_e: 1, pygame.K_RIGHT: 1}
+TURN_RATE = 180             # degrees a second while a turn key is held
+HOLD_DELAY = 0.2            # seconds a turn key must be held before free look starts (a tap = 45)
+NEXT_STEP = 0.15            # tiles of glide left when a held walk key issues the next step
+STEP_GAP = 0.2              # seconds between held steps at least (about 4 tiles a second)
+MAX_DT = 0.05               # a slow frame (new floor, save, window drag) counts as this at most
 
 
 class App:
-    def __init__(self, screen=None, seed=None, save_path=save.SAVE_FILE, runs_dir=RUNS_DIR):
+    def __init__(self, screen=None, seed=None, save_path=save.SAVE_FILE, runs_dir=RUNS_DIR,
+                 settings_path=settings.SETTINGS_FILE):
         if not pygame.get_init():
             pygame.init()
         self.screen = screen or pygame.display.set_mode((C.SCREEN_W, C.SCREEN_H))
@@ -39,6 +57,10 @@ class App:
         self.save_path = save_path
         self.runs_dir = runs_dir          # None turns off logging your runs
         self.telemetry = None
+        self.settings_path = settings_path  # None turns off remembering settings
+        self.settings = settings.load(settings_path)
+        self.view = self.settings["view"]   # "fp" (first-person) | "top" (map)
+        self.fp = FirstPersonView()
         self.scene = "title"        # "title" | "identity" | "backstory" | "pet_select" | "game"
         self.world: World | None = None
         self.show_help = False
@@ -48,6 +70,10 @@ class App:
         self.hero_name, self.gender_idx, self.backstory_idx = "", 0, 0
         self.class_step, self.class_race = "race", None
         self.box_tier, self.shop_mode = None, "buy"
+        self.held = set()           # keys held down right now (run() fills it; tests set it)
+        self._held_for = {}         # key -> seconds it has been held
+        self._walk_wait = 0.0       # seconds until a held walk key may step again
+        self._walk_stopped = set()  # walk keys that bumped a wall or attacked: wait for release
         self.running = True
 
     def start_run(self, pet=None):
@@ -55,6 +81,7 @@ class App:
                     backstory=list(BACKSTORIES)[self.backstory_idx])
         self.world = World(self.seed, pet=pet, hero=hero)
         self._attach_telemetry()
+        self.fp.reset(self.world)
         self.seed = None            # only the first run uses a fixed seed
         self.scene = "game"
         self.show_help = False
@@ -68,6 +95,7 @@ class App:
             return
         self.scene, self.overlay, self.show_help = "game", None, False
         self._attach_telemetry()
+        self.fp.reset(self.world)
 
     def _attach_telemetry(self):
         self.telemetry = Telemetry(self.world, source="player") if self.runs_dir else None
@@ -81,6 +109,92 @@ class App:
             except OSError as exc:
                 print(f"Could not log run: {exc}")
             self.telemetry = None
+
+    def toggle_view(self):
+        """Tab: swap first-person and map, and remember the choice for next time."""
+        self.view = "top" if self.view == "fp" else "fp"
+        self.fp.reset_camera()              # snap, no stale hurt flash: you may have moved or been hit
+        self.settings["view"] = self.view
+        try:
+            settings.save(self.settings, self.settings_path)
+        except OSError as exc:
+            print(f"Could not save settings: {exc}")
+
+    def move_first_person(self, key):
+        """W attacks what target_ahead picks (ahead, else 45 degrees either side); a tapped
+        turn key turns 45 degrees, for free. Returns (moved, attacked)."""
+        world, view = self.world, self.fp
+        if key in FP_TURNS:
+            if view.grid:
+                view.turn(FP_TURNS[key])        # combat: a quarter turn per press
+            else:
+                view.tap_turn(FP_TURNS[key])
+            return False, False
+        move = FP_STEPS[key]
+        target, step = view.target_ahead(world) if move == "forward" else (None, None)
+        if not target:                      # any step (back, strafe) into a monster is a bump
+            step = view.relative(move)
+            target = world.monster_at(world.player.x + step[0], world.player.y + step[1])
+        ok = world.move_player(*step)
+        self._walk_wait = STEP_GAP
+        return ok, bool(target)
+
+    def sync_combat(self):
+        """Lock the first-person view to the grid when a fight starts (and stop any held walk,
+        so it can't spend your combat move before you've seen the tracker); free it after."""
+        world = self.world
+        fight = world is not None and world.combat is not None and world.state == "playing"
+        if fight and not self.fp.grid:
+            self.fp.set_combat(True)
+            self._walk_stopped |= {k for k in self.held if k in FP_STEPS}
+        elif not fight and self.fp.grid:
+            self.fp.set_combat(False)
+
+    def _fp_input_live(self):
+        return (self.scene == "game" and self.view == "fp" and not self.overlay
+                and not self.show_help and self.world is not None and self.world.state == "playing")
+
+    def update(self, dt, held=None):
+        """Per-frame work between key presses: free look and walking while keys are held in
+        the first-person view, then the camera glide. dt is seconds; held overrides self.held.
+        Returns True when something changed that needs a redraw."""
+        dt = min(dt, MAX_DT)
+        if held is not None:
+            self.held = set(held)
+        for k in list(self._held_for):
+            if k not in self.held:
+                del self._held_for[k]
+        self._walk_stopped &= self.held
+        self._walk_wait = max(0.0, self._walk_wait - dt)
+        view, world = self.fp, self.world
+        self.sync_combat()
+        if not self._fp_input_live():
+            self._held_for.clear()
+            if self.scene == "game" and self.view == "fp" and world is not None:
+                view.update_camera(world, dt)   # a menu or death mid-glide still lands on the tile
+                return self.animating()
+            return False
+        if view.grid:                       # combat: keys act on press only (handle_key)
+            view.update_camera(world, dt)
+            return self.animating()
+        changed = False
+        for k in self.held:
+            self._held_for[k] = self._held_for.get(k, 0.0) + dt
+        spin = sum(FP_TURNS[k] for k in self.held if k in FP_TURNS
+                   and self._held_for[k] > HOLD_DELAY)
+        if spin:
+            view.look(max(-1, min(1, spin)) * TURN_RATE * dt)
+            changed = True
+        walk = [k for k in self.held if k in FP_STEPS and k not in self._walk_stopped]
+        view.update_camera(world, dt)
+        if walk and self._walk_wait <= 0 and view.glide_left(world) < NEXT_STEP:
+            key = min(walk, key=lambda k: self._held_for.get(k, 0.0))   # the latest pressed
+            moved, attacked = self.move_first_person(key)
+            if not moved or attacked:
+                self._walk_stopped.add(key)     # a wall or a fight: stop until you let go
+            self._after_action()
+            changed = True
+        return changed or self.animating()
 
     # --- Input ---------------------------------------------------------
 
@@ -130,8 +244,15 @@ class App:
                 self.scene = "identity"             # same character, ready to tweak
             elif key == pygame.K_r:
                 self.open_overlay("report")
+        elif key == pygame.K_TAB:
+            self.toggle_view()
         elif ch == ">" or key in DESCEND_KEYS:
             world.descend()
+        elif self.view == "fp" and (key in FP_STEPS or key in FP_TURNS):
+            moved, attacked = self.move_first_person(key)
+            self._walk_stopped.discard(key)
+            if not moved or attacked:
+                self._walk_stopped.add(key)         # holding on doesn't keep bumping or attacking
         elif key in MOVES:
             world.move_player(*MOVES[key])
         elif key in WAIT_KEYS:
@@ -156,7 +277,15 @@ class App:
         elif key == pygame.K_1:
             if world.use_skill() and world.remote_shop:
                 self.overlay, self.cursor, self.shop_mode = "shop", 0, "buy"
+        self._after_action()
+
+    def _after_action(self):
+        """After any key or held step in the game: log a finished run, face a new floor's open
+        side, and open the class picker or a sponsor offer if one is waiting."""
+        world = self.world
         self._log_run_if_over()
+        self.fp.follow_floor(world)         # a new floor: face its most open direction
+        self.sync_combat()
         if world.state == "playing" and not self.overlay:
             if world.pending_choice:
                 self.open_overlay("class")
@@ -334,7 +463,13 @@ class App:
 
     # --- Drawing -------------------------------------------------------
 
-    def draw(self):
+    def animating(self):
+        """True while the first-person camera still needs frames to settle."""
+        return self.scene == "game" and self.view == "fp" and self.fp.animating(self.world)
+
+    def draw(self, dt=1.0):
+        """Draw the current scene. dt is seconds of camera glide; 1 snaps (tests), and the main
+        loop passes 0 since update(dt) has already moved the camera."""
         r, s = self.renderer, self.screen
         if self.scene == "title":
             screens.draw_title(r, s, save.has_save(self.save_path))
@@ -345,13 +480,17 @@ class App:
         elif self.scene == "pet_select":
             menus.draw_pet_select(r, s, self.pet_idx, self.pet_name)
         else:
-            r.draw_game(s, self.world)
+            self.sync_combat()
+            covered = bool(self.overlay or self.show_help or self.world.state != "playing")
+            r.draw_game(s, self.world, self.fp if self.view == "fp" else None, dt, hud=not covered)
             if self.world.state == "dead":
                 screens.draw_death(r, s, self.world)
             elif self.world.state == "victory":
                 screens.draw_victory(r, s, self.world)
             if self.overlay == "inventory":
                 menus.draw_inventory(r, s, self.world, self.cursor)
+                if self.world.combat is not None:   # see the Bonus pip while picking a potion
+                    r.draw_tracker(s, self.world, MAP_RECT)
             elif self.overlay == "safe":
                 menus.draw_safe_menu(r, s, self.world, self.cursor)
             elif self.overlay == "reveal":
@@ -374,12 +513,14 @@ class App:
                 menus.draw_class_select(r, s, self.world, self.class_step, self.class_race,
                                         self.cursor)
         if self.show_help:
-            screens.draw_help(r, s)
+            screens.draw_help(r, s, self.view)
 
     def run(self):
         clock = pygame.time.Clock()
         dirty = True
+        watched = list(FP_STEPS) + list(FP_TURNS)
         while self.running:
+            dt = min(clock.tick(C.FPS) / 1000, MAX_DT)
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     self.running = False
@@ -388,11 +529,12 @@ class App:
                     dirty = True
                 elif event.type in (pygame.WINDOWEXPOSED, pygame.VIDEOEXPOSE):
                     dirty = True
-            if dirty:
-                self.draw()
+            pressed = pygame.key.get_pressed()
+            self.held = {k for k in watched if pressed[k]}
+            if self.update(dt) or dirty:
+                self.draw(0)
                 pygame.display.flip()
                 dirty = False
-            clock.tick(C.FPS)
         pygame.quit()
 
 

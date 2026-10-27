@@ -11,14 +11,32 @@ pip install -r requirements.txt
 python main.py            # or: python main.py --seed 1234 for a reproducible run
 ```
 
-**First-person preview (experimental).** `python fp_demo.py` plays the same game through the crawler's eyes, like Wolfenstein 3D: W/S step forward and back, A/D strafe, Q/E turn, Tab for the overhead map. Rules and turns are unchanged; only the view differs. It doesn't have the menus yet (no inventory, shop or character creation), so it's for trying out the look.
+### Views
 
+You see the dungeon in one of two views, and `Tab` switches between them at any time outside a menu (it costs no turn):
 
-| Key | Action |
+- **First-person** (the default): through your crawler's eyes, like Wolfenstein 3D, with a minimap of the area around you and a compass in the corner. Out of combat you have free look: hold a turn key to look around smoothly (a tap turns 45 degrees), and walking steps one tile at a time towards the nearest of the 8 directions to where you look. In combat the view locks to the grid (see Combat below).
+- **Map**: the classic top-down view of the floor.
+
+Rules and turns are the same in both; only the view and the movement keys differ. The game remembers your last view between runs and launches in `saves/settings.json` (delete it to go back to first-person). `python fp_demo.py [--seed N]` starts the game in first-person; Tab still saves your choice. Press `?` in the game for the controls of the view you're in.
+
+| First-person | Action |
+|---|---|
+| `W` / Up | Walk where you look (hold to keep walking, one turn per tile); bumps a monster ahead, or the one 45 degrees either side |
+| `S` / Down | Walk back (hold) |
+| `A` / `D` | Step left / right (strafe; hold) |
+| `Q` / `E`, Left / Right | Turn: a tap turns 45 degrees, holding looks around smoothly (free: no turn passes) |
+| Numpad | Move by the compass, 7 9 1 3 diagonally |
+
+| Map | Action |
 |---|---|
 | Arrows / WASD / numpad | Move; bump into a monster to attack |
 | Numpad 7 9 1 3 | Move diagonally |
-| `.` / Space / numpad 5 | Wait a turn |
+
+| Both views | Action |
+|---|---|
+| `Tab` | Switch view: first-person / map |
+| `.` / Space / numpad 5 | Wait a turn; in combat, end your turn |
 | `>` / Enter | Descend a stairwell |
 | `G` | Pick up items on your tile |
 | `I` | Inventory: Enter uses/equips, `U` unequips, `D` drops |
@@ -33,6 +51,23 @@ python main.py            # or: python main.py --seed 1234 for a reproducible ru
 | `L` | On the title screen: continue a saved run |
 | `?` | Help |
 | Esc | Back to title |
+
+In menus, Up/Down (or `W`/`S`) move the cursor in either view.
+
+### Combat
+
+A fight starts when a monster notices you or you attack one (never in a safe room), and everyone rolls initiative: d20 plus your Dexterity modifier for you, d20 for monsters and your pet. A "COMBAT: roll for initiative" banner shows, and a tracker in the top-left lists the fighters in order with their HP. Each round is one turn on the floor clock, and on your turn you get:
+
+| Part of your turn | What it covers |
+|---|---|
+| Move | One step, or swapping places with your pet |
+| Action | Attack (bump), throw a bomb, use your class skill, pick up, descend |
+| Bonus action | Drink a potion |
+| Free | Equip, unequip, drop, command your pet, open menus |
+
+The tracker's Move / Action / Bonus pips go hollow as you use them. Your turn ends by itself once the move and the action are both spent, or press Space to end it early; then the monsters and your pet act in initiative order, each able to step and then attack. Stepping out of a hostile's reach (except by swapping with your pet) gives it an attack of opportunity: one free melee swing, once a round per creature (its reaction comes back when its turn starts). On the map, monsters you'd provoke get orange corner brackets; in first-person an orange label names the keys whose step would provoke ("S provokes the Knockoff Goblin"), and the side chevrons turn orange. It works both ways (a monster backing away from you or your pet gets swung at too), Riposte parries it like any attack, and nothing provokes across a safe-room edge. The fight ends when nothing chasing you is left alive, or when you reach a safe room or take the stairs.
+
+In first-person, combat locks the view to the grid: the camera settles on your tile facing the nearest of the four directions, `W` / `S` / `A` / `D` step one tile (`W` attacks the monster ahead, or the one front-left or front-right), and `Q` / `E` turn 90 degrees. Free look comes back when the fight ends. `Tab` still switches view mid-fight.
 
 ## How it plays
 
@@ -82,6 +117,10 @@ The game teaches a few ideas from probability and supply chains through the choi
 | Companion pet, class choice on floor 3, bosses, crafting, save/load | Phase 3 (done) |
 | Learning while playing: visible odds, gambles, sponsor deals, shop sim | Phase 4 (done) |
 | Telemetry, bot player, analysis notebooks | Phase 5 (done) |
+| Visible dice and attributes (STR, DEX, CON, INT, CHA), practice skills | Phase 6 (done) |
+| Boss tiers (Opening Acts, Featured Acts, Headliners), achievement loot | Phase 6 (done) |
+| First-person view with free look, Tab to switch, remembered in a settings file | Phase 7 (done) |
+| Combat mode: initiative, a move, action and bonus action each turn, attacks of opportunity | Phase 7 (done) |
 
 See [PHASES.md](PHASES.md) for progress.
 

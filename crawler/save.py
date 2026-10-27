@@ -33,6 +33,8 @@ def _entity(cls, d):
 
 
 def to_dict(w):
+    if w.combat is not None:
+        raise ValueError("Can't save mid-combat")      # saves are safe-room only, which ends it
     f = w.floor
     sr = w.showrunner
     return dict(

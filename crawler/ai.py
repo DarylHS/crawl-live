@@ -5,6 +5,12 @@ up after MONSTER_LOSE_TRACK turns out of sight. Alerted monsters step down a
 shared distance map towards the player; idle ones occasionally wander.
 Ranged monsters shoot when they have the player in sight at range.
 Monsters never enter safe-room tiles and never attack into them.
+
+Outside combat every monster acts once per turn. In combat (World.combat) the
+monsters and the pet in the fight act in initiative order instead, each able to
+step and then attack (take_combat_turn, take_pet_turn(combat=True)); a step out of a
+hostile's reach first gives it an attack of opportunity (World.opportunity_attacks).
+A pounce is a leap, not a step, and doesn't provoke.
 """
 from . import config as C
 from .dungeon import NEIGHBOURS_8
@@ -43,42 +49,84 @@ def _step_down(world, ent, dist, occupied, allow_safe=False):
     return step
 
 
-def take_monster_turns(world):
-    player, floor, rng = world.player, world.floor, world.rng
-    dist = floor.distance_map(player.x, player.y, max_dist=CHASE_RADIUS, avoid_safe=True)
+def chase_map(world):
+    """Distance map towards the player, cached until the player moves or the floor changes."""
+    player = world.player
+    key = (world.floor, player.x, player.y)
+    cache = getattr(world, "_chase_cache", None)
+    if cache is None or cache[0][0] is not key[0] or cache[0][1:] != key[1:]:
+        cache = world._chase_cache = (key, world.floor.distance_map(
+            player.x, player.y, max_dist=CHASE_RADIUS, avoid_safe=True))
+    return cache[1]
+
+
+def _notice(world, m):
+    """Update a monster's alert from what it can see; returns True if it sees you."""
+    seen = (m.x, m.y) in world.visible and cheb(m, world.player) <= world.notice_range()
+    if seen:
+        m.alerted, m.unseen_turns = True, 0
+    elif m.alerted:
+        m.unseen_turns += 1
+        if m.unseen_turns > C.MONSTER_LOSE_TRACK:
+            m.alerted = False
+    return seen
+
+
+def _melee(world, m):
+    """Attack the player, else the pet, if adjacent and outside the safe room."""
+    floor, player = world.floor, world.player
+    if cheb(m, player) == 1 and not floor.is_safe(player.x, player.y):
+        world.monster_attack(m)
+        return True
+    pet = world.active_pet
+    if pet and cheb(m, pet) == 1 and not floor.is_safe(pet.x, pet.y):
+        world.monster_attack_pet(m)
+        return True
+    return False
+
+
+def _shoot(world, m, seen):
+    player = world.player
+    if (m.ranged and seen and 2 <= cheb(m, player) <= m.ranged
+            and not world.floor.is_safe(player.x, player.y)
+            and world.rng.random() < C.RANGED_ATTACK_CHANCE):
+        world.monster_attack(m, ranged=True)
+        return True
+    return False
+
+
+def _occupied(world):
     occupied = {(m.x, m.y) for m in world.monsters}
     pet = world.active_pet
     if pet:
         occupied.add((pet.x, pet.y))
-    player_safe = floor.is_safe(player.x, player.y)
+    return occupied
+
+
+def take_monster_turns(world):
+    """Every monster outside combat acts once. A monster that becomes alerted joins (or
+    starts) combat instead, and from then on acts in initiative order."""
+    rng = world.rng
+    dist = chase_map(world)
+    occupied = _occupied(world)
 
     for m in list(world.monsters):          # bosses can summon help mid-loop
         if world.state != "playing":
             return
+        if (world.combat and m in world.combat) or m in world._acted:
+            continue                        # combatants act in initiative order, once a round
+        if m not in world.monsters:
+            continue                        # killed by a riposte earlier in the loop
         if m.stunned:
             m.stunned -= 1
             continue
-        seen = (m.x, m.y) in world.visible and cheb(m, player) <= world.notice_range()
-        if seen:
-            m.alerted, m.unseen_turns = True, 0
-        elif m.alerted:
-            m.unseen_turns += 1
-            if m.unseen_turns > C.MONSTER_LOSE_TRACK:
-                m.alerted = False
+        seen = _notice(world, m)
+        if m.alerted and world.join_combat(m):
+            continue                        # rolling initiative takes its turn
 
         step = None
         if m.alerted:
-            gap = cheb(m, player)
-            if gap == 1 and not player_safe:
-                world.monster_attack(m)
-                continue
-            pet = world.active_pet
-            if pet and cheb(m, pet) == 1 and not floor.is_safe(pet.x, pet.y):
-                world.monster_attack_pet(m)
-                continue
-            if (m.ranged and seen and 2 <= gap <= m.ranged and not player_safe
-                    and rng.random() < C.RANGED_ATTACK_CHANCE):
-                world.monster_attack(m, ranged=True)
+            if _melee(world, m) or _shoot(world, m, seen):
                 continue
             step = _step_down(world, m, dist, occupied)
         elif not m.boss and rng.random() < C.MONSTER_WANDER_CHANCE:
@@ -92,8 +140,27 @@ def take_monster_turns(world):
             occupied.add(step)
 
 
-def take_pet_turn(world):
-    """The companion's turn: ability if ready, then fight, then move by mode."""
+def take_combat_turn(world, m):
+    """A monster's turn in combat: attack if adjacent, else shoot or step towards you and
+    then attack if the step ends adjacent (a move plus an action)."""
+    if m.stunned:
+        m.stunned -= 1
+        return
+    seen = _notice(world, m)
+    if not m.alerted:
+        world.leave_combat(m)               # lost track of you
+        return
+    if _melee(world, m) or _shoot(world, m, seen):
+        return
+    step = _step_down(world, m, chase_map(world), _occupied(world))
+    if step and world.opportunity_attacks(m, *step):        # leaving reach provokes
+        m.x, m.y = step
+        _melee(world, m)
+
+
+def take_pet_turn(world, combat=False):
+    """The companion's turn: ability if ready, then fight, then move by mode. In combat a
+    plain step may be followed by an attack if it ends next to a monster."""
     pet = world.active_pet
     if not pet or world.state != "playing":
         return
@@ -109,7 +176,7 @@ def take_pet_turn(world):
         if cheb(pet, player) > 1:
             dist = floor.distance_map(player.x, player.y, max_dist=40)
             step = _step_down(world, pet, dist, occupied, allow_safe=True)
-            if step:
+            if step and (not combat or world.opportunity_attacks(pet, *step)):
                 pet.x, pet.y = step
                 world.pet_flees()
         return
@@ -165,5 +232,9 @@ def take_pet_turn(world):
         return
     dist = floor.distance_map(target.x, target.y, max_dist=40)
     step = _step_down(world, pet, dist, occupied, allow_safe=True)
-    if step:
+    if step and (not combat or world.opportunity_attacks(pet, *step)):
         pet.x, pet.y = step
+        if combat and not floor.is_safe(pet.x, pet.y):
+            adjacent = [m for m in world.monsters if cheb(pet, m) == 1]
+            if adjacent:
+                world.pet_attack(min(adjacent, key=lambda m: m.hp))

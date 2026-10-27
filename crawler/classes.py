@@ -35,18 +35,19 @@ CLASSES = {
                           pairs=("tradie",)),
     "arcanist":      dict(name="Arcanist", desc="+2 INT. Throws lightning at problems.",
                           attrs=dict(int=2), skill="arc_bolt"),
-    "analyst":       dict(name="Analyst", desc="+1 STR, +1 DEX, +1 INT, +1 to hit. Knows the odds "
-                                               "and uses them.",
-                          attrs=dict(str=1, dex=1, int=1), hit=1, skill="scout_report"),
-    "alchemist":     dict(name="Alchemist", desc="+2 INT, +4 max HP; potions heal 50% more. Turns "
+    "analyst":       dict(name="Analyst", desc="+1 STR, +1 DEX, +1 INT, +2 to hit, +1 AC. Knows "
+                                               "the odds and uses them.",
+                          attrs=dict(str=1, dex=1, int=1), hit=2, ac=1, skill="scout_report"),
+    "alchemist":     dict(name="Alchemist", desc="+2 INT, +4 max HP; potions heal 30% more. Turns "
                                                  "rubbish into medicine.",
-                          attrs=dict(int=2), max_hp=4, class_potion_mult=1.5, skill="field_brew",
+                          attrs=dict(int=2), max_hp=4, class_potion_mult=1.3, skill="field_brew",
                           pairs=("mixologist", "parent")),
     "beastmaster":   dict(name="Beastmaster", desc="+2 CHA, +1 AC. Your companion fights like it "
                                                    "means it.",
                           attrs=dict(cha=2), ac=1, skill="rile_up", pairs=("dog_walker",)),
-    "hype_man":      dict(name="Hype Man", desc="+2 CHA. Works the crowd while working the room.",
-                          attrs=dict(cha=2), skill="crowd_work", pairs=("comedian",)),
+    "hype_man":      dict(name="Hype Man", desc="+2 CHA, +1 AC, +6 max HP. Works the crowd while "
+                                                "working the room.",
+                          attrs=dict(cha=2), ac=1, max_hp=6, skill="crowd_work", pairs=("comedian",)),
     "demolitionist": dict(name="Demolitionist", desc="+2 DEX; bombs do 50% more damage. Loud.",
                           attrs=dict(dex=2), bomb_mult=1.5, skill="pocket_popper",
                           pairs=("veteran",)),
@@ -60,7 +61,7 @@ CLASSES = {
 SKILLS = {
     "haymaker":      dict(name="Haymaker", cooldown=10,
                           desc="A guaranteed hit on an adjacent monster for double damage."),
-    "arc_bolt":      dict(name="Arc Bolt", cooldown=10, range=6,
+    "arc_bolt":      dict(name="Arc Bolt", cooldown=20, range=6,
                           desc="Zap the nearest visible monster within 6 tiles for 6 + 2 x level "
                                "+ INT modifier. No roll to hit: lightning finds a way."),
     "scout_report":  dict(name="Scout Report", cooldown=25, duration=20,

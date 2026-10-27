@@ -7,7 +7,7 @@ from crawler import config as C
 from crawler import save
 from crawler.ai import cheb
 from crawler.bosses import BOSSES, acts_per_floor
-from crawler.classes import CHOICE_FLOOR
+from crawler.classes import CHOICE_FLOOR, CLASSES
 from crawler.crafting import CRAFT_TURNS, RECIPES
 from crawler.dungeon import NEIGHBOURS_8
 from crawler.entities import PETS, spawn_monster
@@ -143,9 +143,10 @@ def test_class_choice_offered_on_floor_three():
     assert w.pending_choice
     p = w.player
     hp, ac, hit = p.max_hp, p.ac, p.attack
-    assert w.choose_class("elf", "analyst")             # DEX 10 -> 13, CON 10 -> 8, +1 to hit
-    assert not w.pending_choice and p.ac == ac + 1 and p.max_hp == hp - p.level
-    assert p.attack == hit + 1
+    assert w.choose_class("elf", "analyst")             # DEX 10 -> 13, CON 10 -> 8, plus flat bonuses
+    an = CLASSES["analyst"]
+    assert not w.pending_choice and p.ac == ac + 1 + an.get("ac", 0) and p.max_hp == hp - p.level
+    assert p.attack == hit + an["hit"]
     assert not w.choose_class("human", "brawler")        # only once
 
 
@@ -236,10 +237,12 @@ def test_ranged_monster_shoots_from_distance():
     m.attack = 100
     w.monsters.append(m)
     hp = p.hp
+    from crawler.ai import take_combat_turn, take_monster_turns
     for _ in range(10):
         w.visible = {(m.x, m.y)} | w.visible
-        from crawler.ai import take_monster_turns
-        take_monster_turns(w)
+        take_monster_turns(w)                   # it notices you and joins combat...
+        if w.combat and m in w.combat:
+            take_combat_turn(w, m)              # ...then acts on its turn in the order
     assert p.hp < hp
 
 

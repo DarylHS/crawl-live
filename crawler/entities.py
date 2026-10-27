@@ -149,7 +149,8 @@ def stat_block(d):
 # min/max floor bound where a monster appears; weight is its relative frequency.
 # Stat blocks: ac = Armour Class, attack = d20 bonus, dmg = (dice, sides, bonus), save = saving
 # throw bonus. floors = (min, max) floor; weight = relative frequency there; drops = what it
-# might be carrying (one is picked when it dies, ITEM_DROP_CHANCE of the time).
+# might be carrying (one is picked when it dies, ITEM_DROP_CHANCE of the time). An optional
+# init key adds to its initiative roll (default 0); pets, bosses and Acts take it too.
 MONSTERS = {
     "gnawer":   dict(name="Sewer Gnawer", glyph="r", colour=(170, 140, 110), hp=6, ac=11, attack=3,
                      dmg=(1, 4, 0), save=1, xp=3, floors=(1, 2), weight=6,
@@ -205,7 +206,7 @@ PETS = {
                    ability="squawk", ability_name="Ear-Splitting Squawk", cooldown=16,
                    desc="Fragile, hard to hit, never stops talking. Squawk: stuns nearby "
                         "monsters for 2 turns."),
-    "mouse": dict(name="Scheming Mouse", glyph="m", colour=(190, 180, 200), hp=16, ac=14, attack=4,
+    "mouse": dict(name="Scheming Mouse", glyph="m", colour=(190, 180, 200), hp=20, ac=14, attack=4,
                   dmg=(1, 6, 2), default_name="Skritch",
                   ability="dirty_trick", ability_name="Dirty Trick", cooldown=8,
                   desc="Cunning and cowardly. Dirty Trick: triple damage on a hurt monster. "
@@ -251,6 +252,17 @@ PET_QUIPS = {
                  "Not running! Repositioning-repositioning!"],
     },
 }
+
+
+def init_mod(entity):
+    """Initiative modifier for a monster or pet: its data row's optional init key, default 0.
+    Acts use their base monster's row; Headliners their boss row."""
+    if isinstance(entity, Pet):
+        return PETS[entity.species].get("init", 0)
+    if entity.tier == "headliner":
+        from .bosses import BOSSES, boss_depth
+        return BOSSES[boss_depth(entity)].get("init", 0)
+    return MONSTERS.get(entity.base or entity.key, {}).get("init", 0)
 
 
 def new_pet(species, name, x, y):

@@ -66,6 +66,7 @@ TEXT = (225, 222, 235)
 TEXT_DIM = (130, 126, 145)
 ACCENT = (255, 196, 64)      # gold: stairs, headings
 DANGER = (235, 80, 80)
+WARN = (255, 140, 40)       # a step that would provoke an attack of opportunity
 GOOD = (110, 210, 120)
 INFO = (110, 170, 240)
 

@@ -2,13 +2,18 @@
 
 Keeping this headless means tests and (later) the bot can play thousands of
 turns without a window. Player actions return True when they used a turn.
+
+Out of combat every action is a whole turn: you act, then the pet, the monsters
+and the clock. In combat (self.combat, an Encounter) each round is one turn in
+which you get a move, an action and a bonus action, and the fighters act in
+initiative order around you.
 """
 import random
 from collections import deque
 
 from . import config as C
 from .achievements import Achievements
-from .ai import cheb, take_monster_turns, take_pet_turn
+from .ai import CHASE_RADIUS, cheb, take_combat_turn, take_monster_turns, take_pet_turn
 from .bosses import ACTS, BOSSES, MAP_RADIUS, PHASE_TWO, acts_per_floor, boss_depth, spawn_act, spawn_boss
 from .character import BACKSTORIES, GENDERS
 from .attributes import ATTRS, MAX_SCORE, mod, proficiency
@@ -16,9 +21,10 @@ from .classes import CHOICE_FLOOR, CLASSES, FLAT_BONUSES, RACES, SKILLS
 from .combat import attack, hit_chance, saving_throw
 from .contracts import CONTRACTS, OFFER_CHANCE, OFFER_FROM_FLOOR, effect
 from .crafting import CRAFT_TURNS, RECIPES, can_craft
-from .dice import fmt, roll
+from .dice import d20, fmt, roll
 from .dungeon import NEIGHBOURS_8, STAIRS, compute_fov, generate_floor
-from .entities import MONSTERS, PETS, monster_table, new_pet, new_player, spawn_monster
+from .encounter import PART_NAMES, Encounter
+from .entities import MONSTERS, PETS, init_mod, monster_table, new_pet, new_player, spawn_monster
 from .events import EventBus
 from .funfacts import FunFacts
 from .items import FISTS, ITEMS, floor_loot_table
@@ -99,7 +105,17 @@ class World:
         self.achievements = Achievements(self)
         self.showrunner = Showrunner(self)
         self.funfacts = FunFacts(self)
+        self.combat = None              # an Encounter while a fight is on
+        self._acted = set()             # combatants that have had their go this round
+        self._hold_combat = False       # True while one act resolves: don't end the fight yet
         self.new_floor(1)
+
+    def add_toast(self, text, tier, sub=None, turn=None):
+        """A banner over the view for C.TOAST_TURNS turns (tier picks the colour). Expired ones
+        are dropped here, so the list stays short in memory and in the save."""
+        turn = self.turn if turn is None else turn
+        self.toasts = [t for t in self.toasts if self.turn - t[0] < C.TOAST_TURNS]
+        self.toasts.append((turn, text, tier, sub) if sub else (turn, text, tier))
 
     @property
     def viewers(self):
@@ -217,6 +233,7 @@ class World:
     # --- Floors --------------------------------------------------------
 
     def new_floor(self, depth):
+        self._end_combat("floor")
         if self.depth:
             self.shop.end_of_floor(self.depth)
             self.events.emit("shop_restock", depth=self.depth)
@@ -459,22 +476,32 @@ class World:
                 self.messages.add("The System forbids violence in safe rooms. Spoilsport.",
                                   C.TEXT_DIM)
                 return False
+            if not self._can_spend("action"):
+                return False
             self._player_attack(target)
-        elif self.pet_at(tx, ty):
+            self._spend("action")
+            return True
+        swap = self.pet_at(tx, ty)
+        if not swap and not self.floor.walkable(tx, ty):
+            return False
+        if not self._can_spend("move"):
+            return False
+        if swap:                                            # never provokes
             pet = self.pet
             pet.x, pet.y, p.x, p.y = p.x, p.y, tx, ty       # swap places
             self._on_enter_tile()
-        elif self.floor.walkable(tx, ty):
+        else:
+            if not self.opportunity_attacks(p, tx, ty):
+                return True                                 # cut down on the way out
             p.x, p.y = tx, ty
             sneaky = any(not m.alerted and cheb(m, p) <= 4 for m in self.monsters)
             self.events.emit("step", sneaky=sneaky)
             self._on_enter_tile()
-        else:
-            return False
-        self.end_turn()
+        self._spend("move")
         return True
 
     def wait(self):
+        """Pass a turn; in combat, end your turn early."""
         if self.state != "playing":
             return False
         if self.trait("photosynthesis"):
@@ -497,12 +524,15 @@ class World:
                               f"{self.timer_text(self.stairs_wait)}. The Headliner has a key.",
                               C.DANGER)
             return False
+        if not self._can_spend("action"):
+            return False
         self.events.emit("descend", depth=self.depth, turn=self.turn,
                          timer_left=self.timer, timer_max=self.timer_max,
                          early=self.depth < C.NUM_FLOORS and self.stairs_wait > 0)
         self._close_floor_stats()
         if self.depth >= C.NUM_FLOORS:
             self.state = "victory"
+            self._end_combat("victory")
             self._close_floor_stats()
             self.messages.add("You escaped the final floor!", C.GOOD)
             self.events.emit("victory", depth=self.depth, turn=self.turn)
@@ -520,6 +550,9 @@ class World:
         p = self.player
         if p.hp >= p.max_hp:
             self.messages.add("You're already at full health.", C.TEXT_DIM)
+            return False
+        if self.combat is not None:             # can't happen (safe rooms end fights), but be sure
+            self.messages.add("Not while you're fighting.", C.DANGER)
             return False
         if self.timer <= C.REST_MIN_TIMER:
             self.messages.add("No time to rest. The floor is coming down!", C.DANGER)
@@ -544,6 +577,8 @@ class World:
 
     def _spend_turns(self, n):
         """Pass time without monsters acting (safe-room activities)."""
+        if self.combat is not None:             # safe rooms end fights; never tick past one
+            return False
         for _ in range(n):
             if self.state != "playing":
                 return
@@ -551,6 +586,9 @@ class World:
 
     def _safe_room_activity_ok(self, turns):
         if self.state != "playing":
+            return False
+        if self.combat is not None:
+            self.messages.add("Not while you're fighting.", C.DANGER)
             return False
         if not self.in_safe_room:
             self.messages.add("You can only do that in a safe room.", C.TEXT_DIM)
@@ -662,10 +700,11 @@ class World:
         res = attack(pet, target, self.rng, mult=mult)
         if not res.hit:
             self.messages.add(f"{pet.name} misses {target.the}.", C.TEXT_DIM)
-            return
+            return False
         self.messages.add(f"{pet.name} {verb} {target.the} for {res.damage}.", pet.colour)
         self.events.emit("pet_hit", pet=pet.name, damage=res.damage)
         self._after_hit(target, "pet")
+        return True
 
     def pet_pounce(self, target):
         pet = self.pet
@@ -705,12 +744,15 @@ class World:
         pet = self.pet
         res = attack(monster, pet, self.rng)
         if not res.hit:
-            return
+            return False
         self.messages.add(f"{monster.The} hits {pet.name} for {res.damage}.", C.DANGER)
         if res.killed:
             pet.downed = True
+            if self.combat:
+                self.combat.remove(pet)
             self.messages.add(f"{pet.name} is down! Revive them in a safe room.", C.DANGER)
             self.events.emit("pet_downed", pet=pet.name, species=pet.species, depth=self.depth)
+        return True
 
     # --- Class & skills ------------------------------------------------
 
@@ -746,6 +788,8 @@ class World:
             self.messages.add(f"{spec['name']} is recharging ({self.skill_cooldown} turns).",
                               C.TEXT_DIM)
             return False
+        if not self._can_spend("action"):
+            return False
         if key in ("haymaker", "arc_bolt", "pocket_popper", "riposte") and self.in_safe_room:
             self.messages.add("The System forbids violence in safe rooms.", C.TEXT_DIM)
             return False
@@ -760,6 +804,7 @@ class World:
             self.messages.add(f"HAYMAKER! {target.The} takes {res.damage} "
                               f"({fmt(p.dmg_n, p.dmg_die, p.dmg_bonus)}, doubled).", C.ACCENT)
             self._after_hit(target, "skill")
+            self._engage([target])
         elif key == "arc_bolt":
             seen = [m for m in self.monsters if (m.x, m.y) in self.visible
                     and cheb(m, p) <= spec["range"]]
@@ -770,6 +815,7 @@ class World:
             dmg = target.take_damage(max(1, 6 + 2 * p.level + self.mod("int")))
             self.messages.add(f"Arc Bolt crackles into {target.the} for {dmg}.", C.INFO)
             self._after_hit(target, "skill")
+            self._engage([target])
         elif key == "scout_report":
             self.scout_turns = spec["duration"]
             self.messages.add("Scout Report: odds are on the panel for the next 20 turns.",
@@ -812,7 +858,7 @@ class World:
             self.messages.add(f"En garde. You'll parry the next {spec['charges']} attacks.", C.INFO)
         self.skill_cooldown = max(spec["cooldown"] // 2, spec["cooldown"] - self.mod("int"))
         self.events.emit("skill", skill=key)
-        self.end_turn()
+        self._spend("action")
         return True
 
     # --- Items ---------------------------------------------------------
@@ -824,6 +870,8 @@ class World:
         here = self.floor_items.get((self.player.x, self.player.y))
         if not here:
             self.messages.add("Nothing here to pick up.", C.TEXT_DIM)
+            return False
+        if not self._can_spend("action"):
             return False
         took = False
         while here and len(self.inventory) < C.INVENTORY_SIZE:
@@ -837,7 +885,7 @@ class World:
         if not took:
             self.messages.add("Your pack is full.", C.DANGER)
             return False
-        self.end_turn()
+        self._spend("action")
         return True
 
     def drop(self, index):
@@ -891,10 +939,13 @@ class World:
         if kind == "junk":
             self.messages.add(f"The {item['name']} is junk. Drop it.", C.TEXT_DIM)
             return False
+        part = "bonus" if kind == "potion" else "action"
         if kind == "potion":
             p = self.player
             if p.hp >= p.max_hp:
                 self.messages.add("You're already at full health.", C.TEXT_DIM)
+                return False
+            if not self._can_spend(part):
                 return False
             self.inventory.pop(index)
             healed = p.heal(round(item["heal"] * self.trait("potion_mult", 1)
@@ -904,9 +955,9 @@ class World:
             self.messages.add(f"You drink the {item['name']} and recover {healed} HP.", C.GOOD)
             self.events.emit("item_use", item=key, healed=healed)
         else:
-            if not self._throw_bomb(index):
+            if not self._can_spend(part) or not self._throw_bomb(index):
                 return False
-        self.end_turn()
+        self._spend(part)
         return True
 
     def _throw_bomb(self, index):
@@ -934,8 +985,9 @@ class World:
         dc = self.save_dc()
         self.messages.add(f"You throw the {item['name']}. BOOM: {damage} damage "
                           f"({fmt(*item['dice'])}). Dexterity save DC {dc} for half.", C.ACCENT)
-        killed = 0
-        for m in list(self.monsters):
+        killed, hit = 0, []
+        self._hold_combat = True        # a blast that kills the last fighter but catches a
+        for m in list(self.monsters):   # bystander carries on the same fight
             if cheb(m, target) <= item["radius"]:
                 saved, face = saving_throw(self.rng, m.save, dc)
                 dealt = m.take_damage(max(1, damage // 2) if saved else damage)
@@ -944,8 +996,12 @@ class World:
                                       f"and takes {dealt}.", C.TEXT_DIM)
                 m.alerted = True
                 killed += not m.alive
+                hit.append(m)
                 self._after_hit(m, "bomb")
         self.events.emit("bomb", item=key, kills=killed)
+        self._engage(hit)
+        self._hold_combat = False
+        self._check_combat_over("cleared")
 
     # --- Loot boxes ----------------------------------------------------
 
@@ -1037,12 +1093,15 @@ class World:
         if not res.hit:
             self.messages.add(f"You miss {target.the}. ({res.dice_text()})", C.TEXT_DIM)
             self._announce_natural(res, target)
-            return
+            self._engage([target])
+            return False
         crit = "CRITICAL! " if res.crit else ""
         self.messages.add(f"{crit}You hit {target.the} for {res.damage}. ({res.dice_text()})")
         self._announce_natural(res, target)
         self.events.emit("player_hit", target=target.key, damage=res.damage, crit=res.crit)
         self._after_hit(target, "melee")
+        self._engage([target])
+        return True
 
     def _announce_natural(self, res, foe, by_player=True):
         """Natural 20s and 1s get their own event, so the System can react."""
@@ -1082,6 +1141,7 @@ class World:
     def _kill_monster(self, target, by):
         p = self.player
         self.monsters.remove(target)
+        self.leave_combat(target)
         p.kills += 1
         if self.floor_stats:
             self.floor_stats[-1]["kills"] += 1
@@ -1161,7 +1221,7 @@ class World:
                                       f"({res.dice_text()})", C.ACCENT)
                     self._after_hit(monster, "skill")
             self.events.emit("riposte", monster=monster.key)
-            return
+            return False
         res = attack(monster, p, self.rng)
         how = "shoots" if ranged else "hits"
         if not res.hit:
@@ -1169,7 +1229,7 @@ class World:
                               f"({res.dice_text()})", C.TEXT_DIM)
             self._announce_natural(res, monster, by_player=False)
             self.events.emit("dodged", source=monster.key)
-            return
+            return False
         crit = "CRITICAL! " if res.crit else ""
         self.messages.add(f"{crit}{monster.The} {how} you for {res.damage}. ({res.dice_text()})",
                           C.DANGER)
@@ -1179,11 +1239,13 @@ class World:
                          ranged=ranged)
         if res.killed:
             self._kill_player(f"Killed by {monster.a} on floor {self.depth}")
+        return True
 
     def _kill_player(self, cause):
         self._close_floor_stats()
         self.state = "dead"
         self.death_cause = cause
+        self._end_combat("death")
         self.messages.add(cause + ".", C.DANGER)
         self.events.emit("player_death", cause=cause, depth=self.depth, turn=self.turn)
 
@@ -1191,6 +1253,8 @@ class World:
 
     def _on_enter_tile(self):
         safe = self.in_safe_room
+        if safe:
+            self._end_combat("safe_room")
         if safe and not self._was_safe:
             self.messages.add("Safe room. No combat allowed in here. R rests, M opens the menu.", C.GOOD)
             if self.trait("photosynthesis") and self._plant_fed_floor != self.depth:
@@ -1207,6 +1271,7 @@ class World:
             self.messages.add("A stairwell down. Press > or Enter to descend.", C.ACCENT)
 
     def _tick_clock(self):
+        self._acted.clear()                 # a tick closes the round
         self.turn += 1
         self.timer -= 1
         self.events.emit("turn", turn=self.turn)
@@ -1237,10 +1302,256 @@ class World:
             self._kill_player(f"Crushed when floor {self.depth} collapsed")
 
     def end_turn(self):
+        """Out of combat: the pet, the monsters and the clock each take their turn. In combat
+        this ends your turn and plays out the rest of the round."""
+        if self.combat is not None:
+            self._finish_round()
+            return
         # FOV depends only on the player's position, so one update per turn
         # (before monsters act, since sight is what alerts them) is enough.
         self.update_fov()
-        take_pet_turn(self)
+        if self.pet not in self._acted:     # it may have had its go before a fight ended
+            take_pet_turn(self)
         take_monster_turns(self)
         if self.state == "playing":
             self._tick_clock()
+        self._begin_round()                 # a monster noticed you: the fight starts
+
+    # --- Combat mode ---------------------------------------------------
+
+    def _can_spend(self, part):
+        """Whether this part of your turn (move, action, bonus) is still free; refuses with a
+        log line if not. Always True out of combat."""
+        enc = self.combat
+        if enc is None or enc.has(part):
+            return True
+        self.messages.add(f"You've used your {PART_NAMES[part]} this turn. "
+                          f"Space ends your turn.", C.TEXT_DIM)
+        return False
+
+    def _spend(self, part):
+        """Every player act that takes time goes through here. Out of combat (or if the fight
+        just ended) it is a whole turn; in combat it spends one part of your turn, which ends
+        once the move and the action are both gone."""
+        enc = self.combat
+        if enc is None:
+            self.end_turn()
+            return
+        enc.spend(part)
+        self.update_fov()
+        if enc.turn_over:
+            self.end_turn()
+
+    def _roll_initiative(self, ent):
+        """Roll d20 + modifier for a combatant and place it in the order; returns log text."""
+        face, _ = d20(self.rng)
+        if ent is self.player:
+            name, bonus, key = "you", self.mod("dex"), "player"
+        else:
+            name, bonus = ent.name, init_mod(ent)
+            key = ent.key if ent is not self.pet else ent.species
+        self.combat.add(ent, face, bonus)
+        self.events.emit("initiative", who=name, monster=key, roll=face, bonus=bonus,
+                         total=face + bonus)
+        return f"{name} {face}{bonus:+d}={face + bonus}" if bonus else f"{name} {face}"
+
+    def _start_combat(self, monsters, by):
+        enc = self.combat = Encounter(self.player)
+        self.events.emit("combat_start", by=by, monsters=len(monsters), depth=self.depth,
+                         turn=self.turn)
+        rolls = [self._roll_initiative(self.player)]
+        if self.active_pet:
+            rolls.append(self._roll_initiative(self.pet))
+        rolls += [self._roll_initiative(m) for m in monsters]
+        self.messages.add("COMBAT! Initiative: " + ", ".join(rolls) + ".", C.ACCENT)
+        # A monster starts the fight just before the clock ticks: stamp the banner with the
+        # turn your first combat turn falls on, so it shows for two of your rounds either way.
+        self.add_toast("COMBAT: roll for initiative", "combat",
+                       turn=self.turn + (by == "monster"))
+        return enc
+
+    def join_combat(self, monster):
+        """A monster has noticed you: start combat, or roll it into the current one. Never
+        while you stand in a safe room. Returns True if the monster is now fighting."""
+        if self.state != "playing" or self.in_safe_room or monster not in self.monsters:
+            return False
+        monster.alerted = True                      # anything in a fight is after you
+        if self.combat is None:
+            self._start_combat([monster], by="monster")
+        elif monster not in self.combat:
+            text = self._roll_initiative(monster)
+            self.messages.add(f"{monster.The} joins the fight. Initiative: {text}.", C.DANGER)
+        return True
+
+    def _engage(self, monsters):
+        """You attacked, bombed or zapped these monsters. Out of combat this starts a fight
+        in which that attack is your first turn's action; in combat they join if they weren't
+        in it already."""
+        monsters = [m for m in monsters if m in self.monsters and m.alive]
+        if not monsters or self.state != "playing" or self.in_safe_room:
+            return
+        for m in monsters:
+            m.alerted, m.unseen_turns = True, 0
+        if self.combat is None:
+            self._start_combat(monsters, by="player").round = 1     # your turn, right now
+        else:
+            for m in monsters:
+                self.join_combat(m)
+
+    def leave_combat(self, monster):
+        """A monster is dead or has lost track of you; the fight ends when nobody in it is
+        alive and alerted."""
+        enc = self.combat
+        if enc is None or monster not in enc:
+            return
+        enc.remove(monster)
+        if not self._hold_combat:
+            self._check_combat_over("cleared" if not monster.alive else "lost_track")
+
+    def _check_combat_over(self, reason):
+        """End the fight once no monster is alive and alerted, counting those still on their
+        way to join it (alerted within chase range: phase-two adds, respawns)."""
+        enc, p = self.combat, self.player
+        if enc is None:
+            return
+        if any(m.alerted and (m in enc or cheb(m, p) <= CHASE_RADIUS) for m in self.monsters):
+            return
+        self._end_combat(reason)
+
+    def _end_combat(self, reason):
+        """reason: cleared, lost_track, safe_room, floor, death or victory."""
+        enc = self.combat
+        if enc is None:
+            return
+        self.combat = None
+        if reason == "cleared":
+            self.messages.add("The fight is over.", C.GOOD)
+        elif reason == "lost_track":
+            self.messages.add("Nobody's chasing you any more. The fight is over.", C.TEXT_DIM)
+        self.events.emit("combat_end", cause=reason, turns=enc.round, depth=self.depth,
+                         turn=self.turn)
+
+    # --- Attacks of opportunity ------------------------------------------------
+
+    def _can_react(self, ent):
+        enc = self.combat
+        return (enc is not None and enc.can_react(ent) and not getattr(ent, "stunned", 0)
+                and (ent is not self.pet or self.active_pet is not None)
+                and (ent in self.monsters or not hasattr(ent, "alerted")))
+
+    def threats(self):
+        """Hostile fighters next to you that still have their reaction: stepping out of their
+        reach (other than by swapping with your pet) provokes an attack of opportunity. Empty
+        once your move is spent (you can't step anyway) or across a safe-room edge."""
+        enc, p, f = self.combat, self.player, self.floor
+        if enc is None or not enc.has("move") or f.is_safe(p.x, p.y):
+            return []
+        return [m for m in enc.monsters if cheb(m, p) == 1 and self._can_react(m)
+                and not f.is_safe(m.x, m.y)]
+
+    def provokers(self, dx, dy):
+        """The monsters that would get an attack of opportunity if you stepped (dx, dy)."""
+        p = self.player
+        nx, ny = p.x + dx, p.y + dy
+        if (dx, dy) == (0, 0) or self.monster_at(nx, ny) or self.pet_at(nx, ny) \
+                or not self.floor.walkable(nx, ny) or self.floor.is_safe(nx, ny):
+            return []
+        return [m for m in self.threats() if max(abs(m.x - nx), abs(m.y - ny)) > 1]
+
+    def opportunity_attacks(self, mover, nx, ny):
+        """mover (you, your pet or a monster in the fight) steps to (nx, ny): everyone hostile
+        it leaves the reach of, with a reaction left, gets one melee attack first (ranged
+        attacks never count). Returns False if the mover is no longer able to move."""
+        enc, p, f = self.combat, self.player, self.floor
+        if enc is None or mover not in enc:
+            return True
+        if f.is_safe(mover.x, mover.y) or f.is_safe(nx, ny):
+            return True                     # no attacks into or out of safe rooms
+        pet = self.active_pet
+
+        def leaving(a):
+            return (cheb(a, mover) == 1 and max(abs(a.x - nx), abs(a.y - ny)) > 1
+                    and not f.is_safe(a.x, a.y))
+
+        if mover is p or mover is pet:
+            attackers = [m for m in enc.monsters if leaving(m) and self._can_react(m)]
+        else:
+            attackers = [e for e in (p, pet) if e is not None and leaving(e) and self._can_react(e)]
+        for a in attackers:
+            if not self._able(mover):
+                break
+            enc.react(a)
+            if a is p:
+                self.messages.add(f"Attack of opportunity: you swing at {mover.the} as it "
+                                  f"pulls away.", C.WARN)
+                hit = self._player_attack(mover)
+            elif a is pet:
+                self.messages.add(f"Attack of opportunity: {pet.name} snaps at {mover.the}.",
+                                  C.WARN)
+                hit = self.pet_attack(mover)
+            elif mover is p:
+                self.messages.add(f"Attack of opportunity: {a.the} lashes out as you pull away.",
+                                  C.WARN)
+                hit = self.monster_attack(a)
+            else:
+                self.messages.add(f"Attack of opportunity: {a.the} lashes out at {pet.name}.",
+                                  C.WARN)
+                hit = self.monster_attack_pet(a)
+            self.events.emit("opportunity_attack", attacker=self._who(a), target=self._who(mover),
+                             hit=hit)
+        return self._able(mover)
+
+    def _who(self, ent):
+        return "player" if ent is self.player else "pet" if ent is self.pet else ent.key
+
+    def _able(self, ent):
+        if ent is self.player:
+            return self.state == "playing"
+        if ent is self.pet:
+            return self.active_pet is not None and self.state == "playing"
+        return ent in self.monsters and self.state == "playing"
+
+    def _combat_act(self, ent):
+        self._acted.add(ent)
+        self.combat.ready(ent)              # its reaction comes back as its turn starts
+        if ent is self.pet:
+            if self.active_pet:
+                take_pet_turn(self, combat=True)
+            else:
+                self.combat.remove(ent)
+        else:
+            take_combat_turn(self, ent)
+
+    def _finish_round(self):
+        """Your turn is over: the fighters after you act, then everything not in the fight,
+        then the clock ticks (one round is one turn) and the next round begins."""
+        enc = self.combat
+        self.update_fov()
+        for ent in enc.after(self.player):
+            if self.combat is not enc or self.state != "playing":
+                break
+            if ent in enc:
+                self._combat_act(ent)
+        if self.state != "playing":
+            return
+        take_monster_turns(self)            # monsters outside the fight act as before
+        if self.state == "playing":
+            self._tick_clock()
+        self._begin_round()
+
+    def _begin_round(self):
+        """Start the next round: the fighters ahead of you act, then your turn begins."""
+        self._check_combat_over("lost_track")   # e.g. the last alerted outsider gave up
+        enc = self.combat
+        if enc is None or self.state != "playing":
+            return
+        enc.round += 1
+        for ent in enc.before(self.player):
+            if self.combat is not enc or self.state != "playing":
+                return
+            if ent in enc:
+                self._combat_act(ent)
+        if self.combat is enc:
+            enc.reset_budget()
+            enc.ready(self.player)
+            self.update_fov()

@@ -132,7 +132,7 @@ class Practice:
         w = self.world
         w.refresh_stats()                # Pain Tolerance, Dodging and the weapon skills show up
         name = SKILLS[key]["name"]
-        w.toasts.append((w.turn, f"Skill up: {name} {lvl}", "silver"))
+        w.add_toast(f"Skill up: {name} {lvl}", "silver")
         w.messages.add(f"{name} is now level {lvl}. {SKILLS[key]['effect']}.", C.ACCENT)
         w.events.emit("practice_level", skill=key, level=lvl, title=name,
                       many_at_3=sum(v >= 3 for v in self.levels.values()))

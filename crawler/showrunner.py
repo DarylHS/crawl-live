@@ -20,7 +20,8 @@ MULTI_WINDOW = 4                # kills this close together count as a streak
 CLUTCH_FRAC = 0.25
 # Events the System only comments on some of the time (scaled by SASS_LEVEL); others always.
 SPEAK_CHANCE = {"kill": 0.4, "damage_taken": 0.5, "shop_buy": 0.5, "shop_sell": 0.3, "craft": 0.7,
-                "nat20": 0.8, "nat1": 0.6, "foe_nat20": 0.6, "foe_nat1": 0.4}
+                "nat20": 0.8, "nat1": 0.6, "foe_nat20": 0.6, "foe_nat1": 0.4,
+                "opportunity_attack": 0.5}
 QUIP_CHANCE = 0.6               # how often the pet says something itself
 FLEE_QUIP_GAP = 8               # turns between the mouse's excuses while it runs
 PET_EVENTS = {"pet_kill": "kill", "pet_ability": "ability", "pet_level_up": "level_up",
@@ -152,6 +153,8 @@ class Showrunner:
             return                          # milestones only, or it never shuts up
         if name == "damage_taken" and d["hp"] > self.world.player.max_hp * 0.4:
             return
+        if name == "opportunity_attack" and (d["target"] != "player" or not d["hit"]):
+            return                          # the lines are about you getting caught, and hit
         chattiness = min(1.3, max(0.3, C.SASS_LEVEL / 7))
         if self.rng.random() >= SPEAK_CHANCE.get(name, 1.0) * chattiness:
             return

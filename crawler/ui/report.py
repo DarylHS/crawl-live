@@ -58,14 +58,20 @@ def _line(surface, plot, xs, ys, xmax, ymax, colour, width=2):
     pygame.draw.lines(surface, colour, False, pts, width)
 
 
+def plural(n, word):
+    """'1 turn', '2 turns', '1,234 viewers'."""
+    return f"{n:,} {word}{'' if n == 1 else 's'}"
+
+
 def draw_report(r, surface, world):
     data = run_report(world)
-    overlay(surface, 235)
+    overlay(surface, 255)                   # fully opaque: the end screen mustn't show through
     cx = C.SCREEN_W // 2
     r.text(surface, "RUN REPORT", (cx, 34), C.ACCENT, r.big, centre=True)
     t = data["totals"]
-    r.text(surface, f"{t['turns']} turns   {t['kills']} kills   {t['gold']} gold earned   "
-                    f"{t['damage']} damage taken   peak {t['peak_viewers']:,} viewers",
+    r.text(surface, f"{plural(t['turns'], 'turn')}   {plural(t['kills'], 'kill')}   "
+                    f"{t['gold']} gold earned   {t['damage']} damage taken   "
+                    f"peak {plural(t['peak_viewers'], 'viewer')}",
            (cx, 64), C.TEXT, r.small, centre=True)
 
     # 1. Damage taken by floor.
@@ -76,6 +82,7 @@ def draw_report(r, surface, world):
     # 2. Loot boxes: expected vs realised value, cumulative.
     plot = _panel(r, surface, (450, 90, 380, 300), "Loot boxes: luck vs average",
                   "Running total of gold value")
+    plot.height -= 20                       # room for the two-line caption inside the panel
     exp, got = data["box_expected"], data["box_realised"]
     if exp:
         ymax = nice_max(max(exp + got))
@@ -86,8 +93,8 @@ def draw_report(r, surface, world):
         diff = got[-1] - exp[-1]
         verdict = "luckier" if diff > 0 else "unluckier" if diff < 0 else "exactly as lucky"
         r.text(surface, f"{len(exp)} boxes: {got[-1]} gold vs {exp[-1]:.0f} expected,",
-               (plot.left - 36, plot.bottom + 8), C.TEXT, r.small)
-        r.text(surface, f"so you were {verdict} than average.", (plot.left - 36, plot.bottom + 23),
+               (plot.left - 36, plot.bottom + 6), C.TEXT, r.small)
+        r.text(surface, f"so you were {verdict} than average.", (plot.left - 36, plot.bottom + 21),
                C.TEXT, r.small)
         r.text(surface, "average", (plot.right - 60, plot.top - 4), EXPECTED, r.small)
         r.text(surface, "yours", (plot.right - 60, plot.top + 12), C.ACCENT, r.small)

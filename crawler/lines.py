@@ -28,6 +28,15 @@ LINES = {
                   "You killed a {name}. Would you like a medal? There are no medals.",
                   "The {name} is dead and somehow you still look worse."],
     },
+    "opportunity_attack": {
+        "mild": ["Never turn your back in a fight. Basic stuff.",
+                 "Attack of opportunity! Somebody wasn't watching their footwork.",
+                 "A free swing. The rules allow it. The rules love it."],
+        "spicy": ["You walked away mid-fight, {address}. It noticed.",
+                  "Free hit! The audience calls that a 'strategic withdrawal'. Badly.",
+                  "Tip from the producers: back away slower. Or don't. It's great television.",
+                  "Leaving so soon? Have a parting gift. It's pointy."],
+    },
     "multi_kill": {
         "mild": ["A streak! The chat is going feral.",
                  "Two in quick succession. Somebody clip that."],

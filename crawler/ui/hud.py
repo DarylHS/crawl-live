@@ -7,6 +7,7 @@ from ..classes import CLASSES, RACES, SKILLS
 from ..combat import expected_damage, hit_chance
 from ..dice import needed_roll
 from ..dungeon import FURNITURE, STAIRS, WALL
+from ..encounter import PARTS
 from ..entities import PETS
 from ..items import ITEMS, glyph
 from ..loot import BOX_TIERS
@@ -14,6 +15,10 @@ from ..loot import BOX_TIERS
 MONO = "dejavusansmono,menlo,consolas,couriernew,monospace"
 FURNITURE_GLYPHS = {"bed": ("=", (150, 180, 230)), "bench": ("&", (200, 160, 100)),
                     "counter": ("$", (255, 196, 64))}
+MAP_RECT = pygame.Rect(0, 0, C.VIEW_W * C.TILE, C.VIEW_H * C.TILE)   # map or 3D view
+TRACKER_W = 270                     # initiative tracker box, top-left of the view
+TRACKER_ROWS = 8                    # fighters listed before "+N more"
+COMBAT_TOAST_TURNS = 2              # the "roll for initiative" banner is short
 TIER_COLOURS = {"opening": (110, 170, 240), "featured": (255, 196, 64), "headliner": (235, 80, 80)}
 
 
@@ -26,6 +31,8 @@ class Renderer:
         self.huge = pygame.font.SysFont(MONO, 56, bold=True)
         self._glyphs = {}
         self._cam = (0, 0)
+        self._avoid = []                    # screen rects boxes over the map keep clear of
+        self.last_tracker, self.last_toasts = None, []
 
     def glyph(self, ch, colour):
         key = (ch, colour)
@@ -48,6 +55,15 @@ class Renderer:
         cx = min(max(0, p.x - C.VIEW_W // 2), max(0, f.width - C.VIEW_W))
         cy = min(max(0, p.y - C.VIEW_H // 2), max(0, f.height - C.VIEW_H))
         return cx, cy
+
+    def _provoke_marker(self, surface, px, py):
+        """Orange corner brackets just outside the tile: stepping away provokes it. Brackets,
+        not a box, so it can't be mistaken for the 1px boss-tier outline."""
+        T, c, k = C.TILE, C.WARN, 5
+        x0, y0, x1, y1 = px - 2, py - 2, px + T + 1, py + T + 1
+        for (x, y, sx, sy) in ((x0, y0, 1, 1), (x1, y0, -1, 1), (x0, y1, 1, -1), (x1, y1, -1, -1)):
+            pygame.draw.line(surface, c, (x, y), (x + sx * k, y), 2)
+            pygame.draw.line(surface, c, (x, y), (x, y + sy * k), 2)
 
     def _blit_glyph(self, surface, ch, colour, tx, ty):
         img = self.glyph(ch, colour)
@@ -87,11 +103,14 @@ class Renderer:
         for (x, y), keys in world.floor_items.items():
             if (x, y) in visible:
                 self._blit_glyph(surface, glyph(keys[-1]), ITEMS[keys[-1]]["colour"], x, y)
+        threats = world.threats()           # combat: stepping out of their reach provokes
         for m in world.monsters:
             if (m.x, m.y) in visible:
                 px, py = (m.x - cx) * T, (m.y - cy) * T
                 if m.boss:
                     pygame.draw.rect(surface, TIER_COLOURS.get(m.tier, C.DANGER), (px, py, T, T), 1)
+                if m in threats:
+                    self._provoke_marker(surface, px, py)
                 self._blit_glyph(surface, m.glyph, m.colour, m.x, m.y)
                 if m.hp < m.max_hp:
                     w = int((T - 2) * m.hp / m.max_hp)
@@ -217,6 +236,106 @@ class Renderer:
 
         self.text(surface, "? for all the controls", (x, C.SCREEN_H - 26), C.TEXT_DIM, self.small)
 
+    def actor_rects(self, world):
+        """Screen rects of you, your pet and the monsters in sight on the map (after draw_map),
+        so boxes drawn over the map can keep clear of them."""
+        cx, cy = self._cam
+        T = C.TILE
+        ents = [world.player] + ([world.active_pet] if world.active_pet else []) + \
+            [m for m in world.monsters if (m.x, m.y) in world.visible]
+        return [pygame.Rect((e.x - cx) * T, (e.y - cy) * T, T, T) for e in ents]
+
+    @staticmethod
+    def _clear_spot(candidates, avoid):
+        """The first rect that covers none of avoid (avoid[0], you, matters most), else the one
+        that covers you not at all and the fewest others."""
+        def cost(r):
+            hits = r.collidelistall(avoid)
+            return (0 in hits, len(hits))
+        return min(candidates, key=cost)
+
+    def draw_tracker(self, surface, world, rect, avoid=None):
+        """Initiative tracker over the map or 3D view: top-left (clear of the minimap, the
+        "ahead" label, the toasts and the side chevrons), or bottom-left on the map when the
+        top-left would hide you or a fighter. Fighters in order with HP, boss rows in their
+        tier colour, you highlighted with your Move / Action / Bonus pips. Monsters act between
+        your turns, so whenever you can press a key it is your turn. Returns the box drawn."""
+        enc, p = world.combat, world.player
+        rows = enc.entities
+        shown = rows[:TRACKER_ROWS]
+        h = 30 + 18 * len(shown) + 22 + (16 if len(rows) > len(shown) else 0) + 20
+        avoid = self._avoid if avoid is None else avoid
+        box = self._clear_spot([pygame.Rect(rect.left + 10, rect.top + 10, TRACKER_W, h),
+                                pygame.Rect(rect.left + 10, rect.bottom - 10 - h, TRACKER_W, h)],
+                               avoid)
+        self.last_tracker = box
+        bg = pygame.Surface(box.size, pygame.SRCALPHA)
+        bg.fill((*C.PANEL_BG, 225))
+        surface.blit(bg, box.topleft)
+        pygame.draw.rect(surface, C.DANGER, box, 1)
+        x, y = box.left + 10, box.top + 6
+        self.text(surface, "COMBAT", (x, y), C.DANGER, self.font)
+        rnd = f"round {max(1, enc.round)}"
+        self.text(surface, rnd, (box.right - 10 - self.small.size(rnd)[0], y + 2), C.TEXT_DIM,
+                  self.small)
+        y += 24
+        for ent in shown:
+            you = ent is p
+            if you:
+                surface.fill((60, 52, 30), (box.left + 2, y - 1, box.width - 4, 38))
+            name = "You" if you else ent.name
+            tier = getattr(ent, "tier", "")
+            colour = C.ACCENT if you else TIER_COLOURS.get(tier, ent.colour)
+            hp = f"{ent.hp}/{ent.max_hp}"
+            room = box.right - 18 - self.small.size(hp)[0] - (x - 6)
+            label = self.fit_name((">" if you else " ") + f"{enc.total(ent):>3} ", name, room)
+            self.text(surface, label, (x - 6, y), colour, self.small)
+            self.text(surface, hp, (box.right - 10 - self.small.size(hp)[0], y),
+                      C.TEXT if you else C.TEXT_DIM, self.small)
+            y += 18
+            if you:
+                y = self._pips(surface, enc, x + 26, y) + 2
+        if len(rows) > len(shown):
+            self.text(surface, f"  +{len(rows) - len(shown)} more", (x, y), C.TEXT_DIM, self.small)
+            y += 16
+        if p not in shown:
+            y = self._pips(surface, enc, x, y)
+        self.text(surface, "Space ends your turn", (x, box.bottom - 18), C.TEXT_DIM, self.small)
+        return box
+
+    def fit_name(self, prefix, name, room):
+        """prefix + name within room pixels: drop a leading "The ", then cut at a word with an
+        ellipsis ("Grease Trap..."), never mid-word unless one word is too long."""
+        font = self.small
+        if font.size(prefix + name)[0] <= room:
+            return prefix + name
+        name = name.removeprefix("The ")
+        words = name.split()
+        while words:
+            text = prefix + " ".join(words) + ("..." if len(words) < len(name.split()) else "")
+            if font.size(text)[0] <= room:
+                return text
+            words.pop()
+        text = prefix + name
+        while font.size(text + "...")[0] > room and len(text) > len(prefix) + 1:
+            text = text[:-1]
+        return text + "..."
+
+    def _pips(self, surface, enc, x, y):
+        """Move / Action / Bonus boxes: filled while available, hollow once spent."""
+        for part in PARTS:
+            label = part.capitalize()
+            w = self.small.size(label)[0] + 10
+            r = pygame.Rect(x, y, w, 16)
+            if enc.has(part):
+                surface.fill(C.GOOD, r)
+                self.text(surface, label, r.center, C.PANEL_BG, self.small, centre=True)
+            else:
+                pygame.draw.rect(surface, C.TEXT_DIM, r, 1)
+                self.text(surface, label, r.center, C.TEXT_DIM, self.small, centre=True)
+            x = r.right + 6
+        return y + 18
+
     def draw_scout_report(self, surface, world, x, y, w):
         """Analyst skill: exact odds both ways for each visible monster."""
         p = world.player
@@ -262,25 +381,58 @@ class Renderer:
             col = tuple(int(c * fade + b * (1 - fade)) for c, b in zip(colour, C.PANEL_BG))
             self.text(surface, text, (12, y0 + 8 + i * 17), col)
 
-    def draw_toasts(self, surface, world):
-        live = [t for t in world.toasts if world.turn - t[0] < C.TOAST_TURNS][-3:]
-        y = 10
-        for toast in live:
+    def toast_layout(self, world, avoid=()):
+        """Up to three recent toasts and their rects, stacked at the top of the view, or at the
+        bottom on the map when the top would hide you or a fighter."""
+        live = [t for t in world.toasts
+                if world.turn - t[0] < (COMBAT_TOAST_TURNS if t[2] == "combat" else C.TOAST_TURNS)][-3:]
+        sizes = [46 if len(t) > 3 and t[3] else 30 for t in live]
+        total = sum(sizes) + 6 * max(0, len(sizes) - 1)
+        x = (C.VIEW_W * C.TILE - 420) // 2
+        top = pygame.Rect(x, 10, 420, total)
+        bottom = pygame.Rect(x, MAP_RECT.bottom - 10 - total, 420, total)
+        y = self._clear_spot([top, bottom], avoid).top if live else 10
+        out = []
+        for toast, h in zip(live, sizes):
+            out.append((toast, pygame.Rect(x, y, 420, h)))
+            y += h + 6
+        return out
+
+    def draw_toasts(self, surface, world, avoid=None):
+        """Draw the toasts (see toast_layout). Returns their rects."""
+        avoid = self._avoid if avoid is None else avoid
+        rects = []
+        for toast, rect in self.toast_layout(world, avoid):
             text, tier = toast[1], toast[2]
             sub = toast[3] if len(toast) > 3 else None
-            w, h = 420, 46 if sub else 30
-            rect = pygame.Rect((C.VIEW_W * C.TILE - w) // 2, y, w, h)
+            rects.append(rect)
             surface.fill(C.PANEL_BG, rect)
-            pygame.draw.rect(surface, BOX_TIERS[tier]["colour"], rect, 2)
+            colour = C.DANGER if tier == "combat" else BOX_TIERS[tier]["colour"]
+            pygame.draw.rect(surface, colour, rect, 2)
             self.text(surface, text, (rect.centerx, rect.top + 15), C.TEXT, self.font, centre=True)
             if sub:
-                self.text(surface, sub, (rect.centerx, rect.top + 33), BOX_TIERS[tier]["colour"],
+                self.text(surface, sub, (rect.centerx, rect.top + 33), colour,
                           self.small, centre=True)
-            y += h + 6
+        self.last_toasts = rects
+        return rects
 
-    def draw_game(self, surface, world):
+    def draw_game(self, surface, world, view=None, dt=1.0, hud=True):
+        """The game screen. view is a FirstPersonView to look through, or None for the map.
+        hud=False when a menu or end screen will cover it (the 3D view drops its overlays)."""
         surface.fill(C.BG)
-        self.draw_map(surface, world)
+        if view is None:
+            self.draw_map(surface, world)
+            self._avoid = self.actor_rects(world)
+        else:
+            toasts = self.toast_layout(world)   # the "ahead" label goes below any toasts
+            view.ahead_top = max(r.bottom for _, r in toasts) + 8 if toasts else None
+            view.draw(surface, world, MAP_RECT, dt, hud)
+            self._avoid = []                    # the 3D view has nobody on screen to cover
         self.draw_panel(surface, world)
         self.draw_log(surface, world)
-        self.draw_toasts(surface, world)
+        if hud:                             # menus and help hide these (inventory redraws the tracker)
+            if world.combat is not None:
+                self.draw_tracker(surface, world, MAP_RECT)
+            self.draw_toasts(surface, world)
+        else:
+            self.last_toasts = []

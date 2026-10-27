@@ -3,23 +3,50 @@ import pygame
 
 from .. import config as C
 
-CONTROLS = [
+# Help is split by view: movement differs, everything else is shared.
+TOP_CONTROLS = [
     ("Arrows / WASD / numpad", "move, bump into monsters to attack"),
     ("Numpad 7 9 1 3", "move diagonally"),
-    (". / Space / numpad 5", "wait a turn"),
+]
+FP_CONTROLS = [
+    ("W / Up", "walk where you look (hold); bumps what's ahead"),
+    ("S / Down", "walk back (hold)"),
+    ("A / D", "step left / right (strafe; hold)"),
+    ("Q / E, Left / Right", "turn: tap 45 degrees, hold to look (free)"),
+    ("Numpad", "move by the compass, 7 9 1 3 diagonally"),
+    ("In combat", "W / S / A / D step one tile, Q / E turn 90 degrees"),
+    ("W in combat", "attacks ahead, else front-left / front-right"),
+]
+SHARED_CONTROLS = [
+    (". / Space / numpad 5", "wait a turn; in combat, end your turn"),
     ("> / Enter", "descend a stairwell"),
     ("G", "pick up items on your tile"),
     ("I", "inventory: use, equip, drop"),
     ("R", "rest to full HP (safe rooms only)"),
-    ("M", "safe-room menu: boxes, shop, crafting, revive, save"),
+    ("M", "safe-room menu: boxes, shop, craft, revive, save"),
     ("C", "command your pet: follow / attack / stay"),
-    ("K", "skills you have levelled by practising"),
-    ("L", "attributes: spend points from levelling up"),
+    ("K / L", "practice skills / attributes to spend points on"),
     ("1", "use your class skill (from floor 3)"),
-    ("Esc in a menu", "back / close"),
+    ("Tab", "switch view: first-person / map"),
     ("?", "toggle this help"),
-    ("Esc", "quit to title"),
+    ("Esc", "close a menu, or quit to title"),
 ]
+# Combat mode, the same in both views.
+COMBAT_CONTROLS = [
+    ("Combat turn", "one move, one action and one bonus action"),
+    ("Move / action", "a step / attack, bomb, skill, pick up, descend"),
+    ("Bonus action", "drink a potion (equip, drop, C and menus are free)"),
+    ("Leaving reach", "gives it a free swing (not swapping with your pet)"),
+]
+VIEW_NAMES = {"fp": "first-person view", "top": "map view"}
+HELP_CX = C.VIEW_W * C.TILE // 2    # help is centred on the map / 3D view, clear of the side panel
+HELP_STEP = 22
+
+
+def controls(view):
+    """The help list for a view: "fp" (first-person) or "top" (map)."""
+    return (FP_CONTROLS if view == "fp" else TOP_CONTROLS) + SHARED_CONTROLS + COMBAT_CONTROLS
+
 
 PREMISE = [
     "Earth has been 'repurposed'. You are now a contestant.",
@@ -49,16 +76,26 @@ def draw_title(r, surface, can_load=False):
         r.text(surface, "L to continue your saved run", (cx, 562), C.INFO, r.font, centre=True)
 
 
-def draw_help(r, surface):
-    overlay(surface)
-    cx = C.SCREEN_W // 2
-    r.text(surface, "CONTROLS", (cx, 180), C.ACCENT, r.big, centre=True)
-    for i, (keys, what) in enumerate(CONTROLS):
-        y = 230 + i * 28
-        r.text(surface, keys, (cx - 20 - r.font.size(keys)[0], y), C.ACCENT)
+def draw_help(r, surface, view="top"):
+    overlay(surface, 225)
+    cx, rows, step = HELP_CX, controls(view), HELP_STEP
+    y0 = help_top(rows)
+    r.text(surface, "CONTROLS", (cx, y0 - 70), C.ACCENT, r.big, centre=True)
+    r.text(surface, f"In the {VIEW_NAMES.get(view, 'map view')}. Tab switches.", (cx, y0 - 40),
+           C.TEXT_DIM, r.font, centre=True)
+    for i, (keys, what) in enumerate(rows):
+        y = y0 + i * step
+        combat = (keys, what) in COMBAT_CONTROLS or keys.endswith("n combat")
+        r.text(surface, keys, (cx - 20 - r.font.size(keys)[0], y), C.DANGER if combat else C.ACCENT)
         r.text(surface, what, (cx + 20, y))
-    r.text(surface, "Press ? to close", (cx, 230 + len(CONTROLS) * 28 + 30), C.TEXT_DIM,
+    r.text(surface, "Press ? to close", (cx, y0 + len(rows) * step + 14), C.TEXT_DIM,
            r.font, centre=True)
+    return rows
+
+
+def help_top(rows):
+    """y of the first help row: the block (title to close line) centred on the map area."""
+    return (C.VIEW_H * C.TILE - len(rows) * HELP_STEP) // 2 + 20
 
 
 def _summary(r, surface, world, y):

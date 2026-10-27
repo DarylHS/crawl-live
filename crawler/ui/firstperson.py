@@ -6,8 +6,10 @@ pixel art generated in code (no asset files), and monsters, items and the pet ar
 billboard sprites that always face the camera. The scene renders at 320 x 200 and
 is scaled up with hard pixel edges for the retro look.
 
-Facing is one of four directions (0 north, 1 east, 2 south, 3 west); the camera
-glides between tiles and turns so each step reads as movement, not a jump cut.
+You look at a free angle in degrees (0 north, 90 east, clockwise); each step goes to the
+nearest of the 8 neighbouring tiles (step_for_angle). The old four-way facing (0 north,
+1 east, 2 south, 3 west) is still there as a derived property. The camera glides between
+tiles and turns at a steady speed, so each step reads as movement, not a jump cut.
 """
 import math
 
@@ -23,7 +25,14 @@ TEX = 64
 LIGHT = C.FOV_RADIUS + 0.5          # distance at which everything fades to black
 PLANE = 0.70                        # camera plane length: about a 70 degree field of view
 DIRS = ((0, -1), (1, 0), (0, 1), (-1, 0))
+DIRS8 = ((0, -1), (1, -1), (1, 0), (1, 1), (0, 1), (-1, 1), (-1, 0), (-1, -1))   # N, NE, E ... NW
+SETTLE = 0.01                       # tiles / radians: a glide this close just lands
 COMPASS = "NESW"
+COMPASS8 = ("N", "NE", "E", "SE", "S", "SW", "W", "NW")
+WALK_SPEED = 4.0                    # tiles a second the camera glides along a step
+TURN_SPEED = 2 * math.pi            # radians a second the camera turns to catch up with the angle
+MM_WINDOW = (48, 30)                # minimap: tiles shown around you (clamped to the floor)
+MM_SCALE = 4                        # minimap: pixels per tile
 
 # Tint per floor so each one has its own mood (grey stone down to infernal red).
 DEPTH_TINT = [(1.0, 1.0, 1.0), (1.0, 0.95, 0.82), (0.86, 1.0, 0.88),
@@ -33,6 +42,13 @@ DEPTH_TINT = [(1.0, 1.0, 1.0), (1.0, 0.95, 0.82), (0.86, 1.0, 0.88),
 T_BRICK, T_SAFE_WALL, T_FLOOR, T_SAFE_FLOOR, T_STAIRS, T_CEIL = range(6)
 TIER_SCALE = {"opening": 0.85, "featured": 0.95, "headliner": 1.0}   # boss tiers loom larger
 TIER_OUTLINE = {"opening": (110, 170, 240), "featured": (255, 196, 64), "headliner": (235, 80, 80)}
+
+# Minimap colours: bright enough to read over the 3D scene.
+MM_BACK = (0, 0, 0, 170)
+MM_FLOOR = (118, 112, 142)          # explored floor
+MM_SAFE = (60, 150, 95)             # explored safe room
+MM_IN_VIEW = (205, 200, 228)        # floor you can see right now
+MM_SAFE_IN_VIEW = (120, 220, 150)
 
 
 # --- Procedural textures ----------------------------------------------------
@@ -322,54 +338,142 @@ def furniture_sprite(kind):
 
 # --- The view -----------------------------------------------------------------
 
+def step_for_angle(angle):
+    """The tile step (dx, dy) nearest to a look angle in degrees (0 north, 90 east)."""
+    return DIRS8[round(angle / 45) % 8]
+
+
+def angle_gap(a, b):
+    """The shortest turn from angle b to angle a, in degrees (-180 to 180)."""
+    return (a - b + 180) % 360 - 180
+
+
+def open_facing(floor, x, y, prefer=1):
+    """The facing (0-3) with the longest straight run of walkable tiles from (x, y), so a
+    new floor doesn't start you nose to a wall. Ties keep prefer, then go N, E, S, W."""
+    def run(d):
+        dx, dy = DIRS[d]
+        n = 0
+        while floor.walkable(x + dx * (n + 1), y + dy * (n + 1)):
+            n += 1
+        return n
+    return max([prefer] + [d for d in range(4) if d != prefer], key=run)
+
+
 class FirstPersonView:
     def __init__(self):
-        self.facing = 1
+        self.angle = 90.0                     # where you look, degrees: 0 north, 90 east
+        self.grid = False                     # combat: 90 degree turns and grid steps only
         self.cam = None                       # [x, y, angle] that glides towards the player
-        self._floor_id = None
+        # Caches keep the floor object itself, not its id(): a freed floor's id can be reused.
+        self._floor = None                    # the floor the textures and wall grid are for
+        self._faced_floor = None              # the floor face_open last turned you for
+        self._mm_floor, self._mm_seen, self._mm = None, None, None   # cached explored minimap
         self._sprites = {}
         self.font = pygame.font.SysFont("dejavusansmono,menlo,consolas,monospace", 13, bold=True)
         self.big = pygame.font.SysFont("dejavusansmono,menlo,consolas,monospace", 18, bold=True)
         self.item_font = pygame.font.SysFont("dejavusansmono,menlo,consolas,monospace", 12, bold=True)
         self.flash = 0.0
-        self._last_hp = None
+        self.ahead_text = None                # the "ahead" label last drawn (for tests)
+        self.ahead_top = None                 # y for that label (below any toasts); None: top
+        self._last_hp = None                  # HP missing (max_hp - hp) at the last draw
         ys = np.arange(VIEW_H)[:, None]
         self._ys = ys
         self._row_dist = np.where(ys > VIEW_H / 2, (VIEW_H / 2) / np.maximum(ys - VIEW_H / 2, 1e-6),
                                   (VIEW_H / 2) / np.maximum(VIEW_H / 2 - ys, 1e-6))
         self._camx = 2 * np.arange(VIEW_W) / VIEW_W - 1
 
+    # --- Run and floor changes ---
+
+    def reset_camera(self):
+        """Forget the camera and the HP it last saw: the next draw snaps, with no stale hurt flash
+        (after Tab, a new run or a load)."""
+        self.cam = None
+        self._last_hp = None
+        self.flash = 0.0
+
+    def reset(self, world):
+        """A new run or a loaded one: fresh camera, facing down the longest open line.
+        Keeps the sprite cache."""
+        self.reset_camera()
+        self._floor = self._mm_floor = None
+        self.face_open(world)
+
+    def face_open(self, world):
+        p = world.player
+        self.facing = open_facing(world.floor, p.x, p.y, self.facing)
+        self._faced_floor = world.floor
+        self.cam = None
+
+    def follow_floor(self, world):
+        """On arriving on a new floor, face the most open direction."""
+        if self._faced_floor is not world.floor:
+            self.face_open(world)
+
+    # --- Looking around ---
+
+    @property
+    def facing(self):
+        """The nearest of the four directions (0 north, 1 east, 2 south, 3 west)."""
+        return round(self.angle / 90) % 4
+
+    @facing.setter
+    def facing(self, d):
+        self.angle = (d % 4) * 90.0
+
+    def turn(self, step):
+        """Turn 90 degrees per step (positive is clockwise)."""
+        self.angle = (self.angle + 90 * step) % 360
+
+    def tap_turn(self, sign):
+        """A tapped turn key: on to the next 45 degree line that way (45 degrees from one)."""
+        a = self.angle / 45
+        k = math.floor(a + 1e-6) + 1 if sign > 0 else math.ceil(a - 1e-6) - 1
+        self.angle = (k * 45.0) % 360
+
+    def set_combat(self, on):
+        """Combat locks the view to the grid: the angle settles on the nearest of the four
+        directions (the camera glides there, it doesn't jump). Afterwards free look resumes
+        from that angle."""
+        self.grid = on
+        if on:
+            self.angle = (round(self.angle / 90) * 90.0) % 360
+
+    def look(self, degrees):
+        """Free look: turn by any amount (held turn keys)."""
+        self.angle = (self.angle + degrees) % 360
+
     # --- Movement helpers (the rules only ever see move_player(dx, dy)) ---
 
     def forward(self):
-        return DIRS[self.facing]
+        return step_for_angle(self.angle)
 
     def relative(self, move):
-        """Map forward/back/left/right to a world step for the current facing."""
-        fx, fy = DIRS[self.facing]
-        return {"forward": (fx, fy), "back": (-fx, -fy),
-                "left": (fy, -fx), "right": (-fy, fx)}[move]
-
-    def turn(self, step):
-        self.facing = (self.facing + step) % 4
+        """Map forward/back/left/right to a world step for where you look: forward is the
+        nearest of the 8 directions, back its opposite, left and right 90 degrees either side."""
+        turn = {"forward": 0, "back": 180, "left": -90, "right": 90}[move]
+        return step_for_angle(round(self.angle / 45) * 45 + turn)
 
     def target_ahead(self, world):
-        """The monster this step would attack: straight ahead, else front-left or front-right."""
-        p, (fx, fy) = world.player, DIRS[self.facing]
-        spots = [(p.x + fx, p.y + fy), (p.x + fx + fy, p.y + fy - fx), (p.x + fx - fy, p.y + fy + fx)]
+        """The monster this step would attack: the tile straight ahead, else the neighbouring
+        tile 45 degrees either side of it, the one nearer your look angle first."""
+        p = world.player
+        ahead = round(self.angle / 45) * 45
+        sides = sorted((ahead - 45, ahead + 45), key=lambda a: abs(angle_gap(a, self.angle)))
         at = {(m.x, m.y): m for m in world.monsters}
-        for s in spots:
-            if s in at:
-                return at[s], (s[0] - p.x, s[1] - p.y)
+        for a in (ahead, *sides):
+            dx, dy = step_for_angle(a)
+            if (p.x + dx, p.y + dy) in at:
+                return at[(p.x + dx, p.y + dy)], (dx, dy)
         return None, None
 
     # --- Setup per floor ---
 
     def _prepare_floor(self, world):
         f = world.floor
-        if self._floor_id == id(f):
+        if self._floor is f:
             return
-        self._floor_id = id(f)
+        self._floor = f
         self.textures = make_textures(world.depth)
         tiles = np.array(f.tiles)
         safe = np.array(f.safe)
@@ -389,17 +493,49 @@ class FirstPersonView:
 
     # --- Drawing ---
 
-    def update_camera(self, world, dt=1.0):
-        """Glide the camera towards the player's tile and facing. dt=1 snaps."""
+    def _cam_target(self, world):
         p = world.player
-        target = [p.x + 0.5, p.y + 0.5, self.facing * math.pi / 2 - math.pi / 2]
+        return [p.x + 0.5, p.y + 0.5, math.radians(self.angle) - math.pi / 2]
+
+    def _cam_gap(self, target):
+        """How far the camera still has to go: (dx, dy, shortest turn)."""
+        da = (target[2] - self.cam[2] + math.pi) % (2 * math.pi) - math.pi
+        return target[0] - self.cam[0], target[1] - self.cam[1], da
+
+    def update_camera(self, world, dt=1.0):
+        """Glide the camera towards the player's tile centre and look angle at a steady speed
+        (WALK_SPEED, TURN_SPEED). dt is seconds; dt >= 1 snaps, and so does a jump of more
+        than a couple of tiles (a new floor, a load)."""
+        target = self._cam_target(world)
         if self.cam is None or dt >= 1:
             self.cam = target
             return
-        da = (target[2] - self.cam[2] + math.pi) % (2 * math.pi) - math.pi
-        self.cam[0] += (target[0] - self.cam[0]) * dt
-        self.cam[1] += (target[1] - self.cam[1]) * dt
-        self.cam[2] += da * dt
+        gx, gy, ga = self._cam_gap(target)
+        dist = math.hypot(gx, gy)
+        if dist > 2.5:
+            self.cam = target
+            return
+        if max(dist, abs(ga)) < SETTLE:
+            self.cam = target                 # close enough: land exactly, so the glide ends
+            return
+        k = min(1.0, WALK_SPEED * dt / dist) if dist else 0.0
+        da = max(-TURN_SPEED * dt, min(TURN_SPEED * dt, ga))
+        self.cam = [self.cam[0] + gx * k, self.cam[1] + gy * k, self.cam[2] + da]
+
+    def glide_left(self, world):
+        """Tiles the camera still has to travel to reach your tile centre (0 when there)."""
+        if self.cam is None:
+            return 0.0
+        gx, gy, _ = self._cam_gap(self._cam_target(world))
+        return math.hypot(gx, gy)
+
+    def animating(self, world):
+        """True while the camera glides or the hurt flash fades: keep redrawing until then."""
+        if self.flash > 0.02:
+            return True
+        if self.cam is None or self._floor is not world.floor:
+            return False
+        return any(self._cam_gap(self._cam_target(world)))
 
     def render(self, world):
         """The 3D scene as a 320 x 200 surface."""
@@ -565,85 +701,182 @@ class FirstPersonView:
 
     # --- Full-resolution overlays ---------------------------------------------
 
-    def draw(self, surface, world, rect, dt=1.0):
-        """Render, scale into rect, then draw the minimap, compass and warnings on top."""
+    def draw(self, surface, world, rect, dt=1.0, hud=True):
+        """Render, scale into rect, then draw the minimap, compass and warnings on top.
+
+        hud=False is for when a menu or end screen covers the view: the scene is drawn darker
+        and nothing (minimap, compass, chevrons, hurt flash) is drawn over it."""
+        self.follow_floor(world)
         self.update_camera(world, dt)
         scene = self.render(world)
         surface.blit(pygame.transform.scale(scene, rect.size), rect.topleft)
         p = world.player
-        if self._last_hp is not None and p.hp < self._last_hp:
-            self.flash = 1.0
-        self._last_hp = p.hp
+        if self._last_hp is not None and p.max_hp - p.hp > self._last_hp:
+            self.flash = 1.0                  # the deficit grew: real damage, not a lower max HP
+        self._last_hp = p.max_hp - p.hp
+        if not hud:
+            self.flash = 0.0                  # don't replay a hit taken behind a menu
+            shade = pygame.Surface(rect.size, pygame.SRCALPHA)
+            shade.fill((0, 0, 0, 90))         # extra dim so bright rooms don't fight the menu
+            surface.blit(shade, rect.topleft)
+            return
         if self.flash > 0.02:
             red = pygame.Surface(rect.size, pygame.SRCALPHA)
             red.fill((200, 20, 20, int(110 * self.flash)))
             surface.blit(red, rect.topleft)
             self.flash *= 0.8
         self._minimap(surface, world, rect)
-        self._warnings(surface, world, rect)
-        self._ahead(surface, world, rect)
+        steps = self.provoking_steps(world)
+        prov = [m for _, ms in steps for m in ms]
+        self._warnings(surface, world, rect, prov)
+        self._ahead(surface, world, rect, steps)
+
+    def _explored_layer(self, f, s):
+        """The explored part of the minimap, cached per floor; only changed tiles are redrawn."""
+        seen = np.array(f.explored, bool)
+        if self._mm_floor is not f:
+            self._mm_floor = f
+            self._mm = pygame.Surface((f.width * s, f.height * s), pygame.SRCALPHA)
+            self._mm.fill(MM_BACK)
+            self._mm_seen = np.zeros_like(seen)
+        changed = np.argwhere(seen != self._mm_seen)
+        for y, x in changed:
+            if not seen[y, x]:
+                c = MM_BACK
+            elif f.tiles[y][x] == WALL:
+                continue
+            else:
+                c = MM_SAFE if f.safe[y][x] else MM_FLOOR
+            self._mm.fill(c, (x * s, y * s, s, s))
+        self._mm_seen = seen
+        return self._mm
+
+    def minimap_window(self, world):
+        """Top-left tile and size (in tiles) of the minimap: MM_WINDOW centred on you,
+        clamped to the floor."""
+        f, p = world.floor, world.player
+        w, h = min(MM_WINDOW[0], f.width), min(MM_WINDOW[1], f.height)
+        ox = min(max(0, p.x - w // 2), f.width - w)
+        oy = min(max(0, p.y - h // 2), f.height - h)
+        return ox, oy, w, h
 
     def _minimap(self, surface, world, rect):
-        f = world.floor
-        s = 2 if f.width > 80 else 3
-        w, h = f.width * s, f.height * s
+        f, s = world.floor, MM_SCALE
+        ox, oy, tw, th = self.minimap_window(world)
+        w, h = tw * s, th * s
         x0, y0 = rect.right - w - 10, rect.top + 10
-        mm = pygame.Surface((w, h), pygame.SRCALPHA)
-        mm.fill((0, 0, 0, 150))
-        for y in range(f.height):
-            row, seen = f.tiles[y], f.explored[y]
-            for x in range(f.width):
-                if seen[x] and row[x] != WALL:
-                    c = C.ACCENT if row[x] == STAIRS else C.SAFE_LIT if f.safe[y][x] else C.FLOOR_LIT
-                    mm.fill(c, (x * s, y * s, s, s))
-        for m in world.monsters:
-            if (m.x, m.y) in world.visible:
-                mm.fill(C.DANGER, (m.x * s, m.y * s, s, s))
-        p, (fx, fy) = world.player, DIRS[self.facing]
-        cx, cy = p.x * s + s / 2, p.y * s + s / 2
-        tip = (cx + fx * 5, cy + fy * 5)
-        left = (cx - fx * 3 + fy * 3, cy - fy * 3 - fx * 3)
-        right = (cx - fx * 3 - fy * 3, cy - fy * 3 + fx * 3)
+        self.minimap_rect, self.minimap_scale = pygame.Rect(x0, y0, w, h), s
+        self.minimap_origin = (ox, oy)
+        mm = self._explored_layer(f, s).subsurface((ox * s, oy * s, w, h)).copy()
+
+        def cell(x, y, colour):
+            if ox <= x < ox + tw and oy <= y < oy + th:
+                mm.fill(colour, ((x - ox) * s, (y - oy) * s, s, s))
+
+        for x, y in world.visible:
+            if f.in_bounds(x, y) and f.tiles[y][x] != WALL:
+                cell(x, y, MM_SAFE_IN_VIEW if f.safe[y][x] else MM_IN_VIEW)
+        stairs = C.DANGER if world.stairs_locked or world.exit_sealed else C.ACCENT
+        for x, y in f.stairs:
+            if f.explored[y][x]:
+                cell(x, y, stairs)
+        p, a = world.player, math.radians(self.angle)
+        fx, fy = math.sin(a), -math.cos(a)               # follows the free look angle
+        cx, cy = (p.x - ox) * s + s / 2, (p.y - oy) * s + s / 2
+        tip = (cx + fx * 9, cy + fy * 9)
+        left = (cx - fx * 3 + fy * 5, cy - fy * 3 - fx * 5)
+        right = (cx - fx * 3 - fy * 5, cy - fy * 3 + fx * 5)
         pygame.draw.polygon(mm, (255, 255, 255), [tip, left, right])
+        pygame.draw.polygon(mm, (10, 8, 14), [tip, left, right], 1)
+        for m in world.monsters:                         # on top of the arrow, so both show
+            if (m.x, m.y) in world.visible:
+                cell(m.x, m.y, C.DANGER)
         surface.blit(mm, (x0, y0))
         pygame.draw.rect(surface, C.WALL_LIT, (x0 - 1, y0 - 1, w + 2, h + 2), 1)
-        label = self.big.render(f"Facing {COMPASS[self.facing]}", True, C.TEXT)
+        label = self.big.render(f"Facing {self.compass()}", True, C.TEXT)
         surface.blit(label, (x0, y0 + h + 6))
 
-    def _warnings(self, surface, world, rect):
-        """Red chevrons for monsters right next to you that you can't see."""
+    def compass(self):
+        """The nearest of the 8 compass points to where you look."""
+        return COMPASS8[round(self.angle / 45) % 8]
+
+    def provoking_steps(self, world):
+        """In combat, [(key, monsters)] for each of W / S / A / D whose step would give
+        monsters an attack of opportunity (W counts only when it wouldn't attack instead)."""
+        if world.combat is None:
+            return []
+        out = []
+        for key, move in (("W", "forward"), ("S", "back"), ("A", "left"), ("D", "right")):
+            if move == "forward" and self.target_ahead(world)[0] is not None:
+                continue
+            ms = world.provokers(*self.relative(move))
+            if ms:
+                out.append((key, ms))
+        return out
+
+    def provoking(self, world):
+        """The monsters any one-tile step (W / S / A / D) would provoke."""
+        seen = []
+        for _, ms in self.provoking_steps(world):
+            seen += [m for m in ms if m not in seen]
+        return seen
+
+    def _warnings(self, surface, world, rect, prov=()):
+        """Red chevrons for monsters right next to you that you can't see; orange (C.WARN) for
+        one that stepping forward would provoke."""
         p = world.player
-        fx, fy = DIRS[self.facing]
         for m in world.monsters:
             ddx, ddy = m.x - p.x, m.y - p.y
             if max(abs(ddx), abs(ddy)) != 1:
                 continue
-            fwd = ddx * fx + ddy * fy
-            if fwd > 0:
+            rel = angle_gap(math.degrees(math.atan2(ddx, -ddy)), self.angle)
+            if abs(rel) <= 45.5:
                 continue                                  # in front: you can see it
-            rgt = ddx * -fy + ddy * fx
             cx, cy = rect.center
-            if fwd < 0 and rgt == 0:
+            if abs(rel) >= 157.5:
                 pts = [(cx - 40, rect.bottom - 40), (cx + 40, rect.bottom - 40), (cx, rect.bottom - 12)]
                 text, pos = "BEHIND YOU", (cx, rect.bottom - 58)
-            elif rgt > 0:
+            elif rel > 0:
                 pts = [(rect.right - 40, cy - 40), (rect.right - 40, cy + 40), (rect.right - 12, cy)]
                 text, pos = "RIGHT", (rect.right - 60, cy - 58)
             else:
                 pts = [(rect.left + 40, cy - 40), (rect.left + 40, cy + 40), (rect.left + 12, cy)]
                 text, pos = "LEFT", (rect.left + 60, cy - 58)
-            pygame.draw.polygon(surface, C.DANGER, pts)
-            img = self.big.render(text, True, C.DANGER)
+            colour = C.WARN if m in prov else C.DANGER
+            pygame.draw.polygon(surface, colour, pts)
+            img = self.big.render(text, True, colour)
             surface.blit(img, img.get_rect(center=pos))
 
-    def _ahead(self, surface, world, rect):
+    def _ahead(self, surface, world, rect, steps=()):
+        """What W would hit; in combat, plus a hint for steps that would provoke
+        ("S / A provoke the Knockoff Goblin")."""
         m, _ = self.target_ahead(world)
-        if m is None:
+        self.ahead_text = None
+        hint = None
+        if steps:
+            keys = " / ".join(k for k, _ in steps)
+            ms = []
+            for _, group in steps:
+                ms += [x for x in group if x not in ms]
+            who = ms[0].the if len(ms) == 1 else f"{len(ms)} monsters"
+            hint = f"{keys} provoke{'s' if len(steps) == 1 else ''} {who}"
+        lines = []
+        if m is not None:
+            lines.append((f"{m.name}  {m.hp}/{m.max_hp}", C.DANGER if m.boss else C.TEXT))
+        if hint:
+            lines.append((hint, C.WARN))
+        if not lines:
             return
-        name = f"{m.name}  {m.hp}/{m.max_hp}"
-        img = self.big.render(name, True, C.DANGER if m.boss else C.TEXT)
-        r = img.get_rect(midtop=(rect.centerx, rect.top + 12))
-        bg = pygame.Surface((r.width + 20, r.height + 8), pygame.SRCALPHA)
-        bg.fill((0, 0, 0, 160))
-        surface.blit(bg, (r.x - 10, r.y - 4))
-        surface.blit(img, r)
+        self.ahead_text = "  ".join(t for t, _ in lines)
+        y = self.ahead_top or rect.top + 12
+        rects = []
+        for text, colour in lines:
+            img = self.big.render(text, True, colour)
+            r = img.get_rect(midtop=(rect.centerx, y))
+            bg = pygame.Surface((r.width + 20, r.height + 8), pygame.SRCALPHA)
+            bg.fill((0, 0, 0, 160))
+            surface.blit(bg, (r.x - 10, r.y - 4))
+            surface.blit(img, r)
+            rects.append(r)
+            y = r.bottom + 10
+        self.ahead_rect = rects[0].unionall(rects[1:])

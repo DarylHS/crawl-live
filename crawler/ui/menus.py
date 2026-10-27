@@ -15,6 +15,10 @@ from ..shop import BASE_DEMAND
 from .screens import overlay
 
 X0, WIDTH = 330, 620
+# Shop buy columns (x offset in the panel); the last one ends well inside the right edge.
+SHOP_COLS = (("Item", 30), ("Price", 200), ("Stock", 255), ("Forecast", 320),
+             ("Reorder at", 420), ("On order", 515))
+ATTR_SOURCE_X = 300          # where "bought 10, +2 ..." starts on the attributes screen
 
 
 def _frame(r, surface, title, y=90, h=560):
@@ -30,6 +34,9 @@ def inventory_rows(world):
     return rows + [("pack", i, key) for i, key in enumerate(world.inventory)]
 
 
+INV_STATS_X = 304           # where an item's stats start, clear of the longest name and tag
+
+
 def draw_inventory(r, surface, world, cursor):
     _frame(r, surface, "INVENTORY")
     rows = inventory_rows(world)
@@ -41,7 +48,8 @@ def draw_inventory(r, surface, world, cursor):
         tag = f"[{ref}]" if where == "equip" else ""
         r.text(surface, glyph(key), (X0 + 22, y), it["colour"])
         r.text(surface, f"{it['name']} {tag}", (X0 + 46, y), C.TEXT)
-        r.text(surface, describe(key), (X0 + 290, y), C.TEXT_DIM, r.small)
+        r.text(surface, _fit(r, describe(key), WIDTH - INV_STATS_X - 14), (X0 + INV_STATS_X, y),
+               C.TEXT_DIM, r.small)
         y += 24
     if not rows:
         r.text(surface, "Nothing but lint.", (X0 + 46, y), C.TEXT_DIM)
@@ -267,6 +275,21 @@ def _wrap(r, text, width, font=None):
     return lines + [line] if line else lines
 
 
+def _fit(r, text, width, font=None):
+    """Text short enough for width: drop a trailing "(...)" aside first, then cut with "..."."""
+    font = font or r.small
+    if font.size(text)[0] <= width:
+        return text
+    if text.endswith(")") and " (" in text:
+        text = text[:text.rindex(" (")]
+    while font.size(text)[0] > width and len(text) > 3:
+        text = text[:-4].rstrip() + "..."
+    return text
+
+
+PRACTICE_TEXT_X = 222        # where a practice skill's effect and how it trains start
+
+
 def draw_box_info(r, surface, world, tier):
     """Odds disclosure: the real drop table, expected value and spread, before opening."""
     box = BOX_TIERS[tier]
@@ -317,16 +340,16 @@ def shop_rows(world, mode):
 
 def draw_shop(r, surface, world, cursor, mode):
     shop = world.shop
-    _frame(r, surface, "SAFE ROOM SHOP", 70, 600)
+    remote = world.remote_shop and not world.in_safe_room
+    _frame(r, surface, "SUPPLY DROP" if remote else "SAFE ROOM SHOP", 70, 600)
     tabs = "BUY   sell" if mode == "buy" else "buy   SELL"
     r.text(surface, f"{tabs}   (Tab to switch)     Your gold: {world.gold}",
            (X0 + WIDTH // 2, 120), C.TEXT_DIM, r.small, centre=True)
     rows = shop_rows(world, mode)
     y = 150
     if mode == "buy":
-        heads = (("Item", 30), ("Price", 215), ("Stock", 275), ("Forecast", 350),
-                 ("Reorder at", 450), ("On order", 540))
-        for label, dx in heads:
+        cols = [dx for _, dx in SHOP_COLS]
+        for label, dx in SHOP_COLS:
             r.text(surface, label, (X0 + dx, y), C.TEXT_DIM, r.small)
         y += 20
         for i, key in enumerate(rows):
@@ -337,13 +360,14 @@ def draw_shop(r, surface, world, cursor, mode):
             price = world.buy_price(key)
             r.text(surface, ITEMS[key]["name"], (X0 + 30, y), C.TEXT_DIM if out else ITEMS[key]["colour"],
                    r.small)
-            r.text(surface, f"{price}" + ("*" if price > ITEMS[key]["value"] else ""), (X0 + 215, y),
+            r.text(surface, f"{price}" + ("*" if price > ITEMS[key]["value"] else ""), (X0 + cols[1], y),
                    C.ACCENT if price > ITEMS[key]["value"] else C.TEXT, r.small)
-            r.text(surface, "OUT" if out else str(s.on_hand), (X0 + 275, y),
+            r.text(surface, "OUT" if out else str(s.on_hand), (X0 + cols[2], y),
                    C.DANGER if out else C.TEXT, r.small)
-            r.text(surface, f"{s.forecast:.1f}/floor", (X0 + 350, y), C.TEXT, r.small)
-            r.text(surface, f"{shop.reorder_point(key):.1f}", (X0 + 450, y), C.TEXT, r.small)
-            r.text(surface, str(s.on_order) if s.on_order else "-", (X0 + 540, y), C.TEXT, r.small)
+            r.text(surface, f"{s.forecast:.1f}/floor", (X0 + cols[3], y), C.TEXT, r.small)
+            r.text(surface, f"{shop.reorder_point(key):.1f}", (X0 + cols[4], y), C.TEXT, r.small)
+            r.text(surface, str(s.on_order) if s.on_order else "-", (X0 + cols[5], y), C.TEXT,
+                   r.small)
             y += 24
         key = rows[cursor]
         s = shop.stock[key]
@@ -380,19 +404,30 @@ def draw_shop(r, surface, world, cursor, mode):
 
 
 def draw_contract(r, surface, world):
+    """The sponsor offer. Returns the rect of every line drawn, so tests can check the fit."""
     c = CONTRACTS[world.pending_offer]
     _frame(r, surface, "SPONSOR OFFER", 150, 400)
     cx = X0 + WIDTH // 2
-    r.text(surface, f"{c['sponsor']} presents: {c['name']}", (cx, 210), C.ACCENT, r.font, centre=True)
-    r.text(surface, c["desc"], (cx, 240), C.TEXT, r.small, centre=True)
-    r.text(surface, "This floor only. What it means for you:", (X0 + 40, 280), C.TEXT_DIM, r.small)
-    y = 302
+    rects = []
+    y = 210
+    for part in _wrap(r, f"{c['sponsor']} presents: {c['name']}", WIDTH - 60, r.font):
+        rects.append(r.text(surface, part, (cx, y), C.ACCENT, r.font, centre=True))
+        y += 22
+    y += 8
+    for part in _wrap(r, c["desc"], WIDTH - 60):
+        rects.append(r.text(surface, part, (cx, y), C.TEXT, r.small, centre=True))
+        y += 18
+    y += 14
+    rects.append(r.text(surface, "This floor only. What it means for you:", (X0 + 40, y),
+                        C.TEXT_DIM, r.small))
+    y += 22
     for line in preview(world, world.pending_offer):
         for part in _wrap(r, line, WIDTH - 90):
-            r.text(surface, part, (X0 + 50, y), C.TEXT, r.small)
+            rects.append(r.text(surface, part, (X0 + 50, y), C.TEXT, r.small))
             y += 18
         y += 4
-    r.text(surface, "Y accept   N decline", (cx, 520), C.TEXT_DIM, r.font, centre=True)
+    rects.append(r.text(surface, "Y accept   N decline", (cx, 520), C.TEXT_DIM, r.font, centre=True))
+    return rects
 
 
 def draw_practice(r, surface, world):
@@ -407,7 +442,7 @@ def draw_practice(r, surface, world):
             y += 24
         if key not in t.used:
             r.text(surface, "???", (X0 + 22, y), C.TEXT_DIM)
-            r.text(surface, "Not discovered yet", (X0 + 222, y + 1), C.TEXT_DIM, r.small)
+            r.text(surface, "Not discovered yet", (X0 + PRACTICE_TEXT_X, y + 1), C.TEXT_DIM, r.small)
             y += 28
             continue
         lvl = t.levels[key]
@@ -418,12 +453,19 @@ def draw_practice(r, surface, world):
         frac = 1 if lvl >= MAX_LEVEL else t.xp[key] / xp_to_next(lvl)
         if frac:
             surface.fill(C.GOOD, (bx + 1, y + 5, int((bw - 2) * frac), 6))
-        r.text(surface, sk["effect"], (X0 + 222, y - 6), C.TEXT, r.small)
-        r.text(surface, sk["trains"], (X0 + 222, y + 8), C.TEXT_DIM,
+        room = WIDTH - PRACTICE_TEXT_X - 14
+        r.text(surface, _fit(r, sk["effect"], room), (X0 + PRACTICE_TEXT_X, y - 6), C.TEXT, r.small)
+        r.text(surface, _fit(r, sk["trains"], room), (X0 + PRACTICE_TEXT_X, y + 8), C.TEXT_DIM,
                r.small)
         y += 28
     r.text(surface, "Skills level up by doing the thing. K or Esc to close",
            (X0 + WIDTH // 2, 728), C.TEXT_DIM, r.small, centre=True)
+
+
+def attr_source(bought, score):
+    """Where a score comes from, short enough to fit the attributes panel."""
+    extra = score - bought
+    return f"bought {bought}" + (f", {extra:+d} backstory/race/class" if extra else "")
 
 
 def draw_attributes(r, surface, world, cursor):
@@ -438,9 +480,8 @@ def draw_attributes(r, surface, world, cursor):
         r.text(surface, a["name"], (X0 + 24, y), C.TEXT)
         r.text(surface, f"{score}", (X0 + 200, y), C.ACCENT)
         r.text(surface, fmt_mod(attr_mod(score)), (X0 + 240, y), C.INFO)
-        extra = score - p.attrs[key]
-        source = f"bought {p.attrs[key]}" + (f", {extra:+d} from backstory/race/class" if extra else "")
-        r.text(surface, source, (X0 + 300, y + 2), C.TEXT_DIM, r.small)
+        r.text(surface, attr_source(p.attrs[key], score), (X0 + ATTR_SOURCE_X, y + 2), C.TEXT_DIM,
+               r.small)
         r.text(surface, a["does"], (X0 + 24, y + 22), C.TEXT_DIM, r.small)
         y += 58
     pts = p.stat_points

@@ -3,7 +3,9 @@
 The bot explores and fights while time allows, picks up and equips gear, sells
 junk, keeps three potions from the shop, opens boxes in safe rooms, rests when
 hurt, then heads for the nearest stairs (or the final boss once the exit is
-sealed). Each run's companion, race and class rotate with the seed, and every
+sealed). In combat it attacks when adjacent, otherwise moves then attacks, and
+drinks potions with the bonus action; anything refused ends its turn. It only
+provokes attacks of opportunity when fleeing hurt. Each run's companion, race and class rotate with the seed, and every
 sponsor contract is accepted or declined by a coin flip, so the runs form a
 randomised experiment on deals.
 
@@ -104,28 +106,63 @@ def worth_taking(w, xy):
     return len(w.inventory) < 16 and any(ITEMS[k]["kind"] != "junk" for k in w.floor_items[xy])
 
 
+def can(w, part):
+    """Out of combat anything goes; in combat only the parts of the turn not yet spent."""
+    return w.combat is None or w.combat.has(part)
+
+
 def best_of(w, kind):
     held = [i for i, k in enumerate(w.inventory) if ITEMS[k]["kind"] == kind]
     return held[0] if held else None
 
 
 def choose(w):
+    """One act per call. In combat a move or attack that's already spent becomes a wait,
+    which ends the turn."""
+    act, arg = _choose(w)
+    if act == "move" and w.combat:
+        p = w.player
+        part = "action" if w.monster_at(p.x + arg[0], p.y + arg[1]) else "move"
+        if not can(w, part):
+            return ("wait", None)
+        # Don't walk out of a monster's reach (a free swing at you) unless fleeing hurt,
+        # to a safe room or the stairs.
+        if part == "move" and w.provokers(*arg) and not getattr(w, "_bot_fleeing", False):
+            return ("wait", None)
+    return act, arg
+
+
+FLEE_FRAC = 0.4                 # in a fight below this HP with no potion to hand: run
+
+
+def flee_goal(w):
+    """The nearer of the safe room and an open stairwell."""
+    p, f = w.player, w.floor
+    goals = [f.safe_room.centre]
+    if not w.stairs_locked and not w.exit_sealed:
+        goals += f.stairs
+    return min(goals, key=lambda g: cheb(g, (p.x, p.y)))
+
+
+def _choose(w):
     p, f = w.player, w.floor
     pos = (p.x, p.y)
-    if pos in w.floor_items and worth_taking(w, pos):
-        return ("pickup", None)
+    w._bot_fleeing = False
     adj_n = sum(1 for m in w.monsters if cheb((m.x, m.y), pos) == 1)
-    if p.hp < p.max_hp * 0.45 and not w.in_safe_room:
+    if pos in w.floor_items and worth_taking(w, pos) and can(w, "action") \
+            and not (w.combat and adj_n):
+        return ("pickup", None)
+    if p.hp < p.max_hp * 0.45 and not w.in_safe_room and can(w, "bonus"):
         potion = best_of(w, "potion")
         if potion is not None:
             return ("use", potion)
     if adj_n >= 2 or any((m.x, m.y) in w.visible and m.key in ("golem", "brute") for m in w.monsters):
         bomb = best_of(w, "bomb")
-        if bomb is not None and any(cheb((m.x, m.y), pos) <= 3 for m in w.monsters
+        if bomb is not None and can(w, "action") and any(cheb((m.x, m.y), pos) <= 3 for m in w.monsters
                                     if (m.x, m.y) in w.visible):
             return ("use", bomb)
     adj = [m for m in w.monsters if cheb((m.x, m.y), pos) == 1]
-    if w.cls and not w.skill_cooldown and not w.in_safe_room:
+    if w.cls and not w.skill_cooldown and not w.in_safe_room and can(w, "action"):
         seen_near = [m for m in w.monsters if (m.x, m.y) in w.visible and cheb((m.x, m.y), pos) <= 6]
         kinds = [ITEMS[k]["kind"] for k in w.inventory]
         sk = w.skill
@@ -138,9 +175,15 @@ def choose(w):
                 or (sk == "riposte" and adj and not w.riposte) \
                 or (sk == "supply_drop" and kinds.count("potion") < 2):
             return ("skill", None)
+    if adj and not w.in_safe_room and w.combat and can(w, "move") \
+            and p.hp < p.max_hp * FLEE_FRAC and (best_of(w, "potion") is None or not can(w, "bonus")):
+        mv = step_towards(w, *flee_goal(w))         # hurt and out of potions: run for it,
+        if mv and not w.monster_at(p.x + mv[0], p.y + mv[1]):   # free swings and all
+            w._bot_fleeing = True
+            return ("move", mv)
     if adj and not w.in_safe_room:
         return ("move", (adj[0].x - p.x, adj[0].y - p.y))
-    if w.on_stairs and not w.stairs_locked and not w.exit_sealed \
+    if w.on_stairs and not w.stairs_locked and not w.exit_sealed and can(w, "action") \
             and (w.timer < w.timer_max * 0.4 or all(f.explored[r.centre[1]][r.centre[0]] for r in f.rooms)):
         return ("descend", None)
     hurt = p.hp < p.max_hp * 0.5
@@ -194,8 +237,12 @@ def run_config(seed):
                 gender=pick.choice(list(GENDERS)))
 
 
-def play(seed, pet=None, deals="random", telemetry=False):
-    """Play one run. deals is "random" (coin flip per offer), "accept" or "decline"."""
+MAX_STEPS = 200_000             # safety cap on choose() calls; a real run needs far fewer
+
+
+def play(seed, pet=None, deals="random", telemetry=False, max_steps=MAX_STEPS):
+    """Play one run. deals is "random" (coin flip per offer), "accept" or "decline".
+    A run that hits max_steps stops while still "playing" (reported as stuck)."""
     cfg = run_config(seed)
     pet = pet or cfg["pet"]
     w = World(seed, pet=(pet, "") if pet != "none" else None,
@@ -203,7 +250,9 @@ def play(seed, pet=None, deals="random", telemetry=False):
     tel = Telemetry(w, source="bot", run_id=f"bot{seed:05d}", meta=dict(deals=deals)) \
         if telemetry else None
     coin = random.Random(seed ^ 0xB07)
-    while w.state == "playing":
+    for _ in range(max_steps):
+        if w.state != "playing":
+            break
         if w.pending_choice:
             w.choose_class(cfg["race"], cfg["cls"])
         if w.pending_offer:
@@ -242,6 +291,7 @@ def _worker(job):
     seed, pet, deals, telemetry = job
     w, tables = play(seed, pet, deals, telemetry)
     summary = dict(outcome="victory" if w.state == "victory" else
+                   f"floor {w.depth} stuck" if w.state == "playing" else
                    f"floor {w.depth} " + ("collapse" if "collapsed" in w.death_cause else "killed"),
                    pet=w.pet.species if w.pet else "none", cls=w.cls, race=w.race,
                    backstory=w.backstory, won=w.state == "victory",
