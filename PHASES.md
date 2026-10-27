@@ -39,12 +39,16 @@ This file is the hand-off between build sessions. Each session does the next unc
   - Notebooks in `analysis/`: `01_run_analysis.ipynb` (EDA, survival by floor, viewer growth, causes of death), `02_loot_box_stats.ipynb` (EV per tier, chi-square test of observed vs stated rates, pity timers), `03_shop_forecasting.ipynb` (MAPE, bias, stockouts vs safety stock), `04_predict_death.ipynb` (scikit-learn classifier, train/test split by run to avoid leakage, feature importance). All must run with `jupyter nbconvert --execute`.
   - Balance pass using the bot's data; final README update.
 
-- [ ] **Phase 6: Visuals.** Owner is weighing a first-person view instead of a top-down tile set; see the proof of concept notes at the end.
-  - Original plan: (Done last, so Phase 4's new screens get styled once.) Everything visual lives in `crawler/ui/` and `crawler/game.py`; game rules don't change.
-  - Swap glyphs for a free 16x16 tile set (Kenney or Dungeon Crawl Stone Soup tiles, both CC0). Keep the tile-to-sprite mapping as data, credit the source in the README, and keep a `--glyphs` option to fall back to the current look.
-  - Polish: smoother lighting falloff at the edge of sight, hit flashes and floating damage numbers, a small screen shake on crits and boss phases, an animated loot box reveal, and a consistent menu style.
-  - Distinct looks for the four companions and six bosses, so they read at a glance.
-  - Re-check every screen with the headless screenshots in `tests/test_render.py`.
+- [ ] **Phase 6: First-person view in the main game.** Decided with the owner: keep both views, first-person by default, Tab switches to top-down at any time. Rules stay shared.
+  - Fold `fp_demo.py` into `App`: facing, W/S/A/D/Q/E controls, and the camera glide in the real game; a view setting that is remembered between runs.
+  - Every menu and overlay (inventory, safe room, shop, boxes, crafting, class picker, contract, report, skills, help) checked over the 3D view.
+  - Help screen and README controls updated for both views.
+  - Headless screenshots of each screen in both views in `tests/test_render.py`.
+
+- [ ] **Later: visual polish (deferred by the owner, not dropped).** All of it lives in `crawler/ui/`, so it can be done at any time without touching the rules.
+  - Better sprites (hand-drawn pixel art or a free CC0 pack) in place of the body plans; better wall and floor textures.
+  - A tile set for the top-down view (Kenney or Dungeon Crawl Stone Soup, both CC0), with a `--glyphs` fallback.
+  - Hit flashes and floating damage numbers, screen shake on crits and boss phases, an animated loot box reveal, a consistent menu style, smoother lighting.
 
 ## Notes from finished phases
 
