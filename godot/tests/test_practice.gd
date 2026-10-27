@@ -3,12 +3,9 @@ extends TestCase
 ## scripts/practice_reference.py output (real Python Practice driven by a recording stand-in
 ## world; env PRACTICE_REF, set by scripts/gd_test.sh).
 ##
-## Deferred to later slices (they need World): stat_gains_apply_once_per_level (S6),
-## stomping_adds_damage_against_small_monsters, hitting_trains_the_matching_weapon_skill (S8),
-## sneaking_shortens_notice_range, haggling_and_gambling_change_prices,
-## cardio_trains_by_walking_and_extends_the_next_timer (S6/S8), save_round_trip_keeps_practice (T5),
-## telemetry_has_one_practice_row_per_skill (T4). The World parts of test_xp_curve and
-## test_skills_are_hidden_until_used are ported here against the stand-in world.
+## Deferred tests from tests/test_practice.py are listed in docs/port-plan.md Appendix B.1. The
+## World parts of test_xp_curve and test_skills_are_hidden_until_used are ported here against the
+## stand-in world (B.2 asks S6 to re-run them against the real World).
 
 
 ## Recording stand-in for the World seam of Practice (events, messages, refresh_stats, add_toast,
@@ -20,6 +17,7 @@ class FakeWorld:
 	var events := EventBus.new()
 	var messages := MessageLog.new()
 	var toasts: Array = []
+	var training: Practice   # the world owns its Practice, as World.training will
 
 	func _init() -> void:
 		# The lambdas capture the log Array, not self: capturing self would be a reference cycle.
@@ -163,23 +161,47 @@ func test_gain_at_cap_marks_used_but_adds_no_xp() -> void:
 	assert_true(p.used.has("lobbing"))
 
 
-func test_world_is_held_weakly() -> void:
+func _build_owned() -> Array:
+	var w := FakeWorld.new()
+	w.training = Practice.new(w)
+	w.training.gain("cardio", 100)
+	return [weakref(w), weakref(w.training)]
+
+
+func test_world_and_practice_are_freed_together() -> void:
+	var refs := _build_owned()   # both dropped when the inner function returns
+	assert_null(refs[0].get_ref())
+	assert_null(refs[1].get_ref())
+
+
+func test_practice_without_its_world_gets_null() -> void:
 	var p: Practice
 	var w := FakeWorld.new()
 	p = Practice.new(w)
 	assert_true(p.world == w)
+	w = null
+	assert_null(p.world)
 
 
 func test_listener_subscription_order() -> void:
-	# Python order: attack, kill, damage_taken, dodged, bomb, item_use, rest, step, pickup, shop buy and sell, box, craft, viewers, pet.
+	# Python subscribes in this order; same-named subscribers must keep it (shop_buy and shop_sell share _shop).
 	var w := FakeWorld.new()
-	var seen: Array = []
 	var p := Practice.new(w)
-	w.events.subscribe("*", func(n: String, _d: Dictionary) -> void: seen.append(n))
+	var expected := {
+		"player_attack": "_attack", "kill": "_kill", "damage_taken": "_hurt", "dodged": "_dodged",
+		"bomb": "_bomb", "item_use": "_item_use", "rest": "_rest", "step": "_step",
+		"item_pickup": "_pickup", "shop_buy": "_shop", "shop_sell": "_shop", "box_opened": "_box",
+		"craft": "_craft", "viewers_gained": "_viewers", "pet_hit": "_pet"}
+	for ev in expected:
+		var subs: Array = w.events.subscribers(ev)
+		assert_eq(subs.size(), 1, ev)
+		assert_eq(String(subs[0].get_method()), expected[ev], ev)
+		assert_true(subs[0].get_object() == p, ev)
+	# Subscription order across events: the key order of this dictionary is Python's tuple order.
+	assert_eq(expected.keys(), ["player_attack", "kill", "damage_taken", "dodged", "bomb", "item_use", "rest", "step",
+		"item_pickup", "shop_buy", "shop_sell", "box_opened", "craft", "viewers_gained", "pet_hit"])
 	w.events.emit("shop_sell", {})
-	assert_eq(p.level("haggling"), 0)
 	assert_eq(p.xp["haggling"], 1)
-	assert_eq(seen, ["shop_sell"])
 
 
 # --- Replay of Python output --------------------------------------------------------------------

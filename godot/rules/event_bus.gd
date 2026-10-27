@@ -26,6 +26,11 @@ func subscribe(name: String, fn: Callable) -> void:
 	_subs[name].append(fn)
 
 
+## Read-only copy of the handlers subscribed to one event name, in subscription order (tests).
+func subscribers(name: String) -> Array:
+	return _subs.get(name, []).duplicate()
+
+
 ## emit(name, {"depth": 3}): Python's emit(name, **data), with keys in the same order as the kwargs.
 ## A payload key called "name" is still forbidden by convention (it was a TypeError in Python).
 func emit(name: String, data: Dictionary = {}) -> void:

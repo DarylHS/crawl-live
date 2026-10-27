@@ -156,6 +156,10 @@ Shared helpers written in P1 slice S1 (not Python modules, but every port depend
 - `Array.has` / `erase` / `find` compare Objects by reference (what Python's `eq=False` dataclasses do) and `Vector2i` by value.
 - Modifying a Dictionary while iterating it is an error in both languages; copy keys first.
 
+#### Back-references to World
+
+`World` creates `Practice`, `Achievements`, `Showrunner` and `FunFacts` in `_init` and keeps them for its whole life (never reassigned; load restores in place). Each holds `_world_ref: WeakRef` with a typed `world` getter and never stores the world strongly in a member, because World -> subsystem -> World would be a reference cycle that leaks both. Subscribe bound methods, not lambdas capturing `self` or the world. Write one ownership test per subsystem (build a stand-in or real world, drop it inside an inner function, assert weakrefs to world and subsystem return null). Anything that keeps only a subsystem without its World gets null from `world`; a subsystem freed while its world lives leaves a dead callable on the event bus (SCRIPT ERROR in `event_bus.gd`).
+
 ### 3.3 Float text and parsing (measured on 4.7.2)
 
 | Need | Godot behaviour | Plan |
@@ -745,7 +749,7 @@ Probes were run headless with throwaway projects under the session scratchpad; r
 | `test_attributes.py` | `tests/test_attributes.gd` | S2, S6 | `parametrize("attr", list(ATTRS))` becomes `use_parameters(Content.table("attributes").keys())`. |
 | `test_dungeon.py` | `tests/test_dungeon.gd` | S3 | `SEEDS` parametrised; FOV helpers on a hand-built floor. |
 | `test_loot.py` | `tests/test_loot.gd` | S4, S8 | |
-| `test_practice.py` | `tests/test_practice.gd` | S5, S8, T4, T5 | The test that wraps `world.attack` to see `bonus` instead checks the damage outcome with a seeded roll, or uses a counting `PyRandom`; no seam in `World`. |
+| `test_practice.py` | `tests/test_practice.gd` | S5, S6, S8, T4, T5 | The test that wraps `world.attack` to see `bonus` instead checks the damage outcome with a seeded roll, or uses a counting `PyRandom`; no seam in `World`. |
 | `test_world.py` | `tests/test_world.gd` | S7, S8 | `test_random_play_smoke` seeds 0-11 with a `PyRandom` driver. |
 | `test_encounter.py` | `tests/test_encounter.gd` | S7, S8, T5, T6 | `monkeypatch.setattr(C, ...)` becomes `TestHelpers.patch_static(GameConfig, ...)`; `setitem(MONSTERS["goblin"], "init", 50)` becomes `patch_item(Content.monster("goblin"), "init", 50)`; `SPEAK_CHANCE` patch likewise on the config table. |
 | `test_floors.py` | `tests/test_floors.gd` | S6, S8 | |
@@ -776,3 +780,5 @@ Every pytest test not yet ported is named here, with the slice that must port it
 
 - **S6:** replace `S2Support.hero()` (tests/support/s2_support.gd) with `World.new(1).player` and delete the stand-in. `Entities.new_pet` takes a String name: turn Python's `None` into `""`. `Entities.init_mod` inlines `boss_depth` until `Bosses` lands in S4; switch it then.
 - **T5:** `Entity.from_dict` on a dictionary from `JSON.parse_string` leaves `attrs` values and `colour` parts as floats (int fields are truncated by `set()`). `SaveGame` must coerce by schema before `from_dict`. `Entity.to_dict` written with `PyJson.dumps` is already byte-identical to Python's `json.dumps(asdict(...))`.
+- **S6:** re-run `test_xp_curve_is_increasing_and_capped` and `test_skills_are_hidden_until_used_and_level_up_announces` against the real `World` (S5 ported their World-free halves against a stand-in world in `tests/test_practice.gd`).
+- **T5:** `Practice.load` stores the raw types it is given, so decode with `PyJson` and coerce ints (`levels`, `xp`, `steps`) before calling it.

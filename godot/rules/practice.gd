@@ -12,10 +12,14 @@ extends RefCounted
 ## Seam (S5, the World is not ported yet): `world` is duck-typed. Practice uses only
 ## world.events (EventBus), world.messages (MessageLog), world.refresh_stats(),
 ## world.add_toast(text, tier) and world.weapon_style() -> String. Practice holds the world
-## through a WeakRef: the event bus (owned by the world) holds callables bound to this object, so a
-## strong reference back would be a reference cycle and leak both. The world owns its Practice
-## (World.training), so the weak reference never dangles in play.
+## through a WeakRef, because World.training -> Practice -> World would otherwise be a strong
+## reference cycle that leaks both (Callables bound to methods do not keep the object alive, so the
+## event bus is not the cause). The world must own its Practice for its whole life. Side effect: if
+## a Practice is freed while its world lives, later emits hit a dead callable (SCRIPT ERROR in
+## event_bus.gd), and a Practice kept without its world gets null from `world`.
 ## Unknown skill keys were a KeyError in Python and are an engine error here; no caller passes one.
+##
+## Deferred tests from tests/test_practice.py are listed in docs/port-plan.md Appendix B.1.
 
 static var MAX_LEVEL: int = Content.config("practice")["MAX_LEVEL"]
 ## Stomping trains on monsters this small or smaller (max HP).
@@ -55,7 +59,8 @@ static func skills() -> Dictionary:
 	return Content.table("practice_skills")
 
 
-## Practice needed to go from `level` to level + 1 (gentle at first, steep later).
+## Practice needed to go from `level` to level + 1 (gentle at first, steep later). Valid for levels
+## 0-111 (ceili overflows beyond); only levels below MAX_LEVEL are used.
 static func xp_to_next(level: int) -> int:
 	return ceili(8 * pow(1.45, level))
 
