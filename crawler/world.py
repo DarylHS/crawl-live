@@ -803,8 +803,10 @@ class World:
             self._explode("popper", target)
         elif key == "supply_drop":
             self.remote_shop = True
-            self.messages.add("A sponsor drone lowers a shop crate. One purchase, then it leaves.",
-                              C.ACCENT)
+            if len(self.inventory) < C.INVENTORY_SIZE:
+                self.inventory.append("tonic")
+            self.messages.add("A sponsor drone lowers a shop crate, with a free Fizzy Tonic taped "
+                              "to the lid. One purchase, then it leaves.", C.ACCENT)
         elif key == "riposte":
             self.riposte = spec["charges"]
             self.messages.add(f"En garde. You'll parry the next {spec['charges']} attacks.", C.INFO)

@@ -136,7 +136,7 @@ def choose(w):
                 or (sk == "rile_up" and pet_fighting) \
                 or (sk == "crowd_work" and seen_near and not w.hype_turns) \
                 or (sk == "riposte" and adj and not w.riposte) \
-                or (sk == "supply_drop" and kinds.count("potion") < 2 and w.gold >= 25):
+                or (sk == "supply_drop" and kinds.count("potion") < 2):
             return ("skill", None)
     if adj and not w.in_safe_room:
         return ("move", (adj[0].x - p.x, adj[0].y - p.y))

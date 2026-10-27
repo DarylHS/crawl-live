@@ -95,7 +95,7 @@ Every run you finish is logged to `runs/player_*.csv`. A headless bot plays thou
 
 ```bash
 pip install -r analysis/requirements.txt
-python analysis/bot.py --runs 2000 --workers 4      # about 6 minutes on 4 cores; writes runs/bot_*.csv
+python analysis/bot.py --runs 2000 --workers 4      # about 25 minutes on 4 cores; writes runs/bot_*.csv
 jupyter lab analysis/                               # or open the notebooks on GitHub, outputs included
 ```
 

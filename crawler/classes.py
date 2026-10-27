@@ -77,7 +77,8 @@ SKILLS = {
     "pocket_popper": dict(name="Pocket Popper", cooldown=15, range=6,
                           desc="Throw a free Party Popper Bomb at the nearest visible monster."),
     "supply_drop":   dict(name="Supply Drop", cooldown=999,
-                          desc="Open the shop wherever you are for one purchase. Once per floor."),
+                          desc="Open the shop wherever you are for one purchase, plus a free Fizzy "
+                               "Tonic. Once per floor."),
     "riposte":       dict(name="Riposte", cooldown=18, charges=2,
                           desc="Parry the next 2 attacks against you and strike back each time."),
 }
