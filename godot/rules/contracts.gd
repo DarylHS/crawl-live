@@ -81,6 +81,9 @@ static func preview(world: Variant, key: String) -> PackedStringArray:
 		for m in mobs:
 			terms.append(Combat.expected_damage(m, p))
 		var now := PyMath.fsum_py(terms) / mobs.size()
+		if now == 0.0:
+			push_error("Contracts.preview: monsters cannot hurt the player (Python raises ZeroDivisionError)")
+			return lines
 		var extra: int = c.get("monster_damage", 0)
 		for m in mobs:
 			m.dmg_bonus += extra

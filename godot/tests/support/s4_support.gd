@@ -41,7 +41,7 @@ static func doc() -> Dictionary:
 		elif not FileAccess.file_exists(path):
 			_error = "FIXTURES_S4 file does not exist: " + path
 		else:
-			var parsed = JSON.parse_string(FileAccess.get_file_as_string(path))
+			var parsed: Variant = JSON.parse_string(FileAccess.get_file_as_string(path))
 			if parsed is Dictionary:
 				_doc = parsed
 			else:

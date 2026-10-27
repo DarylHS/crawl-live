@@ -51,6 +51,9 @@ static func box_stats(tier: String) -> Array:
 ## The next tier up, or "" for none (Python None).
 static func next_tier(tier: String) -> String:
 	var i := TIERS.find(tier)
+	if i < 0:
+		push_error("Loot.next_tier: unknown tier %s (Python raises ValueError)" % tier)
+		return ""
 	return TIERS[i + 1] if i + 1 < TIERS.size() else ""
 
 
