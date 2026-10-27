@@ -6,7 +6,9 @@ extends RefCounted
 ## oldest fall off the front). Colours are [r, g, b] int Arrays, default GameConfig.TEXT.
 ##
 ## Test seam (approved, port plan 11.3 item 7): an optional `tap` Callable, called first in add with
-## (text, colour) before the line is stored, for the parity trace. No rule reads it.
+## (text, colour) before the line is stored, for the parity trace. No rule reads it. A tap lambda
+## that captures an object owning this log (the World, say) makes a reference cycle and leaks it:
+## clear the tap when done, or capture a separate holder object instead.
 
 var tap: Callable = Callable()
 var lines: Array = []
@@ -19,7 +21,7 @@ func _init(maxlen_value: int = 200) -> void:
 
 ## add("You hit it.", GameConfig.GOOD). Omitting the colour (or passing null) uses GameConfig.TEXT.
 func add(text: String, colour: Variant = null) -> void:
-	var col: Array = GameConfig.TEXT if colour == null else colour
+	var col: Array = (GameConfig.TEXT if colour == null else colour).duplicate()
 	if tap.is_valid():
 		tap.call(text, col)
 	lines.append([text, col])

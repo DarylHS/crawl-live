@@ -8,6 +8,7 @@ extends RefCounted
 
 static var _cache: Dictionary = {}
 static var _loaded := false
+static var _error := ""
 
 
 ## The whole fixture document, or {} when FIXTURES is not set (tests then skip with a pending).
@@ -15,15 +16,31 @@ static func data() -> Dictionary:
 	if not _loaded:
 		_loaded = true
 		var path := OS.get_environment("FIXTURES")
-		if path != "" and FileAccess.file_exists(path):
+		if path == "":
+			_error = "FIXTURES is not set (run through scripts/gd_test.sh)"
+		elif not FileAccess.file_exists(path):
+			_error = "FIXTURES file does not exist: " + path
+		else:
 			var parsed = JSON.parse_string(FileAccess.get_file_as_string(path))
 			if parsed is Dictionary:
 				_cache = parsed
+			else:
+				_error = "FIXTURES file does not parse as a JSON object: " + path
 	return _cache
 
 
 static func available() -> bool:
 	return not data().is_empty()
+
+
+## Call at the top of every fixture-backed test: fails the test (with the path and the reason) when
+## FIXTURES is unset, missing or not valid JSON, and returns false so the test can return.
+static func require(test: GutTest) -> bool:
+	data()
+	if _error != "":
+		test.fail_test("fixtures unavailable: " + _error)
+		return false
+	return true
 
 
 static func decode(node: Variant) -> Variant:

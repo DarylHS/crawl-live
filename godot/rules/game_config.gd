@@ -21,7 +21,6 @@ static func _c(name: String) -> Variant:
 	return v
 
 
-
 # --- Layout ----------------------------------------------------------------
 static var TILE: int = _c("TILE")
 static var VIEW_W: int = _c("VIEW_W")  ## map area on screen, in tiles; the map scrolls to follow you

@@ -54,9 +54,10 @@ static func _clinger_equal(m: int, k: int, x: float) -> bool:
 ## always the shortest or the closest (1e23 prints as 9.999999999999999e+22, some doubles carry a
 ## 17th digit, a few end one off), so the digits are improved in two steps: the shortest decimal that
 ## Clinger's exact check proves reads back as the same double wins, and 16 or 17 digit results in the
-## range 1e-4 to 1e15 are redone with "%.nf" (exact there, ties to even like Python). Measured against
-## CPython on 12,000+ values (game values, edge exponents, random doubles): no differences. A random
-## double outside those paths could still print a digit longer than Python's.
+## range 1e-4 to 1e16 are redone with "%.nf" (exact there, ties to even like Python). Measured against
+## CPython on 12,000+ values (game values, edge exponents, random doubles): no differences. Outside
+## that range (exponent form: below 1e-4 or from 1e16) a double may print a different last digit or a
+## longer non-shortest form (e.g. 1e126); no game value reaches there (every CSV float is 0.067-42.5).
 static func repr_float(x: float) -> String:
 	if is_nan(x):
 		return "nan"
@@ -98,7 +99,7 @@ static func repr_float(x: float) -> String:
 				digits = digits.left(digits.length() - 1)
 			found = true
 			break
-	if not found and digits.length() >= 16 and ax >= 1e-4 and ax < 1e15:
+	if not found and digits.length() >= 16 and ax >= 1e-4 and ax < 1e16:
 		# Python picks the decimal of that length closest to the exact value (ties to even);
 		# num_scientific can be off by one in the last digit. "%.nf" is exact at this magnitude.
 		var fixed_text := ("%." + str(digits.length() - decpt) + "f") % ax

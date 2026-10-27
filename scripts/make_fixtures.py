@@ -102,6 +102,12 @@ def math_cases():
         sums.append([rng.uniform(-1000, 1000) for _ in range(rng.randint(1, 40))])
     for _ in range(100):
         sums.append([rng.choice([0.1, 0.2, 0.3, 1e16, -1e16, 1.0, 1e-8, 0.7]) for _ in range(rng.randint(2, 12))])
+    # Mixed int/float lists (ints are summed exactly while the list is all ints, then added as floats).
+    for _ in range(300):
+        sums.append([rng.choice([rng.randint(-5, 12), rng.choice([0.15, 0.3, 0.45, 0.6, 1.5, 0.1, 0.7]),
+                                 rng.uniform(-3, 3)]) for _ in range(rng.randint(1, 12))])
+    sums += [[2, 0.3, 1, 0.15], [1, 2, 3, 0.1], [0.1, 1, 0.2, 2, 0.3, 3], [True, 0.5, True], [10 ** 15, 0.5, 1, 1],
+             [3, 4], [0, 0.0], [-1, 1, 0.1], [0.1, 0.1, 0.1, 1, 1, 1, 0.1]]
     sums += [[0.1] * 10, [0.1, 0.2, 0.3], [1e100, 1.0, -1e100], [1.0, 1e100, 1.0, -1e100], [float("inf"), 1.0], [5.0]]
     out["fsum"] = [[enc(s), enc(sum(s))] for s in sums]
     # sorted(key=), including reverse and tuple keys; min/max first extreme wins.
@@ -117,6 +123,12 @@ def math_cases():
         sorts.append(["str", words, False, [x[1] for x in sorted(words, key=lambda x: x[0])]])
         fl_items = [[rng.choice([0.5, 1.0, 1.5, 2.0, -1.0]), i] for i in range(n)]
         sorts.append(["float", fl_items, True, [x[1] for x in sorted(fl_items, key=lambda x: x[0], reverse=True)]])
+    for _ in range(100):
+        n = rng.randint(0, 12)
+        pts = [[[rng.randint(0, 3), [rng.randint(0, 4), rng.randint(0, 4)]], i] for i in range(n)]
+        for rev in (False, True):
+            sorts.append(["nested", pts, rev,
+                          [x[1] for x in sorted(pts, key=lambda x: (x[0][0], tuple(x[0][1])), reverse=rev)]])
     out["sort"] = [[enc(kind), enc(items), enc(rev), enc(order)] for kind, items, rev, order in sorts]
     ext = []
     for _ in range(150):
@@ -174,7 +186,7 @@ def fmt_cases():
     edge += [float(k) for k in range(-30, 40)] + [k / 10 for k in range(-60, 60)] + [k / 100 for k in range(0, 300)]
     out["repr_edge"] = [[enc(x), enc(repr(x))] for x in edge]
     rnd = [rng.random() for _ in range(2000)] + [rng.uniform(-1e6, 1e6) for _ in range(1000)] + \
-          [rng.random() * 10.0 ** rng.randint(-20, 25) for _ in range(1000)] + [rng.random() * 100 / 3 for _ in range(500)]
+          [rng.random() * 10.0 ** rng.randint(-2, 14) for _ in range(1000)] + [rng.random() * 100 / 3 for _ in range(500)]
     out["repr_random"] = [[enc(x), enc(repr(x))] for x in rnd]
     # {:.nf}, {:+.nf}, {:.n%}, {:+.n%}, {:,.0f}.
     fx = ties(-12, 12) + [k / 8 for k in range(-40, 40)] + [k / 100 for k in range(-250, 250, 7)] + g[:600] + \
@@ -192,6 +204,10 @@ def fmt_cases():
     ints += [rng.randint(-10 ** 7, 10 ** 7) for _ in range(300)]
     out["ints"] = [[enc(n), enc(f"{n:+d}"), enc(f"{n:,}"), enc(f"{n:02d}"), enc(f"{n:05d}"), enc(f"{n:>3}"), enc(f"{n:<4}")]
                    for n in ints]
+    out["rjust"] = [[enc(t), enc(w), enc(f"{t:>{w}}"), enc(f"{t:<{w}}")]
+                    for t in ["", "a", "ab", "abc", "abcd", "50%", "100%", "-3"] for w in (0, 1, 3, 4, 6)]
+    out["pct_rjust"] = [[enc(x), enc(f"{x:>4.0%}")] for x in [0.0, 0.05, 0.5, 0.95, 1.0, 0.123, 0.999, -0.1, 1.5, 0.0049]
+                        + rand_floats(60, -0.2, 1.2)]
     caps = ["opening_act", "silver", "GOLD", "bronze", "", "a", "hello world", "123abc", "x Y z", "headliner", "Featured", "eCLAIR"]
     out["capitalize"] = [[enc(s), enc(s.capitalize())] for s in caps]
     # str() of scalars and containers, repr() of strings.

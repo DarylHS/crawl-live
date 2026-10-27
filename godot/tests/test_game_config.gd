@@ -7,8 +7,7 @@ func after_each() -> void:
 
 
 func test_every_python_constant_matches() -> void:
-	if not PyFixtures.available():
-		pending("FIXTURES not set (run through scripts/gd_test.sh)")
+	if not PyFixtures.require(self):
 		return
 	var bad: Array = []
 	var rows := PyFixtures.rows("config")
@@ -23,8 +22,7 @@ func test_every_python_constant_matches() -> void:
 
 
 func test_floor_turns_matches_python() -> void:
-	if not PyFixtures.available():
-		pending("FIXTURES not set (run through scripts/gd_test.sh)")
+	if not PyFixtures.require(self):
 		return
 	for r in PyFixtures.rows("config_floor_turns"):
 		assert_eq(GameConfig.floor_turns(r[0]), r[1])

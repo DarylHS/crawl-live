@@ -56,8 +56,7 @@ func test_loads_error() -> void:
 
 
 func test_dumps_matches_python() -> void:
-	if not PyFixtures.available():
-		pending("FIXTURES not set (run through scripts/gd_test.sh)")
+	if not PyFixtures.require(self):
 		return
 	var bad: Array = []
 	var rows := PyFixtures.rows("json")

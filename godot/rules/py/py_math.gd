@@ -42,7 +42,7 @@ static func fmod_py(a: float, b: float) -> float:
 		if (r < 0.0) != (b < 0.0):
 			r += b
 		return r
-	var zero := 0.0   # a literal -0.0 is folded to +0.0 by the GDScript parser, so negate a variable
+	var zero := 0.0   # not `-0.0 if b < 0.0 else 0.0`: on 4.7.2 that ternary loses the sign of zero
 	return -zero if b < 0.0 else zero
 
 
@@ -75,19 +75,39 @@ static func round_n(x: float, n: int) -> float:
 	return (("%." + str(n) + "f") % x).to_float()
 
 
-## Python 3.12+ sum() of floats (Neumaier compensated summation, CPython's float fast path):
-## differs from a naive loop in the last bit for some inputs. Sums of ints and bools stay plain.
+## Python 3.12+ sum() (CPython builtin_sum): ints and bools are added exactly while the list is
+## all ints; the first float is added to the running int plainly and the rest is Neumaier compensated
+## summation; ints after that point are converted to float and added plainly (not compensated).
+## Differs from a naive loop in the last bit for some inputs. Returns a float even for an all-int list.
 static func fsum_py(values: Array) -> float:
-	var f := 0.0
+	var i := 0
+	var n := values.size()
+	var int_sum := 0
+	while i < n and (typeof(values[i]) == TYPE_INT or typeof(values[i]) == TYPE_BOOL):
+		int_sum += int(values[i])
+		i += 1
+	var f := float(int_sum)
 	var c := 0.0
-	for v in values:
-		var x := float(v)
+	if i < n:
+		# The first float is added with the generic int + float (a plain addition), then the
+		# compensated loop starts with c = 0.
+		f += float(values[i])
+		i += 1
+	while i < n:
+		if typeof(values[i]) != TYPE_FLOAT:
+			# CPython adds an int (or bool) seen after the first float with a plain float addition,
+			# outside the compensation.
+			f += float(values[i])
+			i += 1
+			continue
+		var x := float(values[i])
 		var t := f + x
 		if absf(f) >= absf(x):
 			c += (f - t) + x
 		else:
 			c += (x - t) + f
 		f = t
+		i += 1
 	if c != 0.0 and is_finite(c):
 		f += c
 	return f
@@ -125,9 +145,11 @@ static func compare_values(a: Variant, b: Variant) -> int:
 		if sa == sb:
 			return 0
 		return -1 if sa < sb else 1
-	if a == b:
+	var na: Variant = int(a) if typeof(a) == TYPE_BOOL else a
+	var nb: Variant = int(b) if typeof(b) == TYPE_BOOL else b
+	if na == nb:
 		return 0
-	return -1 if a < b else 1
+	return -1 if na < nb else 1
 
 
 ## Python tuple/list ordering: compare element by element, the shorter wins a tie. -1, 0 or 1.

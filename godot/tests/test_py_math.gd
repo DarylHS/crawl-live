@@ -3,15 +3,12 @@ extends TestCase
 ## hand-written cases from the port plan (3.1, 3.3, Appendix A).
 
 
-## Negative zero (the GDScript literal -0.0 is parsed as +0.0).
+## Negative zero, decoded from its bits (a ternary like `-0.0 if c else 0.0` loses the sign on 4.7.2).
 var NEG_ZERO: float = PyFixtures.float_from_hex("8000000000000000")
 
 
 func _need_fixtures() -> bool:
-	if not PyFixtures.available():
-		pending("FIXTURES not set (run through scripts/gd_test.sh)")
-		return false
-	return true
+	return PyFixtures.require(self)
 
 
 # --- Hand-written cases ---------------------------------------------------------------------
@@ -83,6 +80,18 @@ func test_truthy() -> void:
 		assert_false(PyMath.truthy(v), "falsy %s" % var_to_str(v))
 	for v in [1, -1, 0.5, "a", " ", [0], {"a": 1}, true, Vector2i.ZERO]:
 		assert_true(PyMath.truthy(v), "truthy %s" % var_to_str(v))
+
+
+func test_compare_values_bools_are_ints() -> void:
+	assert_eq(PyMath.compare_values(true, 2), -1)
+	assert_eq(PyMath.compare_values(2, true), 1)
+	assert_eq(PyMath.compare_values(true, 1), 0)
+	assert_eq(PyMath.compare_tuples([true, 1], [1, false]), 1)
+
+
+func test_fsum_mixed_ints_and_floats() -> void:
+	assert_eq(PyMath.fsum_py([2, 0.3, 1, 0.15]), 3.4499999999999997)
+	assert_eq(PyMath.fsum_py([true, 0.5, true]), 2.5)
 
 
 func test_compare_tuples() -> void:
@@ -194,11 +203,24 @@ func test_fsum_matches_python_sum() -> void:
 			bad.append([r[0], r[1], got])
 		var naive := 0.0
 		for x in r[0]:
-			naive += x
+			naive += float(x)
 		if PyFixtures.float_bits(naive) != PyFixtures.float_bits(r[1]):
 			naive_differs += 1
 	assert_eq(bad.slice(0, 3), [], "%d of %d differ" % [bad.size(), rows.size()])
 	assert_gt(naive_differs, 0, "the fixtures include lists where a naive sum is wrong")
+
+
+func test_nested_tuple_keys_sort_like_python() -> void:
+	if not _need_fixtures():
+		return
+	var n := 0
+	for r in PyFixtures.rows("math", "sort"):
+		if r[0] != "nested":
+			continue
+		n += 1
+		var got := PyMath.stable_sort_by(r[1], func(x: Array) -> Variant: return x[0], r[2])
+		assert_eq(got.map(func(x: Array) -> int: return x[1]), r[3])
+	assert_gt(n, 100)
 
 
 func test_sorted_matches_python() -> void:
@@ -207,6 +229,8 @@ func test_sorted_matches_python() -> void:
 	var bad := 0
 	var rows := PyFixtures.rows("math", "sort")
 	for r in rows:
+		if r[0] == "nested":
+			continue
 		var items: Array = r[1]
 		var got := PyMath.stable_sort_by(items, func(x: Array) -> Variant: return x[0], r[2])
 		var order: Array = got.map(func(x: Array) -> int: return x[1])

@@ -11,7 +11,9 @@ extends RefCounted
 ##
 ## Test seam (approved, port plan 11.3 item 7): an optional `tap` Callable, called first in emit
 ## with (name, data) before any handler, for the parity trace. No rule reads it. Leave it unset
-## (the default invalid Callable) in the game.
+## (the default invalid Callable) in the game. A tap lambda that captures an object owning this bus
+## (the World, say) makes a reference cycle and leaks it: clear the tap when done, or capture a
+## separate holder object instead.
 
 var tap: Callable = Callable()
 

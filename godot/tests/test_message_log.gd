@@ -76,8 +76,16 @@ func test_tap_is_called_first_with_text_and_colour() -> void:
 	log.tap = func(text: String, colour: Array) -> void: seen.append([text, colour, log.lines.size()])
 	log.add("x", GameConfig.DANGER)
 	log.add("y")
+	log.tap = Callable()   # the lambda captures log, which owns the tap: break the cycle
 	assert_eq(seen, [["x", [235, 80, 80], 0], ["y", [225, 222, 235], 1]])
 
 
 func test_default_tap_is_unset() -> void:
 	assert_false(MessageLog.new().tap.is_valid())
+
+
+func test_stored_colour_is_a_copy() -> void:
+	var log := MessageLog.new()
+	log.add("a")
+	log.lines[0][1][0] = 0
+	assert_eq(GameConfig.TEXT, [225, 222, 235])

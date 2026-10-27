@@ -3,10 +3,7 @@ extends TestCase
 
 
 func _need_fixtures() -> bool:
-	if not PyFixtures.available():
-		pending("FIXTURES not set (run through scripts/gd_test.sh)")
-		return false
-	return true
+	return PyFixtures.require(self)
 
 
 # --- Hand-written cases ---------------------------------------------------------------------
@@ -97,53 +94,31 @@ func test_format_map() -> void:
 
 # --- Against Python ---------------------------------------------------------------------------
 
-func _check_repr(group: String, name: String, tolerate_longer: bool) -> void:
+func _check_repr(group: String, name: String) -> void:
 	var bad: Array = []
-	var longer := 0
 	var rows := PyFixtures.rows(group, name)
 	for r in rows:
 		var got := PyFmt.repr_float(r[0])
 		if got == r[1]:
 			continue
-		# Random 16-17 digit doubles may come out one digit longer than Python's shortest form:
-		# acceptable only for those (the digits still read back as the same double).
-		if tolerate_longer and _sig_digits(got) == 17 and _sig_digits(r[1]) < 17 and _same_value(got, r[0]):
-			longer += 1
-			continue
 		bad.append([r[1], got])
 	assert_gt(rows.size(), 100)
-	assert_eq(bad.slice(0, 8), [], "%d of %d differ (%d longer-but-valid)" % [bad.size(), rows.size(), longer])
-	gut.p("%s/%s: %d cases, %d longer-but-valid" % [group, name, rows.size(), longer])
-
-
-func _sig_digits(s: String) -> int:
-	var mant := s.trim_prefix("-")
-	var epos := mant.find("e")
-	if epos >= 0:
-		mant = mant.left(epos)
-	mant = mant.replace(".", "").lstrip("0")
-	return mant.rstrip("0").length()
-
-
-## True when text parses to x within one ulp (Godot's own parser is exact only to 15 digits, so
-## this is a sanity check that the longer text is a faithful rendering, not a proof).
-func _same_value(text: String, x: float) -> bool:
-	return absf(text.to_float() - x) <= absf(x) * 2.3e-16
+	assert_eq(bad.slice(0, 8), [], "%d of %d differ" % [bad.size(), rows.size()])
 
 
 func test_repr_float_game_values_match_python() -> void:
 	if _need_fixtures():
-		_check_repr("fmt", "repr_game", false)
+		_check_repr("fmt", "repr_game")
 
 
 func test_repr_float_edges_match_python() -> void:
 	if _need_fixtures():
-		_check_repr("fmt", "repr_edge", false)
+		_check_repr("fmt", "repr_edge")
 
 
 func test_repr_float_random_values_match_python() -> void:
 	if _need_fixtures():
-		_check_repr("fmt", "repr_random", false)
+		_check_repr("fmt", "repr_random")
 
 
 func test_fixed_specs_match_python() -> void:
@@ -191,6 +166,18 @@ func test_integer_specs_match_python() -> void:
 		if got != r.slice(1):
 			bad.append([n, r.slice(1), got])
 	assert_eq(bad.slice(0, 5), [])
+
+
+func test_rjust_and_padded_percent_match_python() -> void:
+	if not _need_fixtures():
+		return
+	for r in PyFixtures.rows("fmt", "rjust"):
+		assert_eq(PyFmt.rjust(r[0], r[1]), r[2])
+		assert_eq(PyFmt.ljust(r[0], r[1]), r[3])
+	var rows := PyFixtures.rows("fmt", "pct_rjust")
+	for r in rows:
+		assert_eq(PyFmt.rjust(PyFmt.percent(r[0], 0), 4), r[1])
+	assert_gt(rows.size(), 50)
 
 
 func test_capitalize_matches_python() -> void:
