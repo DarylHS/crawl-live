@@ -19,7 +19,7 @@ from crawler.ui.firstperson import FirstPersonView
 from crawler.ui.hud import Renderer
 from crawler.world import World
 
-VIEW = pygame.Rect(0, 0, C.MAP_W * C.TILE, C.MAP_H * C.TILE)
+VIEW = pygame.Rect(0, 0, C.VIEW_W * C.TILE, C.VIEW_H * C.TILE)
 
 
 def main(seed=None, pet="dog"):

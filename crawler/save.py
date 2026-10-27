@@ -14,7 +14,7 @@ from .world import World
 
 SAVE_DIR = Path(__file__).resolve().parents[1] / "saves"
 SAVE_FILE = SAVE_DIR / "slot1.json"
-VERSION = 5
+VERSION = 6
 
 
 def _rng_state(rng):
@@ -43,6 +43,8 @@ def to_dict(w):
         last_reveal=w.last_reveal, toasts=w.toasts, messages=list(w.messages.lines),
         race=w.race, cls=w.cls, pending_choice=w.pending_choice,
         skill_cooldown=w.skill_cooldown, scout_turns=w.scout_turns, exit_sealed=w.exit_sealed,
+        has_key=w.has_key, stairs_open_turn=w.stairs_open_turn,
+        stairs_announced=w._stairs_announced, next_spawn=w._next_spawn, spawn_cap=w._spawn_cap,
         gold=w.gold, contract=w.contract, pending_offer=w.pending_offer,
         hero_name=w.hero_name, gender=w.gender, backstory=w.backstory, hype_turns=w.hype_turns,
         practice=w.training.to_dict(),
@@ -57,7 +59,8 @@ def to_dict(w):
         floor=dict(width=f.width, height=f.height, depth=f.depth, tiles=f.tiles, safe=f.safe,
                    explored=f.explored, rooms=[asdict(r) for r in f.rooms],
                    start_room=f.rooms.index(f.start_room), safe_room=f.rooms.index(f.safe_room),
-                   stairs=f.stairs),
+                   stairs=f.stairs, safe_door=f.safe_door,
+                   furniture=[[x, y, kind] for (x, y), kind in f.furniture.items()]),
         rng=_rng_state(w.rng), loot_rng=_rng_state(w.loot_rng),
         achievements=dict(unlocked=w.achievements.unlocked,
                           kills=w.achievements.tracker.kills,
@@ -79,8 +82,11 @@ def from_dict(d):
     for key in ("turn", "state", "death_cause", "depth", "timer", "timer_max", "inventory",
                 "boxes", "race", "cls", "pending_choice", "skill_cooldown", "scout_turns",
                 "exit_sealed", "gold", "contract", "pending_offer", "floor_stats", "box_log",
-                "hero_name", "gender", "backstory", "hype_turns", "riposte", "remote_shop"):
+                "hero_name", "gender", "backstory", "hype_turns", "riposte", "remote_shop",
+                "has_key", "stairs_open_turn"):
         setattr(w, key, d[key])
+    w._stairs_announced, w._next_spawn = d["stairs_announced"], d["next_spawn"]
+    w._spawn_cap = d["spawn_cap"]
     w._warnings_left, w._was_safe = d["warnings_left"], d["was_safe"]
     w._plant_fed_floor = d["plant_fed_floor"]
     w.training.load(d["practice"])
@@ -100,6 +106,8 @@ def from_dict(d):
     f.rooms = [Room(**r) for r in fd["rooms"]]
     f.start_room, f.safe_room = f.rooms[fd["start_room"]], f.rooms[fd["safe_room"]]
     f.stairs = [tuple(s) for s in fd["stairs"]]
+    f.safe_door = tuple(fd["safe_door"])
+    f.furniture = {(x, y): kind for x, y, kind in fd["furniture"]}
     w.floor = f
 
     _set_rng(w.rng, d["rng"])

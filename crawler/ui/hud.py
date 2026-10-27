@@ -6,12 +6,15 @@ from ..attributes import ATTRS, fmt_mod, mod
 from ..classes import CLASSES, RACES, SKILLS
 from ..combat import expected_damage, hit_chance
 from ..dice import needed_roll
-from ..dungeon import STAIRS, WALL
+from ..dungeon import FURNITURE, STAIRS, WALL
 from ..entities import PETS
 from ..items import ITEMS, glyph
 from ..loot import BOX_TIERS
 
 MONO = "dejavusansmono,menlo,consolas,couriernew,monospace"
+FURNITURE_GLYPHS = {"bed": ("=", (150, 180, 230)), "bench": ("&", (200, 160, 100)),
+                    "counter": ("$", (255, 196, 64))}
+TIER_COLOURS = {"opening": (110, 170, 240), "featured": (255, 196, 64), "headliner": (235, 80, 80)}
 
 
 class Renderer:
@@ -22,6 +25,7 @@ class Renderer:
         self.big = pygame.font.SysFont(MONO, 22, bold=True)
         self.huge = pygame.font.SysFont(MONO, 56, bold=True)
         self._glyphs = {}
+        self._cam = (0, 0)
 
     def glyph(self, ch, colour):
         key = (ch, colour)
@@ -38,17 +42,28 @@ class Renderer:
 
     # --- Map -----------------------------------------------------------
 
+    def _camera(self, world):
+        """Top-left tile of the visible window: centred on the player, clamped to the floor."""
+        f, p = world.floor, world.player
+        cx = min(max(0, p.x - C.VIEW_W // 2), max(0, f.width - C.VIEW_W))
+        cy = min(max(0, p.y - C.VIEW_H // 2), max(0, f.height - C.VIEW_H))
+        return cx, cy
+
     def _blit_glyph(self, surface, ch, colour, tx, ty):
         img = self.glyph(ch, colour)
-        surface.blit(img, img.get_rect(center=(tx * C.TILE + C.TILE // 2,
-                                               ty * C.TILE + C.TILE // 2)))
+        cx, cy = self._cam
+        surface.blit(img, img.get_rect(center=((tx - cx) * C.TILE + C.TILE // 2,
+                                               (ty - cy) * C.TILE + C.TILE // 2)))
 
     def draw_map(self, surface, world):
         floor, visible = world.floor, world.visible
         T = C.TILE
-        for y in range(floor.height):
+        self._cam = cx, cy = self._camera(world)
+        surface.set_clip((0, 0, C.VIEW_W * T, C.VIEW_H * T))
+        for y in range(cy, min(floor.height, cy + C.VIEW_H)):
             row, safe_row, seen_row = floor.tiles[y], floor.safe[y], floor.explored[y]
-            for x in range(floor.width):
+            sy = (y - cy) * T
+            for x in range(cx, min(floor.width, cx + C.VIEW_W)):
                 if not seen_row[x]:
                     continue
                 lit = (x, y) in visible
@@ -59,26 +74,34 @@ class Renderer:
                     colour = C.SAFE_LIT if lit else C.SAFE_DIM
                 else:
                     colour = C.FLOOR_LIT if lit else C.FLOOR_DIM
-                surface.fill(colour, (x * T, y * T, T - (tile != WALL), T - (tile != WALL)))
+                surface.fill(colour, ((x - cx) * T, sy, T - (tile != WALL), T - (tile != WALL)))
                 if tile == STAIRS:
-                    self._blit_glyph(surface, ">", C.ACCENT if lit else C.TEXT_DIM, x, y)
+                    open_ = not world.stairs_locked
+                    self._blit_glyph(surface, ">", (C.ACCENT if open_ else C.DANGER) if lit
+                                     else C.TEXT_DIM, x, y)
+                elif tile == FURNITURE:
+                    kind = floor.furniture[(x, y)]
+                    self._blit_glyph(surface, FURNITURE_GLYPHS[kind][0],
+                                     FURNITURE_GLYPHS[kind][1] if lit else C.TEXT_DIM, x, y)
 
         for (x, y), keys in world.floor_items.items():
             if (x, y) in visible:
                 self._blit_glyph(surface, glyph(keys[-1]), ITEMS[keys[-1]]["colour"], x, y)
         for m in world.monsters:
             if (m.x, m.y) in visible:
+                px, py = (m.x - cx) * T, (m.y - cy) * T
                 if m.boss:
-                    pygame.draw.rect(surface, C.DANGER, (m.x * T, m.y * T, T, T), 1)
+                    pygame.draw.rect(surface, TIER_COLOURS.get(m.tier, C.DANGER), (px, py, T, T), 1)
                 self._blit_glyph(surface, m.glyph, m.colour, m.x, m.y)
                 if m.hp < m.max_hp:
                     w = int((T - 2) * m.hp / m.max_hp)
-                    surface.fill(C.DANGER, (m.x * T + 1, m.y * T + T - 2, w, 2))
+                    surface.fill(C.DANGER, (px + 1, py + T - 2, w, 2))
         pet = world.active_pet
         if pet:
             self._blit_glyph(surface, pet.glyph, pet.colour, pet.x, pet.y)
         p = world.player
         self._blit_glyph(surface, p.glyph, p.colour, p.x, p.y)
+        surface.set_clip(None)
 
     # --- Panel ---------------------------------------------------------
 
@@ -88,7 +111,7 @@ class Renderer:
         self.text(surface, label, (x + w // 2, y + 8), C.TEXT, self.small, centre=True)
 
     def draw_panel(self, surface, world):
-        x0 = C.MAP_W * C.TILE
+        x0 = C.VIEW_W * C.TILE
         surface.fill(C.PANEL_BG, (x0, 0, C.PANEL_W, C.SCREEN_H))
         x, w = x0 + 16, C.PANEL_W - 32
         p = world.player
@@ -109,7 +132,16 @@ class Renderer:
         self.text(surface, world.timer_text(), (x, y), timer_colour, self.big)
         y += 30
         self._bar(surface, x, y, w, frac_left, timer_colour, "")
-        y += 30
+        y += 20
+        if world.exit_sealed:
+            stairs, colour = "Exit sealed: beat the Headliner", C.DANGER
+        elif world.stairs_locked:
+            stairs, colour = f"Stairs unlock in {world.timer_text(world.stairs_wait)}", C.TEXT_DIM
+        else:
+            stairs, colour = ("Stairs open (key)" if world.has_key and world.stairs_wait
+                              else "Stairs open"), C.GOOD
+        self.text(surface, stairs, (x, y), colour, self.small)
+        y += 22
 
         self._bar(surface, x, y, w, p.hp / p.max_hp, C.DANGER, f"HP {p.hp}/{p.max_hp}")
         y += 22
@@ -206,11 +238,11 @@ class Renderer:
     # --- Log -----------------------------------------------------------
 
     def draw_log(self, surface, world):
-        y0 = C.MAP_H * C.TILE
-        surface.fill(C.PANEL_BG, (0, y0, C.MAP_W * C.TILE, C.LOG_H))
-        surface.fill(C.WALL_DIM, (0, y0, C.MAP_W * C.TILE, 1))
+        y0 = C.VIEW_H * C.TILE
+        surface.fill(C.PANEL_BG, (0, y0, C.VIEW_W * C.TILE, C.LOG_H))
+        surface.fill(C.WALL_DIM, (0, y0, C.VIEW_W * C.TILE, 1))
         # Wrap long messages so they never spill under the side panel.
-        max_w = C.MAP_W * C.TILE - 24
+        max_w = C.VIEW_W * C.TILE - 24
         lines = []
         for text, colour in world.messages.recent(C.LOG_LINES):
             words, line = text.split(), ""
@@ -234,7 +266,7 @@ class Renderer:
         live = [t for t in world.toasts if world.turn - t[0] < C.TOAST_TURNS][-3:]
         for i, (_, text, tier) in enumerate(live):
             w, h = 360, 30
-            rect = pygame.Rect((C.MAP_W * C.TILE - w) // 2, 10 + i * (h + 6), w, h)
+            rect = pygame.Rect((C.VIEW_W * C.TILE - w) // 2, 10 + i * (h + 6), w, h)
             surface.fill(C.PANEL_BG, rect)
             pygame.draw.rect(surface, BOX_TIERS[tier]["colour"], rect, 2)
             self.text(surface, text, rect.center, C.TEXT, self.font, centre=True)

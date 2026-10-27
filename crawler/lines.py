@@ -165,6 +165,31 @@ LINES = {
                   "{title}: an inspired choice, said nobody yet."],
     },
 
+    # --- Boss tiers and the stairs -------------------------------------------
+    "act_kill": {
+        "mild": ["{name} is off the bill.",
+                 "That's {name} done. The show goes on."],
+        "spicy": ["{name}, everybody! Let's hear it for... no, they're dead.",
+                  "{name} won't be doing an encore.",
+                  "Exit {name}, stage left, horizontally.",
+                  "The crowd paid good money for {name}. Refunds are not available."],
+    },
+    "stairs_open": {
+        "mild": ["The stairwells are open. Off you go.",
+                 "Stairs unlocked. The floor is still collapsing, mind."],
+        "spicy": ["Stairwells open! Please exit in an orderly fashion, or a chaotic one. "
+                  "Chaos rates better.",
+                  "The stairs are open, {address}. The ceiling would like you to hurry.",
+                  "Doors unlocked. Last one down is structurally integrated."],
+    },
+    "map_found": {
+        "mild": ["A map. How organised of you.",
+                 "Cartography! The System is mildly impressed."],
+        "spicy": ["You took a map off a corpse. Very resourceful. Very grim.",
+                  "A map! Now you can see exactly how lost you are.",
+                  "Ooh, a map. Somebody's planning ahead. Unusual, for this audience."],
+    },
+
     # --- Dice: natural 20s and 1s -------------------------------------------
     "nat20": {
         "mild": ["A natural 20 against {foe}. The dice approve.",

@@ -140,7 +140,8 @@ def choose(w):
             return ("skill", None)
     if adj and not w.in_safe_room:
         return ("move", (adj[0].x - p.x, adj[0].y - p.y))
-    if w.on_stairs and (w.timer < w.timer_max * 0.4 or all(f.explored[r.centre[1]][r.centre[0]] for r in f.rooms)):
+    if w.on_stairs and not w.stairs_locked and not w.exit_sealed \
+            and (w.timer < w.timer_max * 0.4 or all(f.explored[r.centre[1]][r.centre[0]] for r in f.rooms)):
         return ("descend", None)
     hurt = p.hp < p.max_hp * 0.5
     loot = [xy for xy in w.floor_items if xy in w.visible and worth_taking(w, xy)]
@@ -153,7 +154,7 @@ def choose(w):
     if w.in_safe_room and w.pet and w.pet.downed and w.timer > 150:
         return ("revive", None)
     target = None
-    boss = next((m for m in w.monsters if m.boss), None)
+    boss = next((m for m in w.monsters if m.tier == "headliner"), None)
     if hurt and w.timer > 200:
         target = f.safe_room.centre
     elif w.exit_sealed and boss:
@@ -170,7 +171,7 @@ def choose(w):
                 target = min(rooms, key=lambda c: cheb(c, pos))
     if target is None:
         if w.on_stairs:
-            return ("descend", None)
+            return ("descend", None) if not w.stairs_locked else ("wait", None)
         target = min(f.stairs, key=lambda s: cheb(s, pos))
     mv = step_towards(w, *target)
     return ("move", mv) if mv else ("wait", None)

@@ -58,7 +58,7 @@ class Player(Entity):
     stat_points: int = START_POINTS
 
     def xp_to_next(self):
-        return 20 + 15 * (self.level - 1)
+        return 30 + 40 * (self.level - 1)
 
     def gain_xp(self, amount):
         """Add XP and apply any level-ups; returns the list of new levels."""
@@ -83,6 +83,8 @@ class Monster(Entity):
     phase: int = 1                  # bosses change behaviour as they lose HP
     stunned: int = 0                # turns left unable to act
     save: int = 0                   # bonus on saving throws (e.g. against bombs)
+    tier: str = ""                  # "" | "opening" | "featured" | "headliner" (boss tiers)
+    base: str = ""                  # for Acts: the monster they're an elite version of
 
     # Bosses have proper names ("Foreman Gristle"), so they never take an article.
     @property
@@ -112,7 +114,7 @@ class Pet(Entity):
     enraged: int = 0                # turns of double damage left (Beastmaster's Rile Up)
 
     def xp_to_next(self):
-        return 15 + 10 * (self.level - 1)
+        return 30 + 35 * (self.level - 1)
 
     def gain_xp(self, amount):
         """Add XP and apply level-ups; returns the list of new levels."""

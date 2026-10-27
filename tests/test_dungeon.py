@@ -3,7 +3,7 @@ import random
 import pytest
 
 from crawler import config as C
-from crawler.dungeon import FLOOR, STAIRS, WALL, Floor, compute_fov, generate_floor
+from crawler.dungeon import FLOOR, FURNITURE, STAIRS, WALL, Floor, compute_fov, generate_floor
 
 SEEDS = range(25)
 
@@ -17,7 +17,7 @@ def test_every_open_tile_reachable_from_start(seed):
         dist = floor.distance_map(sx, sy)
         for y in range(floor.height):
             for x in range(floor.width):
-                if floor.tiles[y][x] != WALL:
+                if floor.walkable(x, y):
                     assert dist[y * floor.width + x] >= 0, (seed, depth, x, y)
 
 
@@ -31,7 +31,19 @@ def test_stairs_and_safe_room_placement(seed):
         assert not floor.start_room.contains(x, y)
     assert floor.safe_room is not floor.start_room
     assert not floor.is_safe(*floor.start_room.centre)
-    assert sum(map(sum, floor.safe)) == floor.safe_room.w * floor.safe_room.h
+    assert sum(map(sum, floor.safe)) == floor.safe_room.w * floor.safe_room.h + 1   # + doorway
+
+
+@pytest.mark.parametrize("seed", range(10))
+def test_safe_room_is_enclosed_with_one_doorway_and_furniture(seed):
+    floor = generate_floor(random.Random(seed), 2)
+    r = floor.safe_room
+    ring = [(x, y) for x in range(r.x - 1, r.x + r.w + 1) for y in range(r.y - 1, r.y + r.h + 1)
+            if not r.contains(x, y)]
+    openings = [xy for xy in ring if floor.tiles[xy[1]][xy[0]] != WALL]
+    assert openings == [floor.safe_door]
+    assert sorted(floor.furniture.values()) == ["bed", "bench", "counter"]
+    assert all(r.contains(x, y) and floor.tiles[y][x] == FURNITURE for x, y in floor.furniture)
 
 
 def test_border_is_always_wall():

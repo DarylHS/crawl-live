@@ -63,6 +63,8 @@ def test_descend_moves_to_next_floor_and_resets_timer():
     w = World(seed=6)
     w.player.x, w.player.y = w.floor.stairs[0]
     w.timer -= 100
+    assert w.stairs_locked and not w.descend()           # locked until half the time passes
+    w.turn = w.stairs_open_turn
     assert w.descend()
     assert w.depth == 2 and w.timer == C.floor_turns(2)
 
@@ -72,7 +74,7 @@ def test_final_floor_needs_the_boss_dead():
     w.new_floor(C.NUM_FLOORS)
     w.player.x, w.player.y = w.floor.stairs[0]
     assert w.exit_sealed and not w.descend()
-    boss = next(m for m in w.monsters if m.boss)
+    boss = next(m for m in w.monsters if m.tier == "headliner")
     boss.hp = 0
     w._after_hit(boss, "melee")
     assert not w.exit_sealed

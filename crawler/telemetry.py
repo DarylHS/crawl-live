@@ -28,7 +28,7 @@ SKIP = {"turn"}                     # every tick; the viewer samples cover it
 VALUE_KEYS = ("damage", "amount", "xp", "healed", "price", "kills", "level", "turns",
               "timer_left", "chance", "fee", "phase", "depth")
 DETAIL_KEYS = ("monster", "item", "tier", "contract", "skill", "cause", "source", "ability",
-               "recipe", "slot", "to", "boss", "cls", "attr")
+               "recipe", "slot", "to", "boss", "cls", "attr", "tier")
 
 
 class Telemetry:

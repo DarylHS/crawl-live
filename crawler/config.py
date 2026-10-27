@@ -5,27 +5,35 @@ Balance values live here so tuning never needs a code change elsewhere.
 
 # --- Layout -------------------------------------------------------------
 TILE = 16
-MAP_W, MAP_H = 64, 40
+VIEW_W, VIEW_H = 64, 40            # map area on screen, in tiles; the map scrolls to follow you
 PANEL_W = 256
 LOG_H = 128
-SCREEN_W = MAP_W * TILE + PANEL_W  # 1280
-SCREEN_H = MAP_H * TILE + LOG_H    # 768
+SCREEN_W = VIEW_W * TILE + PANEL_W  # 1280
+SCREEN_H = VIEW_H * TILE + LOG_H    # 768
 FPS = 30
 LOG_LINES = 7
 
 # --- Dungeon ------------------------------------------------------------
 NUM_FLOORS = 6
 FOV_RADIUS = 8
-MAX_ROOMS = 14
-ROOM_MIN_W, ROOM_MAX_W = 5, 11
-ROOM_MIN_H, ROOM_MAX_H = 4, 8
-STAIRS_PER_FLOOR = 2
-EXTRA_CORRIDORS = 3          # loops so the map isn't a pure chain
+MAP_W, MAP_H = 120, 76        # floor size in tiles (about 3.5x the screen)
+MAX_ROOMS = 44
+ROOM_MIN_W, ROOM_MAX_W = 5, 12
+ROOM_MIN_H, ROOM_MAX_H = 4, 9
+STAIRS_PER_FLOOR = 3
+EXTRA_CORRIDORS = 12         # loops so the map isn't a pure chain
+SAFE_W, SAFE_H = 7, 5        # the safe room: small, enclosed, one doorway
 
 # --- Floor collapse timer (1 turn = 1 in-game minute) -----------------
 FLOOR_TURNS_BASE = 720       # 12 hours on floor 1
 FLOOR_TURNS_PER_DEPTH = 60   # deeper floors are bigger fights, so a bit more time
 TIMER_WARNINGS = (0.5, 0.25, 0.1)
+
+# --- Wandering monsters -------------------------------------------------
+RESPAWN_START = 45           # turns between arrivals when a floor opens...
+RESPAWN_END = 15             # ...shrinking to this as the timer runs down
+RESPAWN_CAP = 1.25           # never more than this times the floor's opening monster count
+HEADLINER_DROPS = ("katana", "sledge", "plate", "elixir", "fireworks")
 
 
 def floor_turns(depth: int) -> int:

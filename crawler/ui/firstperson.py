@@ -31,6 +31,8 @@ DEPTH_TINT = [(1.0, 1.0, 1.0), (1.0, 0.95, 0.82), (0.86, 1.0, 0.88),
 
 # Texture slots in the stacked texture array.
 T_BRICK, T_SAFE_WALL, T_FLOOR, T_SAFE_FLOOR, T_STAIRS, T_CEIL = range(6)
+TIER_SCALE = {"opening": 0.85, "featured": 0.95, "headliner": 1.0}   # boss tiers loom larger
+TIER_OUTLINE = {"opening": (110, 170, 240), "featured": (255, 196, 64), "headliner": (235, 80, 80)}
 
 
 # --- Procedural textures ----------------------------------------------------
@@ -255,8 +257,9 @@ BODIES = {
 }
 
 
-def creature_sprite(key, colour):
-    """A 32 x 32 pixel-art creature: a body plan drawn in its colour, lit from above, outlined."""
+def creature_sprite(key, colour, outline=(14, 12, 18)):
+    """A 32 x 32 pixel-art creature: a body plan drawn in its colour, lit from above, outlined
+    (bosses get their tier's colour as the outline)."""
     s = pygame.Surface((32, 32), pygame.SRCALPHA)
     BODIES.get(key, lambda s, c: _biped(s, c))(s, colour)
     rgb = pygame.surfarray.array3d(s).astype(float)
@@ -264,7 +267,7 @@ def creature_sprite(key, colour):
     rgb *= np.linspace(1.1, 0.75, 32)[None, :, None]          # light from above
     pad = np.pad(alpha, 1)
     edge = (pad[:-2, 1:-1] | pad[2:, 1:-1] | pad[1:-1, :-2] | pad[1:-1, 2:]) & ~alpha
-    rgb[edge] = (14, 12, 18)
+    rgb[edge] = outline
     out = pygame.Surface((32, 32), pygame.SRCALPHA)
     pygame.surfarray.blit_array(out, _clip(rgb))
     a = pygame.surfarray.pixels_alpha(out)
@@ -282,11 +285,39 @@ def glyph_sprite(font, ch, colour):
     return surf
 
 
-def stairs_sprite():
+def stairs_sprite(locked=False):
+    """A floating arrow over a stairwell: gold when open, red with a padlock when locked."""
     surf = pygame.Surface((16, 16), pygame.SRCALPHA)
-    pygame.draw.polygon(surf, (255, 196, 64), [(3, 5), (13, 5), (8, 13)])
-    pygame.draw.polygon(surf, (120, 80, 20), [(3, 5), (13, 5), (8, 13)], 1)
+    colour = (235, 80, 80) if locked else (255, 196, 64)
+    pygame.draw.polygon(surf, colour, [(3, 5), (13, 5), (8, 13)])
+    pygame.draw.polygon(surf, (60, 30, 10), [(3, 5), (13, 5), (8, 13)], 1)
+    if locked:
+        pygame.draw.rect(surf, (40, 30, 30), (6, 7, 4, 3))
+        pygame.draw.arc(surf, (40, 30, 30), (6, 4, 4, 5), 0, 3.15, 1)
     return surf
+
+
+def furniture_sprite(kind):
+    """Safe-room furniture: a bed, a crafting bench and the shop counter."""
+    s = pygame.Surface((32, 32), pygame.SRCALPHA)
+    if kind == "bed":
+        pygame.draw.rect(s, (90, 60, 40), (2, 18, 28, 8))
+        pygame.draw.rect(s, (150, 180, 230), (3, 13, 26, 7))
+        pygame.draw.rect(s, (240, 240, 240), (4, 11, 8, 5))
+        for x in (3, 27):
+            pygame.draw.rect(s, (70, 45, 30), (x, 24, 2, 8))
+    elif kind == "bench":
+        pygame.draw.rect(s, (160, 115, 70), (1, 14, 30, 5))
+        for x in (3, 26):
+            pygame.draw.rect(s, (110, 80, 50), (x, 19, 3, 13))
+        pygame.draw.rect(s, (170, 170, 180), (6, 9, 7, 5))          # vice
+        pygame.draw.line(s, (200, 200, 210), (18, 13), (26, 6), 2)  # spanner
+    else:
+        pygame.draw.rect(s, (120, 90, 140), (0, 14, 32, 18))
+        pygame.draw.rect(s, (255, 196, 64), (0, 12, 32, 3))
+        pygame.draw.rect(s, (60, 200, 120), (11, 4, 10, 8))         # till
+        pygame.draw.rect(s, (20, 40, 30), (13, 6, 6, 3))
+    return s
 
 
 # --- The view -----------------------------------------------------------------
@@ -473,17 +504,25 @@ class FirstPersonView:
                 spr = self._sprite(("item", k), lambda k=k: glyph_sprite(self.item_font, glyph(k),
                                                                           ITEMS[k]["colour"]))
                 items.append((x + 0.5, y + 0.5, spr, 0.32, 0.0, None))
+        locked = world.stairs_locked or world.exit_sealed
         for sx, sy in world.floor.stairs:
             if (sx, sy) in vis:
-                items.append((sx + 0.5, sy + 0.5, self._sprite("stairs", stairs_sprite), 0.3, 0.55, None))
+                spr = self._sprite(("stairs", locked), lambda: stairs_sprite(locked))
+                items.append((sx + 0.5, sy + 0.5, spr, 0.3, 0.55, None))
+        for (fx, fy), kind in world.floor.furniture.items():
+            if (fx, fy) in vis:
+                spr = self._sprite(("furniture", kind), lambda k=kind: furniture_sprite(k))
+                items.append((fx + 0.5, fy + 0.5, spr, 0.75, 0.0, None))
         pet = world.active_pet
         if pet and (pet.x, pet.y) in vis:
             spr = self._sprite(("pet", pet.species), lambda: creature_sprite(pet.species, pet.colour))
             items.append((pet.x + 0.5, pet.y + 0.5, spr, 0.5, 0.0, None))
         for m in world.monsters:
             if (m.x, m.y) in vis:
-                spr = self._sprite(("mon", m.key), lambda m=m: creature_sprite(m.key, m.colour))
-                scale = 1.0 if m.boss else 0.62 + 0.03 * min(m.max_hp, 12) / 4
+                look = m.base or m.key
+                spr = self._sprite(("mon", look, m.tier), lambda m=m, k=look: creature_sprite(
+                    k, m.colour, TIER_OUTLINE.get(m.tier, (14, 12, 18))))
+                scale = TIER_SCALE.get(m.tier) or 0.62 + 0.03 * min(m.max_hp, 12) / 4
                 items.append((m.x + 0.5, m.y + 0.5, spr, scale, 0.0, m))
 
         inv_det = 1.0 / (plx * dy - dx * ply)
@@ -544,8 +583,9 @@ class FirstPersonView:
         self._warnings(surface, world, rect)
         self._ahead(surface, world, rect)
 
-    def _minimap(self, surface, world, rect, s=3):
+    def _minimap(self, surface, world, rect):
         f = world.floor
+        s = 2 if f.width > 80 else 3
         w, h = f.width * s, f.height * s
         x0, y0 = rect.right - w - 10, rect.top + 10
         mm = pygame.Surface((w, h), pygame.SRCALPHA)

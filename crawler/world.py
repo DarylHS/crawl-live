@@ -9,7 +9,7 @@ from collections import deque
 from . import config as C
 from .achievements import Achievements
 from .ai import cheb, take_monster_turns, take_pet_turn
-from .bosses import BOSSES, PHASE_TWO, boss_depth, spawn_boss
+from .bosses import ACTS, BOSSES, MAP_RADIUS, PHASE_TWO, acts_per_floor, boss_depth, spawn_act, spawn_boss
 from .character import BACKSTORIES, GENDERS
 from .attributes import ATTRS, MAX_SCORE, mod, proficiency
 from .classes import CHOICE_FLOOR, CLASSES, FLAT_BONUSES, RACES, SKILLS
@@ -18,7 +18,7 @@ from .contracts import CONTRACTS, OFFER_CHANCE, OFFER_FROM_FLOOR, effect
 from .crafting import CRAFT_TURNS, RECIPES, can_craft
 from .dice import fmt, roll
 from .dungeon import NEIGHBOURS_8, STAIRS, compute_fov, generate_floor
-from .entities import PETS, monster_table, new_pet, new_player, spawn_monster
+from .entities import MONSTERS, PETS, monster_table, new_pet, new_player, spawn_monster
 from .events import EventBus
 from .funfacts import FunFacts
 from .items import FISTS, ITEMS, floor_loot_table
@@ -80,6 +80,11 @@ class World:
         self.skill_cooldown = 0
         self.scout_turns = 0            # Analyst's Scout Report display time left
         self.exit_sealed = False
+        self.has_key = False            # a Headliner's stairwell key opens the stairs early
+        self.stairs_open_turn = 0
+        self._stairs_announced = False
+        self._next_spawn = 0
+        self._spawn_cap = 0
         self.gold = 0
         self.contract = None            # key of the sponsor contract active this floor
         self.pending_offer = None       # contract on offer; the UI asks while this is set
@@ -228,7 +233,13 @@ class World:
         self._spawn_monsters()
         self._spawn_items()
         self._spawn_boss()
+        self._spawn_acts()
+        self._spawn_cap = round(sum(not m.boss for m in self.monsters) * C.RESPAWN_CAP)
+        self._next_spawn = self.turn + C.RESPAWN_START
         self.exit_sealed = depth == C.NUM_FLOORS
+        self.has_key = False
+        self.stairs_open_turn = self.turn + C.floor_turns(depth) // 2
+        self._stairs_announced = self.exit_sealed
         self._place_pet()
         self._was_safe = False
         self.update_fov()
@@ -237,6 +248,9 @@ class World:
         if self.exit_sealed:
             self.messages.add(f"The exits are sealed until {BOSSES[depth]['name']} falls.",
                               C.DANGER)
+        else:
+            self.messages.add(f"The stairwells unlock in {self.timer_text(self.stairs_wait)}, "
+                              f"or sooner if you take the Headliner's key.", C.TEXT_DIM)
         if depth >= CHOICE_FLOOR and not self.cls:
             self.pending_choice = True
         self.floor_stats.append(dict(depth=depth, damage_taken=0, gold=0, kills=0,
@@ -261,9 +275,7 @@ class World:
         self.contract, self.pending_offer = key, None
         self.floor_stats[-1]["contract"] = key
         for m in self.monsters:
-            m.dmg_bonus += c.get("monster_damage", 0)
-            if "monster_hp_mult" in c:
-                m.max_hp = m.hp = round(m.max_hp * c["monster_hp_mult"])
+            self._contract_buff(m)
         if "timer_mult" in c:
             self.timer = round(self.timer * c["timer_mult"])
             self.timer_max = round(self.timer_max * c["timer_mult"])
@@ -272,6 +284,15 @@ class World:
             self.add_box(c["bonus_box"], "signing bonus")
         self.events.emit("contract_accepted", contract=key, depth=self.depth)
         return True
+
+    def _contract_buff(self, m):
+        """Apply the active contract's monster changes to one monster."""
+        c = CONTRACTS.get(self.contract) if self.contract else None
+        if not c:
+            return
+        m.dmg_bonus += c.get("monster_damage", 0)
+        if "monster_hp_mult" in c:
+            m.max_hp = m.hp = round(m.max_hp * c["monster_hp_mult"])
 
     def decline_contract(self):
         if not self.pending_offer:
@@ -294,7 +315,7 @@ class World:
         for room in floor.rooms:
             if room is floor.start_room or room is floor.safe_room:
                 continue
-            count = self.rng.randint(0, min(3, 1 + self.depth // 2))
+            count = self.rng.randint(0, min(2, 1 + self.depth // 3))
             spots = [(x, y) for x, y in room.tiles() if floor.tiles[y][x] != STAIRS]
             for x, y in self.rng.sample(spots, min(count, len(spots))):
                 self.monsters.append(spawn_monster(self.rng.choices(keys, weights)[0], x, y))
@@ -320,6 +341,66 @@ class World:
                  if floor.tiles[y][x] != STAIRS and (x, y) not in taken]
         x, y = min(spots, key=lambda s: (max(abs(s[0] - sx), abs(s[1] - sy)), s))
         self.monsters.append(spawn_boss(self.depth, x, y))
+
+    def _act_rooms(self):
+        """Rooms where Acts can wait: not the start, the safe room or a stairwell room,
+        and not right next to the start."""
+        f = self.floor
+        sx, sy = f.start_room.centre
+        return [r for r in f.rooms if r is not f.start_room and r is not f.safe_room
+                and not any(r.contains(x, y) for x, y in f.stairs)
+                and max(abs(r.centre[0] - sx), abs(r.centre[1] - sy)) > 12]
+
+    def _free_spot(self, room):
+        taken = {(m.x, m.y) for m in self.monsters}
+        spots = [(x, y) for x, y in room.tiles()
+                 if self.floor.walkable(x, y) and (x, y) not in taken]
+        return self.rng.choice(spots) if spots else None
+
+    def _spawn_acts(self):
+        keys, weights = monster_table(self.depth)
+        rooms = self._act_rooms()
+        self.rng.shuffle(rooms)
+        n_open, n_feat = acts_per_floor(self.depth)
+        for tier in ["featured"] * n_feat + ["opening"] * n_open:
+            if not rooms:
+                return
+            spot = self._free_spot(rooms.pop())
+            if spot:
+                self.monsters.append(spawn_act(tier, self.rng.choices(keys, weights)[0], *spot))
+
+    def _respawn(self):
+        """Wandering monsters arrive out of sight, more often as the floor wears on.
+        Weaker monsters are likelier; Acts and the Headliner never come back."""
+        f, p = self.floor, self.player
+        elapsed = 1 - self.timer / max(1, self.timer_max)
+        gap = C.RESPAWN_START - (C.RESPAWN_START - C.RESPAWN_END) * elapsed
+        self._next_spawn = self.turn + max(C.RESPAWN_END, round(gap))
+        if sum(not m.boss for m in self.monsters) >= self._spawn_cap:
+            return
+        keys, weights = monster_table(self.depth)
+        weights = [w / MONSTERS[k]["xp"] ** 0.5 for k, w in zip(keys, weights)]
+        rooms = [r for r in f.rooms if r is not f.safe_room and r is not f.start_room]
+        for _ in range(10):
+            spot = self._free_spot(self.rng.choice(rooms))
+            if spot and spot not in self.visible and max(abs(spot[0] - p.x), abs(spot[1] - p.y)) > 10 \
+                    and not f.is_safe(*spot) and f.tiles[spot[1]][spot[0]] != STAIRS:
+                m = spawn_monster(self.rng.choices(keys, weights)[0], *spot)
+                self._contract_buff(m)
+                self.monsters.append(m)
+                self.events.emit("monster_spawned", monster=m.key, depth=self.depth)
+                return
+
+    @property
+    def stairs_wait(self):
+        """Turns until the stairwells unlock by themselves (0 once open)."""
+        return max(0, self.stairs_open_turn - self.turn)
+
+    @property
+    def stairs_locked(self):
+        if self.depth >= C.NUM_FLOORS:
+            return False                        # the final floor is sealed by its Headliner instead
+        return not self.has_key and self.stairs_wait > 0
 
     def _place_pet(self):
         pet = self.active_pet
@@ -407,6 +488,11 @@ class World:
             return False
         if self.exit_sealed:
             self.messages.add(f"The exit is sealed. Defeat {BOSSES[self.depth]['name']} first.",
+                              C.DANGER)
+            return False
+        if self.stairs_locked:
+            self.messages.add(f"The stairwell is locked for another "
+                              f"{self.timer_text(self.stairs_wait)}. The Headliner has a key.",
                               C.DANGER)
             return False
         self.events.emit("descend", depth=self.depth, turn=self.turn,
@@ -955,7 +1041,7 @@ class World:
             return
         if not target.alive:
             self._kill_monster(target, by)
-        elif target.boss and target.phase == 1 and target.hp <= target.max_hp // 2 \
+        elif target.tier == "headliner" and target.phase == 1 and target.hp <= target.max_hp // 2 \
                 and BOSSES[boss_depth(target)].get("final"):
             self._boss_phase_two(target)
 
@@ -984,7 +1070,7 @@ class World:
         if self.floor_stats:
             self.floor_stats[-1]["kills"] += 1
         gold = target.xp_value * C.GOLD_PER_XP * self.loot_rng.uniform(0.6, 1.4) \
-            * effect(self, "gold_mult") * (2 if target.boss else 1) \
+            * effect(self, "gold_mult") * (2 if target.tier == "headliner" else 1) \
             * (1 + 0.05 * self.practice("pickpocketing"))
         self.messages.add(f"{target.The} dies. +{self._earn_gold(gold, 'kill')} gold.", C.GOOD)
         self.events.emit("kill", monster=target.key, monster_name=target.name, xp=target.xp_value,
@@ -1000,13 +1086,20 @@ class World:
             for level in pet.gain_xp(target.xp_value if by == "pet" else target.xp_value // 2):
                 self.messages.add(f"{pet.name} is now level {level}.", pet.colour)
                 self.events.emit("pet_level_up", pet=pet.name, species=pet.species, level=level)
-        if target.boss:
+        if target.tier == "headliner":
             b = BOSSES[boss_depth(target)]
             self.events.emit("boss_kill", boss=target.name, depth=self.depth)
             self.add_box(b["box"], "boss")
             if b.get("final"):
                 self.exit_sealed = False
                 self.messages.add("The exits unseal. Get out!", C.GOOD)
+            else:
+                self.has_key = True
+                self.messages.add(f"{target.name} drops a stairwell key. The stairs are open "
+                                  f"to you.", C.ACCENT)
+            self._drop(target, self.loot_rng.choice(C.HEADLINER_DROPS))
+        elif target.tier:
+            self._act_reward(target)
         if self.loot_rng.random() < C.ITEM_DROP_CHANCE:
             keys, weights = floor_loot_table(self.depth)
             self.floor_items.setdefault((target.x, target.y), []).append(
@@ -1018,6 +1111,29 @@ class World:
             self.messages.add(f"Level up! You are now level {level}. Spend your attribute "
                               f"points with L ({p.stat_points} to spend).", C.ACCENT)
             self.events.emit("level_up", level=level)
+
+    def _drop(self, where, key):
+        self.floor_items.setdefault((where.x, where.y), []).append(key)
+
+    def _act_reward(self, act):
+        """Opening Acts drop a map of the area; Featured Acts drop a better haul."""
+        self.events.emit("act_kill", tier=act.tier, monster_name=act.name, depth=self.depth)
+        if act.tier == "opening":
+            f = self.floor
+            for y in range(max(0, act.y - MAP_RADIUS), min(f.height, act.y + MAP_RADIUS + 1)):
+                for x in range(max(0, act.x - MAP_RADIUS), min(f.width, act.x + MAP_RADIUS + 1)):
+                    if f.tiles[y][x] != 0 or any(f.tiles[y + dy][x + dx] != 0
+                                                 for dx, dy in NEIGHBOURS_8
+                                                 if f.in_bounds(x + dx, y + dy)):
+                        f.explored[y][x] = True
+            self.messages.add(f"{act.name} drops a map. The area around you is marked out.",
+                              C.INFO)
+            self.events.emit("map_found", depth=self.depth)
+        else:
+            keys, weights = floor_loot_table(min(C.NUM_FLOORS, self.depth + 2))
+            for _ in range(2):
+                self._drop(act, self.loot_rng.choices(keys, weights)[0])
+            self.messages.add(f"{act.name} leaves behind a haul. Press G to collect.", C.ACCENT)
 
     def monster_attack(self, monster, ranged=False):
         p = self.player
@@ -1093,6 +1209,12 @@ class World:
             self.skill_cooldown -= 1
         if self.scout_turns:
             self.scout_turns -= 1
+        if not self._stairs_announced and not self.stairs_wait:
+            self._stairs_announced = True
+            self.messages.add("The stairwells have unlocked. Clock's still ticking.", C.ACCENT)
+            self.events.emit("stairs_open", depth=self.depth, timer_left=self.timer)
+        if self.turn >= self._next_spawn:
+            self._respawn()
         while self._warnings_left and self.timer <= self._warnings_left[0] * self.timer_max:
             self._warnings_left.pop(0)
             self.messages.add(f"WARNING: floor collapse in {self.timer_text()}.", C.DANGER)

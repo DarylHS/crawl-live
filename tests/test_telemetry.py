@@ -22,7 +22,8 @@ def test_bot_run_produces_consistent_tables():
     assert sum(f["died_here"] for f in floors) == (run["outcome"] != "victory")
     assert all(f["result"] == "cleared" for f in floors[:-1])
     assert len(t["boxes"]) == len(w.box_log)
-    assert {e["event"] for e in t["events"]} >= {"kill", "floor_start"}
+    events = {e["event"] for e in t["events"]}
+    assert "kill" in events and ("floor_start" in events or w.depth == 1)
     assert "turn" not in {e["event"] for e in t["events"]}
 
 

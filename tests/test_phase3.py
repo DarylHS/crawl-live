@@ -6,7 +6,7 @@ import pytest
 from crawler import config as C
 from crawler import save
 from crawler.ai import cheb
-from crawler.bosses import BOSSES
+from crawler.bosses import BOSSES, acts_per_floor
 from crawler.classes import CHOICE_FLOOR
 from crawler.crafting import CRAFT_TURNS, RECIPES
 from crawler.dungeon import NEIGHBOURS_8
@@ -191,8 +191,12 @@ def test_arc_bolt_hits_nearest_visible():
 def test_one_boss_per_floor_by_the_furthest_stairs(depth):
     w = World(seed=12)
     w.new_floor(depth)
-    bosses = [m for m in w.monsters if m.boss]
+    bosses = [m for m in w.monsters if m.tier == "headliner"]
     assert len(bosses) == 1 and bosses[0].name == BOSSES[depth]["name"]
+    n_open, n_feat = acts_per_floor(depth)
+    tiers = [m.tier for m in w.monsters if m.boss]
+    assert tiers.count("opening") <= n_open and tiers.count("featured") <= n_feat
+    assert tiers.count("opening") + tiers.count("featured") >= 1
     sx, sy = w.floor.stairs[-1]
     room = next(r for r in w.floor.rooms if r.contains(sx, sy))
     assert room.contains(bosses[0].x, bosses[0].y)
@@ -200,7 +204,7 @@ def test_one_boss_per_floor_by_the_furthest_stairs(depth):
 
 def test_boss_kill_awards_box_achievement_and_viewers():
     w = World(seed=13)
-    boss = next(m for m in w.monsters if m.boss)
+    boss = next(m for m in w.monsters if m.tier == "headliner")
     viewers = w.viewers
     boss.hp = 0
     w._after_hit(boss, "melee")
@@ -211,7 +215,7 @@ def test_boss_kill_awards_box_achievement_and_viewers():
 def test_final_boss_phase_two_calls_for_help():
     w = World(seed=14)
     w.new_floor(C.NUM_FLOORS)
-    boss = next(m for m in w.monsters if m.boss)
+    boss = next(m for m in w.monsters if m.tier == "headliner")
     count, bonus = len(w.monsters), boss.dmg_bonus
     boss.hp = boss.max_hp // 2
     w._after_hit(boss, "melee")
@@ -358,7 +362,7 @@ def test_mouse_runs_away_when_hurt():
 
 def test_boss_names_read_naturally():
     w = World(seed=23)
-    boss = next(m for m in w.monsters if m.boss)
+    boss = next(m for m in w.monsters if m.tier == "headliner")
     w.player.hp = 1
     w.player.ac = -100
     for _ in range(40):
