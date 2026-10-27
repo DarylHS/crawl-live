@@ -121,6 +121,20 @@ func test_to_dict_from_dict_round_trip() -> void:
 
 # --- parity with Python -----------------------------------------------------------------------
 
+func test_hero_matches_python() -> void:
+	if not S2Support.require(self):
+		return
+	assert_eq_deep(S2Support.hero().to_dict(), PyFixtures.decode(S2Support.doc()["tables"]["hero"]))
+
+
+func test_from_dict_rejects_unknown_keys() -> void:
+	var d := Entities.new_player(1, 2).to_dict()
+	d["bogus"] = 1
+	var p := Player.from_dict(d)
+	assert_push_error("unexpected field 'bogus'")
+	assert_eq(p.x, 1)
+
+
 func test_tables_match_python() -> void:
 	if not S2Support.require(self):
 		return

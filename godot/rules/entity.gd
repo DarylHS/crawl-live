@@ -62,9 +62,16 @@ func to_dict() -> Dictionary:
 
 
 ## Set every field present in `d` (the `cls(**d)` of save.py `_entity`, colour copied). Fields
-## missing from `d` keep their defaults. Called by the subclasses' from_dict.
+## missing from `d` keep their defaults; an unknown key is a push_error and is skipped. Called by the subclasses' from_dict.
 func _load(d: Dictionary) -> void:
+	var known := {}
+	for prop in get_property_list():
+		if prop["usage"] & PROPERTY_USAGE_SCRIPT_VARIABLE:
+			known[prop["name"]] = true
 	for k in d:
+		if not known.has(k):
+			push_error("Entity._load: unexpected field '%s' (Python's cls(**d) would raise)" % str(k))
+			continue
 		if k == "colour":
 			colour = (d[k] as Array).duplicate()
 		elif k == "attrs":

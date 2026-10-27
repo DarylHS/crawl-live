@@ -8,6 +8,8 @@ static var _loaded := false
 static var _error := ""
 
 
+## TEMPORARY stand-in: slice S6 must replace this with `World.new(1).player` and delete it
+## (test_hero_matches_python guards the numbers until then).
 ## Stand-in for Python's `World(seed=1).player` until World is ported (slice S6). The numbers are
 ## what refresh_stats gives that player: max_hp 34, attack +2, AC 10, 1d4+2, level 1, 6 points.
 static func hero() -> Player:

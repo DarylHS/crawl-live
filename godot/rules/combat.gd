@@ -25,7 +25,7 @@ static func _damage(base: int, defender: Entity) -> int:
 ## Mean damage of `dice_n` dice per swing: Python's sum() (Neumaier, PyMath.fsum_py) over the
 ## distribution in its insertion order.
 static func _mean(attacker: Entity, defender: Entity, dice_n: int, mult: float, bonus: int) -> float:
-	var terms: Array = []
+	var terms: Array[float] = []
 	var dist := Dice.dice_distribution(dice_n, attacker.dmg_die)
 	for t in dist:
 		var p: float = dist[t]

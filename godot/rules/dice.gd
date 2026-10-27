@@ -63,8 +63,8 @@ static func dice_distribution(n: int, sides: int) -> Dictionary:
 ## Exact chance that d20 + attack_bonus meets target (natural 1 misses, crits always hit).
 ## Returns [p_hit, p_crit], where p_crit is included in p_hit.
 static func chance_to_hit(attack_bonus: int, target: int, crit_range: int = 1, advantage: int = 0) -> Array:
-	var hits: Array = []
-	var crits: Array = []
+	var hits: Array[bool] = []
+	var crits: Array[bool] = []
 	var hit_count := 0
 	var crit_count := 0
 	for r in range(1, 21):

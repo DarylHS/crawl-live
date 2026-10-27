@@ -275,6 +275,8 @@ def tables():
     out["pets"] = [[enc(k), enc(new_pet(k, "", 3, 4).__dict__), enc(new_pet(k, "Rex", 3, 4).__dict__),
                     enc(init_mod(new_pet(k, "", 0, 0)))] for k in PETS]
     out["player"] = enc(new_player(5, 6).__dict__)
+    from crawler.world import World
+    out["hero"] = enc(asdict(World(seed=1).player))
     return out
 
 
