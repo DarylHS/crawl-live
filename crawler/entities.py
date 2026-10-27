@@ -148,24 +148,33 @@ def stat_block(d):
 
 # min/max floor bound where a monster appears; weight is its relative frequency.
 # Stat blocks: ac = Armour Class, attack = d20 bonus, dmg = (dice, sides, bonus), save = saving
-# throw bonus. floors = (min, max) floor; weight = relative frequency there.
+# throw bonus. floors = (min, max) floor; weight = relative frequency there; drops = what it
+# might be carrying (one is picked when it dies, ITEM_DROP_CHANCE of the time).
 MONSTERS = {
     "gnawer":   dict(name="Sewer Gnawer", glyph="r", colour=(170, 140, 110), hp=6, ac=11, attack=3,
-                     dmg=(1, 4, 0), save=1, xp=3, floors=(1, 2), weight=6),
+                     dmg=(1, 4, 0), save=1, xp=3, floors=(1, 2), weight=6,
+                     drops=("sock", "sock", "tonic")),
     "goblin":   dict(name="Knockoff Goblin", glyph="g", colour=(120, 190, 80), hp=9, ac=11, attack=4,
-                     dmg=(1, 6, 0), save=1, xp=5, floors=(1, 3), weight=5),
+                     dmg=(1, 6, 0), save=1, xp=5, floors=(1, 3), weight=5,
+                     drops=("tonic", "popper", "mug", "trophy")),
     "vacbot":   dict(name="Feral Vacuum Bot", glyph="v", colour=(160, 170, 190), hp=12, ac=13, attack=4,
-                     dmg=(1, 4, 1), save=0, xp=8, floors=(2, 4), weight=4),
+                     dmg=(1, 4, 1), save=0, xp=8, floors=(2, 4), weight=4,
+                     drops=("remote", "sock", "popper")),
     "skeleton": dict(name="Grumpy Skeleton", glyph="s", colour=(225, 220, 200), hp=14, ac=12, attack=5,
-                     dmg=(1, 6, 1), save=2, xp=10, floors=(2, 4), weight=4),
+                     dmg=(1, 6, 1), save=2, xp=10, floors=(2, 4), weight=4,
+                     drops=("pan", "jersey", "tonic", "trophy")),
     "brute":    dict(name="Tunnel Brute", glyph="B", colour=(200, 120, 70), hp=24, ac=12, attack=6,
-                     dmg=(1, 10, 1), save=2, xp=18, floors=(3, 5), weight=3),
+                     dmg=(1, 10, 1), save=2, xp=18, floors=(3, 5), weight=3,
+                     drops=("extinguisher", "brew", "vest")),
     "cultist":  dict(name="Hex Cultist", glyph="c", colour=(190, 90, 210), hp=16, ac=12, attack=6,
-                     dmg=(2, 4, 1), save=3, xp=16, floors=(3, 6), weight=3, ranged=5),
+                     dmg=(2, 4, 1), save=3, xp=16, floors=(3, 6), weight=3,
+                     drops=("brew", "fireworks", "remote"), ranged=5),
     "golem":    dict(name="Flesh Golem", glyph="G", colour=(210, 130, 140), hp=40, ac=14, attack=6,
-                     dmg=(2, 6, 1), save=2, xp=35, floors=(5, 6), weight=2),
+                     dmg=(2, 6, 1), save=2, xp=35, floors=(5, 6), weight=2,
+                     drops=("elixir", "plate", "brew")),
     "stalker":  dict(name="Shadow Stalker", glyph="S", colour=(110, 110, 230), hp=26, ac=15, attack=8,
-                     dmg=(2, 6, 0), save=5, xp=30, floors=(5, 6), weight=2),
+                     dmg=(2, 6, 0), save=5, xp=30, floors=(5, 6), weight=2,
+                     drops=("cleaver", "elixir", "fireworks")),
 }
 
 

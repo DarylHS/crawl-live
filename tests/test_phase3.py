@@ -208,7 +208,8 @@ def test_boss_kill_awards_box_achievement_and_viewers():
     viewers = w.viewers
     boss.hp = 0
     w._after_hit(boss, "melee")
-    assert BOSSES[1]["box"] in w.boxes and "giant_slayer" in w.achievements.unlocked
+    assert BOSSES[1]["box"] in w.boxes and "headliner_1" in w.achievements.unlocked
+    assert any(BOSSES[1]["name"] in r for r in w.box_reasons[BOSSES[1]["box"]])
     assert w.viewers >= viewers + 150
 
 

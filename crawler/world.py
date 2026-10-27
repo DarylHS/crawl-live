@@ -57,6 +57,8 @@ class World:
         self.inventory = []             # item keys, unequipped
         self.equipment = {"weapon": None, "armour": None}
         self.boxes = []                 # unopened loot box tiers
+        self.box_reasons = {}           # tier -> why each unopened box of that tier was given
+        self.last_reason = None         # why the box on the reveal screen was given
         self.floor_items = {}           # (x, y) -> [item keys]
         self.loot_rng = random.Random(self.seed ^ 0x100F)
         self.last_reveal = None         # (tier, item key) of the latest box opened
@@ -281,7 +283,7 @@ class World:
             self.timer_max = round(self.timer_max * c["timer_mult"])
         self.messages.add(f"Contract signed with {c['sponsor']}: {c['name']}.", C.ACCENT)
         if "bonus_box" in c:
-            self.add_box(c["bonus_box"], "signing bonus")
+            self.add_box(c["bonus_box"], f"Signing bonus from {c['sponsor']} for {c['name']}.")
         self.events.emit("contract_accepted", contract=key, depth=self.depth)
         return True
 
@@ -496,7 +498,8 @@ class World:
                               C.DANGER)
             return False
         self.events.emit("descend", depth=self.depth, turn=self.turn,
-                         timer_left=self.timer, timer_max=self.timer_max)
+                         timer_left=self.timer, timer_max=self.timer_max,
+                         early=self.depth < C.NUM_FLOORS and self.stairs_wait > 0)
         self._close_floor_stats()
         if self.depth >= C.NUM_FLOORS:
             self.state = "victory"
@@ -613,7 +616,8 @@ class World:
         self.gold += price
         self.shop.take_back(key)
         self.messages.add(f"You sell the {ITEMS[key]['name']} for {price} gold.", C.TEXT_DIM)
-        self.events.emit("shop_sell", item=key, price=price, depth=self.depth)
+        self.events.emit("shop_sell", item=key, price=price, depth=self.depth,
+                         item_kind=ITEMS[key]["kind"])
         return True
 
     def _in_safe_room_msg(self):
@@ -943,11 +947,17 @@ class World:
 
     # --- Loot boxes ----------------------------------------------------
 
-    def add_box(self, tier, source):
+    def add_box(self, tier, reason):
+        """Loot boxes come from achievements and sponsors; each remembers why it was given."""
         self.boxes.append(tier)
-        self.messages.add(f"You receive a {BOX_TIERS[tier]['name']} loot box ({source}). "
-                          "Open it in a safe room.", BOX_TIERS[tier]["colour"])
-        self.events.emit("box_gained", tier=tier, source=source)
+        self.box_reasons.setdefault(tier, []).append(reason)
+        self.messages.add(f"You receive a {BOX_TIERS[tier]['name']} loot box. Open it in a "
+                          f"safe room.", BOX_TIERS[tier]["colour"])
+        self.events.emit("box_gained", tier=tier, source=reason)
+
+    def _take_reason(self, tier):
+        reasons = self.box_reasons.get(tier)
+        return reasons.pop(0) if reasons else "A gift from the System. It won't say why."
 
     def open_box(self, tier):
         """Open one box of this tier. Safe rooms only; needs a free pack slot."""
@@ -960,6 +970,7 @@ class World:
             self.messages.add("Your pack is full. Drop something first.", C.DANGER)
             return False
         self.boxes.remove(tier)
+        self.last_reason = self._take_reason(tier)
         self._reveal(tier)
         return True
 
@@ -969,7 +980,7 @@ class World:
         self.last_reveal = (tier, key)
         self.box_log.append(dict(tier=tier, item=key, value=ITEMS[key]["value"],
                                  ev=round(box_stats(tier)[0], 2), rerolled=rerolled,
-                                 turn=self.turn))
+                                 turn=self.turn, reason=self.last_reason or ""))
         self.messages.add(f"The {BOX_TIERS[tier]['name']} box contains: {ITEMS[key]['name']}!",
                           BOX_TIERS[tier]["colour"])
         self.events.emit("box_opened", tier=tier, item=key, rerolled=rerolled)
@@ -1001,7 +1012,10 @@ class World:
             return False
         for _ in range(TRADE_UP_COST):
             self.boxes.remove(tier)
+            self._take_reason(tier)
         self.boxes.append(to)
+        self.box_reasons.setdefault(to, []).append(
+            f"Traded up from {TRADE_UP_COST} {BOX_TIERS[tier]['name']} boxes.")
         self.messages.add(f"Traded {TRADE_UP_COST} {BOX_TIERS[tier]['name']} boxes for a "
                           f"{BOX_TIERS[to]['name']} box.", BOX_TIERS[to]["colour"])
         self.events.emit("box_trade", tier=tier, to=to)
@@ -1074,6 +1088,7 @@ class World:
             * (1 + 0.05 * self.practice("pickpocketing"))
         self.messages.add(f"{target.The} dies. +{self._earn_gold(gold, 'kill')} gold.", C.GOOD)
         self.events.emit("kill", monster=target.key, monster_name=target.name, xp=target.xp_value,
+                         style=self.weapon_style() if by == "melee" else by,
                          boss=target.boss, small=not target.boss and target.max_hp <= SMALL_MONSTER_HP,
                          depth=self.depth, turn=self.turn, by=by,
                          player_hp=p.hp, player_max_hp=p.max_hp)
@@ -1089,7 +1104,6 @@ class World:
         if target.tier == "headliner":
             b = BOSSES[boss_depth(target)]
             self.events.emit("boss_kill", boss=target.name, depth=self.depth)
-            self.add_box(b["box"], "boss")
             if b.get("final"):
                 self.exit_sealed = False
                 self.messages.add("The exits unseal. Get out!", C.GOOD)
@@ -1100,10 +1114,8 @@ class World:
             self._drop(target, self.loot_rng.choice(C.HEADLINER_DROPS))
         elif target.tier:
             self._act_reward(target)
-        if self.loot_rng.random() < C.ITEM_DROP_CHANCE:
-            keys, weights = floor_loot_table(self.depth)
-            self.floor_items.setdefault((target.x, target.y), []).append(
-                self.loot_rng.choices(keys, weights)[0])
+        if not target.boss and self.loot_rng.random() < C.ITEM_DROP_CHANCE:
+            self._drop(target, self.loot_rng.choice(MONSTERS[target.key]["drops"]))
         levels = p.gain_xp(target.xp_value)
         if levels:
             self.refresh_stats()

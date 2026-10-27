@@ -15,7 +15,8 @@ def test_every_event_has_mild_and_spicy_lines_that_format():
     w = World(seed=1)
     ctx = dict(depth=1, name="x", level=2, tier="Gold", sponsor="S", achievement="A", pet="P",
                ability="B", boss="Boss", title="Elf Duellist", item="Sock", value=2, ev="7",
-               deal="Gloop Blitz", foe="the goblin", Foe="The goblin")
+               deal="Gloop Blitz", foe="the goblin", Foe="The goblin",
+               why="Rolled a natural 1.", reward="a Bronze box")
     for kind, pools in LINES.items():
         assert len(pools["mild"]) >= 2 and len(pools["spicy"]) >= 3, kind
         assert len(pools["mild"]) + len(pools["spicy"]) >= 5, kind
@@ -117,7 +118,7 @@ def test_announcer_does_not_change_the_dungeon():
 
 def test_achievements_unlock_once_and_award_boxes():
     w = World(seed=3)
-    assert len(ACHIEVEMENTS) == 11
+    assert len(ACHIEVEMENTS) >= 30 and all(a["desc"].endswith(".") for a in ACHIEVEMENTS.values())
     _kill(w)
     assert "first_blood" in w.achievements.unlocked
     assert w.boxes.count("bronze") >= 1 and any("First Blood" in t[1] for t in w.toasts)

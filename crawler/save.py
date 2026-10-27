@@ -14,7 +14,7 @@ from .world import World
 
 SAVE_DIR = Path(__file__).resolve().parents[1] / "saves"
 SAVE_FILE = SAVE_DIR / "slot1.json"
-VERSION = 6
+VERSION = 7
 
 
 def _rng_state(rng):
@@ -39,6 +39,7 @@ def to_dict(w):
         version=VERSION, seed=w.seed, turn=w.turn, state=w.state, death_cause=w.death_cause,
         depth=w.depth, timer=w.timer, timer_max=w.timer_max, warnings_left=w._warnings_left,
         was_safe=w._was_safe, inventory=w.inventory, equipment=w.equipment, boxes=w.boxes,
+        box_reasons=w.box_reasons, last_reason=w.last_reason,
         floor_items=[[x, y, keys] for (x, y), keys in w.floor_items.items()],
         last_reveal=w.last_reveal, toasts=w.toasts, messages=list(w.messages.lines),
         race=w.race, cls=w.cls, pending_choice=w.pending_choice,
@@ -83,7 +84,7 @@ def from_dict(d):
                 "boxes", "race", "cls", "pending_choice", "skill_cooldown", "scout_turns",
                 "exit_sealed", "gold", "contract", "pending_offer", "floor_stats", "box_log",
                 "hero_name", "gender", "backstory", "hype_turns", "riposte", "remote_shop",
-                "has_key", "stairs_open_turn"):
+                "has_key", "stairs_open_turn", "box_reasons", "last_reason"):
         setattr(w, key, d[key])
     w._stairs_announced, w._next_spawn = d["stairs_announced"], d["next_spawn"]
     w._spawn_cap = d["spawn_cap"]

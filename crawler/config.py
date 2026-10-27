@@ -52,7 +52,7 @@ PET_REVIVE_TURNS = 30        # floor time spent reviving a downed pet in a safe 
 
 # --- Items & loot -------------------------------------------------------
 INVENTORY_SIZE = 16
-ITEM_DROP_CHANCE = 0.08      # chance a dying monster drops an item
+ITEM_DROP_CHANCE = 0.25      # chance a dying monster drops something from its own pockets
 FLOOR_ITEM_CHANCE = 0.30     # chance each non-start room holds an item
 BOMB_RANGE = 6               # how far away a bomb can be thrown
 TOAST_TURNS = 8              # how long an achievement toast stays up

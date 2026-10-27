@@ -86,9 +86,10 @@ def test_item_screens_draw(app):
     w.inventory = ["pan", "jersey", "tonic", "popper", "sock", "elixir"]
     w.equip(0)
     w.floor_items[(w.player.x + 1, w.player.y)] = ["brew"]
-    w.add_box("bronze", "test")
+    w.add_box("bronze", "Show Stopper: The Shrink-Wrapped Colossus. Took down floor 5's Headliner, "
+                        "The Shrink-Wrapped Colossus.")
     w.add_box("legendary", "test")
-    w.toasts.append((w.turn, "Achievement: First Blood", "silver"))
+    w.toasts.append((w.turn, "Achievement: First Blood", "silver", "Silver box. Open it in a safe room."))
     _shot(app, "game_items")
 
     app.handle_key(_key(pygame.K_i, "i"))
@@ -165,7 +166,8 @@ def test_phase3_screens_draw(tmp_path):
     assert "tonic" in w.inventory
     app.handle_key(_key(pygame.K_ESCAPE))
     assert app.overlay == "safe"
-    app.cursor = labels.index("save")
+    labels = [o[0] for o in __import__("crawler.ui.menus", fromlist=["x"]).menu_options(w)]
+    app.cursor = labels.index("save")                    # crafting earned a box, so rows moved
     app.handle_key(_key(pygame.K_RETURN))
     assert app.scene == "title" and (tmp_path / "slot.json").exists()
     _shot(app, "title_with_save")

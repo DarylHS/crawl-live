@@ -75,7 +75,7 @@ class Showrunner:
             _, tier, sponsor = SPONSOR_GIFTS[self._gift_idx]
             self._gift_idx += 1
             self.world.events.emit("sponsor_gift", tier=tier, sponsor=sponsor)
-            self.world.add_box(tier, "sponsor")
+            self.world.add_box(tier, f"A gift from {sponsor} for reaching {self.viewers:,} viewers.")
 
     def _viewers(self, name, d):
         w = self.world
@@ -164,6 +164,7 @@ class Showrunner:
             ctx["tier"] = d["tier"].capitalize()
         if name == "achievement":
             ctx["achievement"] = d["title"]
+            ctx["why"], ctx["reward"] = d["why"], d["reward"]
         if "contract" in d:
             from .contracts import CONTRACTS
             ctx["deal"] = CONTRACTS[d["contract"]]["name"]

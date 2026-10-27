@@ -86,12 +86,15 @@ LINES = {
                   "The building is leaving. You may wish to join it."],
     },
     "achievement": {
-        "mild": ["Achievement unlocked: {achievement}. A box for you.",
-                 "{achievement}. The System noticed."],
-        "spicy": ["{achievement}. The System is faintly impressed. Don't make it weird.",
-                  "Well, look at you: {achievement}. Gift incoming. Try to act natural.",
-                  "{achievement}! Your trophy cabinet is now a trophy shelf.",
-                  "Someone noticed {achievement}. It was an intern. They're very tired."],
+        "mild": ["Achievement: {achievement}. {why} That earns you {reward}.",
+                 "{achievement}! {why} Here's {reward} for your trouble."],
+        "spicy": ["{achievement}. {why} The System is faintly impressed. Have {reward}. "
+                  "Don't make it weird.",
+                  "Well, look at you: {achievement}. {why} That's worth {reward}. "
+                  "Try to act natural.",
+                  "{achievement}! {why} Our accountants have approved {reward}. Reluctantly.",
+                  "Ding! {achievement}. {why} You get {reward}, {address}. Open it somewhere "
+                  "safe, it's not that kind of box."],
     },
     "sponsor_gift": {
         "mild": ["{sponsor} sends a {tier} box.",

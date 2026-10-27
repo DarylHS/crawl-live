@@ -84,26 +84,29 @@ def draw_safe_menu(r, surface, world, cursor):
 def draw_reveal(r, surface, world):
     tier, key = world.last_reveal
     box = BOX_TIERS[tier]
-    _frame(r, surface, f"{box['name'].upper()} BOX", 200, 340)
+    _frame(r, surface, f"{box['name'].upper()} BOX", 180, 380)
     it = ITEMS[key]
     cx = X0 + WIDTH // 2
-    r.text(surface, glyph(key), (cx, 300), it["colour"], r.huge, centre=True)
-    r.text(surface, it["name"], (cx, 360), it["colour"], r.big, centre=True)
-    r.text(surface, describe(key), (cx, 392), C.TEXT, r.font, centre=True)
-    r.text(surface, it["desc"], (cx, 418), C.TEXT_DIM, r.small, centre=True)
+    if world.last_reason:                         # remind the player why they got this box
+        for i, line in enumerate(_wrap(r, f"Earned for: {world.last_reason}", WIDTH - 60)[:2]):
+            r.text(surface, line, (cx, 232 + 17 * i), box["colour"], r.small, centre=True)
+    r.text(surface, glyph(key), (cx, 305), it["colour"], r.huge, centre=True)
+    r.text(surface, it["name"], (cx, 365), it["colour"], r.big, centre=True)
+    r.text(surface, describe(key), (cx, 397), C.TEXT, r.font, centre=True)
+    r.text(surface, it["desc"], (cx, 423), C.TEXT_DIM, r.small, centre=True)
     ev, sd = box_stats(tier)
     v = it["value"]
     verdict = "above" if v > ev else "below" if v < ev else "exactly"
     r.text(surface, f"Worth {v} gold: {verdict} this box's average of {ev:.1f} (give or take "
-                    f"{sd:.1f}).", (cx, 445), C.TEXT, r.small, centre=True)
+                    f"{sd:.1f}).", (cx, 450), C.TEXT, r.small, centre=True)
     fee = world.reroll_fee(tier)
     if key in world.inventory:
         r.text(surface, f"R: hand it back and reroll for {fee} gold (you have {world.gold}).",
-               (cx, 470), C.TEXT_DIM, r.small, centre=True)
+               (cx, 475), C.TEXT_DIM, r.small, centre=True)
         r.text(surface, f"A reroll pays on average only if this is worth under "
                         f"{ev:.1f} - {fee} = {ev - fee:.1f} gold.",
-               (cx, 488), C.TEXT_DIM, r.small, centre=True)
-    r.text(surface, "Enter: keep it", (cx, 512), C.GOOD, r.font, centre=True)
+               (cx, 493), C.TEXT_DIM, r.small, centre=True)
+    r.text(surface, "Enter: keep it", (cx, 525), C.GOOD, r.font, centre=True)
 
 
 def draw_craft(r, surface, world, cursor):

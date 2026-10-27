@@ -264,12 +264,19 @@ class Renderer:
 
     def draw_toasts(self, surface, world):
         live = [t for t in world.toasts if world.turn - t[0] < C.TOAST_TURNS][-3:]
-        for i, (_, text, tier) in enumerate(live):
-            w, h = 360, 30
-            rect = pygame.Rect((C.VIEW_W * C.TILE - w) // 2, 10 + i * (h + 6), w, h)
+        y = 10
+        for toast in live:
+            text, tier = toast[1], toast[2]
+            sub = toast[3] if len(toast) > 3 else None
+            w, h = 420, 46 if sub else 30
+            rect = pygame.Rect((C.VIEW_W * C.TILE - w) // 2, y, w, h)
             surface.fill(C.PANEL_BG, rect)
             pygame.draw.rect(surface, BOX_TIERS[tier]["colour"], rect, 2)
-            self.text(surface, text, rect.center, C.TEXT, self.font, centre=True)
+            self.text(surface, text, (rect.centerx, rect.top + 15), C.TEXT, self.font, centre=True)
+            if sub:
+                self.text(surface, sub, (rect.centerx, rect.top + 33), BOX_TIERS[tier]["colour"],
+                          self.small, centre=True)
+            y += h + 6
 
     def draw_game(self, surface, world):
         surface.fill(C.BG)
