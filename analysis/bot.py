@@ -20,6 +20,7 @@ from multiprocessing import Pool
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from crawler.dice import average
 from crawler.dungeon import NEIGHBOURS_8
 from crawler.items import ITEMS
 from crawler.character import BACKSTORIES, GENDERS
@@ -56,7 +57,26 @@ def step_towards(w, tx, ty):
 
 def score(key):
     it = ITEMS[key]
-    return it.get("power", 0) * 2 + it.get("accuracy", 0) + it.get("defence", 0) * 2 + it.get("evasion", 0)
+    if it["kind"] == "weapon":
+        return average(*it["dice"]) * 2 + it.get("hit", 0) + it.get("dmg", 0) * 2
+    return it.get("ac", 0) * 2
+
+
+# Attribute targets per class: the bot raises whichever attribute is furthest below its
+# target, so each build leans into its class while keeping enough Constitution to live.
+FIGHT_ATTR = {"duellist": "dex", "demolitionist": "dex"}
+CLASS_ATTR = {"arcanist": "int", "alchemist": "int", "beastmaster": "cha", "hype_man": "cha",
+              "quartermaster": "cha"}
+
+
+def spend_points(w, cls):
+    fight = FIGHT_ATTR.get(cls, "str")
+    targets = {fight: 18, "con": 16, CLASS_ATTR.get(cls, "dex"): 14}
+    while w.player.stat_points:
+        gaps = {a: t - w.score(a) for a, t in targets.items()}
+        attr = max(gaps, key=gaps.get) if max(gaps.values()) > 0 else fight
+        if not w.spend_point(attr):
+            break
 
 
 def manage_items(w):
@@ -188,6 +208,7 @@ def play(seed, pet=None, deals="random", telemetry=False):
         if w.pending_offer:
             take = coin.random() < 0.5 if deals == "random" else deals == "accept"
             w.accept_contract() if take else w.decline_contract()
+        spend_points(w, cfg["cls"])
         manage_items(w)
         act, arg = choose(w)
         if act == "move":

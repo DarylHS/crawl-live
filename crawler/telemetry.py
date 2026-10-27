@@ -19,6 +19,8 @@ import os
 import uuid
 from pathlib import Path
 
+from .attributes import ATTRS
+from .dice import average
 from .items import ITEMS
 
 RUNS_DIR = Path(__file__).resolve().parents[1] / "runs"
@@ -26,7 +28,7 @@ SKIP = {"turn"}                     # every tick; the viewer samples cover it
 VALUE_KEYS = ("damage", "amount", "xp", "healed", "price", "kills", "level", "turns",
               "timer_left", "chance", "fee", "phase", "depth")
 DETAIL_KEYS = ("monster", "item", "tier", "contract", "skill", "cause", "source", "ability",
-               "recipe", "slot", "to", "boss", "cls")
+               "recipe", "slot", "to", "boss", "cls", "attr")
 
 
 class Telemetry:
@@ -45,8 +47,8 @@ class Telemetry:
         pet = w.pet
         self.arrivals.append(dict(
             depth=w.depth, turn=w.turn, hp=p.hp, max_hp=p.max_hp, hp_frac=round(p.hp / p.max_hp, 3),
-            level=p.level, power=p.power, defence=p.defence, accuracy=p.accuracy,
-            evasion=p.evasion, potions=kinds.count("potion"), bombs=kinds.count("bomb"),
+            level=p.level, **{a: w.score(a) for a in ATTRS}, attack=p.attack, ac=p.ac,
+            dmg_avg=average(p.dmg_n, p.dmg_die, p.dmg_bonus), potions=kinds.count("potion"), bombs=kinds.count("bomb"),
             gold=w.gold, boxes=len(w.boxes), cls=w.cls or "none", race=w.race or "none",
             backstory=w.backstory or "none",
             pet=pet.species if pet else "none", pet_level=pet.level if pet else 0,

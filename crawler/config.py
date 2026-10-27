@@ -33,14 +33,10 @@ def floor_turns(depth: int) -> int:
 
 
 # --- Player & combat ----------------------------------------------------
-PLAYER_START = dict(max_hp=36, power=5, defence=1, accuracy=0, evasion=0)
+PLAYER_BASE_HP = 34          # plus the CON modifier per level; see World.refresh_stats
+HP_PER_LEVEL = 7
 REGEN_INTERVAL = 7           # turns per 1 HP of natural regeneration
 REST_MIN_TIMER = 60          # resting stops when the floor has this many turns left
-BASE_HIT = 0.80
-HIT_PER_POINT = 0.05
-HIT_MIN, HIT_MAX = 0.05, 0.95
-CRIT_CHANCE = 0.05
-DAMAGE_SPREAD = 2            # base roll is power +/- this
 MONSTER_LOSE_TRACK = 10      # turns out of sight before a monster gives up
 MONSTER_WANDER_CHANCE = 0.25
 RANGED_ATTACK_CHANCE = 0.6   # chance a ranged monster in range shoots instead of closing in

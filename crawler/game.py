@@ -6,6 +6,7 @@ import pygame
 
 from . import config as C
 from . import save
+from .attributes import ATTRS
 from .character import BACKSTORIES, GENDERS
 from .crafting import RECIPES
 from .telemetry import RUNS_DIR, Telemetry, write_tables
@@ -150,6 +151,8 @@ class App:
             world.command_pet()
         elif key == pygame.K_k:
             self.open_overlay("skills")
+        elif key == pygame.K_l:
+            self.open_overlay("attributes")
         elif key == pygame.K_1:
             if world.use_skill() and world.remote_shop:
                 self.overlay, self.cursor, self.shop_mode = "shop", 0, "buy"
@@ -193,6 +196,17 @@ class App:
 
     def handle_overlay_key(self, key):
         world = self.world
+        if self.overlay == "attributes":
+            keys = list(ATTRS)
+            if key in (pygame.K_ESCAPE, pygame.K_l):
+                self.overlay = None
+            elif key in (pygame.K_UP, pygame.K_w):
+                self.cursor = (self.cursor - 1) % len(keys)
+            elif key in (pygame.K_DOWN, pygame.K_s):
+                self.cursor = (self.cursor + 1) % len(keys)
+            elif key in DESCEND_KEYS or key in (pygame.K_RIGHT, pygame.K_d):
+                world.spend_point(keys[self.cursor])
+            return
         if self.overlay in ("report", "skills"):
             if key in DESCEND_KEYS or key in (pygame.K_ESCAPE, pygame.K_k):
                 self.overlay = None
@@ -352,6 +366,8 @@ class App:
                 draw_report(r, s, self.world)
             elif self.overlay == "skills":
                 menus.draw_practice(r, s, self.world)
+            elif self.overlay == "attributes":
+                menus.draw_attributes(r, s, self.world, self.cursor)
             elif self.overlay == "craft":
                 menus.draw_craft(r, s, self.world, self.cursor)
             elif self.overlay == "class":

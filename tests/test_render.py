@@ -228,3 +228,18 @@ def test_phase4_screens_draw(tmp_path):
     app.handle_key(_key(pygame.K_ESCAPE))
     assert app.overlay is None
     pygame.quit()
+
+
+def test_attribute_screen_spends_points(app):
+    for _ in range(4):
+        app.handle_key(_key(pygame.K_RETURN, "\r"))
+    w = app.world
+    pts = w.player.stat_points
+    app.handle_key(_key(pygame.K_l, "l"))
+    assert app.overlay == "attributes"
+    _shot(app, "attributes")
+    app.handle_key(_key(pygame.K_RETURN, "\r"))             # first row: Strength
+    assert w.player.stat_points == pts - 1 and w.player.attrs["str"] == 11
+    app.handle_key(_key(pygame.K_l, "l"))
+    assert app.overlay is None
+    _shot(app, "game_attributes_panel")

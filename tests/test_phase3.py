@@ -59,7 +59,7 @@ def test_pet_attacks_adjacent_monster_and_earns_xp():
     m = spawn_monster("gnawer", x, y)
     m.hp = 1
     w.monsters.append(m)
-    pet.accuracy = 100
+    pet.attack = 100
     w.wait()
     assert m not in w.monsters and pet.kills == 1 and pet.xp > 0
 
@@ -101,7 +101,7 @@ def test_pet_downed_then_revived_in_safe_room():
     pet = w.pet
     x, y = _free_tiles_near(w, pet.x, pet.y, 1)[0]
     m = spawn_monster("stalker", x, y)
-    m.accuracy, m.alerted = 100, True
+    m.attack, m.alerted = 100, True
     w.monsters.append(m)
     pet.hp = 1
     for _ in range(20):                          # hit chance caps at 95%
@@ -141,9 +141,11 @@ def test_class_choice_offered_on_floor_three():
     assert not w.pending_choice
     w.new_floor(CHOICE_FLOOR)
     assert w.pending_choice
-    hp, ev = w.player.max_hp, w.player.evasion
-    assert w.choose_class("elf", "analyst")
-    assert not w.pending_choice and w.player.evasion == ev + 3 and w.player.max_hp == hp - 4
+    p = w.player
+    hp, ac, hit = p.max_hp, p.ac, p.attack
+    assert w.choose_class("elf", "analyst")             # DEX 10 -> 13, CON 10 -> 8, +1 to hit
+    assert not w.pending_choice and p.ac == ac + 1 and p.max_hp == hp - p.level
+    assert p.attack == hit + 1
     assert not w.choose_class("human", "brawler")        # only once
 
 
@@ -165,7 +167,7 @@ def test_haymaker_always_hits_double():
     w.choose_class("human", "brawler")
     x, y = _free_tiles_near(w, w.player.x, w.player.y, 1)[0]
     m = spawn_monster("golem", x, y)
-    m.evasion = 100
+    m.ac = 100
     w.monsters.append(m)
     assert w.use_skill()
     assert m.hp < m.max_hp
@@ -180,7 +182,7 @@ def test_arc_bolt_hits_nearest_visible():
     w.monsters.append(m)
     w.visible = {(m.x, m.y)}
     assert w.use_skill()
-    assert m.max_hp - m.hp == 8 + 2 * w.player.level
+    assert m.max_hp - m.hp == 6 + 2 * w.player.level + w.mod("int")
 
 
 # --- Bosses and ranged monsters ---------------------------------------------
@@ -210,10 +212,10 @@ def test_final_boss_phase_two_calls_for_help():
     w = World(seed=14)
     w.new_floor(C.NUM_FLOORS)
     boss = next(m for m in w.monsters if m.boss)
-    count, power = len(w.monsters), boss.power
+    count, bonus = len(w.monsters), boss.dmg_bonus
     boss.hp = boss.max_hp // 2
     w._after_hit(boss, "melee")
-    assert boss.phase == 2 and boss.power > power and boss.ranged
+    assert boss.phase == 2 and boss.dmg_bonus > bonus and boss.ranged
     assert len(w.monsters) > count
     w._after_hit(boss, "melee")                          # no second trigger
     assert boss.phase == 2
@@ -226,7 +228,7 @@ def test_ranged_monster_shoots_from_distance():
     spot = next(s for s in _free_tiles_near(w, p.x, p.y, 4)
                 if max(abs(s[0] - p.x), abs(s[1] - p.y)) >= 3)
     m = spawn_monster("cultist", *spot)
-    m.accuracy = 100
+    m.attack = 100
     w.monsters.append(m)
     hp = p.hp
     for _ in range(10):
@@ -329,7 +331,7 @@ def test_mouse_dirty_trick_on_wounded_monster():
     m = spawn_monster("golem", x, y)
     m.hp = m.max_hp // 2
     w.monsters.append(m)
-    pet.accuracy = 100
+    pet.attack = 100
     for _ in range(5):                       # 95% hit cap
         if pet.cooldown:
             break
@@ -358,7 +360,7 @@ def test_boss_names_read_naturally():
     w = World(seed=23)
     boss = next(m for m in w.monsters if m.boss)
     w.player.hp = 1
-    w.player.evasion = -100
+    w.player.ac = -100
     for _ in range(40):
         if w.state == "dead":
             break

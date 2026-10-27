@@ -11,15 +11,17 @@ from .achievements import Achievements
 from .ai import cheb, take_monster_turns, take_pet_turn
 from .bosses import BOSSES, PHASE_TWO, boss_depth, spawn_boss
 from .character import BACKSTORIES, GENDERS
-from .classes import CHOICE_FLOOR, CLASSES, RACES, SKILLS, apply_choice, apply_stats
-from .combat import attack, hit_chance
+from .attributes import ATTRS, MAX_SCORE, mod, proficiency
+from .classes import CHOICE_FLOOR, CLASSES, FLAT_BONUSES, RACES, SKILLS
+from .combat import attack, hit_chance, saving_throw
 from .contracts import CONTRACTS, OFFER_CHANCE, OFFER_FROM_FLOOR, effect
 from .crafting import CRAFT_TURNS, RECIPES, can_craft
+from .dice import fmt, roll
 from .dungeon import NEIGHBOURS_8, STAIRS, compute_fov, generate_floor
 from .entities import PETS, monster_table, new_pet, new_player, spawn_monster
 from .events import EventBus
 from .funfacts import FunFacts
-from .items import ITEMS, STAT_BONUSES, floor_loot_table
+from .items import FISTS, ITEMS, floor_loot_table
 from .loot import BOX_TIERS, TRADE_UP_COST, box_stats, next_tier, reroll_fee, roll_box
 from .practice import SMALL_MONSTER_HP, Practice
 from .shop import Shop
@@ -64,8 +66,6 @@ class World:
         self.hero_name = hero.get("name") or "Crawler"
         self.gender = hero.get("gender")
         self.backstory = hero.get("backstory")
-        if self.backstory:
-            apply_stats(self.player, BACKSTORIES[self.backstory])
         self.pet = new_pet(pet[0], pet[1], 0, 0) if pet else None
         if self.pet and self.trait("pet_head_start"):
             self.pet.max_hp += 4
@@ -88,6 +88,7 @@ class World:
         self.shop = Shop(random.Random(self.seed ^ 0x5A0F))
         self.deal_rng = random.Random(self.seed ^ 0xC0DE)
         self.training = Practice(self)
+        self.refresh_stats()
         self.achievements = Achievements(self)
         self.showrunner = Showrunner(self)
         self.funfacts = FunFacts(self)
@@ -103,6 +104,69 @@ class World:
             if key and name in table[key]:
                 return table[key][name]
         return default
+
+    def _sources(self):
+        """Data rows that modify the character: backstory, race and class."""
+        return [table[key] for table, key in ((BACKSTORIES, self.backstory), (RACES, self.race),
+                                              (CLASSES, self.cls)) if key]
+
+    def bonus(self, name):
+        """A flat bonus (max_hp, ac, hit, dr, crit_range) summed over backstory, race and class."""
+        return sum(src.get(name, 0) for src in self._sources())
+
+    def score(self, attr):
+        """Effective attribute score: bought points plus backstory, race and class nudges."""
+        return self.player.attrs[attr] + sum(src.get("attrs", {}).get(attr, 0)
+                                             for src in self._sources())
+
+    def mod(self, attr):
+        return mod(self.score(attr))
+
+    def weapon(self):
+        key = self.equipment["weapon"]
+        return ITEMS[key] if key else FISTS
+
+    def refresh_stats(self):
+        """Derive the player's combat numbers from attributes, level, gear, perks and practice.
+        Called whenever any of those change; extra max HP arrives as healing."""
+        p = self.player
+        wpn = self.weapon()
+        style = wpn["style"]
+        armour = ITEMS[self.equipment["armour"]] if self.equipment["armour"] else {}
+        use = max(self.mod("str"), self.mod("dex")) if style == "blade" else self.mod("str")
+        p.attack = proficiency(p.level) + use + wpn.get("hit", 0) + self.bonus("hit")
+        p.dmg_n, p.dmg_die = wpn["dice"]
+        if style == "unarmed" and self.trait("martial_arts"):
+            p.dmg_die = 8
+        p.dmg_bonus = use + proficiency(p.level) + wpn.get("dmg", 0) + {
+            "unarmed": self.practice("fisticuffs") // 2, "blade": self.practice("blades") // 3,
+            "blunt": self.practice("bludgeoning") // 3}[style]
+        p.ac = (10 + min(self.mod("dex"), armour.get("max_dex", 99)) + armour.get("ac", 0)
+                + self.bonus("ac") + self.practice("dodging") // 4
+                + proficiency(p.level) - 2)             # experience: +1 AC every 4 levels
+        p.dr = self.bonus("dr")
+        p.crit_range = 1 + self.bonus("crit_range") + self.practice("cheap_shots") // 5
+        max_hp = (C.PLAYER_BASE_HP + C.HP_PER_LEVEL * (p.level - 1) + self.mod("con") * p.level
+                  + self.bonus("max_hp") + self.practice("pain_tolerance"))
+        max_hp = max(p.level, max_hp)
+        gained = max_hp - p.max_hp
+        p.max_hp = max_hp
+        p.hp = max(1, min(max_hp, p.hp + max(0, gained)))
+
+    def spend_point(self, attr):
+        """Put one attribute point into attr. Free action; returns True if spent."""
+        p = self.player
+        if attr not in ATTRS or p.stat_points <= 0 or p.attrs[attr] >= MAX_SCORE:
+            return False
+        p.attrs[attr] += 1
+        p.stat_points -= 1
+        self.refresh_stats()
+        self.events.emit("attribute_up", attr=attr, score=self.score(attr))
+        return True
+
+    def save_dc(self):
+        """DC monsters roll against for your bombs: 8 + proficiency + DEX modifier."""
+        return 8 + proficiency(self.player.level) + self.mod("dex")
 
     @property
     def address(self):
@@ -122,11 +186,13 @@ class World:
         return C.FOV_RADIUS - self.practice("sneaking") // 4
 
     def buy_price(self, key):
-        mult = self.trait("buy_mult", 1) * (1 - 0.02 * self.practice("haggling"))
+        mult = (self.trait("buy_mult", 1) * (1 - 0.02 * self.practice("haggling"))
+                * (1 - 0.03 * self.mod("cha")))
         return max(1, round(self.shop.price(key) * mult))
 
     def sell_price(self, key):
-        mult = self.trait("sell_mult", 1) * (1 + 0.03 * self.practice("haggling"))
+        mult = (self.trait("sell_mult", 1) * (1 + 0.03 * self.practice("haggling"))
+                * (1 + 0.03 * self.mod("cha")))
         return max(1, round(self.shop.sell_price(key) * mult))
 
     def reroll_fee(self, tier):
@@ -195,7 +261,7 @@ class World:
         self.contract, self.pending_offer = key, None
         self.floor_stats[-1]["contract"] = key
         for m in self.monsters:
-            m.power += c.get("monster_power", 0)
+            m.dmg_bonus += c.get("monster_damage", 0)
             if "monster_hp_mult" in c:
                 m.max_hp = m.hp = round(m.max_hp * c["monster_hp_mult"])
         if "timer_mult" in c:
@@ -561,17 +627,16 @@ class World:
     def choose_class(self, race, cls):
         if race not in RACES or cls not in CLASSES or self.cls:
             return False
-        apply_choice(self.player, race, cls)
         self.race, self.cls, self.pending_choice = race, cls, False
         if self.trait("no_armour") and self.equipment["armour"]:
             key = self.equipment["armour"]
-            self._apply_bonuses(key, -1)
             self.equipment["armour"] = None
             if len(self.inventory) < C.INVENTORY_SIZE:
                 self.inventory.append(key)
             else:
                 self.floor_items.setdefault((self.player.x, self.player.y), []).append(key)
             self.messages.add(f"Your new bark won't fit in the {ITEMS[key]['name']}.", C.TEXT_DIM)
+        self.refresh_stats()
         name = f"{RACES[race]['name']} {CLASSES[cls]['name']}"
         article = "an" if name[0] in "AEIOU" else "a"
         self.messages.add(f"You are now {article} {name}. Press 1 for "
@@ -602,7 +667,8 @@ class World:
                 return False
             target = min(adjacent, key=lambda m: m.hp)
             res = attack(p, target, self.rng, mult=2, sure=True)
-            self.messages.add(f"HAYMAKER! {target.The} takes {res.damage}.", C.ACCENT)
+            self.messages.add(f"HAYMAKER! {target.The} takes {res.damage} "
+                              f"({fmt(p.dmg_n, p.dmg_die, p.dmg_bonus)}, doubled).", C.ACCENT)
             self._after_hit(target, "skill")
         elif key == "arc_bolt":
             seen = [m for m in self.monsters if (m.x, m.y) in self.visible
@@ -611,7 +677,7 @@ class World:
                 self.messages.add("No target in range.", C.TEXT_DIM)
                 return False
             target = min(seen, key=lambda m: cheb(m, p))
-            dmg = target.take_damage(8 + 2 * p.level)
+            dmg = target.take_damage(max(1, 6 + 2 * p.level + self.mod("int")))
             self.messages.add(f"Arc Bolt crackles into {target.the} for {dmg}.", C.INFO)
             self._after_hit(target, "skill")
         elif key == "scout_report":
@@ -652,7 +718,7 @@ class World:
         elif key == "riposte":
             self.riposte = spec["charges"]
             self.messages.add(f"En garde. You'll parry the next {spec['charges']} attacks.", C.INFO)
-        self.skill_cooldown = spec["cooldown"]
+        self.skill_cooldown = max(spec["cooldown"] // 2, spec["cooldown"] - self.mod("int"))
         self.events.emit("skill", skill=key)
         self.end_turn()
         return True
@@ -691,11 +757,6 @@ class World:
         self.events.emit("item_drop", item=key)
         return True
 
-    def _apply_bonuses(self, key, sign):
-        p = self.player
-        for stat in STAT_BONUSES:
-            setattr(p, stat, getattr(p, stat) + sign * ITEMS[key].get(stat, 0))
-
     def equip(self, index):
         """Wear or wield an inventory item; whatever was in the slot goes back to the pack."""
         if self.state != "playing" or not 0 <= index < len(self.inventory):
@@ -707,11 +768,10 @@ class World:
         key = self.inventory.pop(index)
         old = self.equipment[slot]
         if old:
-            self._apply_bonuses(old, -1)
             self.inventory.append(old)
             self.events.emit("unequip", slot=slot, item=old)
         self.equipment[slot] = key
-        self._apply_bonuses(key, +1)
+        self.refresh_stats()
         self.messages.add(f"You equip the {ITEMS[key]['name']}.", C.INFO)
         self.events.emit("equip", slot=slot, item=key)
         return True
@@ -720,9 +780,9 @@ class World:
         key = self.equipment.get(slot)
         if self.state != "playing" or not key or len(self.inventory) >= C.INVENTORY_SIZE:
             return False
-        self._apply_bonuses(key, -1)
         self.equipment[slot] = None
         self.inventory.append(key)
+        self.refresh_stats()
         self.events.emit("unequip", slot=slot, item=key)
         return True
 
@@ -747,7 +807,8 @@ class World:
             self.inventory.pop(index)
             healed = p.heal(round(item["heal"] * self.trait("potion_mult", 1)
                                   * self.trait("class_potion_mult", 1)
-                                  * (1 + 0.08 * self.practice("first_aid"))))
+                                  * (1 + 0.08 * self.practice("first_aid"))
+                                  * (1 + 0.05 * self.mod("int"))))
             self.messages.add(f"You drink the {item['name']} and recover {healed} HP.", C.GOOD)
             self.events.emit("item_use", item=key, healed=healed)
         else:
@@ -776,13 +837,19 @@ class World:
 
     def _explode(self, key, target):
         item = ITEMS[key]
-        damage = round(item["damage"] * self.trait("bomb_mult", 1)
+        damage = round(roll(self.rng, *item["dice"]) * self.trait("bomb_mult", 1)
                        * (1 + 0.08 * self.practice("lobbing")))
-        self.messages.add(f"You throw the {item['name']}. BOOM.", C.ACCENT)
+        dc = self.save_dc()
+        self.messages.add(f"You throw the {item['name']}. BOOM: {damage} damage "
+                          f"({fmt(*item['dice'])}). Dexterity save DC {dc} for half.", C.ACCENT)
         killed = 0
         for m in list(self.monsters):
             if cheb(m, target) <= item["radius"]:
-                m.take_damage(damage)
+                saved, face = saving_throw(self.rng, m.save, dc)
+                dealt = m.take_damage(max(1, damage // 2) if saved else damage)
+                if saved:
+                    self.messages.add(f"{m.The} dives aside (d20 {face}{m.save:+d} vs DC {dc}) "
+                                      f"and takes {dealt}.", C.TEXT_DIM)
                 m.alerted = True
                 killed += not m.alive
                 self._after_hit(m, "bomb")
@@ -859,24 +926,28 @@ class World:
     def _player_attack(self, target):
         p = self.player
         chance = hit_chance(p, target)
-        style = self.weapon_style()
         small = not target.boss and target.max_hp <= SMALL_MONSTER_HP
-        bonus = {"unarmed": self.practice("fisticuffs") // 2, "blade": self.practice("blades") // 3,
-                 "blunt": self.practice("bludgeoning") // 3}[style]
-        bonus += self.practice("stomping") // 2 if small else 0
-        crit_bonus = 0.01 * self.practice("cheap_shots")
-        crit_bonus += 0.01 * self.practice("bludgeoning") if style == "blunt" else 0
+        bonus = self.practice("stomping") // 2 if small else 0
         mult = 1 + 0.03 * self.practice("giant_killer") if target.boss else 1
-        res = attack(p, target, self.rng, mult=mult, bonus=bonus, crit_bonus=crit_bonus)
+        res = attack(p, target, self.rng, mult=mult, bonus=bonus)
         self.events.emit("player_attack", target=target.key, chance=chance, hit=res.hit,
-                         crit=res.crit, small=small, boss=target.boss)
+                         crit=res.crit, small=small, boss=target.boss, roll=res.roll)
         if not res.hit:
-            self.messages.add(f"You miss {target.the}.", C.TEXT_DIM)
+            self.messages.add(f"You miss {target.the}. ({res.dice_text()})", C.TEXT_DIM)
+            self._announce_natural(res, target)
             return
-        crit = " Critical hit!" if res.crit else ""
-        self.messages.add(f"You hit {target.the} for {res.damage}.{crit}")
+        crit = "CRITICAL! " if res.crit else ""
+        self.messages.add(f"{crit}You hit {target.the} for {res.damage}. ({res.dice_text()})")
+        self._announce_natural(res, target)
         self.events.emit("player_hit", target=target.key, damage=res.damage, crit=res.crit)
         self._after_hit(target, "melee")
+
+    def _announce_natural(self, res, foe, by_player=True):
+        """Natural 20s and 1s get their own event, so the System can react."""
+        if res.natural:
+            kind = ("nat20" if res.roll == 20 else "nat1") if by_player else \
+                ("foe_nat20" if res.roll == 20 else "foe_nat1")
+            self.events.emit(kind, foe=foe.the, Foe=foe.The)
 
     def _after_hit(self, target, by):
         """Kill the monster if it's dead, otherwise check for a boss phase change."""
@@ -890,7 +961,7 @@ class World:
 
     def _boss_phase_two(self, boss):
         boss.phase = 2
-        boss.power += PHASE_TWO["power_bonus"]
+        boss.dmg_bonus += PHASE_TWO["damage_bonus"]
         boss.ranged = PHASE_TWO["ranged"]
         taken = {(m.x, m.y) for m in self.monsters} | {(self.player.x, self.player.y)}
         if self.active_pet:
@@ -940,8 +1011,12 @@ class World:
             keys, weights = floor_loot_table(self.depth)
             self.floor_items.setdefault((target.x, target.y), []).append(
                 self.loot_rng.choices(keys, weights)[0])
-        for level in p.gain_xp(target.xp_value):
-            self.messages.add(f"Level up! You are now level {level}.", C.ACCENT)
+        levels = p.gain_xp(target.xp_value)
+        if levels:
+            self.refresh_stats()
+        for level in levels:
+            self.messages.add(f"Level up! You are now level {level}. Spend your attribute "
+                              f"points with L ({p.stat_points} to spend).", C.ACCENT)
             self.events.emit("level_up", level=level)
 
     def monster_attack(self, monster, ranged=False):
@@ -952,19 +1027,23 @@ class World:
             if not ranged and cheb(monster, p) == 1:
                 res = attack(p, monster, self.rng)
                 if res.hit:
-                    self.messages.add(f"Riposte! {monster.The} takes {res.damage}.", C.ACCENT)
+                    self.messages.add(f"Riposte! {monster.The} takes {res.damage}. "
+                                      f"({res.dice_text()})", C.ACCENT)
                     self._after_hit(monster, "skill")
             self.events.emit("riposte", monster=monster.key)
             return
         res = attack(monster, p, self.rng)
         how = "shoots" if ranged else "hits"
         if not res.hit:
-            self.messages.add(f"{monster.The} {'shoots and ' if ranged else ''}misses you.",
-                              C.TEXT_DIM)
+            self.messages.add(f"{monster.The} {'shoots and ' if ranged else ''}misses you. "
+                              f"({res.dice_text()})", C.TEXT_DIM)
+            self._announce_natural(res, monster, by_player=False)
             self.events.emit("dodged", source=monster.key)
             return
-        crit = " A brutal crit!" if res.crit else ""
-        self.messages.add(f"{monster.The} {how} you for {res.damage}.{crit}", C.DANGER)
+        crit = "CRITICAL! " if res.crit else ""
+        self.messages.add(f"{crit}{monster.The} {how} you for {res.damage}. ({res.dice_text()})",
+                          C.DANGER)
+        self._announce_natural(res, monster, by_player=False)
         self.floor_stats[-1]["damage_taken"] += res.damage
         self.events.emit("damage_taken", source=monster.key, damage=res.damage, hp=p.hp,
                          ranged=ranged)
@@ -1002,7 +1081,7 @@ class World:
         self.timer -= 1
         self.events.emit("turn", turn=self.turn)
         p = self.player
-        if self.turn % max(1, C.REGEN_INTERVAL // self.trait("regen_mult", 1)) == 0:
+        if self.turn % max(2, (C.REGEN_INTERVAL - self.mod("con")) // self.trait("regen_mult", 1)) == 0:
             p.heal(1)
         if self.turn % C.REGEN_INTERVAL == 0 and self.active_pet:
             self.pet.heal(1)

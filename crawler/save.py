@@ -14,7 +14,7 @@ from .world import World
 
 SAVE_DIR = Path(__file__).resolve().parents[1] / "saves"
 SAVE_FILE = SAVE_DIR / "slot1.json"
-VERSION = 4
+VERSION = 5
 
 
 def _rng_state(rng):

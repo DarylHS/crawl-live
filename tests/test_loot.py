@@ -3,6 +3,7 @@ from collections import Counter
 
 import pytest
 
+from crawler.dice import average
 from crawler.items import ITEMS
 from crawler.loot import BOX_TIERS, TIERS, odds, roll_box
 from crawler.world import World
@@ -28,7 +29,10 @@ def test_roll_matches_stated_odds():
 def test_higher_tiers_are_better_on_average():
     def value(k):
         it = ITEMS[k]
-        return it.get("power", 0) * 2 + it.get("defence", 0) * 2 + it.get("heal", 0) / 5 + it.get("damage", 0) / 3
+        dice = average(*it["dice"]) if "dice" in it else 0
+        if it["kind"] == "bomb":
+            return dice / 3
+        return dice * 2 + it.get("hit", 0) + it.get("ac", 0) * 2 + it.get("heal", 0) / 5
     ev = [sum(p * value(k) for k, p in odds(t)) for t in TIERS]
     assert ev == sorted(ev) and ev[0] < ev[-1]
 

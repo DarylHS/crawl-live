@@ -48,14 +48,15 @@ def test_pickup_respects_pack_size(w):
 
 def test_equip_swaps_and_changes_stats(w):
     p = w.player
-    power = p.power
+    hit = p.attack
+    assert (p.dmg_n, p.dmg_die) == (1, 4)                 # fists
     w.inventory = ["pan", "katana"]
     w.equip(0)
-    assert p.power == power + ITEMS["pan"]["power"] and w.equipment["weapon"] == "pan"
+    assert p.dmg_die == 6 and w.equipment["weapon"] == "pan"
     w.equip(0)                                  # katana replaces the pan
-    assert p.power == power + ITEMS["katana"]["power"] and w.inventory == ["pan"]
+    assert p.dmg_die == 10 and p.attack == hit + ITEMS["katana"]["hit"] and w.inventory == ["pan"]
     assert w.unequip("weapon")
-    assert p.power == power and sorted(w.inventory) == ["katana", "pan"]
+    assert p.dmg_die == 4 and p.attack == hit and sorted(w.inventory) == ["katana", "pan"]
 
 
 def test_potion_heals_and_takes_a_turn(w):
@@ -75,6 +76,7 @@ def test_bomb_hits_blast_radius_only(w):
     p = w.player
     near = [(dx, dy) for dx, dy in NEIGHBOURS_8 if w.floor.walkable(p.x + dx, p.y + dy)][0]
     a = spawn_monster("goblin", p.x + near[0], p.y + near[1])
+    a.hp = 1                                    # dies even if it makes its save
     far = spawn_monster("goblin", a.x + 5, a.y + 5)     # outside the blast; position is never walked
     w.monsters += [a, far]
     w.visible = {(a.x, a.y)}
@@ -105,7 +107,7 @@ def test_monster_drops_use_loot_rng(w, monkeypatch):
     m = spawn_monster("gnawer", p.x + dx, p.y + dy)
     m.hp = 1
     w.monsters.append(m)
-    p.accuracy = 100
+    p.attack = 100
     w.move_player(dx, dy)
     assert len(w.floor_items.get((m.x, m.y), [])) == 1
 

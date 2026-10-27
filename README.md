@@ -28,6 +28,7 @@ python main.py            # or: python main.py --seed 1234 for a reproducible ru
 | `Y` / `N` | Accept or decline a sponsor contract |
 | `C` | Command your pet: follow / attack / stay |
 | `K` | Practice skills: what you have levelled by doing it, and what each level gives |
+| `L` | Attributes: Strength, Dexterity, Constitution, Intelligence and Charisma; spend the points you earn each level |
 | `1` | Use your class skill (from floor 3) |
 | `L` | On the title screen: continue a saved run |
 | `?` | Help |
@@ -48,6 +49,12 @@ You start by creating your crawler: a name, a gender (cosmetic; it changes how t
 The System AI's attitude is set by `SASS_LEVEL` in `crawler/config.py` (0-10, default 7).
 
 Survive six floors to win.
+
+### Dice and attributes
+
+Combat works like a tabletop RPG, and every roll is shown in the log. An attack is a d20 plus your attack bonus against the target's Armour Class: `You hit the goblin for 6. (d20 14+4=18 vs AC 11)`. A natural 1 always misses and a natural 20 always crits (double damage dice). Weapons have damage dice: fists 1d4, frying pan 1d6, cleaver 1d8, katana 1d10. Bombs roll their dice and each monster makes a Dexterity save for half.
+
+You have the five attributes from the books: Strength, Dexterity, Constitution, Intelligence and Charisma. Each sits around 10, and every 2 points above 10 is +1 to the rolls it governs. You start with 6 points to spend and get 2 more each level (`L` opens the attribute screen); your backstory, race and class nudge them too. Strength drives fists and blunt weapons, Dexterity drives Armour Class and blades, Constitution your HP, Intelligence your class skill, and Charisma your viewers and shop prices.
 
 ### Practice skills
 

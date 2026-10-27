@@ -2,8 +2,10 @@
 import pygame
 
 from .. import config as C
+from ..attributes import ATTRS, fmt_mod, mod
 from ..classes import CLASSES, RACES, SKILLS
 from ..combat import expected_damage, hit_chance
+from ..dice import needed_roll
 from ..dungeon import STAIRS, WALL
 from ..entities import PETS
 from ..items import ITEMS, glyph
@@ -114,8 +116,20 @@ class Renderer:
         self._bar(surface, x, y, w, p.xp / p.xp_to_next(), C.INFO,
                   f"Level {p.level}  XP {p.xp}/{p.xp_to_next()}")
         y += 30
-        for label, value in (("Attack", p.power), ("Defence", p.defence),
-                             ("Accuracy", p.accuracy), ("Evasion", p.evasion),
+        col = w // len(ATTRS)
+        for i, (key, a) in enumerate(ATTRS.items()):
+            cx = x + i * col + col // 2
+            score = world.score(key)
+            self.text(surface, a["short"], (cx, y + 6), C.TEXT_DIM, self.small, centre=True)
+            self.text(surface, str(score), (cx, y + 23), C.TEXT, self.font, centre=True)
+            self.text(surface, fmt_mod(mod(score)), (cx, y + 40), C.INFO, self.small, centre=True)
+        y += 52
+        if p.stat_points:
+            self.text(surface, f"L: {p.stat_points} point{'s' if p.stat_points != 1 else ''} "
+                               f"to spend", (x, y), C.ACCENT, self.small)
+            y += 18
+        for label, value in (("Armour Class", p.ac), ("To hit", fmt_mod(p.attack)),
+                             ("Damage", p.damage_text()),
                              ("Kills", p.kills), ("Gold", world.gold),
                              ("Viewers", f"{world.viewers:,}")):
             self.text(surface, label, (x, y), C.TEXT_DIM)
@@ -169,7 +183,7 @@ class Renderer:
         if world.scout_turns:
             self.draw_scout_report(surface, world, x, y + 14, w)
 
-        self.text(surface, "I pack K skills ? help", (x, C.SCREEN_H - 26), C.TEXT_DIM, self.small)
+        self.text(surface, "? for all the controls", (x, C.SCREEN_H - 26), C.TEXT_DIM, self.small)
 
     def draw_scout_report(self, surface, world, x, y, w):
         """Analyst skill: exact odds both ways for each visible monster."""
@@ -180,13 +194,14 @@ class Renderer:
                       key=lambda m: max(abs(m.x - p.x), abs(m.y - p.y)))
         if not seen:
             self.text(surface, "Nothing in sight.", (x, y), C.TEXT_DIM, self.small)
-        for m in seen[:4]:
+        for m in seen[:3]:
             self.text(surface, f"{m.glyph} {m.name}  {m.hp}/{m.max_hp}", (x, y), m.colour,
                       self.small)
-            self.text(surface, f"you {hit_chance(p, m):.0%} ~{expected_damage(p, m):.1f}  "
-                               f"it {hit_chance(m, p):.0%} ~{expected_damage(m, p):.1f}",
-                      (x, y + 15), C.TEXT_DIM, self.small)
-            y += 34
+            for i, (who, a, b) in enumerate((("you", p, m), ("it", m, p))):
+                self.text(surface, f"{who:>3} need {needed_roll(a.attack, b.ac):>2}+ "
+                                   f"{hit_chance(a, b):>4.0%}  ~{expected_damage(a, b):.1f} dmg",
+                          (x, y + 15 + 14 * i), C.TEXT_DIM, self.small)
+            y += 48
 
     # --- Log -----------------------------------------------------------
 

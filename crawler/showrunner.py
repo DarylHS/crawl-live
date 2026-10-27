@@ -19,7 +19,8 @@ DECAY = 0.97                    # applied every IDLE_TURNS while idle
 MULTI_WINDOW = 4                # kills this close together count as a streak
 CLUTCH_FRAC = 0.25
 # Events the System only comments on some of the time (scaled by SASS_LEVEL); others always.
-SPEAK_CHANCE = {"kill": 0.4, "damage_taken": 0.5, "shop_buy": 0.5, "shop_sell": 0.3, "craft": 0.7}
+SPEAK_CHANCE = {"kill": 0.4, "damage_taken": 0.5, "shop_buy": 0.5, "shop_sell": 0.3, "craft": 0.7,
+                "nat20": 0.8, "nat1": 0.6, "foe_nat20": 0.6, "foe_nat1": 0.4}
 QUIP_CHANCE = 0.6               # how often the pet says something itself
 FLEE_QUIP_GAP = 8               # turns between the mouse's excuses while it runs
 PET_EVENTS = {"pet_kill": "kill", "pet_ability": "ability", "pet_level_up": "level_up",
@@ -64,7 +65,8 @@ class Showrunner:
     def _gain(self, amount):
         from .contracts import effect
         w = self.world
-        amount = int(amount * effect(w, "viewer_mult") * (1 + 0.03 * w.practice("showmanship")))
+        amount = int(amount * effect(w, "viewer_mult") * (1 + 0.03 * w.practice("showmanship"))
+                     * (1 + 0.05 * w.mod("cha")))
         self.viewers += amount
         w.events.emit("viewers_gained", amount=amount)
         self.peak = max(self.peak, self.viewers)

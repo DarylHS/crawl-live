@@ -44,7 +44,7 @@ def test_kills_pay_gold():
     w = World(seed=1)
     w.monsters.clear()
     m, d = _adjacent_monster(w, hp=1)
-    w.player.accuracy = 100
+    w.player.attack = 100
     for _ in range(5):
         if m not in w.monsters:
             break
@@ -165,13 +165,13 @@ def test_accepting_hazard_pay_changes_monsters_and_gold():
     w = World(seed=7)
     w.new_floor(2)
     w.pending_offer = "hazard_pay"
-    before = {id(m): (m.power, m.max_hp) for m in w.monsters}
+    before = {id(m): (m.dmg_bonus, m.max_hp) for m in w.monsters}
     assert preview(w, "hazard_pay")
     w.accept_contract()
     assert w.contract == "hazard_pay" and w.pending_offer is None and "gold" in w.boxes
     for m in w.monsters:
         p, hp = before[id(m)]
-        assert m.power == p + 2 and m.max_hp == round(hp * 1.25)
+        assert m.dmg_bonus == p + 2 and m.max_hp == round(hp * 1.25)
     w.new_floor(3)
     assert w.contract is None                            # one floor only
 
@@ -191,7 +191,7 @@ def test_every_contract_previews():
     for key in CONTRACTS:
         assert all(isinstance(line, str) for line in preview(w, key))
     # Preview must not leave monsters modified.
-    assert all(m.power == spawn_monster(m.key, 0, 0).power for m in w.monsters if not m.boss)
+    assert all(m.dmg_bonus == spawn_monster(m.key, 0, 0).dmg_bonus for m in w.monsters if not m.boss)
 
 
 # --- Fun facts ----------------------------------------------------------------

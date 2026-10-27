@@ -165,6 +165,41 @@ LINES = {
                   "{title}: an inspired choice, said nobody yet."],
     },
 
+    # --- Dice: natural 20s and 1s -------------------------------------------
+    "nat20": {
+        "mild": ["A natural 20 against {foe}. The dice approve.",
+                 "Natural 20! Even the camera crew looked up."],
+        "spicy": ["NATURAL TWENTY. Somebody screenshot this, it won't happen again.",
+                  "A 20! {Foe}'s agent has been informed.",
+                  "Natural 20, {address}. Statistically, you're due a long dry spell now. "
+                  "That's not how dice work, but it's how television works.",
+                  "Twenty! Clip it, loop it, sell it."],
+    },
+    "nat1": {
+        "mild": ["A natural 1. Unfortunate.",
+                 "You rolled a 1. {Foe} looks embarrassed for you."],
+        "spicy": ["Natural 1! You swung at {foe} and hit the concept of failure.",
+                  "A 1. Our viewers are leaving comments. Mean ones.",
+                  "Rolled a 1, {address}. The dice have no memory, but our replay team does.",
+                  "A natural 1. That's going in the blooper reel."],
+    },
+    "foe_nat20": {
+        "mild": ["{Foe} rolled a natural 20. Ouch.",
+                 "Natural 20 for {foe}. That one will leave a mark."],
+        "spicy": ["{Foe} rolls a 20! Our sponsors would like to remind you that health "
+                  "insurance is not available in the dungeon.",
+                  "A natural 20 from {foe}. The audience gasps. Some of them cheer. Rude.",
+                  "Twenty for {foe}! Even monsters get lucky, {address}."],
+    },
+    "foe_nat1": {
+        "mild": ["{Foe} rolled a 1. Small mercies.",
+                 "Natural 1 for {foe}."],
+        "spicy": ["{Foe} rolls a 1 and nearly falls over. Gold.",
+                  "A natural 1 from {foe}. It's never going to live this down. Well. "
+                  "Briefly.",
+                  "{Foe} fumbles! Even the dungeon has off days."],
+    },
+
     "practice_level": {
         "mild": ["{title} {level}. Practice makes slightly less terrible.",
                  "{title} is now level {level}."],

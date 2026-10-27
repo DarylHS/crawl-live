@@ -1,63 +1,68 @@
 """Races and classes, chosen on reaching floor 3.
 
-Race gives stat changes and sometimes a perk; class gives a small bonus plus one
-active skill on key 1. Perks are flags the rules check with World.trait().
+Race nudges attributes and sometimes gives a perk; class gives an attribute bonus plus
+one active skill on key 1. Attribute nudges (attrs) and flat bonuses (FLAT_BONUSES)
+stack across backstory, race and class; perks are flags read with World.trait().
 """
 CHOICE_FLOOR = 3
 
 RACES = {
-    "human":      dict(name="Human", desc="+10 max HP. The safe pick.", max_hp=10),
-    "elf":        dict(name="Elf", desc="+2 evasion, +1 accuracy, -4 max HP. Graceful, fragile, "
-                                        "insufferable about it.",
-                       evasion=2, accuracy=1, max_hp=-4),
-    "dwarf":      dict(name="Dwarf", desc="+1 defence, +4 max HP, -1 evasion. Built like a filing "
-                                          "cabinet.",
-                       defence=1, max_hp=4, evasion=-1),
-    "hobgoblin":  dict(name="Hobgoblin", desc="Crits on 20% of hits instead of 5%. -1 defence. "
+    "human":      dict(name="Human", desc="+1 to every attribute, +5 max HP. Adaptable, unremarkable, "
+                                          "proud of both.",
+                       attrs=dict(str=1, dex=1, con=1, int=1, cha=1), max_hp=5),
+    "elf":        dict(name="Elf", desc="+2 DEX, +1 INT, -2 CON. Graceful, fragile, insufferable "
+                                        "about it.",
+                       attrs=dict(dex=2, int=1, con=-2)),
+    "dwarf":      dict(name="Dwarf", desc="+2 CON, +2 STR, -2 DEX. Built like a filing cabinet.",
+                       attrs=dict(con=2, str=2, dex=-2)),
+    "hobgoblin":  dict(name="Hobgoblin", desc="+2 DEX; crits on 17-20 instead of just 20. -1 AC. "
                                               "Fights dirty, bruises easily.",
-                       defence=-1, crit_chance=0.20),
-    "bog_troll":  dict(name="Bog Troll", desc="Regenerates twice as fast. -2 accuracy. The System "
-                                              "stops calling you by name.",
-                       accuracy=-2, regen_mult=2, address="creature"),
-    "houseplant": dict(name="Sentient Houseplant", desc="Bark: +2 defence, +4 max HP. Heals while "
-                                                        "standing still; safe rooms heal you "
-                                                        "fully on arrival. Can't wear armour.",
-                       defence=2, max_hp=4, photosynthesis=True, no_armour=True),
+                       attrs=dict(dex=2), crit_range=3, ac=-1),
+    "bog_troll":  dict(name="Bog Troll", desc="+2 STR, +2 CON, -2 INT, -2 CHA. Regenerates twice "
+                                              "as fast. The System stops calling you by name.",
+                       attrs=dict(str=2, con=2, int=-2, cha=-2), regen_mult=2, address="creature"),
+    "houseplant": dict(name="Sentient Houseplant", desc="+2 CON, -2 DEX. Bark: every hit on you "
+                                                        "does 1 less damage. Heals while standing "
+                                                        "still; safe rooms heal you fully on "
+                                                        "arrival. Can't wear armour.",
+                       attrs=dict(con=2, dex=-2), dr=1, photosynthesis=True, no_armour=True),
 }
 
 CLASSES = {
-    "brawler":       dict(name="Brawler", desc="+2 attack. Solves problems with fists.",
-                          power=2, skill="haymaker", pairs=("tradie",)),
-    "arcanist":      dict(name="Arcanist", desc="+1 accuracy. Throws lightning at problems.",
-                          accuracy=1, skill="arc_bolt"),
-    "analyst":       dict(name="Analyst", desc="+1 attack, accuracy and evasion. Knows the odds and "
-                                               "uses them.",
-                          power=1, accuracy=1, evasion=1, skill="scout_report"),
-    "alchemist":     dict(name="Alchemist", desc="+4 max HP; potions heal 50% more. Turns rubbish "
-                                                 "into medicine.",
-                          max_hp=4, class_potion_mult=1.5, skill="field_brew",
+    "brawler":       dict(name="Brawler", desc="+2 STR; fists hit for 1d8. Solves problems with "
+                                               "fists.",
+                          attrs=dict(str=2), martial_arts=True, skill="haymaker",
+                          pairs=("tradie",)),
+    "arcanist":      dict(name="Arcanist", desc="+2 INT. Throws lightning at problems.",
+                          attrs=dict(int=2), skill="arc_bolt"),
+    "analyst":       dict(name="Analyst", desc="+1 STR, +1 DEX, +1 INT, +1 to hit. Knows the odds "
+                                               "and uses them.",
+                          attrs=dict(str=1, dex=1, int=1), hit=1, skill="scout_report"),
+    "alchemist":     dict(name="Alchemist", desc="+2 INT, +4 max HP; potions heal 50% more. Turns "
+                                                 "rubbish into medicine.",
+                          attrs=dict(int=2), max_hp=4, class_potion_mult=1.5, skill="field_brew",
                           pairs=("mixologist", "parent")),
-    "beastmaster":   dict(name="Beastmaster", desc="+1 defence. Your companion fights like it means "
-                                                   "it.",
-                          defence=1, skill="rile_up", pairs=("dog_walker",)),
-    "hype_man":      dict(name="Hype Man", desc="+1 evasion. Works the crowd while working the "
-                                                "room.",
-                          evasion=1, skill="crowd_work", pairs=("comedian",)),
-    "demolitionist": dict(name="Demolitionist", desc="+1 attack; bombs do 50% more damage. Loud.",
-                          power=1, bomb_mult=1.5, skill="pocket_popper", pairs=("veteran",)),
-    "quartermaster": dict(name="Quartermaster", desc="+1 defence. Knows a guy who knows a guy.",
-                          defence=1, skill="supply_drop", pairs=("category_mgr", "rideshare")),
-    "duellist":      dict(name="Duellist", desc="+1 accuracy, +1 evasion. Insists on the proper "
-                                                "forms.",
-                          accuracy=1, evasion=1, skill="riposte"),
+    "beastmaster":   dict(name="Beastmaster", desc="+2 CHA, +1 AC. Your companion fights like it "
+                                                   "means it.",
+                          attrs=dict(cha=2), ac=1, skill="rile_up", pairs=("dog_walker",)),
+    "hype_man":      dict(name="Hype Man", desc="+2 CHA. Works the crowd while working the room.",
+                          attrs=dict(cha=2), skill="crowd_work", pairs=("comedian",)),
+    "demolitionist": dict(name="Demolitionist", desc="+2 DEX; bombs do 50% more damage. Loud.",
+                          attrs=dict(dex=2), bomb_mult=1.5, skill="pocket_popper",
+                          pairs=("veteran",)),
+    "quartermaster": dict(name="Quartermaster", desc="+2 CHA, +1 AC. Knows a guy who knows a guy.",
+                          attrs=dict(cha=2), ac=1, skill="supply_drop",
+                          pairs=("category_mgr", "rideshare")),
+    "duellist":      dict(name="Duellist", desc="+2 DEX, +1 to hit. Insists on the proper forms.",
+                          attrs=dict(dex=2), hit=1, skill="riposte"),
 }
 
 SKILLS = {
     "haymaker":      dict(name="Haymaker", cooldown=10,
                           desc="A guaranteed hit on an adjacent monster for double damage."),
     "arc_bolt":      dict(name="Arc Bolt", cooldown=10, range=6,
-                          desc="Zap the nearest visible monster within 6 tiles for 8 + 2 x level, "
-                               "ignoring defence."),
+                          desc="Zap the nearest visible monster within 6 tiles for 6 + 2 x level "
+                               "+ INT modifier. No roll to hit: lightning finds a way."),
     "scout_report":  dict(name="Scout Report", cooldown=25, duration=20,
                           desc="For 20 turns, see exact hit chances and expected damage for every "
                                "visible monster, both ways."),
@@ -77,17 +82,5 @@ SKILLS = {
                           desc="Parry the next 2 attacks against you and strike back each time."),
 }
 
-BONUS_STATS = ("max_hp", "power", "defence", "accuracy", "evasion")
-
-
-def apply_stats(player, *sources):
-    for source in sources:
-        for stat in BONUS_STATS:
-            setattr(player, stat, getattr(player, stat) + source.get(stat, 0))
-        player.hp = max(1, player.hp + source.get("max_hp", 0))
-        if "crit_chance" in source:
-            player.crit_chance = source["crit_chance"]
-
-
-def apply_choice(player, race, cls):
-    apply_stats(player, RACES[race], CLASSES[cls])
+# Flat bonuses a race, class or backstory can carry (summed across all three).
+FLAT_BONUSES = ("max_hp", "ac", "hit", "dr")

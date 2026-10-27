@@ -2,8 +2,8 @@
 
 Every skill starts at level 0 and is hidden ("???") until you first use it.
 Using it earns practice XP; each level needs more than the last (diminishing
-returns) up to MAX_LEVEL. Effects are read by the rules through
-World.practice(key), or applied once per level for permanent stat gains.
+returns) up to MAX_LEVEL. Effects are read by the rules through World.practice(key);
+the ones that change the character sheet are folded in by World.refresh_stats.
 
 SKILLS is data: name, what trains it (shown to the player), what each level
 gives, and how much XP a use is worth. The listeners at the bottom map game
@@ -33,13 +33,13 @@ SKILLS = {
                    effect="+1 damage with blades every 3 levels"),
     "bludgeoning": dict(name="Bludgeoning", group="Fighting",
                         trains="Landing hits with a blunt weapon",
-                        effect="+1 blunt damage per 3 levels, +1% crit per level"),
+                        effect="+1 blunt damage every 3 levels"),
     "stomping": dict(name="Stomping", group="Fighting",
                      trains="Squashing small monsters in melee",
                      effect="+1 damage against small monsters every 2 levels"),
     "cheap_shots": dict(name="Cheap Shots", group="Fighting",
                         trains="Landing critical hits",
-                        effect="+1% critical hit chance per level"),
+                        effect="Crit range +1 every 5 levels (crits on 19-20 at level 5)"),
     "giant_killer": dict(name="Giant Killer", group="Fighting",
                          trains="Damaging bosses",
                          effect="+3% damage against bosses per level"),
@@ -49,7 +49,7 @@ SKILLS = {
     # --- Survival -----------------------------------------------------------
     "dodging": dict(name="Dodging", group="Survival",
                     trains="Being missed by attacks",
-                    effect="+1 evasion every 4 levels"),
+                    effect="+1 Armour Class every 4 levels"),
     "pain_tolerance": dict(name="Pain Tolerance", group="Survival",
                            trains="Getting hit and living",
                            effect="+1 max HP per level"),
@@ -87,11 +87,6 @@ SKILLS = {
     "pet_bonding": dict(name="Pet Bonding", group="Wheeling and dealing",
                         trains="Your companion fighting alongside you",
                         effect="Companion deals +5% damage per level"),
-}
-
-STAT_GAINS = {                       # permanent gains applied when a level is reached
-    "dodging": lambda lvl: dict(evasion=1) if lvl % 4 == 0 else {},
-    "pain_tolerance": lambda lvl: dict(max_hp=1),
 }
 
 CARDIO_STEPS = 40                    # steps per point of Cardio practice
@@ -135,12 +130,7 @@ class Practice:
 
     def _level_up(self, key, lvl):
         w = self.world
-        gains = STAT_GAINS.get(key, lambda _: {})(lvl)
-        p = w.player
-        for stat, v in gains.items():
-            setattr(p, stat, getattr(p, stat) + v)
-            if stat == "max_hp":
-                p.hp += v
+        w.refresh_stats()                # Pain Tolerance, Dodging and the weapon skills show up
         name = SKILLS[key]["name"]
         w.toasts.append((w.turn, f"Skill up: {name} {lvl}", "silver"))
         w.messages.add(f"{name} is now level {lvl}. {SKILLS[key]['effect']}.", C.ACCENT)

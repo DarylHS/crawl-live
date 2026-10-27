@@ -41,8 +41,10 @@ class FunFacts:
         if d["hit"]:
             self.miss_streak = 0
             if d["crit"]:
-                self._say("Crits land 5% of the time: one swing in 20 on average, but they "
-                          "cluster and gap at random.", once="crit")
+                r = self.world.player.crit_range
+                faces = "a natural 20" if r == 1 else f"{21 - r}-20 on the d20"
+                self._say(f"You crit on {faces}: {r / 20:.0%} of swings, about one in "
+                          f"{20 / r:.0f}. They still cluster and gap at random.", once="crit")
             return
         self.miss_streak += 1
         self.streak_chance *= 1 - d["chance"] if self.miss_streak > 1 else 1

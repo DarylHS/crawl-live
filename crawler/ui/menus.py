@@ -2,6 +2,8 @@
 import pygame
 
 from .. import config as C
+from ..attributes import ATTRS, fmt_mod, proficiency
+from ..attributes import mod as attr_mod
 from ..classes import CLASSES, RACES, SKILLS
 from ..crafting import CRAFT_TURNS, RECIPES, can_craft
 from ..entities import PETS
@@ -419,3 +421,36 @@ def draw_practice(r, surface, world):
         y += 28
     r.text(surface, "Skills level up by doing the thing. K or Esc to close",
            (X0 + WIDTH // 2, 728), C.TEXT_DIM, r.small, centre=True)
+
+
+def draw_attributes(r, surface, world, cursor):
+    """The five attributes: score, modifier, where it comes from and what it does."""
+    _frame(r, surface, "ATTRIBUTES", 90, 560)
+    p = world.player
+    y = 140
+    for i, (key, a) in enumerate(ATTRS.items()):
+        score = world.score(key)
+        if i == cursor:
+            surface.fill((50, 46, 70), (X0 + 10, y - 4, WIDTH - 20, 52))
+        r.text(surface, a["name"], (X0 + 24, y), C.TEXT)
+        r.text(surface, f"{score}", (X0 + 200, y), C.ACCENT)
+        r.text(surface, fmt_mod(attr_mod(score)), (X0 + 240, y), C.INFO)
+        extra = score - p.attrs[key]
+        source = f"bought {p.attrs[key]}" + (f", {extra:+d} from backstory/race/class" if extra else "")
+        r.text(surface, source, (X0 + 300, y + 2), C.TEXT_DIM, r.small)
+        r.text(surface, a["does"], (X0 + 24, y + 22), C.TEXT_DIM, r.small)
+        y += 58
+    pts = p.stat_points
+    r.text(surface, f"{pts} point{'s' if pts != 1 else ''} to spend" if pts else
+           "No points to spend. You get 2 more each level.", (X0 + 24, y + 4),
+           C.ACCENT if pts else C.TEXT_DIM)
+    y += 34
+    for line in (f"HP {p.max_hp}   Armour Class {p.ac}   To hit {fmt_mod(p.attack)}   "
+                 f"Damage {p.damage_text()}",
+                 f"Proficiency {fmt_mod(proficiency(p.level))} (rises every 4 levels)   "
+                 f"Bomb save DC {world.save_dc()}",
+                 "Modifier = (score - 10) / 2, rounded down. Every 2 points is +1."):
+        r.text(surface, line, (X0 + 24, y), C.TEXT, r.small)
+        y += 20
+    r.text(surface, "Up/Down select   Enter spend a point   L or Esc close",
+           (X0 + WIDTH // 2, 625), C.TEXT_DIM, r.small, centre=True)

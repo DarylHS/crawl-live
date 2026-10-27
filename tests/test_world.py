@@ -27,7 +27,7 @@ def test_bump_attack_damages_monster():
     dx, dy = _free_neighbour(w)
     m = spawn_monster("golem", w.player.x + dx, w.player.y + dy)
     w.monsters.append(m)
-    w.player.accuracy = 100
+    w.player.attack = 100
     assert w.move_player(dx, dy)
     assert m.hp < m.max_hp
     assert (w.player.x, w.player.y) != (m.x, m.y)
@@ -42,7 +42,7 @@ def test_kill_awards_xp_and_emits_event():
     m = spawn_monster("gnawer", w.player.x + dx, w.player.y + dy)
     m.hp = 1
     w.monsters.append(m)
-    w.player.accuracy = 100
+    w.player.attack = 100
     w.move_player(dx, dy)
     assert kills and kills[0]["monster"] == "gnawer"
     assert w.player.kills == 1 and w.player.xp == m.xp_value

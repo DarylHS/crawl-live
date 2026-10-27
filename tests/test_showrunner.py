@@ -15,7 +15,7 @@ def test_every_event_has_mild_and_spicy_lines_that_format():
     w = World(seed=1)
     ctx = dict(depth=1, name="x", level=2, tier="Gold", sponsor="S", achievement="A", pet="P",
                ability="B", boss="Boss", title="Elf Duellist", item="Sock", value=2, ev="7",
-               deal="Gloop Blitz")
+               deal="Gloop Blitz", foe="the goblin", Foe="The goblin")
     for kind, pools in LINES.items():
         assert len(pools["mild"]) >= 2 and len(pools["spicy"]) >= 3, kind
         assert len(pools["mild"]) + len(pools["spicy"]) >= 5, kind

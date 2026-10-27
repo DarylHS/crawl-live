@@ -35,13 +35,13 @@ def test_skills_are_hidden_until_used_and_level_up_announces():
 def test_stat_gains_apply_once_per_level():
     w = World(seed=3)
     p = w.player
-    hp, ev = p.max_hp, p.evasion
+    hp, ac = p.max_hp, p.ac
     t = w.training
     while w.practice("pain_tolerance") < 3:
         t.gain("pain_tolerance")
     while w.practice("dodging") < 4:
         t.gain("dodging")
-    assert p.max_hp == hp + 3 and p.evasion == ev + 1
+    assert p.max_hp == hp + 3 and p.ac == ac + 1
 
 
 def _adjacent_gnawer(w):
