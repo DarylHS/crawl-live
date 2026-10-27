@@ -42,12 +42,22 @@ class Result:
         self.report = ""
 
 
+class TraceFileError(Exception):
+    pass
+
+
 def read_records(path):
-    with open(path, encoding="utf-8") as fh:
-        for line in fh:
-            line = line.strip()
-            if line:
-                yield json.loads(line)
+    try:
+        with open(path, encoding="utf-8") as fh:
+            for no, line in enumerate(fh, 1):
+                line = line.strip()
+                if line:
+                    try:
+                        yield json.loads(line)
+                    except json.JSONDecodeError as e:
+                        raise TraceFileError(f"file {path} line {no} malformed ({e.msg})")
+    except OSError as e:
+        raise TraceFileError(f"file {path} missing or unreadable ({e.strerror})")
 
 
 def _num(x):
@@ -111,12 +121,23 @@ def short(rec, width=160):
 
 
 def compare_files(path_a, path_b, scope="full", context=12):
+    try:
+        return _compare_files(path_a, path_b, scope, context)
+    except TraceFileError as e:
+        res = Result()
+        res.ok = False
+        res.report = f"PARITY FAIL: {e}"
+        return res
+
+
+def _compare_files(path_a, path_b, scope, context):
     res = Result()
     ra = (normalise(r, scope) for r in read_records(path_a))
     rb = (normalise(r, scope) for r in read_records(path_b))
     ra = (r for r in ra if r is not None)
     rb = (r for r in rb if r is not None)
     hist_a, hist_b = deque(maxlen=context), deque(maxlen=context)
+    last_r = [None, None]
     turn = depth = None
     n = 0
     while True:
@@ -130,7 +151,7 @@ def compare_files(path_a, path_b, scope="full", context=12):
         eq, sub = (False, "(one trace ended early)") if a is None or b is None else values_equal(a, b)
         if not eq:
             res.ok = False
-            res.report = _report(n, turn, depth, a, b, sub, hist_a, hist_b, path_a, path_b)
+            res.report = _report(n, turn, depth, a, b, sub, hist_a, hist_b, path_a, path_b, last_r)
             break
         n += 1
         res.records = n
@@ -142,6 +163,8 @@ def compare_files(path_a, path_b, scope="full", context=12):
             depth = a.get("d")
         elif a["k"] == "floor":
             depth = a.get("depth")
+        if a["k"] == "ev":
+            last_r = [a.get("r"), b.get("r")]
         hist_a.append(a)
         hist_b.append(b)
     if res.ok:
@@ -149,7 +172,7 @@ def compare_files(path_a, path_b, scope="full", context=12):
     return res
 
 
-def _report(n, turn, depth, a, b, sub, hist_a, hist_b, path_a, path_b):
+def _report(n, turn, depth, a, b, sub, hist_a, hist_b, path_a, path_b, last_r):
     out = [f"PARITY FAIL at record {n} (after turn {turn}, depth {depth})",
            f"  A = {path_a}", f"  B = {path_b}"]
     ka = a.get("k") if a else None
@@ -171,9 +194,15 @@ def _report(n, turn, depth, a, b, sub, hist_a, hist_b, path_a, path_b):
                 out.append(f"  note: RNG counters also differ: A {a['r']} B {b['r']}")
     else:
         out.append(f"  record kind differs or a trace ended early: A {ka}, B {kb} {sub}")
+    if not sub.startswith(".r[") and last_r[0] is not None:
+        out.append(f"  last ev RNG counters before this point: A {last_r[0]} B {last_r[1]}")
     out.append("  context (last records, A | B), then the differing pair:")
     for ra, rb in zip(hist_a, hist_b):
-        out.append(f"    = {short(ra, 110)}")
+        if values_equal(ra, rb)[0]:
+            out.append(f"    = {short(ra, 110)}")
+        else:
+            out.append(f"    A {short(ra, 110)}")
+            out.append(f"    B {short(rb, 110)}")
     out.append(f"    A> {short(a)}")
     out.append(f"    B> {short(b)}")
     return "\n".join(out)

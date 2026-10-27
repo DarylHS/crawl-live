@@ -406,6 +406,8 @@ Result: no set or dict iteration feeds the rules in an order that GDScript canno
 
 JSON Lines, UTF-8, one object per line. Both sides write the same records in the same order; `scripts/parity_diff.py` parses both and compares values (so cosmetic number formatting cannot cause a false failure).
 
+**Normative spec.** The docstrings at the top of `scripts/py_trace.py` (records, digests, floor sections, CLI) and `scripts/trace_policies.py` (actions and policy decision orders) are the normative definition of the trace; where this section and those docstrings differ, the docstrings win. Differences from the first draft of this table: the header gains a trailing `"mode"` (`"run"`, `"floors"` or `"floors_world"`); `act` gains a trailing `"pr"` (words used by the policy's own stream after the action); the `floor` record in floor-only mode carries extra fields (`words`, `tiles`, `safe` as row strings, `rooms`, `start`, `safe_room`, `safe_door`, `stairs`, `furniture`; with `--spawns` also `player`, `timer` `[timer, timer_max]`, `monsters` and `items`); the floor fingerprint has eight `#`-separated sections (pure `generate_floor` mode uses the first six); the state digest hashes `"index,w0,...,w623"`.
+
 | Record | When | Fields |
 |---|---|---|
 | `header` | first line | `{"k": "header", "impl": "python" or "godot", "trace_version": 1, "seed": 5, "policy": "hunter", "steps": 3000, "pet": null, "hero": null, "content_sha": "<sha256 of manifest.json>"}` |
@@ -426,6 +428,14 @@ Python, `scripts/py_trace.py` (imports `crawler` read-only; nothing in `crawler/
 - `TracingEventBus(EventBus)` and `TracingMessageLog(MessageLog)` record and then call the parent; the harness assigns them to `crawler.world.EventBus` and `crawler.world.MessageLog` before `World(...)`, so the floor 1 events and messages emitted inside the constructor are captured.
 - A `turn` snapshot is written from the `ev` hook when the event name is `turn`; `floor` from `floor_start`.
 - Policies (6.4) drive the World and write `act` records.
+- The bot-pick stream (`run_config`, 4 draws from `random.Random(seed * 7919 + 13)`) is created outside the patch and is not counted or traced. The policy stream (`seed ^ 0x7ACE`, or `seed ^ 0xB07` for the bot coin) is a `CountingRandom` reported as `pr` in `act` records. `py_trace.py` asserts that exactly five streams were created by `World(...)`.
+- Default output path without `--out`: `./trace_<seed>.jsonl`; `--seeds A-B --out-dir D` writes `<policy>_<seed>.jsonl` (`floors_<seed>.jsonl` for floor-only).
+
+**Notes for `godot/tools/trace.gd`**
+
+- (a) The world must be reachable from the tap before floor 1's `floor_start` fires (the `floor`, `turn` and `ev` records read world state): assign `events.tap` / pass the world before `new_floor(1)`. `t` and `d` are 0 in `ev` records emitted before the first `new_floor`.
+- (b) Floats are written with round-trip precision (`PyFmt.repr_float`, never `JSON.stringify` defaults). Every numeric field that goes into a hash input (monster string, floor sections, state digest) is formatted as a decimal int (beware `round()` returning a float, which would print `14.0`). Colours are ints 0-255. Bools stay bools.
+- (c) `spend_points`, `manage_items` and the remote `shop_buy` after a Supply Drop call the World directly and produce no `act` records, so `trace_policies.gd` must do exactly the same.
 
 Godot, `tools/trace.gd` (`extends SceneTree`): sets `world.events.tap` and `world.messages.tap` before the first floor is built (`World.new(seed, pet, hero, tap_events, tap_messages)` takes two optional Callables for this; no rule reads them), reads `words_used` and `state_digest()` from the five streams, and runs the same policies from `tools/trace_policies.gd`.
 
@@ -439,19 +449,20 @@ python scripts/parity_diff.py /tmp/py.jsonl /tmp/gd.jsonl [--scope core|full] [-
 
 - Streams both files record by record. Compares `k`, then every field; numbers compare by value (`float(a) == float(b)`, ints exactly), strings exactly.
 - On the first difference prints: the record index, the turn and depth, the last `--context` records from both sides (side by side), the field path that differs, and the RNG counter delta at that point (if `r` differs first, the cause is an extra or missing draw just before it, which narrows it to one call site in 5.2). Exit code 1.
-- `--scope core` (P1): ignores `msg` records, the `show` counter, `viewers` in `turn`, and events from systems still stubbed in P1 (`achievement`, `box_gained`, `viewers_gained`, `sponsor_gift`, `fun_fact`). `--scope full` (P2 onward) compares everything.
-- Also `--csv DIR_A DIR_B`: compares telemetry CSV tables cell by cell (floats by value) and reports byte differences separately.
+- `--scope core` (P1): ignores `msg` records, the `i` counter of `ev` records, the `show` counter (index 4 of `r` and `rs`), `viewers` in `turn`, and events from systems still stubbed in P1 (`achievement`, `box_gained`, `viewers_gained`, `sponsor_gift`, `fun_fact`). `--scope full` (P2 onward) compares everything. The header's `impl` is never compared.
+- A missing or malformed file (bad JSON line) is reported as a failure for that pair (`file X line N malformed`), exit 1, no traceback. On a divergence that is not in `r`, the last `ev` RNG counters of both sides are printed as well. `--dirs DIR_A DIR_B [--seeds lo-hi]` compares same-named files and carries on past a bad pair.
+- The CSV compare mode (`--csv DIR_A DIR_B`: telemetry tables cell by cell, floats by value, byte differences reported separately) is not part of S9; it moves to slice T4.
 - Exit 0 prints `PARITY OK: <n> records, <turns> turns`.
 
 ### 6.4 Seeds and scripted sequences
 
-Policies live in both `scripts/trace_policies.py` and `godot/tools/trace_policies.gd`, written line for line alike, and use their own `PyRandom` / `random.Random` stream (`seed ^ 0x7ACE`), which the trace also counts.
+Policies live in both `scripts/trace_policies.py` and `godot/tools/trace_policies.gd`, written line for line alike, and use their own stream: `random.Random(seed ^ 0x7ACE)` for `walk` and `hunter`, `random.Random(seed ^ 0xB07)` (the bot's coin) for `bot`; the trace counts it as `pr`. The docstring of `scripts/trace_policies.py` is normative. If a policy's main action returns False, the policy then performs `wait` (a second `act` record with the same `n`), as `bot.play` does.
 
 | Policy | What it does | Purpose |
 |---|---|---|
 | `walk` | each step picks one of 9 actions (8 moves, wait) with `randrange(9)` | dungeon, FOV, wandering, monsters noticing you, combat starting by monster, opportunity attacks |
-| `hunter` | attack an adjacent monster (first in list order); else step towards the nearest visible monster (`min_by` cheb); else towards the nearest unexplored room centre; descend when on open stairs; wait otherwise | combat mode, kills, gold and drops (loot stream), floors 1-2, stairs timing |
-| `bot` | `BotPolicy.play` (P2) | everything |
+| `hunter` | first rule that yields an action: (1) hp*100 < max_hp*45 and not in a safe room: `use` the first inventory index holding tonic, brew or elixir; (2) attack an adjacent monster (first in list order); (3) `pickup` when standing on floor items with fewer than 16 carried; (4) step towards the nearest visible monster (first minimum by Chebyshev distance; bosses only when the exit is sealed); (5) step towards the nearest unexplored room centre; (6) `descend` on open stairs; (7) step towards the nearest stairs; (8) wait. A step is one downhill move on `floor.distance_map` (NEIGHBOURS_8 order, strictly smaller distance); no step means the rule is skipped | combat mode, kills, gold and drops (loot stream), floors 1-2, stairs timing. Note: it usually dies on floor 1; use `bot` for deep floors |
+| `bot` | `analysis/bot.py` `choose`, `spend_points`, `manage_items` inside `bot.play`'s loop (class pick when pending, coin flip `coin.random() < 0.5` per offer; pet, hero, race and class from `run_config(seed)`, whose 4 draws on the uncounted `seed * 7919 + 13` stream are not traced). Godot mirror: `BotPolicy` (P2) | everything |
 
 | Phase | Check | Seeds | Pass condition |
 |---|---|---|---|

@@ -8,7 +8,7 @@ restored afterwards.
 
 Usage:
   python scripts/py_trace.py --seed 5 --policy hunter --steps 3000 --out /tmp/py.jsonl
-        [--pet cat] [--hero GENDER:BACKSTORY] [--no-msg]
+        [--pet cat|none] [--hero GENDER:BACKSTORY] [--no-msg]
   python scripts/py_trace.py --seeds 0-49 --policy walk --steps 500 --out-dir /tmp/py_walk
         (one file per seed: <policy>_<seed>.jsonl)
   python scripts/py_trace.py --seed 5 --floor-only --floors 6 --out f.jsonl
@@ -16,8 +16,9 @@ Usage:
   python scripts/py_trace.py --seed 5 --floor-only --spawns --floors 2 --out f.jsonl
         (World(seed) then new_floor(2..n); adds monsters, items, timers, player start)
 
+Default output path when --out is omitted: ./trace_<seed>.jsonl.
 Policies: walk, hunter, bot (see scripts/trace_policies.py).  --pet and --hero default
-to none for walk/hunter and to analysis.bot.run_config(seed) for bot.
+to none for walk/hunter (--pet none forces no pet) and to analysis.bot.run_config(seed) for bot.
 
 Records (one JSON object per line, keys in this order; floats written with repr):
   header k impl trace_version seed policy steps pet hero content_sha mode
@@ -250,6 +251,7 @@ def header(seed, policy, steps, pet, hero, mode):
 def new_world(tracer, seed, pet, hero):
     with Patched(tracer):
         w = cw.World(seed, pet=(pet, "") if pet else None, hero=hero)
+    assert len(tracer.rngs) == 5, f"expected 5 RNG streams, saw {len(tracer.rngs)}"
     return w
 
 
@@ -257,7 +259,10 @@ def run_trace(seed, policy, steps, out, pet=None, hero=None, msgs=True):
     """Play `steps` policy steps (fewer if the run ends) and write the trace to the open file `out`.
     Returns the World."""
     dpet, dhero = TP.default_setup(policy, seed)
-    pet = pet if pet is not None else dpet
+    if pet == "none":
+        pet = None
+    elif pet is None:
+        pet = dpet
     hero = hero if hero is not None else dhero
     tr = Tracer(out, msgs=msgs)
     tr.write(header(seed, policy, steps, pet, hero, "run"))

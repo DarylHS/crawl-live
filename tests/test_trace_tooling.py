@@ -213,3 +213,39 @@ def test_pet_and_hero_options(tmp_path):
     head = json.loads(lines(p)[0])
     assert head["pet"] == "cat" and head["hero"]["backstory"] == "veteran"
     assert any(json.loads(x)["k"] == "turn" and json.loads(x)["pet"] for x in lines(p))
+
+
+def test_malformed_and_missing_files_fail_cleanly(tmp_path):
+    a, bad = tmp_path / "a.jsonl", tmp_path / "bad.jsonl"
+    trace(a, seed=2, policy="walk", steps=30)
+    ls = lines(a)
+    bad.write_text("\n".join(ls[:5] + ["{not json"] + ls[5:]) + "\n", encoding="utf-8")
+    res = PD.compare_files(a, bad)
+    assert not res.ok and "line 6 malformed" in res.report
+    res = PD.compare_files(a, tmp_path / "nope.jsonl")
+    assert not res.ok and "missing" in res.report
+    cli = [sys.executable, str(ROOT / "scripts" / "parity_diff.py")]
+    r = subprocess.run(cli + [str(a), str(bad)], capture_output=True, text=True)
+    assert r.returncode == 1 and "Traceback" not in r.stderr
+    da, db = tmp_path / "A", tmp_path / "B"
+    for d in (da, db):
+        PT.main(["--seeds", "0-1", "--policy", "walk", "--steps", "30", "--out-dir", str(d)])
+    (db / "walk_0.jsonl").write_text("garbage\n", encoding="utf-8")
+    ok, text = PD.compare_dirs(da, db)
+    assert not ok and "1/2 traces identical" in text
+
+
+def test_non_rng_divergence_shows_last_counters(tmp_path):
+    a, b = tmp_path / "a.jsonl", tmp_path / "b.jsonl"
+    trace(a, seed=5, policy="walk", steps=100)
+    recs = [json.loads(x) for x in lines(a)]
+    idx = [i for i, r in enumerate(recs) if r["k"] == "turn"][5]
+    recs[idx]["gold"] += 1
+    b.write_text("\n".join(json.dumps(r) for r in recs) + "\n", encoding="utf-8")
+    assert "last ev RNG counters" in PD.compare_files(a, b).report
+
+
+def test_pet_none_option(tmp_path):
+    p = tmp_path / "p.jsonl"
+    trace(p, seed=1, policy="bot", steps=20, pet="none")
+    assert json.loads(lines(p)[0])["pet"] is None
