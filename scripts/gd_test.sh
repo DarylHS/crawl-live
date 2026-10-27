@@ -24,7 +24,8 @@ trap 'rm -rf "$REFDIR"' EXIT
 python3 "$ROOT/scripts/py_random_reference.py" "$REFDIR/py_random_ref.json" || { echo "FAIL: py_random_reference.py"; exit 1; }
 python3 "$ROOT/scripts/content_reference.py" "$REFDIR/content_ref.json" || { echo "FAIL: content_reference.py"; exit 1; }
 python3 "$ROOT/scripts/make_fixtures.py" "$REFDIR/fixtures.json" || { echo "FAIL: make_fixtures.py"; exit 1; }
-export PY_RANDOM_REF="$REFDIR/py_random_ref.json" CONTENT_REF="$REFDIR/content_ref.json" FIXTURES="$REFDIR/fixtures.json"
+python3 "$ROOT/scripts/make_fixtures_s2.py" "$REFDIR/fixtures_s2.json" || { echo "FAIL: make_fixtures_s2.py"; exit 1; }
+export PY_RANDOM_REF="$REFDIR/py_random_ref.json" CONTENT_REF="$REFDIR/content_ref.json" FIXTURES="$REFDIR/fixtures.json" FIXTURES_S2="$REFDIR/fixtures_s2.json"
 
 ARGS=()
 for a in "$@"; do
