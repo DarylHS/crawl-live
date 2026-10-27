@@ -71,9 +71,7 @@ static func init_mod(entity: Entity) -> int:
 		return pets()[(entity as Pet).species].get("init", 0)
 	var mon := entity as Monster
 	if mon.tier == "headliner":
-		# SEAM: Python calls bosses.boss_depth(monster), int(monster.key.split("_")[1]); Bosses
-		# arrives in slice S4, so the same expression is inlined here.
-		var depth := int(mon.key.split("_")[1])
+		var depth := Bosses.boss_depth(mon)
 		return Content.boss(depth).get("init", 0)
 	var row_key: String = mon.base if mon.base != "" else mon.key
 	return monsters().get(row_key, {}).get("init", 0)

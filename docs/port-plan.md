@@ -751,18 +751,18 @@ Probes were run headless with throwaway projects under the session scratchpad; r
 | `test_loot.py` | `tests/test_loot.gd` | S4, S8 | |
 | `test_practice.py` | `tests/test_practice.gd` | S5, S6, S8, T4, T5 | The test that wraps `world.attack` to see `bonus` instead checks the damage outcome with a seeded roll, or uses a counting `PyRandom`; no seam in `World`. |
 | `test_world.py` | `tests/test_world.gd` | S7, S8 | `test_random_play_smoke` seeds 0-11 with a `PyRandom` driver. |
-| `test_encounter.py` | `tests/test_encounter.gd` | S7, S8, T5, T6 | `monkeypatch.setattr(C, ...)` becomes `TestHelpers.patch_static(GameConfig, ...)`; `setitem(MONSTERS["goblin"], "init", 50)` becomes `patch_item(Content.monster("goblin"), "init", 50)`; `SPEAK_CHANCE` patch likewise on the config table. |
+| `test_encounter.py` | `tests/test_encounter.gd` | S4, S7, S8, T5, T6 | `monkeypatch.setattr(C, ...)` becomes `TestHelpers.patch_static(GameConfig, ...)`; `setitem(MONSTERS["goblin"], "init", 50)` becomes `patch_item(Content.monster("goblin"), "init", 50)`; `SPEAK_CHANCE` patch likewise on the config table. |
 | `test_floors.py` | `tests/test_floors.gd` | S6, S8 | |
-| `test_items.py` | `tests/test_items.gd` | S8 | pytest fixture `w` becomes `before_each`. |
-| `test_phase3.py` | `tests/test_phase3.gd` | S8, T5 | |
-| `test_phase4.py` | `tests/test_phase4.gd` | S4, S8, T3, T5 | |
+| `test_items.py` | `tests/test_items.gd` | S4, S6, S8 | pytest fixture `w` becomes `before_each`. |
+| `test_phase3.py` | `tests/test_phase3.gd` | S4, S6, S8, T5 | |
+| `test_phase4.py` | `tests/test_phase4.gd` | S4, S6, S7, S8, T3, T5 | |
 | `test_achievement_loot.py` | `tests/test_achievement_loot.gd` | S8, T1 | |
 | `test_showrunner.py` | `tests/test_showrunner.gd` | T1, T2 | `test_every_event_has_mild_and_spicy_lines_that_format` checks `PyFmt.format_map` over `lines.json`. |
 | `test_telemetry.py` | `tests/test_telemetry.gd` | T4, T6 | `test_bot_is_deterministic` uses `BotPolicy.play`. |
 | `test_settings.py` | `tests/test_settings.gd` | T5 | |
 | `test_firstperson.py` | `tests/ui/test_fp_logic.gd` (angle, steps, `target_ahead`, `open_facing`, glide) and `tests/ui/test_fp_scene.gd` (scene builds for every floor, every creature has a sprite) | P4, P5 | Minimap pixel tests become checks on the minimap image data. |
 | `test_render.py` | `tests/ui/test_app_state.gd` (key handling, Tab, menus, held keys, combat lock, provoke flags; headless) and `tests/ui/test_scenes.gd` (every scene instantiates and draws a frame); `tools/screenshots.gd` under `xvfb-run` for the screenshot sweep | P4-P7 | `CRAWL_SCREENSHOTS` becomes `-- --screenshots=<dir>`. |
-| (new) | `tests/test_py_random.gd`, `test_py_math.gd`, `test_py_fmt.gd`, `test_content.gd`, `test_parity_fixtures.gd` | P0, S1 | |
+| (new) | `tests/test_py_random.gd`, `test_py_math.gd`, `test_py_fmt.gd`, `test_content.gd`, `test_parity_fixtures.gd`, `test_s2_parity.gd`, `test_s4_parity.gd` | P0, S1, S2, S4 | S4: scripts/make_fixtures_s4.py, seeds 0-199, 18,567 steps |
 
 ### B.1 Deferred tests (ported when their slice lands)
 
@@ -775,10 +775,33 @@ Every pytest test not yet ported is named here, with the slice that must port it
 | S8 | `test_practice.py`: `test_stomping_adds_damage_against_small_monsters`, `test_hitting_trains_the_matching_weapon_skill` | need `World` attacks |
 | T4 | `test_practice.py`: `test_telemetry_has_one_practice_row_per_skill` | telemetry |
 | T5 | `test_practice.py`: `test_save_round_trip_keeps_practice` | saves |
+| S8 | `test_loot.py`: `test_box_opens_only_in_safe_room`, `test_open_box_needs_space_and_ownership` | need `World` |
+| S6 | `test_items.py`: `test_new_floors_scatter_items` | need `World` floors |
+| S8 | `test_items.py`: `test_pickup_and_drop`, `test_pickup_respects_pack_size`, `test_equip_swaps_and_changes_stats`, `test_potion_heals_and_takes_a_turn`, `test_potion_refused_at_full_health`, `test_bomb_hits_blast_radius_only`, `test_bomb_needs_a_target_and_no_safe_room`, `test_junk_is_not_usable`, `test_monster_drops_use_loot_rng` | need `World` |
+| S6 | `test_phase4.py`: `test_shop_turns_over_between_floors`, `test_contracts_offered_from_floor_two`, `test_accepting_hazard_pay_changes_monsters_and_gold`, `test_snack_sprint_shortens_the_timer`, `test_every_contract_previews` (switch `S4Support.FakeWorld` to a real `World`, then delete the stand-in) | need `World` floors, `accept_contract`, `timer_text` |
+| S7 | `test_phase4.py`: `test_kills_pay_gold` | need `World` kills |
+| S8 | `test_phase4.py`: `test_trade_up_in_safe_room`, `test_reroll_swaps_the_item_and_charges_the_fee`, `test_buying_and_selling_in_world` | need `World` |
+| T3 | `test_phase4.py`: `test_miss_streak_fun_fact`, `test_box_drought_fun_fact`, `test_fun_facts_are_rate_limited`, `test_run_report_data` | fun facts, report |
+| T5 | `test_phase4.py`: `test_save_round_trip_keeps_phase4_state` | saves |
+| S6 | `test_phase3.py`: `test_pet_starts_next_to_player_and_follows_floors`, `test_default_pet_name`, `test_class_choice_offered_on_floor_three`, `test_one_boss_per_floor_by_the_furthest_stairs` (parametrised over depths), `test_four_companions_each_with_quips` | need `World` init and floors |
+| S7 | `test_phase3.py`: `test_pet_attacks_adjacent_monster_and_earns_xp`, `test_cat_pounces_from_range`, `test_dog_licks_wounds`, `test_monsters_never_stand_on_the_pet`, `test_boss_kill_awards_box_achievement_and_viewers` (needs T1 achievements for the unlock assert: port the rest, leave that assert to T1), `test_final_boss_phase_two_calls_for_help`, `test_ranged_monster_shoots_from_distance`, `test_budgie_squawk_stuns_nearby_monsters`, `test_mouse_dirty_trick_on_wounded_monster`, `test_mouse_runs_away_when_hurt`, `test_boss_names_read_naturally`, `test_following_pet_joins_the_players_fight` | need `World`, `Ai` |
+| S8 | `test_phase3.py`: `test_swap_places_with_pet`, `test_pet_command_cycles_modes`, `test_pet_downed_then_revived_in_safe_room`, `test_skill_needs_a_class_and_respects_cooldown`, `test_haymaker_always_hits_double`, `test_arc_bolt_hits_nearest_visible`, `test_crafting_in_safe_room_only_and_costs_time` | need `World` |
+| T5 | `test_phase3.py`: `test_save_round_trip_and_identical_future`, `test_load_rejects_wrong_version` | saves |
+| S7 | `test_encounter.py`: `test_out_of_combat_nothing_changes`, `test_monster_in_view_starts_combat`, `test_no_combat_while_in_a_safe_room`, `test_bump_attacking_starts_combat_and_spends_the_action`, `test_a_bomb_starts_combat_as_your_action`, `test_initiative_is_seeded_and_dex_applies`, `test_late_joiner_rolls_on_joining`, `test_move_action_and_bonus_in_one_round`, `test_wait_ends_your_turn_early`, `test_monster_in_combat_steps_and_attacks_in_one_round`, `test_one_round_ticks_the_clock_once`, `test_killing_the_last_combatant_ends_combat`, `test_losing_track_ends_combat`, `test_entering_a_safe_room_ends_combat`, `test_dying_ends_combat`, `test_a_bomb_that_kills_the_last_fighter_and_catches_a_bystander_keeps_the_fight`, `test_moving_then_bombing_the_last_fighter_does_not_hand_back_your_move`, `test_a_monster_that_loses_track_does_not_act_again_that_round`, `test_a_pet_ahead_in_initiative_acts_once_when_the_fight_ends_mid_turn`, `test_monsters_ahead_in_initiative_act_before_your_first_turn`, `test_stepping_away_provokes_one_attack_a_round`, `test_moving_along_its_side_does_not_provoke`, `test_each_adjacent_monster_gets_its_own_attack`, `test_riposte_parries_an_attack_of_opportunity`, `test_a_stunned_monster_cannot_react_and_a_reaction_lasts_until_its_turn`, `test_a_monster_leaving_your_reach_gives_you_and_your_pet_a_free_attack`, `test_your_pet_leaving_a_monster_provokes_it`, `test_swapping_with_your_pet_does_not_provoke`, `test_nothing_provokes_out_of_combat`, `test_a_monster_cut_down_as_it_retreats_does_not_move`, `test_the_combat_banner_shows_for_two_of_your_rounds`, `test_expired_toasts_are_pruned`, `test_a_fight_with_only_a_lost_outsider_left_ends`, `test_no_attacks_of_opportunity_into_or_out_of_a_safe_room`, `test_no_warning_once_your_move_is_spent`, `test_system_lines_only_when_you_are_caught` | need `World`, `Ai` |
+| S8 | `test_encounter.py`: `test_skills_pickups_and_descend_use_the_action`, `test_descending_ends_combat_and_uses_the_action`, `test_safe_room_time_passes_only_out_of_combat`, `test_haymaker_starts_combat_as_your_action`, `test_arc_bolt_starts_combat_as_your_action` | need `World` actions |
+| T5 | `test_encounter.py`: `test_never_saves_mid_combat`, `test_save_and_load_in_a_safe_room_gives_the_same_future` | saves |
+| T6 | `test_encounter.py`: `test_bot_finishes_runs_in_combat_mode`, `test_bot_flees_through_a_provoke_only_when_hurt` | bot |
 
 ### B.2 Notes carried forward to later slices
 
-- **S6:** replace `S2Support.hero()` (tests/support/s2_support.gd) with `World.new(1).player` and delete the stand-in. `Entities.new_pet` takes a String name: turn Python's `None` into `""`. `Entities.init_mod` inlines `boss_depth` until `Bosses` lands in S4; switch it then.
+- **S6:** replace `S2Support.hero()` (tests/support/s2_support.gd) with `World.new(1).player` and delete the stand-in. `Entities.new_pet` takes a String name: turn Python's `None` into `""`. (`Entities.init_mod` now calls `Bosses.boss_depth`; done in S4.)
 - **T5:** `Entity.from_dict` on a dictionary from `JSON.parse_string` leaves `attrs` values and `colour` parts as floats (int fields are truncated by `set()`). `SaveGame` must coerce by schema before `from_dict`. `Entity.to_dict` written with `PyJson.dumps` is already byte-identical to Python's `json.dumps(asdict(...))`.
 - **S6:** re-run `test_xp_curve_is_increasing_and_capped` and `test_skills_are_hidden_until_used_and_level_up_announces` against the real `World` (S5 ported their World-free halves against a stand-in world in `tests/test_practice.gd`).
 - **T5:** `Practice.load` stores the raw types it is given, so decode with `PyJson` and coerce ints (`levels`, `xp`, `steps`) before calling it.
+- **S4 seams and judgement calls (for S6 and later):**
+  - `Contracts.effect` / `preview` take a duck-typed `world` (`Variant`): `contract` (String, "" or null for none), `floor_stats`, `monsters`, `player`, `timer`, and `timer_text(turns := null)` with an optional argument. `tests/support/s4_support.gd` has a `FakeWorld` for them; delete it in S6.
+  - `Shop.buy` returns `""` for Python's `None`; `Loot.next_tier` returns `""`. Only `ShopStock.from_dict` coerces (`int`/`float`); `Shop.load` stores `log`, `bought` and `missed` raw, so T5 must coerce them (and the stock dictionaries) by schema before calling it.
+  - `Encounter.total/before/after` for an entity that is not in the fight push_error and return 0 / [] (Python raises `StopIteration`).
+  - `Achievements`, `Showrunner` and `FunFacts` are P1 stand-ins (no subscriptions, no draws; `Showrunner` owns `PyRandom(world.seed ^ 0x5EED)` and `viewers = peak = START_VIEWERS`). T1, T2 and T3 replace them whole. They already follow the section 3 "Back-references to World" rule (`_world_ref: WeakRef`, `world` getter, `_init(world_value: Object)`) and each has an ownership test in `tests/test_s4_standins.gd`; the replacements and World (S6) must keep both.
+  - `Bosses.acts_per_floor` returns a `Vector2i` (x opening, y featured); `Bosses.MAP_RADIUS` / `PHASE_TWO` are patchable static vars.
+  - `Contracts.preview` with no monsters (Python: ZeroDivisionError) push_errors and returns the lines so far.
