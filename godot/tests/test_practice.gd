@@ -3,9 +3,9 @@ extends TestCase
 ## scripts/practice_reference.py output (real Python Practice driven by a recording stand-in
 ## world; env PRACTICE_REF, set by scripts/gd_test.sh).
 ##
-## Deferred tests from tests/test_practice.py are listed in docs/port-plan.md Appendix B.1. The
-## World parts of test_xp_curve and test_skills_are_hidden_until_used are ported here against the
-## stand-in world (B.2 asks S6 to re-run them against the real World).
+## Deferred tests from tests/test_practice.py are listed in docs/port-plan.md Appendix B.1. Tests
+## that need a real World (S6) run on World.new; the stand-in FakeWorld below only drives the
+## replay of scripts/practice_reference.py output and the Practice unit checks.
 
 
 ## Recording stand-in for the World seam of Practice (events, messages, refresh_stats, add_toast,
@@ -96,29 +96,78 @@ func test_xp_curve_is_increasing_and_capped() -> void:
 	sorted_costs.sort()
 	assert_eq(costs, sorted_costs)
 	assert_true(costs[0] >= 1)
-	var w := FakeWorld.new()
-	var t := Practice.new(w)
-	t.gain("stomping", 10_000)
-	assert_eq(t.level("stomping"), Practice.MAX_LEVEL)
-	t.gain("stomping", 50)   # no XP past the cap
-	assert_eq(t.level("stomping"), Practice.MAX_LEVEL)
+	var w := World.new(1)
+	w.training.gain("stomping", 10_000)
+	assert_eq(w.practice("stomping"), Practice.MAX_LEVEL)
+	w.training.gain("stomping", 50)   # no XP past the cap
+	assert_eq(w.practice("stomping"), Practice.MAX_LEVEL)
 
 
 func test_skills_are_hidden_until_used_and_level_up_announces() -> void:
-	var w := FakeWorld.new()
-	var t := Practice.new(w)
+	var w := World.new(2)
+	var t := w.training
 	assert_true(Practice.skills().size() >= 20 and t.used.is_empty())
 	var levels: Array = []
 	w.events.subscribe("practice_level", func(_n: String, d: Dictionary) -> void: levels.append(d["level"]))
 	t.gain("haggling", Practice.xp_to_next(0))
 	assert_true(t.used.has("haggling"))
-	assert_eq(t.level("haggling"), 1)
+	assert_eq(w.practice("haggling"), 1)
 	assert_eq(levels, [1])
 	var found := false
 	for toast in w.toasts:
 		if "Skill up: Haggling 1" in toast[1]:
 			found = true
 	assert_true(found)
+
+
+func test_stat_gains_apply_once_per_level() -> void:
+	var w := World.new(3)
+	var p := w.player
+	var hp := p.max_hp
+	var ac := p.ac
+	var t := w.training
+	while w.practice("pain_tolerance") < 3:
+		t.gain("pain_tolerance")
+	while w.practice("dodging") < 4:
+		t.gain("dodging")
+	assert_eq(p.max_hp, hp + 3)
+	assert_eq(p.ac, ac + 1)
+
+
+func test_sneaking_shortens_notice_range() -> void:
+	var w := World.new(6)
+	assert_eq(w.notice_range(), GameConfig.FOV_RADIUS)
+	w.training.levels["sneaking"] = 8
+	assert_eq(w.notice_range(), GameConfig.FOV_RADIUS - 2)
+
+
+func test_haggling_and_gambling_change_prices() -> void:
+	var w := World.new(7)
+	var key: String = w.shop.stock.keys()[0]
+	var buy := w.buy_price(key)
+	var sell := w.sell_price(key)
+	var fee := w.reroll_fee("gold")
+	w.training.levels["haggling"] = 10
+	w.training.levels["gambling"] = 10
+	assert_lt(w.buy_price(key), buy)
+	assert_gte(w.sell_price(key), sell)
+	assert_lt(w.reroll_fee("gold"), fee)
+
+
+## Python walks CARDIO_STEPS * 3 random steps with move_player; move_player arrives with slice S8,
+## so the steps are emitted directly (the same "step" events move_player sends). S8 should switch
+## this to the walking version.
+func test_cardio_trains_by_walking_and_extends_the_next_timer() -> void:
+	var w := World.new(8)
+	w.player.max_hp = 1000
+	w.player.hp = 1000
+	for _i in range(Practice.CARDIO_STEPS * 3):
+		w.events.emit("step", {"sneaky": false})
+	assert_true(w.training.used.has("cardio"))
+	w.training.levels["cardio"] = 4
+	var base: int = GameConfig.floor_turns(2) + int(w.get_trait("timer_bonus", 0))
+	w.new_floor(2)
+	assert_eq(w.timer_max, base + 8)
 
 
 # --- Direct checks ------------------------------------------------------------------------------

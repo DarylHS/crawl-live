@@ -4,12 +4,11 @@ extends RefCounted
 ## (crawler/contracts.py). Each one trades a reward for a risk; preview() turns the terms into
 ## numbers from the player's own run so far.
 ##
-## SEAM (World, slice S6): `world` is duck-typed. effect() reads `world.contract` (a contract key
+## SEAM: `world` is duck-typed (World passes itself). effect() reads `world.contract` (a contract key
 ## String, or "" / null for none). preview() reads `world.contract`-free state only: `floor_stats`
 ## (Array of Dictionary with gold, viewers_start, viewers_end), `monsters` (Array of Monster),
 ## `player`, `timer` (int) and the method `timer_text(turns := <timer>) -> String` (Python's
-## World.timer_text(turns=None); the argument must be optional). tests/support/s4_support.gd has a
-## stand-in with those members.
+## World.timer_text(turns=None); the argument must be optional).
 
 static var OFFER_FROM_FLOOR: int = Content.config("contracts")["OFFER_FROM_FLOOR"]
 static var OFFER_CHANCE: float = Content.config("contracts")["OFFER_CHANCE"]

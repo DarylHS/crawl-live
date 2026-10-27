@@ -13,7 +13,7 @@ strings exactly, dict keys as a set (order ignored), lists elementwise.
 The header's "impl" is never compared.
 
 --scope core ignores: msg records, the "i" counter of ev records, the show counter
-(index 4 of "r" and "rs",), "viewers" in turn
+(index 4 of "r", "rs" and the floor records' "words"), "viewers" in turn
 records, and events of systems that are still stubbed (achievement, box_gained,
 viewers_gained, sponsor_gift, fun_fact).  --scope full compares everything.
 
@@ -109,7 +109,7 @@ def normalise(rec, scope):
         rec.pop("i", None)
     if k == "turn":
         rec.pop("viewers", None)
-    for key in ("r", "rs"):
+    for key in ("r", "rs", "words"):
         if isinstance(rec.get(key), list) and len(rec[key]) >= 5:
             rec[key] = rec[key][:4] + rec[key][5:]
     return rec

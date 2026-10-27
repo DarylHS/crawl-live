@@ -41,8 +41,10 @@ static func row_strings(grid: Array) -> Array:
 	return out
 
 
-## Fingerprint sections (without items/monsters): tiles, safe, rooms, stairs, furniture, safe_door.
-static func floor_sections(fl: DungeonFloor) -> Array:
+## Fingerprint sections: tiles, safe, rooms, stairs, furniture, safe_door, and, when `items` is not
+## null (World mode, py_trace.floor_sections), floor_items ("x,y:key,key;..." in insertion order)
+## and monsters (mon_string).
+static func floor_sections(fl: DungeonFloor, items: Variant = null, monsters: Array = []) -> Array:
 	var rooms := PackedStringArray()
 	for r in fl.rooms:
 		rooms.append("%d,%d,%d,%d" % [r.x, r.y, r.w, r.h])
@@ -55,12 +57,29 @@ static func floor_sections(fl: DungeonFloor) -> Array:
 	var door := "-"
 	if fl.safe_door != null:
 		door = "%d,%d" % [fl.safe_door.x, fl.safe_door.y]
-	return ["".join(row_strings(fl.tiles)), "".join(row_strings(fl.safe)), ";".join(rooms),
+	var secs: Array = ["".join(row_strings(fl.tiles)), "".join(row_strings(fl.safe)), ";".join(rooms),
 			";".join(stairs), ";".join(furn), door]
+	if items != null:
+		var its := PackedStringArray()
+		for p in items:
+			its.append("%d,%d:%s" % [p.x, p.y, ",".join(PackedStringArray(items[p]))])
+		secs.append(";".join(its))
+		secs.append(mon_string(monsters))
+	return secs
 
 
-static func floor_fp(fl: DungeonFloor) -> String:
-	return h16("#".join(floor_sections(fl)))
+static func floor_fp(fl: DungeonFloor, items: Variant = null, monsters: Array = []) -> String:
+	return h16("#".join(floor_sections(fl, items, monsters)))
+
+
+## key:x:y:hp:max_hp:alerted:unseen_turns:stunned:phase:dmg_bonus per monster, joined by "|"
+## (booleans as 1/0), as py_trace.mon_string.
+static func mon_string(monsters: Array) -> String:
+	var parts := PackedStringArray()
+	for m in monsters:
+		parts.append("%s:%d:%d:%d:%d:%d:%d:%d:%d:%d" % [m.key, m.x, m.y, m.hp, m.max_hp,
+				1 if m.alerted else 0, m.unseen_turns, m.stunned, m.phase, m.dmg_bonus])
+	return "|".join(parts)
 
 
 ## Dungeon-only dump fields, in py_trace.dump_floor order.
@@ -108,3 +127,70 @@ static func to_lines(records: Array) -> String:
 	for r in records:
 		s += PyJson.dumps(r, false, -1, true) + "\n"
 	return s
+
+
+# --- World mode (--floor-only --spawns): World(seed), then new_floor(2..floors) ----------------
+
+## Receives the world's events through World's `tracer` seam and records one floor record at each
+## floor_start, as py_trace.Tracer.write_floor does. Holds the world weakly (the world's event bus
+## holds this object's tap).
+class WorldSink extends RefCounted:
+	var records: Array = []
+	var _world_ref: WeakRef
+
+	func attach_world(w: Object) -> void:
+		_world_ref = weakref(w)
+
+	func on_event(event_name: String, _data: Dictionary) -> void:
+		if event_name != "floor_start" or _world_ref == null:
+			return
+		var w: World = _world_ref.get_ref()
+		if w == null:
+			return
+		records.append(TraceFloors.world_floor_record(w))
+
+
+## Words used so far by the five streams: main, loot, shop, deal, show.
+static func stream_words(w: World) -> Array:
+	return [w.rng.words_used, w.loot_rng.words_used, w.shop.rng.words_used, w.deal_rng.words_used,
+			w.showrunner.rng.words_used]
+
+
+## state_digest()[:16] of the five streams, in the same order.
+static func stream_digests(w: World) -> Array:
+	var out: Array = []
+	for r in [w.rng, w.loot_rng, w.shop.rng, w.deal_rng, w.showrunner.rng]:
+		out.append(r.state_digest().substr(0, 16))
+	return out
+
+
+## The floor record in World mode (py_trace.Tracer.write_floor with detail=True), key order as Python.
+static func world_floor_record(w: World) -> Dictionary:
+	var rec := {"k": "floor", "depth": w.depth, "fp": floor_fp(w.floor, w.floor_items, w.monsters),
+			"rs": stream_digests(w)}
+	rec.merge(dump_floor(w.floor))
+	rec["player"] = [w.player.x, w.player.y]
+	rec["timer"] = [w.timer, w.timer_max]
+	rec["words"] = stream_words(w)
+	var mons: Array = []
+	for m in w.monsters:
+		mons.append([m.key, m.x, m.y, m.hp, m.max_hp, m.alerted, m.unseen_turns, m.stunned, m.phase,
+				m.dmg_bonus, m.tier, m.boss])
+	rec["monsters"] = mons
+	var items: Array = []
+	for p in w.floor_items:
+		items.append([p.x, p.y, (w.floor_items[p] as Array).duplicate()])
+	rec["items"] = items
+	return rec
+
+
+## Header plus one floor record per depth: World(seed) builds floor 1, then new_floor(2..floors).
+static func run_floors_world(seed_value: int, floors: int) -> Array:
+	var sink := WorldSink.new()
+	var w := World.new(seed_value, null, null, Callable(sink, "on_event"), Callable(), sink)
+	for d in range(2, floors + 1):
+		w.new_floor(d)
+	w.events.tap = Callable()   # the tap holds the sink; drop it so nothing outlives the call
+	var h := header(seed_value)
+	h["mode"] = "floors_world"
+	return [h] + sink.records

@@ -1,27 +1,11 @@
 class_name S2Support
 extends RefCounted
-## Helpers for the S2 tests (dice, attributes, entities, combat): a stand-in for the hero and the
-## loader for the S2 Python fixtures (scripts/make_fixtures_s2.py, path in FIXTURES_S2).
+## Helpers for the S2 tests (dice, attributes, entities, combat): the loader for the S2
+## Python fixtures (scripts/make_fixtures_s2.py, path in FIXTURES_S2).
 
 static var _doc: Dictionary = {}
 static var _loaded := false
 static var _error := ""
-
-
-## TEMPORARY stand-in: slice S6 must replace this with `World.new(1).player` and delete it
-## (test_hero_matches_python guards the numbers until then).
-## Stand-in for Python's `World(seed=1).player` until World is ported (slice S6). The numbers are
-## what refresh_stats gives that player: max_hp 34, attack +2, AC 10, 1d4+2, level 1, 6 points.
-static func hero() -> Player:
-	var p := Entities.new_player(112, 13)
-	p.max_hp = 34
-	p.hp = 34
-	p.attack = 2
-	p.ac = 10
-	p.dmg_n = 1
-	p.dmg_die = 4
-	p.dmg_bonus = 2
-	return p
 
 
 ## The S2 fixture document, or {} (with an error remembered) when FIXTURES_S2 is unset or bad.

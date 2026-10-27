@@ -5,6 +5,7 @@ extends SceneTree
 ##   godot --headless --path godot -s res://tools/trace.gd -- --seed 5 --floor-only --floors 6 --out /tmp/gd.jsonl
 ##   godot --headless --path godot -s res://tools/trace.gd -- --seeds 0-199 --floor-only --out-dir /tmp/gd_floors
 ##       (writes floors_<seed>.jsonl per seed, like scripts/py_trace.py)
+##   add --spawns for World mode: World.new(seed), then new_floor(2..floors) (monsters, items, timers)
 ## Compare with: python scripts/parity_diff.py --dirs /tmp/py_floors /tmp/gd_floors
 ## Default --floors is 6; default output without --out is ./trace_<seed>.jsonl.
 
@@ -44,8 +45,8 @@ func _initialize() -> void:
 			_fail("unknown option or argument: " + a)
 			return
 		i += 1
-	if not opts.has("--floor-only") or opts.has("--spawns"):
-		_fail("only --floor-only (without --spawns) is implemented so far")
+	if not opts.has("--floor-only"):
+		_fail("only --floor-only is implemented so far")
 		return
 	for k in ["--seed", "--floors"]:
 		if opts.has(k) and not String(opts[k]).is_valid_int():
@@ -86,7 +87,12 @@ func _initialize() -> void:
 		if f == null:
 			_fail("cannot write " + path)
 			return
-		f.store_string(TraceFloors.to_lines(TraceFloors.run_floors(seed_value, floors)))
+		var records: Array
+		if opts.has("--spawns"):
+			records = TraceFloors.run_floors_world(seed_value, floors)
+		else:
+			records = TraceFloors.run_floors(seed_value, floors)
+		f.store_string(TraceFloors.to_lines(records))
 		f.close()
 		print("wrote ", path)
 	quit(0)

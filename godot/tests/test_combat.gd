@@ -1,11 +1,10 @@
 extends TestCase
 ## Dice combat: d20 + attack bonus vs AC, natural 1s and 20s, damage dice, saves
-## (port of tests/test_combat.py). Python's `World(seed=1).player` is S2Support.hero() until World
-## is ported (slice S6).
+## (port of tests/test_combat.py). Python's `World(seed=1).player` is World.new(1).player.
 
 
 func test_natural_one_misses_and_twenty_hits_whatever_the_numbers() -> void:
-	var p := S2Support.hero()
+	var p := World.new(1).player
 	var m := Entities.spawn_monster("goblin", 1, 0)
 	p.attack = 100
 	assert_eq(Combat.hit_chance(p, m), 19.0 / 20.0)   # only a natural 1 misses
@@ -44,7 +43,7 @@ func test_dice_distribution_sums_to_one_and_has_the_right_mean() -> void:
 
 func test_simulated_damage_matches_expected() -> void:
 	var rng := PyRandom.new(42)
-	var p := S2Support.hero()
+	var p := World.new(1).player
 	var m := Entities.spawn_monster("skeleton", 1, 0)
 	m.max_hp = 1000000000
 	var n := 40000
@@ -57,7 +56,7 @@ func test_simulated_damage_matches_expected() -> void:
 
 func test_damage_reduction_never_takes_a_hit_below_one() -> void:
 	var rng := PyRandom.new(1)
-	var p := S2Support.hero()
+	var p := World.new(1).player
 	var m := Entities.spawn_monster("goblin", 1, 0)
 	m.dr = 999
 	p.attack = 100
@@ -69,7 +68,7 @@ func test_damage_reduction_never_takes_a_hit_below_one() -> void:
 
 func test_attack_result_reports_the_roll() -> void:
 	var rng := PyRandom.new(3)
-	var p := S2Support.hero()
+	var p := World.new(1).player
 	var m := Entities.spawn_monster("goblin", 1, 0)
 	var res := Combat.attack(p, m, rng)
 	assert_true(1 <= res.roll and res.roll <= 20 and res.total == res.roll + p.attack and res.target == m.ac)
@@ -108,7 +107,7 @@ func test_advantage_draws_two_dice_and_sure_always_hits() -> void:
 	var rng := PyRandom.new(9)
 	Dice.d20(rng, 1)
 	assert_true(rng.words_used >= 2)
-	var p := S2Support.hero()
+	var p := World.new(1).player
 	p.attack = -100
 	var m := Entities.spawn_monster("goblin", 1, 0)
 	var res := Combat.attack(p, m, rng, 1, true)

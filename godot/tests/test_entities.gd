@@ -124,7 +124,7 @@ func test_to_dict_from_dict_round_trip() -> void:
 func test_hero_matches_python() -> void:
 	if not S2Support.require(self):
 		return
-	assert_eq_deep(S2Support.hero().to_dict(), PyFixtures.decode(S2Support.doc()["tables"]["hero"]))
+	assert_eq_deep(World.new(1).player.to_dict(), PyFixtures.decode(S2Support.doc()["tables"]["hero"]))
 
 
 func test_from_dict_rejects_unknown_keys() -> void:

@@ -1,7 +1,7 @@
 extends TestCase
-## tests/test_phase4.py, the parts that need no World: item values, box stats against simulation and
-## the shop policy tests. The rest (kills, trade-up, reroll, shop in World, contracts in World, fun
-## facts, run report, save) is listed in docs/port-plan.md B.1.
+## tests/test_phase4.py: item values, box stats against simulation, the shop policy tests (S4) and the
+## shop turnover and contract tests on a World (S6). The rest (kills, trade-up, reroll, buying and
+## selling in World, fun facts, run report, save) is listed in docs/port-plan.md B.1.
 
 
 func test_every_item_has_a_value() -> void:
@@ -73,3 +73,63 @@ func test_forecast_follows_demand() -> void:
 	shop.bought["tonic"] = 20                            # a huge spike
 	shop.end_of_floor(1)
 	assert_gt(s.forecast, before)
+
+
+func test_shop_turns_over_between_floors() -> void:
+	var w := World.new(6)
+	w.new_floor(2)
+	assert_eq(w.shop.log.size(), Shop.base_demand().size())
+
+
+# --- Contracts ----------------------------------------------------------------
+
+func test_contracts_offered_from_floor_two() -> void:
+	var offers := 0
+	for seed_value in range(30):
+		var w := World.new(seed_value)
+		assert_null(w.pending_offer)
+		w.new_floor(2)
+		if w.pending_offer != null:
+			offers += 1
+	assert_true(10 < offers and offers < 30)                # OFFER_CHANCE is 70%
+
+
+func test_accepting_hazard_pay_changes_monsters_and_gold() -> void:
+	var w := World.new(7)
+	w.new_floor(2)
+	w.pending_offer = "hazard_pay"
+	var before := {}
+	for m in w.monsters:
+		before[m.get_instance_id()] = [m.dmg_bonus, m.max_hp]
+	assert_false(Contracts.preview(w, "hazard_pay").is_empty())
+	w.accept_contract()
+	assert_eq(w.contract, "hazard_pay")
+	assert_null(w.pending_offer)
+	assert_true("gold" in w.boxes)
+	for m in w.monsters:
+		var was: Array = before[m.get_instance_id()]
+		assert_eq(m.dmg_bonus, was[0] + 2)
+		assert_eq(m.max_hp, PyMath.round_half_even(was[1] * 1.25))
+	w.new_floor(3)
+	assert_null(w.contract)                                 # one floor only
+
+
+func test_snack_sprint_shortens_the_timer() -> void:
+	var w := World.new(8)
+	w.new_floor(2)
+	w.pending_offer = "snack_sprint"
+	var t := w.timer
+	w.accept_contract()
+	assert_eq(w.timer, PyMath.round_half_even(t * 0.8))
+
+
+func test_every_contract_previews() -> void:
+	var w := World.new(9)
+	w.new_floor(2)
+	for key in Contracts.contracts():
+		for line in Contracts.preview(w, key):
+			assert_typeof(line, TYPE_STRING)
+	# Preview must not leave monsters modified.
+	for m in w.monsters:
+		if not m.boss:
+			assert_eq(m.dmg_bonus, Entities.spawn_monster(m.key, 0, 0).dmg_bonus)

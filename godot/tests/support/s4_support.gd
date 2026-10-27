@@ -1,34 +1,11 @@
 class_name S4Support
 extends RefCounted
 ## Helpers for the S4 tests (encounter, bosses, items, loot, crafting, contracts, shop): the loader
-## for the S4 Python fixtures (scripts/make_fixtures_s4.py, path in FIXTURES_S4) and a duck-typed
-## stand-in for the World members that Contracts reads (World itself arrives in slice S6).
+## for the S4 Python fixtures (scripts/make_fixtures_s4.py, path in FIXTURES_S4).
 
 static var _doc: Dictionary = {}
 static var _loaded := false
 static var _error := ""
-
-
-## The members of World that Contracts.effect / preview read (see the SEAM note in contracts.gd).
-## Slice S6 deletes this stand-in and builds a real World instead.
-class FakeWorld extends RefCounted:
-	var contract: Variant = null
-	var timer: int = 0
-	var floor_stats: Array = []
-	var monsters: Array = []
-	var player: Entity
-
-	func _init(p_contract: Variant, p_timer: int, p_stats: Array, p_monsters: Array, p_player: Entity) -> void:
-		contract = p_contract
-		timer = p_timer
-		floor_stats = p_stats
-		monsters = p_monsters
-		player = p_player
-
-	## World.timer_text(turns=None): "<h>h <mm>m".
-	func timer_text(turns: Variant = null) -> String:
-		var t: int = timer if turns == null else turns
-		return "%dh %sm" % [PyMath.floordiv(t, 60), PyFmt.zero_pad(PyMath.mod(t, 60), 2)]
 
 
 ## The S4 fixture document, or {} (with an error remembered) when FIXTURES_S4 is unset or bad.

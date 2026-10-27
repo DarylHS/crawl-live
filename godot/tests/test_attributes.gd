@@ -1,6 +1,5 @@
 extends TestCase
-## Attributes (port of tests/test_attributes.py, S2 part). The other tests there need World
-## (spend_point, score, choose_class, equip, refresh_stats) and are ported with slice S6.
+## Attributes (port of tests/test_attributes.py): the modifier table (S2) and the World tests (S6).
 
 
 func test_modifier_table() -> void:
@@ -25,10 +24,70 @@ func test_constants_and_table() -> void:
 	assert_eq(Attributes.fmt_mod(-1), "-1")
 
 
-# Not ported yet because they need World (slice S6): test_spending_points_raises_the_score_and_the_sheet,
-# test_backstory_race_and_class_nudge_scores, test_blades_use_the_better_of_str_and_dex,
-# test_heavy_armour_caps_dexterity, test_level_up_points_and_hp, test_every_attribute_can_be_raised.
-# (GUT's pending() stops gd_test.sh printing "All tests passed!", so they are not declared as tests.)
+# --- Ported with slice S6 (need World) ----------------------------------------------------------
+
+func test_spending_points_raises_the_score_and_the_sheet() -> void:
+	var w := World.new(1)
+	var p := w.player
+	assert_eq(p.stat_points, Attributes.START_POINTS)
+	var hit := p.attack
+	var dmg := p.dmg_bonus
+	assert_true(w.spend_point("str") and w.spend_point("str"))          # 10 -> 12: +1
+	assert_true(p.attack == hit + 1 and p.dmg_bonus == dmg + 1)
+	var ac := p.ac
+	assert_true(w.spend_point("dex") and w.spend_point("dex"))
+	assert_eq(p.ac, ac + 1)
+	var hp := p.max_hp
+	assert_true(w.spend_point("con") and w.spend_point("con"))
+	assert_true(p.max_hp == hp + p.level and p.hp == p.max_hp)          # extra HP arrives healed
+	assert_true(p.stat_points == 0 and not w.spend_point("cha"))
+	assert_false(w.spend_point("wisdom"))
+
+
+func test_backstory_race_and_class_nudge_scores() -> void:
+	var w := World.new(2, null, {"name": "T", "gender": "female", "backstory": "tradie"})
+	assert_eq(w.score("str"), 12)
+	w.choose_class("dwarf", "brawler")
+	assert_true(w.score("str") == 16 and w.score("con") == 12 and w.score("dex") == 8)
+	assert_eq(w.player.dmg_die, 8)                                      # Brawler fists are 1d8
+
+
+func test_blades_use_the_better_of_str_and_dex() -> void:
+	var w := World.new(3)
+	for _i in range(4):
+		w.spend_point("dex")                                            # DEX 14, STR 10
+	w.inventory = ["cleaver"]
+	w.equip(0)
+	assert_gte(w.player.dmg_bonus, 2 + w.mod("dex"))
+	w.inventory.append("pan")
+	w.equip(0)                                                          # blunt: back to STR
+	assert_eq(w.player.dmg_bonus, w.mod("str") + 2)
+
+
+func test_heavy_armour_caps_dexterity() -> void:
+	var w := World.new(4)
+	for _i in range(6):
+		w.spend_point("dex")                                            # DEX 16: +3
+	w.inventory = ["plate"]
+	w.equip(0)
+	assert_eq(w.player.ac, 10 + 0 + 4)                                  # plate: no DEX bonus
+
+
+func test_level_up_points_and_hp() -> void:
+	var w := World.new(5)
+	var p := w.player
+	var hp := p.max_hp
+	p.gain_xp(p.xp_to_next())
+	w.refresh_stats()
+	assert_eq(p.stat_points, Attributes.START_POINTS + 2)
+	assert_gt(p.max_hp, hp)
+
+
+func test_every_attribute_can_be_raised(attr = use_parameters(Attributes.keys())) -> void:
+	var w := World.new(6)
+	var before := w.score(attr)
+	assert_true(w.spend_point(attr))
+	assert_eq(w.score(attr), before + 1)
 
 
 # --- parity with Python -----------------------------------------------------------------------

@@ -750,7 +750,7 @@ Probes were run headless with throwaway projects under the session scratchpad; r
 | `test_dungeon.py` | `tests/test_dungeon.gd` | S3 | `SEEDS` parametrised; FOV helpers on a hand-built floor. |
 | `test_loot.py` | `tests/test_loot.gd` | S4, S8 | |
 | `test_practice.py` | `tests/test_practice.gd` | S5, S6, S8, T4, T5 | The test that wraps `world.attack` to see `bonus` instead checks the damage outcome with a seeded roll, or uses a counting `PyRandom`; no seam in `World`. |
-| `test_world.py` | `tests/test_world.gd` | S7, S8 | `test_random_play_smoke` seeds 0-11 with a `PyRandom` driver. |
+| `test_world.py` | `tests/test_world.gd` | S6 (World-specific checks and ownership), S7, S8 | `test_random_play_smoke` seeds 0-11 with a `PyRandom` driver. |
 | `test_encounter.py` | `tests/test_encounter.gd` | S4, S7, S8, T5, T6 | `monkeypatch.setattr(C, ...)` becomes `TestHelpers.patch_static(GameConfig, ...)`; `setitem(MONSTERS["goblin"], "init", 50)` becomes `patch_item(Content.monster("goblin"), "init", 50)`; `SPEAK_CHANCE` patch likewise on the config table. |
 | `test_floors.py` | `tests/test_floors.gd` | S6, S8 | |
 | `test_items.py` | `tests/test_items.gd` | S4, S6, S8 | pytest fixture `w` becomes `before_each`. |
@@ -762,7 +762,7 @@ Probes were run headless with throwaway projects under the session scratchpad; r
 | `test_settings.py` | `tests/test_settings.gd` | T5 | |
 | `test_firstperson.py` | `tests/ui/test_fp_logic.gd` (angle, steps, `target_ahead`, `open_facing`, glide) and `tests/ui/test_fp_scene.gd` (scene builds for every floor, every creature has a sprite) | P4, P5 | Minimap pixel tests become checks on the minimap image data. |
 | `test_render.py` | `tests/ui/test_app_state.gd` (key handling, Tab, menus, held keys, combat lock, provoke flags; headless) and `tests/ui/test_scenes.gd` (every scene instantiates and draws a frame); `tools/screenshots.gd` under `xvfb-run` for the screenshot sweep | P4-P7 | `CRAWL_SCREENSHOTS` becomes `-- --screenshots=<dir>`. |
-| (new) | `tests/test_py_random.gd`, `test_py_math.gd`, `test_py_fmt.gd`, `test_content.gd`, `test_parity_fixtures.gd`, `test_s2_parity.gd`, `test_s4_parity.gd` | P0, S1, S2, S4 | S4: scripts/make_fixtures_s4.py, seeds 0-199, 18,567 steps |
+| (new) | `tests/test_py_random.gd`, `test_py_math.gd`, `test_py_fmt.gd`, `test_content.gd`, `test_parity_fixtures.gd`, `test_s2_parity.gd`, `test_s4_parity.gd`, `test_s6_parity.gd` | P0, S1, S2, S4, S6 | S4: scripts/make_fixtures_s4.py, seeds 0-199, 18,567 steps; S6: World floor traces, seeds 0-49 |
 
 ### B.1 Deferred tests (ported when their slice lands)
 
@@ -770,20 +770,15 @@ Every pytest test not yet ported is named here, with the slice that must port it
 
 | Slice | pytest test | Why deferred |
 |---|---|---|
-| S6 | `test_attributes.py`: `test_spending_points_raises_the_score_and_the_sheet`, `test_backstory_race_and_class_nudge_scores`, `test_blades_use_the_better_of_str_and_dex`, `test_heavy_armour_caps_dexterity`, `test_level_up_points_and_hp`, `test_every_attribute_can_be_raised` | need `World` |
-| S6 | `test_practice.py`: `test_stat_gains_apply_once_per_level`, `test_sneaking_shortens_notice_range`, `test_haggling_and_gambling_change_prices`, `test_cardio_trains_by_walking_and_extends_the_next_timer` | need `World` |
 | S8 | `test_practice.py`: `test_stomping_adds_damage_against_small_monsters`, `test_hitting_trains_the_matching_weapon_skill` | need `World` attacks |
 | T4 | `test_practice.py`: `test_telemetry_has_one_practice_row_per_skill` | telemetry |
 | T5 | `test_practice.py`: `test_save_round_trip_keeps_practice` | saves |
 | S8 | `test_loot.py`: `test_box_opens_only_in_safe_room`, `test_open_box_needs_space_and_ownership` | need `World` |
-| S6 | `test_items.py`: `test_new_floors_scatter_items` | need `World` floors |
 | S8 | `test_items.py`: `test_pickup_and_drop`, `test_pickup_respects_pack_size`, `test_equip_swaps_and_changes_stats`, `test_potion_heals_and_takes_a_turn`, `test_potion_refused_at_full_health`, `test_bomb_hits_blast_radius_only`, `test_bomb_needs_a_target_and_no_safe_room`, `test_junk_is_not_usable`, `test_monster_drops_use_loot_rng` | need `World` |
-| S6 | `test_phase4.py`: `test_shop_turns_over_between_floors`, `test_contracts_offered_from_floor_two`, `test_accepting_hazard_pay_changes_monsters_and_gold`, `test_snack_sprint_shortens_the_timer`, `test_every_contract_previews` (switch `S4Support.FakeWorld` to a real `World`, then delete the stand-in) | need `World` floors, `accept_contract`, `timer_text` |
 | S7 | `test_phase4.py`: `test_kills_pay_gold` | need `World` kills |
 | S8 | `test_phase4.py`: `test_trade_up_in_safe_room`, `test_reroll_swaps_the_item_and_charges_the_fee`, `test_buying_and_selling_in_world` | need `World` |
 | T3 | `test_phase4.py`: `test_miss_streak_fun_fact`, `test_box_drought_fun_fact`, `test_fun_facts_are_rate_limited`, `test_run_report_data` | fun facts, report |
 | T5 | `test_phase4.py`: `test_save_round_trip_keeps_phase4_state` | saves |
-| S6 | `test_phase3.py`: `test_pet_starts_next_to_player_and_follows_floors`, `test_default_pet_name`, `test_class_choice_offered_on_floor_three`, `test_one_boss_per_floor_by_the_furthest_stairs` (parametrised over depths), `test_four_companions_each_with_quips` | need `World` init and floors |
 | S7 | `test_phase3.py`: `test_pet_attacks_adjacent_monster_and_earns_xp`, `test_cat_pounces_from_range`, `test_dog_licks_wounds`, `test_monsters_never_stand_on_the_pet`, `test_boss_kill_awards_box_achievement_and_viewers` (needs T1 achievements for the unlock assert: port the rest, leave that assert to T1), `test_final_boss_phase_two_calls_for_help`, `test_ranged_monster_shoots_from_distance`, `test_budgie_squawk_stuns_nearby_monsters`, `test_mouse_dirty_trick_on_wounded_monster`, `test_mouse_runs_away_when_hurt`, `test_boss_names_read_naturally`, `test_following_pet_joins_the_players_fight` | need `World`, `Ai` |
 | S8 | `test_phase3.py`: `test_swap_places_with_pet`, `test_pet_command_cycles_modes`, `test_pet_downed_then_revived_in_safe_room`, `test_skill_needs_a_class_and_respects_cooldown`, `test_haymaker_always_hits_double`, `test_arc_bolt_hits_nearest_visible`, `test_crafting_in_safe_room_only_and_costs_time` | need `World` |
 | T5 | `test_phase3.py`: `test_save_round_trip_and_identical_future`, `test_load_rejects_wrong_version` | saves |
@@ -794,14 +789,19 @@ Every pytest test not yet ported is named here, with the slice that must port it
 
 ### B.2 Notes carried forward to later slices
 
-- **S6:** replace `S2Support.hero()` (tests/support/s2_support.gd) with `World.new(1).player` and delete the stand-in. `Entities.new_pet` takes a String name: turn Python's `None` into `""`. (`Entities.init_mod` now calls `Bosses.boss_depth`; done in S4.)
+- **S6 (done):** `S2Support.hero()` and `S4Support.FakeWorld` are gone (tests use `World.new(1).player` and a real `World`). `Entities.new_pet` takes a String name (`None` -> `""`); `World.new` maps a `null` pet name to `""`.
 - **T5:** `Entity.from_dict` on a dictionary from `JSON.parse_string` leaves `attrs` values and `colour` parts as floats (int fields are truncated by `set()`). `SaveGame` must coerce by schema before `from_dict`. `Entity.to_dict` written with `PyJson.dumps` is already byte-identical to Python's `json.dumps(asdict(...))`.
-- **S6:** re-run `test_xp_curve_is_increasing_and_capped` and `test_skills_are_hidden_until_used_and_level_up_announces` against the real `World` (S5 ported their World-free halves against a stand-in world in `tests/test_practice.gd`).
 - **T5:** `Practice.load` stores the raw types it is given, so decode with `PyJson` and coerce ints (`levels`, `xp`, `steps`) before calling it.
 - **S4 seams and judgement calls (for S6 and later):**
-  - `Contracts.effect` / `preview` take a duck-typed `world` (`Variant`): `contract` (String, "" or null for none), `floor_stats`, `monsters`, `player`, `timer`, and `timer_text(turns := null)` with an optional argument. `tests/support/s4_support.gd` has a `FakeWorld` for them; delete it in S6.
+  - `Contracts.effect` / `preview` take a duck-typed `world` (`Variant`): `contract` (String, "" or null for none), `floor_stats`, `monsters`, `player`, `timer`, and `timer_text(turns := null)`. S6 passes the real `World`.
   - `Shop.buy` returns `""` for Python's `None`; `Loot.next_tier` returns `""`. Only `ShopStock.from_dict` coerces (`int`/`float`); `Shop.load` stores `log`, `bought` and `missed` raw, so T5 must coerce them (and the stock dictionaries) by schema before calling it.
   - `Encounter.total/before/after` for an entity that is not in the fight push_error and return 0 / [] (Python raises `StopIteration`).
   - `Achievements`, `Showrunner` and `FunFacts` are P1 stand-ins (no subscriptions, no draws; `Showrunner` owns `PyRandom(world.seed ^ 0x5EED)` and `viewers = peak = START_VIEWERS`). T1, T2 and T3 replace them whole. They already follow the section 3 "Back-references to World" rule (`_world_ref: WeakRef`, `world` getter, `_init(world_value: Object)`) and each has an ownership test in `tests/test_s4_standins.gd`; the replacements and World (S6) must keep both.
   - `Bosses.acts_per_floor` returns a `Vector2i` (x opening, y featured); `Bosses.MAP_RADIUS` / `PHASE_TWO` are patchable static vars.
   - `Contracts.preview` with no monsters (Python: ZeroDivisionError) push_errors and returns the lines so far.
+- **S6 (World A) notes for S7 and S8:**
+  - `world.gd` has marked "S7" and "S8" append sections at the end. Already in the file, do not port again: `add_box`, `choose_class`, `equip` (S8 methods the S6 tests need) and `_end_combat` (S7; `new_floor` calls it). `_respawn` (S6 range) is there too but its caller `_tick_clock` is S7.
+  - Python's `World.trait` is `World.get_trait` (`trait` is a reserved word in GDScript 4.7). `World.CHOICE_FLOOR` and `World.PET_MODES` are static vars read from config.
+  - `race`, `cls`, `gender`, `backstory`, `contract`, `pending_offer`, `death_cause`, `last_reason`, `last_reveal` are Variants holding `null` as in Python. `World.new(seed, pet, hero, tap_events, tap_messages, tracer)`: `pet` is `[species, name]`, `hero` a Dictionary; `tracer` (optional object with `attach_world(world)`) is how `trace.gd` reaches the world before floor 1's `floor_start`.
+  - The `--floor-only --spawns` trace compares at `--scope core` until T2 (the `show` stream draws in Python, never in the stand-in Showrunner). `parity_diff.py` core scope now also drops index 4 of a floor record's `words`. T2 should switch the check to full scope (`tests/test_s6_parity.gd` drops the show stream explicitly).
+  - `test_cardio_trains_by_walking_and_extends_the_next_timer` emits "step" events instead of walking with `move_player` (S8 to switch it).

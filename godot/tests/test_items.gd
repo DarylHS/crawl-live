@@ -1,6 +1,6 @@
 extends TestCase
-## tests/test_items.py, the part that needs no World: test_item_data_is_consistent. The rest wait
-## for slice S8 (docs/port-plan.md B.1).
+## tests/test_items.py: test_item_data_is_consistent (S4) and test_new_floors_scatter_items (S6). The
+## rest wait for slice S8 (docs/port-plan.md B.1).
 
 
 func test_item_data_is_consistent() -> void:
@@ -19,3 +19,10 @@ func test_item_data_is_consistent() -> void:
 			assert_true(items.has(k))
 		for w in t[1]:
 			assert_gt(w, 0)
+
+
+func test_new_floors_scatter_items() -> void:
+	var seen := 0
+	for s in range(10):
+		seen += World.new(s).floor_items.size()
+	assert_gt(seen, 10)

@@ -109,13 +109,19 @@ func _run_step(step: Array, loot: PyRandom, shop_rng: PyRandom) -> Array:
 		"enc":
 			return _run_enc(step)
 		"effect":
-			return [Contracts.effect(S4Support.FakeWorld.new(step[1], 100, [], [], null), step[2], step[3])]
+			var ew := World.new(1)
+			ew.contract = step[1]
+			return [Contracts.effect(ew, step[2], step[3])]
 		"preview":
 			var player := S2Support.build(step[2])
 			var monsters: Array = []
 			for spec in step[3]:
 				monsters.append(S2Support.build(spec))
-			var w := S4Support.FakeWorld.new(null, step[5], (step[4] as Array).duplicate(true), monsters, player)
+			var w := World.new(1)
+			w.player = player as Player
+			w.timer = step[5]
+			w.floor_stats = (step[4] as Array).duplicate(true)
+			w.monsters = monsters
 			var lines := Contracts.preview(w, step[1])
 			var bonuses: Array = []
 			for m in monsters:
