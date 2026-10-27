@@ -1,0 +1,287 @@
+{
+ "generator": 1,
+ "python": "3.13.16",
+ "source_commit": "ddb11068e94fc64d6fb167cdafe3efe499a9fbfb",
+ "files": {
+  "config.json": {
+   "sha256": "1d93630fbaedb6b29b97868da0cda9a268b918a7aac20e502db49f0921377530",
+   "sources": [
+    "crawler/config.py",
+    "crawler/ai.py",
+    "crawler/attributes.py",
+    "crawler/bosses.py",
+    "crawler/classes.py",
+    "crawler/contracts.py",
+    "crawler/crafting.py",
+    "crawler/dungeon.py",
+    "crawler/encounter.py",
+    "crawler/funfacts.py",
+    "crawler/items.py",
+    "crawler/lines.py",
+    "crawler/loot.py",
+    "crawler/practice.py",
+    "crawler/shop.py",
+    "crawler/showrunner.py",
+    "crawler/telemetry.py",
+    "crawler/world.py"
+   ],
+   "float_paths": [
+    "/config/TIMER_WARNINGS/0",
+    "/config/TIMER_WARNINGS/1",
+    "/config/TIMER_WARNINGS/2",
+    "/config/RESPAWN_CAP",
+    "/config/MONSTER_WANDER_CHANCE",
+    "/config/RANGED_ATTACK_CHANCE",
+    "/config/ITEM_DROP_CHANCE",
+    "/config/FLOOR_ITEM_CHANCE",
+    "/config/GOLD_PER_XP",
+    "/ai/MOUSE_FLEE_FRAC",
+    "/contracts/OFFER_CHANCE",
+    "/loot/REROLL_FEE_FRAC",
+    "/shop/DEMAND_GROWTH",
+    "/shop/ALPHA",
+    "/shop/SAFETY_Z",
+    "/shop/SCARCITY_MARKUP",
+    "/shop/SELL_RATE",
+    "/showrunner/DECAY",
+    "/showrunner/CLUTCH_FRAC",
+    "/showrunner/SPEAK_CHANCE/kill",
+    "/showrunner/SPEAK_CHANCE/damage_taken",
+    "/showrunner/SPEAK_CHANCE/shop_buy",
+    "/showrunner/SPEAK_CHANCE/shop_sell",
+    "/showrunner/SPEAK_CHANCE/craft",
+    "/showrunner/SPEAK_CHANCE/nat20",
+    "/showrunner/SPEAK_CHANCE/nat1",
+    "/showrunner/SPEAK_CHANCE/foe_nat20",
+    "/showrunner/SPEAK_CHANCE/foe_nat1",
+    "/showrunner/SPEAK_CHANCE/opportunity_attack",
+    "/showrunner/QUIP_CHANCE"
+   ]
+  },
+  "attributes.json": {
+   "sha256": "7b30c91526759f10126dda673d679bcbf23908d85c7fde4426cb9da412cfd14a",
+   "sources": [
+    "crawler/attributes.py"
+   ],
+   "float_paths": []
+  },
+  "monsters.json": {
+   "sha256": "2cc0eeef5284f3da6e602d552dd2a03168b7b0ef96fa1d946683f3fee93a33d1",
+   "sources": [
+    "crawler/entities.py"
+   ],
+   "float_paths": []
+  },
+  "bosses.json": {
+   "sha256": "cae92ae53099e8e4d64975d5435517bafb148ae3f13e68bc0e9ba200b932d760",
+   "sources": [
+    "crawler/bosses.py"
+   ],
+   "float_paths": []
+  },
+  "acts.json": {
+   "sha256": "9fcf5e8c97d615fd1fd5daab4f7e490e51d7f32a395e6a7fcd7f1844071eca48",
+   "sources": [
+    "crawler/bosses.py"
+   ],
+   "float_paths": [
+    "/acts/opening/hp",
+    "/acts/featured/hp"
+   ]
+  },
+  "pets.json": {
+   "sha256": "102813acaddc9d36722d7516945ca36961d626685261294fdb8d87fcbf91533e",
+   "sources": [
+    "crawler/entities.py"
+   ],
+   "float_paths": []
+  },
+  "pet_quips.json": {
+   "sha256": "0d53fcb2644ac4b3aad7e5f57c12a93c0aa30067de85aabf16e1edeffc99e02d",
+   "sources": [
+    "crawler/entities.py"
+   ],
+   "float_paths": []
+  },
+  "items.json": {
+   "sha256": "de4ad8fb2e90f163479fad45dcc7f5120c4ce6f2c308210a5cac93d579c69d32",
+   "sources": [
+    "crawler/items.py"
+   ],
+   "float_paths": []
+  },
+  "floor_loot.json": {
+   "sha256": "af91710e2fbb2898ea6ade69ad7a1fa7fc44416d095cc36e7cd52962d9413aa3",
+   "sources": [
+    "crawler/items.py"
+   ],
+   "float_paths": []
+  },
+  "loot_boxes.json": {
+   "sha256": "1e7bc0b97e21c6f30b2d558e4b1ce78d4bb2087825aeb71a88371b9a51d075ae",
+   "sources": [
+    "crawler/loot.py",
+    "crawler/config.py"
+   ],
+   "float_paths": []
+  },
+  "races.json": {
+   "sha256": "9ed57597971a0f4a1e5cefe3700a0ac805f010b5b88ed507e04b35b82fd1e521",
+   "sources": [
+    "crawler/classes.py"
+   ],
+   "float_paths": []
+  },
+  "classes.json": {
+   "sha256": "7454a63376d0a6b717a387b69e45ed03e02b204d5b806158168181c90617fd3b",
+   "sources": [
+    "crawler/classes.py"
+   ],
+   "float_paths": [
+    "/alchemist/class_potion_mult",
+    "/demolitionist/bomb_mult"
+   ]
+  },
+  "skills.json": {
+   "sha256": "0bc627bf701374f22f58c9f8d9c27471d736327578d99acf17e7818c59313b45",
+   "sources": [
+    "crawler/classes.py"
+   ],
+   "float_paths": []
+  },
+  "backstories.json": {
+   "sha256": "2ccd36e6db24df40f55d5c44906465974ad353166b588f8f1ce21b62f20c3a63",
+   "sources": [
+    "crawler/character.py"
+   ],
+   "float_paths": [
+    "/mixologist/potion_mult",
+    "/comedian/kill_viewer_mult",
+    "/parent/rest_mult",
+    "/tradie/craft_mult",
+    "/category_mgr/buy_mult",
+    "/category_mgr/sell_mult"
+   ]
+  },
+  "genders.json": {
+   "sha256": "3d30dc4e98caf2ec10aaa8dc16821d780af43256bea53acbd9650820a6a00ac6",
+   "sources": [
+    "crawler/character.py"
+   ],
+   "float_paths": []
+  },
+  "achievements.json": {
+   "sha256": "84b9d095806ae977fe053c12cb247274bb94c1942ce113cd421ec712b7d685ab",
+   "sources": [
+    "crawler/achievements.py",
+    "crawler/bosses.py"
+   ],
+   "float_paths": [
+    "/cutting_it_fine/rule/frac"
+   ]
+  },
+  "lines.json": {
+   "sha256": "8031b41be2024c41cf58a1ce1adf6c6bc0c80c12fe36c01546322a3135e29a25",
+   "sources": [
+    "crawler/lines.py"
+   ],
+   "float_paths": []
+  },
+  "practice_skills.json": {
+   "sha256": "4d497b6a2631843c2d53f7686ebeab0d93133743bbf4116d9b07b0c71f0c4a7a",
+   "sources": [
+    "crawler/practice.py"
+   ],
+   "float_paths": []
+  },
+  "shop.json": {
+   "sha256": "b593217de53c4d3096c364d2cd9f3c9d4bca0d2857c5ac76663495628a8da205",
+   "sources": [
+    "crawler/shop.py"
+   ],
+   "float_paths": [
+    "/base_demand/tonic",
+    "/base_demand/brew",
+    "/base_demand/elixir",
+    "/base_demand/popper",
+    "/base_demand/fireworks",
+    "/base_demand/jersey",
+    "/base_demand/vest",
+    "/base_demand/pan",
+    "/base_demand/cleaver"
+   ]
+  },
+  "contracts.json": {
+   "sha256": "b3c4ab7111bf0e64214b3c56e19ba4993dd9b3a247c45640a60fc9c1f71f2fa6",
+   "sources": [
+    "crawler/contracts.py"
+   ],
+   "float_paths": [
+    "/gloop_blitz/gold_mult",
+    "/snack_sprint/viewer_mult",
+    "/snack_sprint/timer_mult",
+    "/power_naps/gold_mult",
+    "/hazard_pay/gold_mult",
+    "/hazard_pay/viewer_mult",
+    "/hazard_pay/monster_hp_mult"
+   ]
+  },
+  "recipes.json": {
+   "sha256": "6610975ca95c224f415aa73f35e236e69ed2b1dc0f1f0b318323238e78c57d1d",
+   "sources": [
+    "crawler/crafting.py"
+   ],
+   "float_paths": []
+  },
+  "sponsor_gifts.json": {
+   "sha256": "6f1ff21f60761aa9955a671b3d5fd58723a929d8c61a56bca1f645d0ee386a2a",
+   "sources": [
+    "crawler/showrunner.py"
+   ],
+   "float_paths": []
+  },
+  "ui_config.json": {
+   "sha256": "161e5ba9c8f1b822bd04d77c7dd3f9c699bd39ca0d885e51cc3447d299fae362",
+   "sources": [
+    "crawler/config.py",
+    "crawler/game.py",
+    "crawler/ui/firstperson.py",
+    "crawler/ui/hud.py",
+    "crawler/ui/menus.py",
+    "crawler/ui/report.py",
+    "crawler/ui/screens.py"
+   ],
+   "float_paths": [
+    "/firstperson/LIGHT",
+    "/firstperson/PLANE",
+    "/firstperson/SETTLE",
+    "/firstperson/WALK_SPEED",
+    "/firstperson/DEPTH_TINT/0/0",
+    "/firstperson/DEPTH_TINT/0/1",
+    "/firstperson/DEPTH_TINT/0/2",
+    "/firstperson/DEPTH_TINT/1/0",
+    "/firstperson/DEPTH_TINT/1/1",
+    "/firstperson/DEPTH_TINT/1/2",
+    "/firstperson/DEPTH_TINT/2/0",
+    "/firstperson/DEPTH_TINT/2/1",
+    "/firstperson/DEPTH_TINT/2/2",
+    "/firstperson/DEPTH_TINT/3/0",
+    "/firstperson/DEPTH_TINT/3/1",
+    "/firstperson/DEPTH_TINT/3/2",
+    "/firstperson/DEPTH_TINT/4/0",
+    "/firstperson/DEPTH_TINT/4/1",
+    "/firstperson/DEPTH_TINT/4/2",
+    "/firstperson/DEPTH_TINT/5/0",
+    "/firstperson/DEPTH_TINT/5/1",
+    "/firstperson/DEPTH_TINT/5/2",
+    "/firstperson/TIER_SCALE/opening",
+    "/firstperson/TIER_SCALE/featured",
+    "/firstperson/TIER_SCALE/headliner",
+    "/input/HOLD_DELAY",
+    "/input/NEXT_STEP",
+    "/input/STEP_GAP",
+    "/input/MAX_DT"
+   ]
+  }
+ }
+}

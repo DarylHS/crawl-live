@@ -1,0 +1,425 @@
+{
+ "layout": {
+  "TILE": 16,
+  "VIEW_W": 64,
+  "VIEW_H": 40,
+  "PANEL_W": 256,
+  "LOG_H": 128,
+  "SCREEN_W": 1280,
+  "SCREEN_H": 768,
+  "FPS": 30,
+  "LOG_LINES": 7
+ },
+ "colours": {
+  "BG": [
+   12,
+   11,
+   16
+  ],
+  "PANEL_BG": [
+   22,
+   20,
+   30
+  ],
+  "TEXT": [
+   225,
+   222,
+   235
+  ],
+  "TEXT_DIM": [
+   130,
+   126,
+   145
+  ],
+  "ACCENT": [
+   255,
+   196,
+   64
+  ],
+  "DANGER": [
+   235,
+   80,
+   80
+  ],
+  "WARN": [
+   255,
+   140,
+   40
+  ],
+  "GOOD": [
+   110,
+   210,
+   120
+  ],
+  "INFO": [
+   110,
+   170,
+   240
+  ],
+  "WALL_LIT": [
+   88,
+   80,
+   110
+  ],
+  "WALL_DIM": [
+   40,
+   37,
+   52
+  ],
+  "FLOOR_LIT": [
+   52,
+   48,
+   64
+  ],
+  "FLOOR_DIM": [
+   24,
+   22,
+   31
+  ],
+  "SAFE_LIT": [
+   42,
+   92,
+   64
+  ],
+  "SAFE_DIM": [
+   20,
+   42,
+   30
+  ],
+  "PLAYER_COLOUR": [
+   255,
+   255,
+   255
+  ]
+ },
+ "firstperson": {
+  "TEX": 64,
+  "LIGHT": 8.5,
+  "PLANE": 0.7,
+  "DIRS": [
+   [
+    0,
+    -1
+   ],
+   [
+    1,
+    0
+   ],
+   [
+    0,
+    1
+   ],
+   [
+    -1,
+    0
+   ]
+  ],
+  "COMPASS": "NESW",
+  "SETTLE": 0.01,
+  "WALK_SPEED": 4.0,
+  "MM_WINDOW": [
+   48,
+   30
+  ],
+  "MM_SCALE": 4,
+  "DEPTH_TINT": [
+   [
+    1.0,
+    1.0,
+    1.0
+   ],
+   [
+    1.0,
+    0.95,
+    0.82
+   ],
+   [
+    0.86,
+    1.0,
+    0.88
+   ],
+   [
+    1.0,
+    0.84,
+    0.84
+   ],
+   [
+    0.84,
+    0.86,
+    1.05
+   ],
+   [
+    1.05,
+    0.72,
+    0.66
+   ]
+  ],
+  "TIER_SCALE": {
+   "opening": 0.85,
+   "featured": 0.95,
+   "headliner": 1.0
+  },
+  "TIER_OUTLINE": {
+   "opening": [
+    110,
+    170,
+    240
+   ],
+   "featured": [
+    255,
+    196,
+    64
+   ],
+   "headliner": [
+    235,
+    80,
+    80
+   ]
+  },
+  "MM_BACK": [
+   0,
+   0,
+   0,
+   170
+  ],
+  "MM_FLOOR": [
+   118,
+   112,
+   142
+  ],
+  "MM_SAFE": [
+   60,
+   150,
+   95
+  ],
+  "MM_IN_VIEW": [
+   205,
+   200,
+   228
+  ],
+  "MM_SAFE_IN_VIEW": [
+   120,
+   220,
+   150
+  ]
+ },
+ "input": {
+  "TURN_RATE": 180,
+  "HOLD_DELAY": 0.2,
+  "NEXT_STEP": 0.15,
+  "STEP_GAP": 0.2,
+  "MAX_DT": 0.05
+ },
+ "hud": {
+  "TIER_COLOURS": {
+   "opening": [
+    110,
+    170,
+    240
+   ],
+   "featured": [
+    255,
+    196,
+    64
+   ],
+   "headliner": [
+    235,
+    80,
+    80
+   ]
+  },
+  "FURNITURE_GLYPHS": {
+   "bed": {
+    "glyph": "=",
+    "colour": [
+     150,
+     180,
+     230
+    ]
+   },
+   "bench": {
+    "glyph": "&",
+    "colour": [
+     200,
+     160,
+     100
+    ]
+   },
+   "counter": {
+    "glyph": "$",
+    "colour": [
+     255,
+     196,
+     64
+    ]
+   }
+  },
+  "TRACKER_W": 270,
+  "TRACKER_ROWS": 8,
+  "COMBAT_TOAST_TURNS": 2
+ },
+ "menus": {
+  "SHOP_COLS": [
+   {
+    "title": "Item",
+    "x": 30
+   },
+   {
+    "title": "Price",
+    "x": 200
+   },
+   {
+    "title": "Stock",
+    "x": 255
+   },
+   {
+    "title": "Forecast",
+    "x": 320
+   },
+   {
+    "title": "Reorder at",
+    "x": 420
+   },
+   {
+    "title": "On order",
+    "x": 515
+   }
+  ],
+  "ATTR_SOURCE_X": 300,
+  "INV_STATS_X": 304,
+  "PRACTICE_TEXT_X": 222
+ },
+ "report": {
+  "GRID": [
+   48,
+   45,
+   62
+  ],
+  "EXPECTED": [
+   150,
+   146,
+   170
+  ]
+ },
+ "screens": {
+  "TOP_CONTROLS": [
+   [
+    "Arrows / WASD / numpad",
+    "move, bump into monsters to attack"
+   ],
+   [
+    "Numpad 7 9 1 3",
+    "move diagonally"
+   ]
+  ],
+  "FP_CONTROLS": [
+   [
+    "W / Up",
+    "walk where you look (hold); bumps what's ahead"
+   ],
+   [
+    "S / Down",
+    "walk back (hold)"
+   ],
+   [
+    "A / D",
+    "step left / right (strafe; hold)"
+   ],
+   [
+    "Q / E, Left / Right",
+    "turn: tap 45 degrees, hold to look (free)"
+   ],
+   [
+    "Numpad",
+    "move by the compass, 7 9 1 3 diagonally"
+   ],
+   [
+    "In combat",
+    "W / S / A / D step one tile, Q / E turn 90 degrees"
+   ],
+   [
+    "W in combat",
+    "attacks ahead, else front-left / front-right"
+   ]
+  ],
+  "SHARED_CONTROLS": [
+   [
+    ". / Space / numpad 5",
+    "wait a turn; in combat, end your turn"
+   ],
+   [
+    "> / Enter",
+    "descend a stairwell"
+   ],
+   [
+    "G",
+    "pick up items on your tile"
+   ],
+   [
+    "I",
+    "inventory: use, equip, drop"
+   ],
+   [
+    "R",
+    "rest to full HP (safe rooms only)"
+   ],
+   [
+    "M",
+    "safe-room menu: boxes, shop, craft, revive, save"
+   ],
+   [
+    "C",
+    "command your pet: follow / attack / stay"
+   ],
+   [
+    "K / L",
+    "practice skills / attributes to spend points on"
+   ],
+   [
+    "1",
+    "use your class skill (from floor 3)"
+   ],
+   [
+    "Tab",
+    "switch view: first-person / map"
+   ],
+   [
+    "?",
+    "toggle this help"
+   ],
+   [
+    "Esc",
+    "close a menu, or quit to title"
+   ]
+  ],
+  "COMBAT_CONTROLS": [
+   [
+    "Combat turn",
+    "one move, one action and one bonus action"
+   ],
+   [
+    "Move / action",
+    "a step / attack, bomb, skill, pick up, descend"
+   ],
+   [
+    "Bonus action",
+    "drink a potion (equip, drop, C and menus are free)"
+   ],
+   [
+    "Leaving reach",
+    "gives it a free swing (not swapping with your pet)"
+   ]
+  ],
+  "VIEW_NAMES": {
+   "fp": "first-person view",
+   "top": "map view"
+  },
+  "PREMISE": [
+   "Earth has been 'repurposed'. You are now a contestant.",
+   "Each floor collapses when its timer hits zero. Anyone still on it dies.",
+   "Find a stairwell before then. Safe rooms let you rest, at the cost of time.",
+   "Billions of viewers are watching. Try to be entertaining."
+  ],
+  "HELP_STEP": 22
+ }
+}

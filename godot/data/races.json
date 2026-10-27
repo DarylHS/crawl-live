@@ -1,0 +1,64 @@
+{
+ "human": {
+  "name": "Human",
+  "desc": "+1 to every attribute, +5 max HP. Adaptable, unremarkable, proud of both.",
+  "attrs": {
+   "str": 1,
+   "dex": 1,
+   "con": 1,
+   "int": 1,
+   "cha": 1
+  },
+  "max_hp": 5
+ },
+ "elf": {
+  "name": "Elf",
+  "desc": "+2 DEX, +1 INT, -2 CON. Graceful, fragile, insufferable about it.",
+  "attrs": {
+   "dex": 2,
+   "int": 1,
+   "con": -2
+  }
+ },
+ "dwarf": {
+  "name": "Dwarf",
+  "desc": "+2 CON, +2 STR, -2 DEX. Built like a filing cabinet.",
+  "attrs": {
+   "con": 2,
+   "str": 2,
+   "dex": -2
+  }
+ },
+ "hobgoblin": {
+  "name": "Hobgoblin",
+  "desc": "+2 DEX; crits on 17-20 instead of just 20. -1 AC. Fights dirty, bruises easily.",
+  "attrs": {
+   "dex": 2
+  },
+  "crit_range": 3,
+  "ac": -1
+ },
+ "bog_troll": {
+  "name": "Bog Troll",
+  "desc": "+2 STR, +2 CON, -2 INT, -2 CHA. Regenerates twice as fast. The System stops calling you by name.",
+  "attrs": {
+   "str": 2,
+   "con": 2,
+   "int": -2,
+   "cha": -2
+  },
+  "regen_mult": 2,
+  "address": "creature"
+ },
+ "houseplant": {
+  "name": "Sentient Houseplant",
+  "desc": "+2 CON, -2 DEX. Bark: every hit on you does 1 less damage. Heals while standing still; safe rooms heal you fully on arrival. Can't wear armour.",
+  "attrs": {
+   "con": 2,
+   "dex": -2
+  },
+  "dr": 1,
+  "photosynthesis": true,
+  "no_armour": true
+ }
+}

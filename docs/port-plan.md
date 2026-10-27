@@ -1,0 +1,763 @@
+# Crawl Live! Godot port plan
+
+Status: P0 deliverable (port-architect). Reference: the frozen Python version at commit `db81dce` (Phase 7). Target: Godot 4.7.2 (official build, `/usr/local/bin/godot`), GDScript only.
+
+This is the map for every later brief. Rules-porters translate `crawler/*.py` into `godot/rules/`, godot-dev builds `godot/scenes/` and `godot/ui/`, and the verifier checks each slice with the tests and parity traces described here. Owner decisions recorded in `PHASES.md` are taken as fixed; where this plan touches one, section 9 says so.
+
+Contents
+
+1. Ground rules for the port
+2. Module map (Python to GDScript)
+3. Python features that need care (with measured Godot 4.7.2 behaviour)
+4. JSON content in `godot/data/`
+5. RNG parity: `PyRandom` and every call site
+6. Parity traces and the comparison script
+7. Test framework: GUT vs GdUnit4, and the stopgap runner
+8. Project layout, autoloads, headless runs, telemetry
+9. Porting order: P1 and P2 slices
+10. Presentation mapping (P4 to P7)
+11. Risks, open questions and the parity verdict
+
+Appendix A: measurements behind section 3. Appendix B: per-test-file mapping.
+
+---
+
+## 1. Ground rules for the port
+
+- Faithful first. Same logic, same order of RNG calls, same iteration order, same numbers, same text. Python behaviour that looks wrong is ported as is and reported.
+- Rules live in `godot/rules/` as `extends RefCounted` scripts with `class_name`, static typing where practical, and no Node, scene, autoload or `Engine`/`OS` dependency (file IO only in `save_game.gd`, `user_settings.gd`, `telemetry.gd`/`py_csv.gd` and `content.gd`). They run under `godot --headless`.
+- All randomness goes through `PyRandom` (`godot/rules/py_random.gd`). Nothing in `rules/` may call `randi()`, `randf()`, `RandomNumberGenerator` or `hash()`, with one exception: `world.gd` picks a seed with `randi() & 0x3FFFFFFF` when none is given, as Python's `random.randrange(1 << 30)` does (it only chooses a seed, so parity is unaffected).
+- All Python arithmetic idioms that differ in GDScript go through `PyMath` and all Python string formatting through `PyFmt` (section 3). A porter never writes a bare `/` between two ints, a bare `%` or `//` analogue on ints that may be negative, a bare `round()`, `sort_custom()` where Python used `sorted`/`.sort(key=)`, or `str()` on a float or bool that reaches the player, a log, a CSV or a save.
+- Content is read from `godot/data/*.json` through `Content` and `GameConfig`. Never hand-edit data; change `scripts/export_content.py` and regenerate.
+- Test seams are allowed when they change no behaviour: an optional `tap` Callable on `EventBus` and `MessageLog` (traces), and mutable `static var` config so tests can do what pytest's `monkeypatch` does. Each seam is listed where it is introduced.
+- Australian spelling in player-facing text (it is copied from Python, so this is automatic), original names only.
+
+---
+
+## 2. Module map
+
+Paths are relative to `godot/`. Every rules class is one file with a `class_name`. Names avoid clashes with Godot built-ins (`World3D`, `ConfigFile`, `floor()`).
+
+### 2.1 Rules (`crawler/*.py` to `godot/rules/`)
+
+| Python module | GDScript file(s) | Class(es) and key signatures | Data file(s) | Notes |
+|---|---|---|---|---|
+| `__init__.py` | none | | | |
+| `config.py` | `rules/game_config.gd` | `GameConfig`: `static var MAP_W: int`, ... one `static var` per constant; `static func floor_turns(depth: int) -> int` | `config.json` (`config` section) | `static var`, not `const`, so tests can patch them (monkeypatch analogue). Colours stay `[r, g, b]` int arrays (no Godot `Color` in rules); the rules pass them through to `MessageLog`. |
+| `attributes.py` | `rules/attributes.gd` | `Attributes.mod(score: int) -> int` (`PyMath.floordiv(score - 10, 2)`), `proficiency(level) -> int`, `fmt_mod(m) -> String` | `attributes.json` (`ATTRS`), config `attributes` section | `mod(9) == -1`: GDScript `/` would give 0. |
+| `character.py` | none (data only) | read via `Content.table("genders")`, `Content.table("backstories")` | `genders.json`, `backstories.json` | Key order matters (bot `pick.choice` over `tuple(BACKSTORIES)`, `list(GENDERS)`). |
+| `classes.py` | none (data only) | `Content.table("races")`, `("classes")`, `("skills")` | `races.json`, `classes.json`, `skills.json`; config `classes` (`CHOICE_FLOOR`, `FLAT_BONUSES`) | Key order matters (bot picks). |
+| `dice.py` | `rules/dice.gd` | `Dice.d20(rng: PyRandom, advantage := 0) -> Array` (`[kept, rolls]`), `roll(rng, n, sides) -> int`, `fmt(n, sides, bonus := 0) -> String`, `average(n, sides, bonus := 0) -> float`, `dice_distribution(n, sides) -> Dictionary`, `chance_to_hit(attack_bonus, target, crit_range := 1, advantage := 0) -> Array` (`[p_hit, p_crit]`), `needed_roll(a, t) -> int` | none | `lru_cache` becomes a `static var _dist_cache := {}` keyed `Vector2i(n, sides)`. The cached Dictionary is shared, as in Python; callers never mutate it. Insertion order of `dist` must match (float sums iterate it). `sum(hits) / 20` is `float(count) / 20`. |
+| `combat.py` | `rules/combat.gd`, `rules/attack_result.gd` | `Combat.attack(attacker, defender, rng, mult: float = 1, sure := false, bonus := 0, crit_bonus := 0, advantage := 0) -> AttackResult`; `hit_chance(a, d, advantage := 0) -> float`; `crit_chance(a, advantage := 0)`; `expected_damage(a, d, mult := 1.0, bonus := 0) -> float`; `saving_throw(rng, bonus, dc) -> Array` (`[saved, face]`). `AttackResult`: `hit, crit, damage, killed, roll, total, target`, `natural() -> String` ("20", "1" or ""), `dice_text() -> String` | none | `round(...)` is `PyMath.round_half_even`; `sum(...)` in `expected_damage` is `PyMath.fsum_py` (Python 3.12+ compensated sum, see 3.3). `natural` returns `None` in Python; use `""` and test truthiness the same way. |
+| `dungeon.py` | `rules/dungeon.gd`, `rules/dungeon_floor.gd`, `rules/dungeon_room.gd` | `Dungeon.generate_floor(rng, depth, width := MAP_W, height := MAP_H) -> DungeonFloor`; `Dungeon.compute_fov(floor, ox, oy, radius := FOV_RADIUS) -> Dictionary` (set of `Vector2i`); `DungeonFloor`: `WALL/FLOOR/STAIRS/FURNITURE` consts, `tiles`, `safe`, `explored`, `rooms`, `start_room`, `safe_room`, `stairs: Array[Vector2i]`, `furniture: Dictionary`, `safe_door`, `in_bounds`, `walkable`, `is_safe`, `distance_map(sx, sy, max_dist := -1, avoid_safe := false) -> PackedInt32Array`, `forget_paths()`; `DungeonRoom`: `x, y, w, h`, `centre() -> Vector2i`, `contains`, `intersects(other, pad := 1)`, `tiles() -> Array[Vector2i]` (row-major, y outer) | none | Keep `tiles[y][x]` as `Array` of `PackedByteArray` rows (save format is list of lists). Neighbour cache `_adj_all` / `_adj_no_safe` as `Array` of `PackedInt32Array`. `max_dist=None` becomes `-1`. `sorted(..., key=dist)` and `candidates.sort(key=d)` need the stable sort (ties are common). FOV recursion is identical; visible set is a `Dictionary` used only for membership and to mark `explored`. |
+| `entities.py` | `rules/entity.gd`, `rules/player.gd`, `rules/monster.gd`, `rules/pet.gd`, `rules/entities.gd` | `Entity` (fields in dataclass order, `alive` getter, `take_damage`, `heal`, `damage_text`); `Player extends Entity` (`level, xp, kills, attrs, stat_points`, `xp_to_next`, `gain_xp -> Array[int]`); `Monster extends Entity` (`key, xp_value, alerted, unseen_turns, ranged, boss, phase, stunned, save, tier, base`, getters `the`, `The`, `a`); `Pet extends Entity`; `Entities.new_player(x, y)`, `stat_block(d) -> Dictionary`, `monster_table(depth) -> Array` (`[keys, weights]`), `spawn_monster(key, x, y)`, `init_mod(entity)`, `new_pet(species, name, x, y)`; each class has `to_dict()` / `from_dict()` in dataclass field order | `monsters.json`, `pets.json`, `pet_quips.json` | `@dataclass(eq=False)`: identity equality, which GDScript objects already have. `isinstance(entity, Pet)` is `entity is Pet`; `hasattr(e, "alerted")` is `e is Monster`. |
+| `encounter.py` | `rules/encounter.gd` | `Encounter`: `order`, `round`, `budget`, `reacted` (Dictionary as set), `has_entity(e)` (Python `__contains__`), `add(e, roll, modifier)`, `can_react`, `react`, `ready`, `remove`, getters `entities`, `monsters`, `turn_over`, `total`, `before`, `after`, `has(part)`, `spend`, `reset_budget` | config `encounter` (`PARTS`, `PART_NAMES`) | `order.sort(key=row[0])` with key `(-(roll+mod), -mod, is_not_player, seq)`: keys are unique, so `sort_custom` with a tuple comparator is safe, but use `PyMath.stable_sort_by` anyway for uniformity. |
+| `ai.py` | `rules/ai.gd` | `Ai.cheb(a, b) -> int`, `chase_map(world) -> PackedInt32Array`, `take_monster_turns(world)`, `take_combat_turn(world, m)`, `take_pet_turn(world, combat := false)`; private `_free`, `_step_down`, `_notice`, `_melee`, `_shoot`, `_occupied` | config `ai` | `for m in list(world.monsters)` iterates a copy (`duplicate()`); membership re-checked. `min(xs, key=)` keeps the first minimum: use `PyMath.min_by`. `sorted(targets, key=hp)` needs the stable sort. Chase cache stored on the world as `[floor, x, y, dist]`, compared with `is_same(floor)`. |
+| `bosses.py` | `rules/bosses.gd` | `Bosses.spawn_boss(depth, x, y) -> Monster`, `spawn_act(tier, base, x, y) -> Monster`, `acts_per_floor(depth) -> Vector2i`, `boss_depth(m) -> int` | `bosses.json` (keys "1" to "6"), `acts.json` (`ACTS`, `ACT_NAMES`), config `bosses` (`MAP_RADIUS`, `PHASE_TWO`) | `round(m["hp"] * a["hp"])` (2.0, 3.0) through `PyMath.round_half_even`. JSON object keys are strings: `Content.boss(depth)` converts. |
+| `items.py` | `rules/items.gd` | `Items.FISTS` (static var Dictionary), `floor_loot_table(depth) -> Array` (`[keys, weights]`), `glyph(key)`, `describe(key) -> String`, `value(key) -> int` | `items.json`, `floor_loot.json`, config `items` (`GLYPHS`, `EQUIP_SLOTS`) | `describe` uses `{:+d}` and `{:.0f}`: `PyFmt`. |
+| `loot.py` | `rules/loot.gd` | `Loot.TIERS`, `odds(tier) -> Array` (`[[key, p], ...]`), `roll_box(tier, rng) -> String`, `box_stats(tier) -> Array` (`[ev, sd]`), `next_tier(tier) -> String` ("" for none), `reroll_fee(tier) -> int` | `loot_boxes.json`, config `loot` | `w / total` is float division; `sum` over floats is `PyMath.fsum_py`; `var ** 0.5` is `pow(var, 0.5)` (matches Python, see 3.3). |
+| `achievements.py` | `rules/achievements.gd`, `rules/achievement_tracker.gd`, `rules/achievement_rules.gd` | `Achievements.new(world)`, `unlocked: Dictionary`, `tracker`, `_on_event(name, data)`, `_unlock(key, a)`; `AchievementTracker` (counters, `equipped` set); `AchievementRules.test(rule: Dictionary, t: AchievementTracker, d: Dictionary) -> bool` | `achievements.json` (with `rule` objects, section 4.4) | The lambdas become data plus one interpreter; see 4.4. |
+| `crafting.py` | `rules/crafting.gd` | `Crafting.can_craft(recipe: Dictionary, inventory: Array) -> bool` | `recipes.json`, config `crafting` (`CRAFT_TURNS`) | `Counter` becomes a count loop. |
+| `contracts.py` | `rules/contracts.gd` | `Contracts.effect(world, name, default = 1)`, `preview(world, key) -> PackedStringArray` | `contracts.json`, config `contracts` | `preview` temporarily mutates monsters' `dmg_bonus` and restores it: keep that exactly. Float text through `PyFmt`. |
+| `shop.py` | `rules/shop.gd`, `rules/shop_stock.gd` | `Shop.new(rng: PyRandom)`, `stock: Dictionary` (BASE_DEMAND order), `log: Array`, `bought`, `missed`, `safety_stock`, `reorder_point`, `order_up_to`, `price`, `static sell_price`, `buy`, `take_back`, `_poisson(mean)`, `end_of_floor(depth)`, `to_dict`, `load`; `ShopStock`: `on_hand, forecast, on_order, history` | `shop.json` (`BASE_DEMAND`), config `shop` | `end_of_floor` iterates `stock` in insertion order and draws Poisson numbers per item: the order is the RNG order. `math.ceil` is `ceili`; `math.exp`/`math.sqrt` are `exp`/`sqrt` (same libm). `round(x, 3)` is `PyMath.round_n`. |
+| `practice.py` | `rules/practice.gd` | `Practice.new(world)`, `levels`, `xp`, `used` (set), `steps`, `level(key)`, `gain(key, amount := 1)`, listeners, `to_dict`, `load`; `static xp_to_next(level) -> int` (`ceili(8 * pow(1.45, level))`) | `practice_skills.json`, config `practice` | Subscribes in a fixed list order; keep it. |
+| `funfacts.py` | `rules/fun_facts.gd` | `FunFacts.new(world)`, listeners, `_say(text, once := "", force := false) -> bool` | config `funfacts` | Heavy `{:.0%}`, `{:.2%}`, `{:.0f}` formatting: `PyFmt`. `min(odds, key=p)` first minimum. |
+| `showrunner.py` | `rules/showrunner.gd` | `Showrunner.new(world)`, `rng`, `viewers`, `peak`, `history`, `samples`, `_gain`, `_viewers`, `_idle`, `_pet_quip`, `_say(kind, ctx)`, `_box_reaction`, `_announce`; `static box_kind(tier, key) -> String` | `lines.json`, `sponsor_gifts.json`, config `showrunner` (`SPEAK_CHANCE`, `PET_EVENTS`, ...), `JACKPOT_VALUE` | Subscription order is RNG order (see 5.4). `str.format_map(_Safe(ctx))` is `PyFmt.format_map(template, ctx)` (missing keys give "?"). `{self.viewers:,}` is `PyFmt.thousands`. `d["tier"].capitalize()` is `PyFmt.capitalize` (Godot's `capitalize()` differs). |
+| `lines.py` | none (data only) | | `lines.json`, config `JACKPOT_VALUE` | 41 events x mild/spicy. Placeholders are plain `{name}` only (checked by the exporter). |
+| `report.py` | `rules/run_report.gd` | `RunReport.build(world) -> Dictionary` | none | Plain loop sums (naive, as in Python's explicit `+=`), `sum()` over ints. |
+| `save.py` | `rules/save_game.gd` | `SaveGame.VERSION := 7`, `to_dict(w) -> Dictionary`, `from_dict(d) -> World`, `save(w, path)`, `load(path) -> World`, `has_save(path)` | none | Same JSON layout as Python v7 so saves cross-load (with the float caveat in 11). Written with `PyJson.dumps` (Python key order, no sorting) and atomically (`.tmp` then `DirAccess.rename_absolute`). Godot's `JSON.stringify` sorts keys by default and prints 14 significant digits: never use it for saves. |
+| `settings.py` | `rules/user_settings.gd` | `UserSettings.VIEWS`, `DEFAULTS`, `load(path) -> Dictionary`, `save(settings, path)`; `path == ""` disables | none | Default path `user://settings.json` (Python: `saves/settings.json`). |
+| `telemetry.py` | `rules/telemetry.gd`, `rules/py/py_csv.gd` | `Telemetry.new(world, source := "player", run_id := "", meta := {})`, `tables() -> Dictionary`; `PyCsv.write_tables(tables, out_dir, prefix := "", skip := [])` | config `telemetry` (`SKIP`, `VALUE_KEYS`, `DETAIL_KEYS`) | Column order is Dictionary insertion order: insert keys exactly as Python builds them (8.5). `uuid4().hex[:12]` for player runs becomes 12 hex chars from `Crypto.generate_random_bytes` (not parity-relevant; the bot passes ids). |
+| `events.py` | `rules/event_bus.gd` | `EventBus.subscribe(name, fn: Callable)`, `emit(name: String, data := {})`, `var tap: Callable` (trace seam, called first in `emit`) | none | Named subscribers first, in subscription order, then `"*"`; iterate the live array by index (Python iterates the live list). Handlers get `(name, data)`. |
+| `world.py` | `rules/world.gd`, `rules/message_log.gd` | `World.new(seed = null, pet = null, hero = null)` (pet `[species, name]`), all public methods with the same names and return values; `MessageLog`: `lines` (max 200), `add(text, colour := TEXT)`, `recent(n)`, `var tap: Callable` | none | About 1,560 lines; split over three briefs (section 9) but one file. Python properties (`viewers`, `active_pet`, `skill`, `in_safe_room`, `on_stairs`, `stairs_wait`, `stairs_locked`, `address`) become GDScript properties with `get:` so call sites read the same. `seed=None` draws `randi() & 0x3FFFFFFF` (not parity-relevant). |
+
+Shared helpers written in P1 slice S1 (not Python modules, but every port depends on them):
+
+| File | Class | Purpose |
+|---|---|---|
+| `rules/py_random.gd` | `PyRandom` | CPython `random.Random` (section 5). Done in P0 and proven against Python. |
+| `rules/py/py_math.gd` | `PyMath` | `floordiv(a, b)`, `mod(a, b)` (Python `%`, sign of divisor), `fmod_py(a: float, b: float)`, `round_half_even(x: float) -> int`, `round_n(x: float, n: int) -> float`, `fsum_py(values: Array) -> float`, `stable_sort_by(arr: Array, key: Callable) -> Array` (returns new array, Python `sorted`), `stable_sort_in_place(arr, key)` (`list.sort(key=)`), `min_by(arr, key)`, `max_by(arr, key, default = null)` (first extreme wins), `compare_tuples(a: Array, b: Array) -> int`, `truthy(v) -> bool` (Python truthiness for `0`, `""`, `[]`, `{}`, `null`). |
+| `rules/py/py_fmt.gd` | `PyFmt` | `repr_float(x) -> String`, `str(v) -> String` (bool as `True`/`False`, null as `None`, floats via `repr_float`, ints plain), `fixed(x, n)` (`{:.nf}`), `signed_int(n)` (`{:+d}`), `signed_fixed(x, n)` (`{:+.nf}`), `percent(x, n)` (`{:.n%}`), `signed_percent(x, n)` (`{:+.n%}`), `thousands(n)` (`{:,}`), `zero_pad(n, width)` (`{:02d}`), `capitalize(s)` (Python `str.capitalize`), `format_map(template, ctx: Dictionary) -> String` (plain `{key}` placeholders, missing key gives `?`). |
+| `rules/py/py_json.gd` | `PyJson` | `dumps(v) -> String`: Python `json.dumps` style (insertion order, floats via `repr_float`, `true/false/null`, `ensure_ascii` escapes). `loads(text) -> Variant` wraps `JSON.parse_string` and is followed by schema-aware int coercion by the caller (`Content`, `SaveGame`). |
+| `rules/py/py_csv.gd` | `PyCsv` | Python `csv.DictWriter` (excel dialect): CRLF line ends, QUOTE_MINIMAL, values via `PyFmt.str`. |
+| `rules/content.gd` | `Content` | `static func table(name: String) -> Variant` (loads `res://data/<name>.json` once, coerces ints using `manifest.json`), typed helpers (`monster(key)`, `item(key)`, `boss(depth)`, ...), `static func reload()` for tests. |
+
+### 2.2 Presentation (`crawler/game.py`, `crawler/ui/*` to `godot/scenes/`, `godot/ui/`)
+
+| Python | Godot | Notes |
+|---|---|---|
+| `game.py` `App` (state machine, key handling, held keys, `update(dt, held)`) | `ui/app_state.gd` (`AppState extends RefCounted`: scene, overlay, cursor, identity/pet/class steps, `handle_action(action: StringName, ch := "")`, `update(dt, held: Dictionary)`), `scenes/main.tscn` + `ui/main.gd` (reads `InputMap` actions, forwards to `AppState`, swaps views and overlays) | Keeping the state machine headless lets `test_render.py`'s logic tests port without a window. |
+| `main.py`, `fp_demo.py` | `project.godot` main scene; CLI user args `-- --seed 1234 --view fp` parsed in `ui/main.gd` | |
+| `ui/firstperson.py` | `scenes/fp_view.tscn`, `ui/fp/fp_logic.gd` (headless: `step_for_angle`, `angle_gap`, `open_facing`, facing/angle maths, `tap_turn`, `set_combat`, `relative`, `target_ahead`, camera glide `update_camera`, `glide_left`), `ui/fp/fp_camera_rig.gd`, `ui/fp/floor_mesh_builder.gd`, `ui/fp/billboards.gd`, `ui/fp/minimap.gd`, `ui/fp/fp_overlays.gd` | The raycaster itself is replaced by real 3D (section 10). The maths uses `PyMath` too: `round(angle / 45) % 8` has ties at 22.5 degrees and negative angles. |
+| `ui/hud.py` | `scenes/hud.tscn`, `ui/hud/side_panel.gd`, `ui/hud/log_view.gd`, `ui/hud/initiative_tracker.gd`, `ui/hud/toasts.gd`, `ui/hud/scout_report.gd`; `scenes/top_view.tscn`, `ui/top/top_view.gd` | |
+| `ui/menus.py` | `scenes/menus/{inventory,safe_menu,reveal,craft,class_select,identity,backstory,pet_select,box_info,shop,contract,practice,attributes}.tscn` with matching `ui/menus/*.gd` | Row builders (`inventory_rows`, `menu_options`, `class_rows`, `shop_rows`, `attr_source`) are pure functions: put them in `ui/menus/menu_rows.gd` and test headless. |
+| `ui/screens.py` | `scenes/screens/{title,help,death,victory}.tscn`, `ui/screens/controls.gd` (control lists per view) | |
+| `ui/report.py` | `scenes/screens/run_report.tscn`, `ui/screens/chart.gd` (custom `_draw`) | `nice_max`, `plural` are pure: test headless. |
+
+### 2.3 Bot, telemetry runner, tests
+
+| Python | Godot | Notes |
+|---|---|---|
+| `analysis/bot.py` (`step_towards`, `score`, `spend_points`, `manage_items`, `worth_taking`, `can`, `best_of`, `choose`, `flee_goal`, `_choose`, `run_config`, `play`) | `tools/bot_policy.gd` (`BotPolicy` with the same static functions; `play(seed, pet := "", deals := "random", telemetry := false, max_steps := 200000) -> Array` (`[world, tables]`)), `tools/bot.gd` (CLI, `extends SceneTree`) | Bot state Python hangs on the world (`w._bot_route`, `w._bot_fleeing`) goes in a `BotState` object passed alongside. `pick = random.Random(seed * 7919 + 13)`, `coin = random.Random(seed ^ 0xB07)` become `PyRandom`. Multiprocessing becomes process sharding (8.4). |
+| `analysis/common.py`, notebooks | stay Python | Notebooks read the same CSVs; content via JSON (4.3). |
+| `conftest.py` | `tests/run_tests.gd` environment | |
+| `tests/*.py` | `tests/test_*.gd`, `tests/ui/test_*.gd` | Per-file table in Appendix B. |
+
+---
+
+## 3. Python features that need care
+
+### 3.1 Checklist for porters
+
+| Python feature | Where it appears | GDScript rule |
+|---|---|---|
+| `a / b` (always float) | `loot.odds`, `dice.chance_to_hit`, `shop.price`, `_respawn` (`timer / timer_max`), contracts preview, funfacts, telemetry `hp_frac` | GDScript `int / int` truncates. Write `float(a) / b` for every Python `/`. Verifier greps every `/` in a diff. |
+| `a // b` (floor) | `attributes.mod` (negative: `mod(8) == -1`), `depth // 3`, `practice(...) // 2..5`, `max_hp // 4`, `turns // 10`, `amount // 40`, `damage // 2`, `cooldown // 2`, `floor_turns(depth) // 2`, `len(candidates) // 2`, regen interval, `timer_text` | `PyMath.floordiv(a, b)` everywhere, even where values look positive. |
+| `a % b` (sign of divisor) | `timer_text`, `self.turn % ...`, `PET_MODES` cycling, `steps % CARDIO_STEPS`, UI angle maths (floats, negatives) | Ints: `PyMath.mod` (= `posmod` for positive divisors). Floats: `fposmod`. GDScript `%` on a negative int gives a negative result. |
+| `round(x)` (half to even, returns int) | combat damage `round((roll + bonus) * mult)` (mult 1.5, 2, 3, 1.03...), `round(sum * RESPAWN_CAP)` (10 x 1.25 = 12.5 gives 12), `round(gap)`, prices, potions, bombs, contracts timer, `spawn_act` HP, UI angles | `PyMath.round_half_even(x) -> int`. Godot's `round(2.5)` is 3.0 (measured). |
+| `round(x, n)` | `hp_frac` (3), `ev` (2), shop log (3) | `PyMath.round_n(x, n)`: format with `"%.nf"` (matches Python exactly, Appendix A) then parse; parsing short decimals is exact in Godot (measured). |
+| `int(x)` (truncate) | viewers, rest `owed` | `int(x)`: same truncation. |
+| `math.ceil` returns int | practice curve, shop | `ceili`. |
+| `x ** 0.5`, `1.45 ** n` | respawn weights `w / xp ** 0.5`, box SD, practice curve | `pow(x, 0.5)`, not `sqrt`: both Pythons and Godot call glibc `pow`, which differs from `sqrt` for 82 of the first 100,000 integers; `pow` matches Python on all of them (measured). |
+| `sum()` of floats | `expected_damage`, `box_stats`, contracts preview (`sum(expected_damage...)`, gold average) | Python 3.12+ `sum()` uses Neumaier compensated summation: it differs from a naive loop in 183 of 750 expected-damage-shaped sums (measured). Use `PyMath.fsum_py`. Explicit `+=` loops in Python (`run_report`, `rest`) stay naive. Sums of ints and bools are ordinary. |
+| Float evaluation order | every multi-factor product (`gold = xp * GOLD_PER_XP * uniform * mult * ...`, viewers `_gain`, potion heal) | Keep the same left-to-right order and grouping; never fold constants or reorder factors. |
+| `sorted(xs, key=)`, `list.sort(key=)` (stable) | `others = sorted(rooms, key=dist)` (stairwell rooms, ties common), `candidates.sort(key=d)` (safe room, ties common), `sorted(targets, key=hp)` (pounce), `Encounter.add`, `sorted(CONTRACTS)` | Godot's `sort_custom` is documented as unstable. Use `PyMath.stable_sort_by` / `stable_sort_in_place`. `Array.sort()` on plain Strings is fine (code point order matches Python, measured). |
+| `min(xs, key=)`, `max(xs, key=)` | targets, spots, bot goals, `max(gaps, key=gaps.get)` | First extreme wins: `PyMath.min_by` / `max_by`. Tuple keys (`(cheb, s)`) via `PyMath.compare_tuples`. |
+| Tuples as keys and in sets | `floor_items`, `furniture`, `visible`, `occupied`, `taken` | `Vector2i` keys. Sets become `Dictionary` with `true` values, membership only. |
+| `dict` insertion order | content tables, `shop.stock`, `floor_items`, telemetry rows, payloads | Godot `Dictionary` keeps insertion order, including erase then re-insert at the end (measured), and `JSON.parse_string` keeps document key order (measured). |
+| `for x in list(...)` while mutating | `take_monster_turns`, `_explode` | Iterate `duplicate()`; recheck membership as Python does. |
+| `list.remove(x)`, `index`, `count`, `pop(0)` | inventory, boxes, reasons | `erase` (first occurrence), `find`, `count`, `pop_front`. |
+| Python truthiness | `if self.skill_cooldown`, `if reasons`, `if not here`, `trait()` results, `d.get("early", False)`, `contract or "none"` | Be explicit: `!= 0`, `not arr.is_empty()`, `PyMath.truthy(v)` for Variants. `None` vs `""`: keep `null` where Python stores `None` and the value is saved or written to CSV (`cls or "none"`, `death_cause or ""`). |
+| `bool` is an `int` | `sum(bools)`, `killed += not m.alive`, `key = (..., entity is not self.player, ...)` | Convert explicitly (`int(b)`). |
+| `str(bool)`, `str(None)` | telemetry `pet_down`, `rerolled` (`True`/`False` in CSV), events `detail` (`str(d["boss"])` gives `False` for `pet_kill`) | `PyFmt.str`. Godot's `str(true)` is `true`. |
+| f-string specs | `:+d`, `:.0f`, `:.1f`, `:.0%`, `:.2%`, `:+.0f`, `:+.0%`, `:,`, `:02d` (all uses in `crawler/`) | `PyFmt`. Godot's `"%.nf" % x` matches Python's `f"{x:.nf}"` on 20,000 test values including halves, and `"%+.0f" % -0.4` gives `-0` like Python (measured). |
+| `str(float)` / `repr` | CSV cells, trace payloads, saves | `PyFmt.repr_float`. Godot `str(0.1 + 0.2)` gives `0.3` (14 digits) and `var_to_str` is not always shortest (measured). See 3.3. |
+| `str.capitalize`, `name[0] in "AEIOU"` | showrunner tier, `Monster.a`, class title article | `PyFmt.capitalize` (Godot's turns `opening_act` into `Opening Act`). |
+| `str.format_map(_Safe)` | every System line | `PyFmt.format_map`. |
+| Dataclasses, `asdict`, `field(default_factory)` | entities, `Room`, `Stock`, `Tracker`, `AttackResult` | Classes with typed vars initialised in `_init`; `to_dict()` in field order (save layout). |
+| `@property` | `alive`, `the`, `The`, `a`, world getters, `Encounter.entities/monsters/turn_over` | GDScript properties (`var alive: bool: get: return hp > 0`). |
+| `__contains__` | `Encounter` | `has_entity(e)`. |
+| `lru_cache` | `dice_distribution` | static Dictionary cache. |
+| Lambdas in content | achievement tests, `lambda t, d, depth=_depth:` closure | Rule objects in JSON plus `AchievementRules` (4.4). |
+| `**kwargs` events, `emit(name, **data)` | every event | `emit(name, {...})` with keys in Python kwarg order. Payload key `name` is still forbidden. |
+| `next(gen)`, `StopIteration` | `_spawn_boss` room lookup, telemetry value/detail, `Encounter.total` | Loops with explicit fallbacks. |
+| Exceptions | save version check, mid-combat save, `choice([])` | `push_error` plus a return value (`null` / `false`); the caller checks. Tests assert the return value instead of `pytest.raises`. |
+| Integer size | seeds (`seed * 7919 + 13`), MT words, viewers | GDScript `int` is 64-bit signed; all game values fit. Seeds must be in `0 .. 2**62`. MT maths masks to 32 bits after every multiply (products stay below 2**63). |
+| `deque(maxlen=200)` | `MessageLog` | Array with `pop_front` past 200. |
+| `uuid`, `time`, `multiprocessing` | telemetry ids for player runs, bot timing, Pool | Not rules; see 8.4. |
+
+### 3.2 GDScript gotchas for the same code
+
+- `JSON.parse_string` returns every number as `float` (measured: `{"z": 1}` gives `TYPE_FLOAT`). `Content` and `SaveGame` coerce by schema (4.2).
+- `JSON.stringify(data)` sorts keys by default and prints floats with 14 significant digits unless `full_precision` is true (measured). Use `PyJson.dumps`.
+- A script run with `godot --headless -s` that fails to parse exits with code 0 (measured). The test wrapper checks a sentinel line too (7.3).
+- `class_name` classes resolve only after `godot --headless --path godot --import` has built `.godot/global_script_class_cache.cfg` (measured: without it, `Identifier "Foo" not declared`). CI and every brief run the import step once.
+- Runtime errors inside a called function print `SCRIPT ERROR` and return `null` without stopping the caller. Tests must assert on results; the wrapper fails on any `SCRIPT ERROR` in the log.
+- `Array.has` / `erase` / `find` compare Objects by reference (what Python's `eq=False` dataclasses do) and `Vector2i` by value.
+- Modifying a Dictionary while iterating it is an error in both languages; copy keys first.
+
+### 3.3 Float text and parsing (measured on 4.7.2)
+
+| Need | Godot behaviour | Plan |
+|---|---|---|
+| `f"{x:.nf}"` | `"%.nf" % x` identical to Python for n = 0 to 3 over 20,000 values (halves, negatives, huge, tiny) | Use directly through `PyFmt.fixed`. |
+| `repr(x)` (CSV, traces, saves) | `str()` uses 14 digits; `var_to_str` gave 17 digits where 16 suffice in 9 of 20,000 values and uses its own exponent style | `PyFmt.repr_float`: fixed notation for `1e-4 <= abs(x) < 1e16` (Python's rule), smallest `d` such that `"%.df" % x` parses back to `x`, where the round-trip is checked exactly with Clinger's fast path (`float(M) / pow(10.0, d)` when the digit string `M < 2**53`), else fall back to 17 significant digits; exponent form for the rest. All values the game writes (`hp_frac`, `dmg_avg`, `chance`, `ev`, forecasts, `streak_chance`) are covered by a fixture test against Python. Random 16-17 digit floats may print with one extra digit; `parity_diff.py` compares numbers by value, so this is cosmetic. |
+| Parsing floats | `JSON.parse_string`, `str_to_var`, `to_float` are exact for decimals with up to 15 significant digits (20,000 of 20,000) but wrong by 1 ulp for 17% of 17-digit reprs | Content floats are all short (exporter asserts at most 15 significant digits). Saves: see risk R5. |
+| `x ** 0.5` | glibc `pow`, same as CPython on this machine | `pow(x, 0.5)`. Parity is claimed for Linux x86_64 with glibc; other platforms fall back to statistical parity. |
+| `sum()` | n/a | `PyMath.fsum_py` (Neumaier, final `+ c` if `c` is non-zero and finite); validated against CPython 3.13 `sum` on 200,000 random float lists with zero mismatches. |
+
+`PyMath.fsum_py` reference:
+
+```gdscript
+static func fsum_py(values: Array) -> float:
+	var f := 0.0
+	var c := 0.0
+	for v in values:
+		var x := float(v)
+		var t := f + x
+		if absf(f) >= absf(x):
+			c += (f - t) + x
+		else:
+			c += (x - t) + f
+		f = t
+	if c != 0.0 and is_finite(c):
+		f += c
+	return f
+```
+
+The committed reference data was produced by Python 3.12 or later: the bot under the installed Python 3.13.16 reproduces the first rows of every committed `runs/bot_*.csv` byte for byte (seeds 0-2 checked). The port targets Python 3.12+ semantics.
+
+---
+
+## 4. JSON content in `godot/data/`
+
+### 4.1 Generator
+
+`scripts/export_content.py` (Python 3.12+, imports `crawler.*` read-only):
+
+```
+python scripts/export_content.py            # writes godot/data/*.json and godot/data/manifest.json
+python scripts/export_content.py --check    # exit 1 if regenerating would change any file (CI drift check)
+```
+
+- One JSON file per table, `indent=1`, `ensure_ascii=False`, `sort_keys=False` (Python insertion order is the order the rules iterate), UTF-8, trailing newline.
+- Tuples become arrays; tuples of named fields become objects (shown below); colours `[r, g, b]`.
+- Every float in content must have at most 15 significant digits (asserted).
+- `manifest.json`: `{"generator": 1, "python": "3.13.16", "source_commit": "<git rev-parse HEAD>", "files": {"items.json": {"sha256": "...", "sources": ["crawler/items.py"], "float_paths": ["..."]}, ...}}`. `float_paths` lists every leaf that was a Python `float` (JSON pointer style, `/backstories/mixologist/potion_mult`). `Content` converts every other number to `int`.
+- Self-checks before writing: achievement rules agree with the Python lambdas (4.4); every line placeholder is a plain identifier and no `{{` appears; every key referenced across tables exists (drops, box tables, recipes, loot, headliner drops).
+
+`Content.table(name)` loads `res://data/<name>.json` once, walks it and coerces numbers using `float_paths`, and caches it in a `static var`. Tests that patch content (`monkeypatch.setitem(MONSTERS["goblin"], "init", 50)`) edit the cached Dictionary and restore it in `after_each`.
+
+### 4.2 Files and schemas
+
+| File | Source | Shape (key order preserved) |
+|---|---|---|
+| `config.json` | `config.py` plus module constants | `{"config": {...config.py names...}, "ai": {"CHASE_RADIUS": 25, "PET_LEASH": 2, "POUNCE_RANGE": 3, "SQUAWK_RANGE": 3, "MOUSE_FLEE_FRAC": 0.3}, "attributes": {"BASE_SCORE": 10, "START_POINTS": 6, "POINTS_PER_LEVEL": 2, "MAX_SCORE": 30}, "bosses": {"MAP_RADIUS": 22, "PHASE_TWO": {"damage_bonus": 3, "ranged": 5, "adds": ["cultist", "cultist"]}}, "classes": {"CHOICE_FLOOR": 3, "FLAT_BONUSES": ["max_hp", "ac", "hit", "dr"]}, "contracts": {"OFFER_FROM_FLOOR": 2, "OFFER_CHANCE": 0.7}, "crafting": {"CRAFT_TURNS": 10}, "encounter": {"PARTS": [...], "PART_NAMES": {...}}, "funfacts": {"MIN_GAP": 25, "MISS_STREAK": 4, "BOX_DROUGHT": 3}, "items": {"GLYPHS": {...}, "EQUIP_SLOTS": {...}}, "lines": {"JACKPOT_VALUE": 45}, "loot": {"TIERS": [...], "TRADE_UP_COST": 3, "REROLL_FEE_FRAC": 0.3}, "practice": {"MAX_LEVEL": 15, "SMALL_MONSTER_HP": 12, "CARDIO_STEPS": 40}, "shop": {"DEMAND_GROWTH": 0.1, "ALPHA": 0.3, "LEAD_TIME": 1, "SAFETY_Z": 1.0, "SCARCITY_MARKUP": 0.6, "SELL_RATE": 0.4}, "showrunner": {"START_VIEWERS": 50, "MIN_VIEWERS": 20, "SAMPLE_EVERY": 10, "IDLE_TURNS": 10, "DECAY": 0.97, "MULTI_WINDOW": 4, "CLUTCH_FRAC": 0.25, "SPEAK_CHANCE": {...}, "QUIP_CHANCE": 0.6, "FLEE_QUIP_GAP": 8, "PET_EVENTS": {...}}, "telemetry": {"SKIP": ["turn"], "VALUE_KEYS": [...], "DETAIL_KEYS": [...]}, "world": {"PET_MODES": ["follow", "attack", "stay"]}}` |
+| `attributes.json` | `ATTRS` | `{"str": {"name": "Strength", "short": "STR", "does": "..."}, ...}` |
+| `monsters.json` | `MONSTERS` | `{"gnawer": {"name": "Sewer Gnawer", "glyph": "r", "colour": [170, 140, 110], "hp": 6, "ac": 11, "attack": 3, "dmg": [1, 4, 0], "save": 1, "xp": 3, "floors": [1, 2], "weight": 6, "drops": ["sock", "sock", "tonic"]}, ..., "cultist": {..., "ranged": 5}}` (optional keys such as `ranged`, `init`, `dr` appear only where Python has them; `Content` callers use `.get(key, default)` as Python does) |
+| `bosses.json` | `BOSSES` | `{"1": {"name": "The Grease Trap King", "glyph": "K", "colour": [...], "hp": 24, "ac": 11, "attack": 4, "dmg": [1, 6, 0], "save": 2, "xp": 25, "box": "silver"}, ..., "6": {..., "final": true}}` |
+| `acts.json` | `ACTS`, `ACT_NAMES` | `{"acts": {"opening": {"title": "Opening Act", "hp": 2.0, "attack": 1, "ac": 1, "dmg": 1, "save": 2, "xp": 3, "gold": 2}, "featured": {...}}, "names": {"gnawer": ["Gnawer Matriarch", "The Rat Queen of Aisle Nine"], ...}}` (`hp` stays float: in `float_paths`) |
+| `pets.json` | `PETS` | `{"cat": {"name": "Alley Cat", "glyph": "f", "colour": [...], "hp": 16, "ac": 13, "attack": 4, "dmg": [1, 6, 1], "default_name": "Mittens", "ability": "pounce", "ability_name": "Pounce", "cooldown": 18, "desc": "..."}, "dog": {...}, "budgie": {...}, "mouse": {...}}` (order is `PET_ORDER` for the bot) |
+| `pet_quips.json` | `PET_QUIPS` | `{"cat": {"kill": ["Beneath me, frankly.", ...], "ability": [...], "level_up": [...], "downed": [...]}, ..., "mouse": {..., "flee": [...]}}` |
+| `items.json` | `ITEMS`, `FISTS` | `{"fists": {"name": "Fists", "style": "unarmed", "dice": [1, 4]}, "items": {"pan": {"name": "Dented Frying Pan", "kind": "weapon", "style": "blunt", "value": 10, "dice": [1, 6], "colour": [...], "desc": "Seen better breakfasts."}, ..., "vest": {"name": "Riot Vest", "kind": "armour", "value": 22, "ac": 2, "max_dex": 2, ...}}}` |
+| `floor_loot.json` | `FLOOR_LOOT` | `[{"item": "sock", "weight": 4, "min_floor": 1}, ...]` |
+| `loot_boxes.json` | `BOX_TIERS` | `{"bronze": {"name": "Bronze", "colour": [205, 140, 80], "table": [{"item": "sock", "weight": 4}, {"item": "tonic", "weight": 4}, {"item": "popper", "weight": 3}, {"item": "jersey", "weight": 3}]}, ...}` |
+| `races.json`, `classes.json`, `skills.json` | `RACES`, `CLASSES`, `SKILLS` | `{"hobgoblin": {"name": "Hobgoblin", "desc": "...", "attrs": {"dex": 2}, "crit_range": 3, "ac": -1}, ...}`; `{"alchemist": {"name": "Alchemist", "desc": "...", "attrs": {"int": 2}, "max_hp": 4, "class_potion_mult": 1.3, "skill": "field_brew", "pairs": ["mixologist", "parent"]}, ...}`; `{"arc_bolt": {"name": "Arc Bolt", "cooldown": 20, "range": 6, "desc": "..."}, ...}` |
+| `backstories.json`, `genders.json` | `BACKSTORIES`, `GENDERS` | `{"mixologist": {"name": "Mixologist", "perk": "...", "desc": "...", "attrs": {"cha": 2}, "potion_mult": 1.4}, ...}`; `{"female": {"name": "Woman", "address": "madam"}, ...}` |
+| `achievements.json` | `ACHIEVEMENTS` (33, headliners expanded) | 4.4 |
+| `lines.json` | `LINES` | `{"floor_start": {"mild": ["Floor {depth} is live. Smile for the cameras, {hero}.", ...], "spicy": [...]}, ...}` (41 events; `spicy` may be missing or empty, as in Python) |
+| `practice_skills.json` | `practice.SKILLS` | `{"fisticuffs": {"name": "Fisticuffs", "group": "Fighting", "trains": "...", "effect": "+1 unarmed damage every 2 levels"}, ...}` (20, order is the `K` screen and telemetry row order) |
+| `shop.json` | `BASE_DEMAND` | `{"base_demand": {"tonic": 3.0, "brew": 1.5, "elixir": 0.5, "popper": 1.5, "fireworks": 0.7, "jersey": 0.8, "vest": 0.5, "pan": 0.8, "cleaver": 0.4}}` (order is the Poisson draw order) |
+| `contracts.json` | `CONTRACTS` | `{"gloop_blitz": {"sponsor": "Gloop Energy", "name": "Gloop Blitz", "desc": "...", "gold_mult": 1.5, "monster_damage": 1, "bonus_box": "silver"}, ..., "hazard_pay": {..., "gold_mult": 2.0, "viewer_mult": 1.5, "monster_hp_mult": 1.25, "monster_damage": 2, "bonus_box": "gold"}}` |
+| `recipes.json` | `RECIPES` | `[{"key": "sock_tea", "name": "Sock Tea", "needs": ["sock", "mug"], "makes": "tonic", "desc": "..."}, ...]` |
+| `sponsor_gifts.json` | `SPONSOR_GIFTS` | `[{"viewers": 300, "tier": "bronze", "sponsor": "Brightly Snacks"}, ...]` |
+| `ui_config.json` (presentation only) | `config.py` layout and colours, `firstperson.DEPTH_TINT`, `TIER_SCALE`, `TIER_OUTLINE`, `hud.TIER_COLOURS`, `FURNITURE_GLYPHS`, `screens` control lists | Read by `ui/` only. |
+
+### 4.3 Reading the JSON from notebooks
+
+The files are plain JSON in Python key order, so notebooks need nothing from Godot:
+
+```python
+import json, pandas as pd
+monsters = pd.DataFrame.from_dict(json.load(open("godot/data/monsters.json")), orient="index")
+boxes = json.load(open("godot/data/loot_boxes.json"))
+odds = pd.DataFrame([dict(tier=t, **row) for t, b in boxes.items() for row in b["table"]])
+```
+
+`analysis/` is frozen, so no helper is added there now; a `content(name)` helper in `analysis/common.py` is a P3 option for the owner.
+
+### 4.4 Achievements: lambdas to data
+
+Each achievement keeps `name`, `desc`, `tier`, `on` and gains a `rule`. `AchievementRules.test(rule, t, d)` interprets it; `all` combines rules. The exporter holds an explicit `ACHIEVEMENT_RULES` table (lambdas cannot be introspected reliably) and, before writing, evaluates every Python lambda and the rule interpreter (a Python twin) on generated `(tracker, data)` cases around each threshold, failing on any disagreement or on an achievement without a rule.
+
+| Rule kind | Fields | Python it replaces | Used by |
+|---|---|---|---|
+| `always` | | `lambda t, d: True` | critical_darling, blooper_reel, upcycler |
+| `counter_gte` | `counter`, `n` | `t.<counter> >= n` | first_blood, pest_control (kills), pet_project (pet_kills), cursed_dice (nat1s), bare_knuckle_tv (unarmed_kills), cartographer (maps), pack_rat (pickups), dumpster_diver (junk_sold) |
+| `field_gte` | `field`, `n` | `d[field] >= n` | deep_diver (depth 3), demolition (kills 2), pyrotechnician (kills 3), best_friends (level 3), jack_of_all_trades (many_at_3 8), nap_champion (turns 180) |
+| `field_eq` | `field`, `value` | `d[field] == value` | opening_night, upstaged (tier), one_hp_wonder (hp 1), headliner_1..6 (depth) |
+| `field_true` | `field` | `d.get(field, False)` | locksmith (early) |
+| `field_lte_floordiv` | `field`, `of`, `div` | `d[field] <= d[of] // div` | close_call (player_hp, player_max_hp, 4) |
+| `field_lt_frac` | `field`, `of`, `frac` | `d[field] < frac * d[of]` | cutting_it_fine (timer_left, timer_max, 0.1) |
+| `world_gte` | `stat` (`viewers`, `inventory_len`), `n` or `n_config` | `t.world.viewers >= 1000`, `len(t.world.inventory) >= C.INVENTORY_SIZE` | crowd_pleaser, hoarder (`n_config: "INVENTORY_SIZE"`, read at test time so patching works) |
+| `equipped_all` | `slots` | `{"weapon", "armour"} <= t.equipped` | dressed_to_kill |
+| `all` | `rules` | `and` | underfoot (`field_eq skill "stomping"`, `field_gte level 3`) |
+
+Example:
+
+```json
+"close_call": {"name": "Close Call", "desc": "Landed a kill on 25% HP or less.", "tier": "silver", "on": "kill",
+  "rule": {"kind": "field_lte_floordiv", "field": "player_hp", "of": "player_max_hp", "div": 4}},
+"headliner_3": {"name": "Show Stopper: Foreman Gristle", "desc": "Took down floor 3's Headliner, Foreman Gristle.",
+  "tier": "gold", "on": "boss_kill", "rule": {"kind": "field_eq", "field": "depth", "value": 3}}
+```
+
+The tracker's counter updates per event (`kill` increments `kills` and maybe `unarmed_kills`, etc.) stay in `achievements.gd` code, as in Python.
+
+---
+
+## 5. RNG parity
+
+### 5.1 Streams
+
+| Stream | Construction (Python) | GDScript | Used for |
+|---|---|---|---|
+| main | `random.Random(seed)` (`World.rng`) | `PyRandom.new(seed)` | floor generation, monster and item placement, Acts, respawns, all attack and save rolls, initiative, monster wander and ranged choice |
+| loot | `random.Random(seed ^ 0x100F)` (`World.loot_rng`) | `PyRandom.new(seed ^ 0x100F)` | box rolls, kill gold (`uniform`), drops, headliner drops, Featured Act hauls, Field Brew, Tinkering spare |
+| shop | `random.Random(seed ^ 0x5A0F)` (`Shop.rng`) | same | Poisson demand in `end_of_floor` |
+| deal | `random.Random(seed ^ 0xC0DE)` (`World.deal_rng`) | same | contract offer and choice |
+| show | `random.Random(world.seed ^ 0x5EED)` (`Showrunner.rng`) | same | line choice, spice, chattiness, pet quips |
+| bot pick | `random.Random(seed * 7919 + 13)` (`bot.run_config`) | same | race, class, backstory, gender for a bot seed |
+| bot coin | `random.Random(seed ^ 0xB07)` (`bot.play`) | same | accept or decline each offer |
+| unseeded | `random.randrange(1 << 30)` when `World(seed=None)` | `randi() & 0x3FFFFFFF` | the seed itself; not part of parity |
+
+Construction order inside `World.__init__` (matters for nothing random, but the trace harness labels streams by it): main, loot, shop, deal, show.
+
+### 5.2 Every call site
+
+| File:line (Python) | Call | Stream | Method semantics needed |
+|---|---|---|---|
+| `dice.py:14,16` | `rng.randint(1, 20)` (once, or twice with advantage) | main | `randint` = `randrange(a, b+1)` = `a + _randbelow(width)` |
+| `dice.py:21` | `rng.randint(1, sides)` n times | main | same |
+| `combat.py:64,71,78` | via `d20`, `roll` | main | |
+| `dungeon.py:124` | `rng.random() < 0.5` (corridor corner) | main | `random()` = `(a >> 5) * 67108864.0 + (b >> 6)` then `* 2**-53` |
+| `dungeon.py:135-137` | `randint` x4 (room size, position) | main | |
+| `dungeon.py:165` | `rng.sample(floor.rooms, 2)` | main | `sample`, set branch (n of about 44 > setsize 21) |
+| `dungeon.py:177-178` | `randint` x2 per stairwell | main | |
+| `dungeon.py:192` | `randint` x2 per safe-room candidate (up to 600) | main | |
+| `dungeon.py:199` | `rng.shuffle(sides)` (4 items) | main | `shuffle`: `for i in reversed(range(1, n)): j = _randbelow(i + 1)` |
+| `world.py:337` | `randint(0, min(2, 1 + depth // 3))` per room | main | |
+| `world.py:339` | `rng.sample(spots, min(count, len(spots)))` | main | both branches: pool branch when the room has 21 or fewer free tiles, set branch otherwise; `k = 0` draws nothing |
+| `world.py:340, 389, 407` | `rng.choices(keys, weights)[0]` | main | `choices` with int weights (respawn: float weights `w / xp ** 0.5`): `cum = accumulate(weights)`, `total = cum[-1] + 0.0`, `bisect_right(cum, random() * total, 0, n - 1)` |
+| `world.py:347` | `rng.random() >= chance` per room | main | |
+| `world.py:350-351` | `rng.choice(spots)`, `rng.choices(keys, weights)` | main | `choice` = `seq[_randbelow(len(seq))]` |
+| `world.py:377` | `rng.choice(spots)` (`_free_spot`) | main | |
+| `world.py:382` | `rng.shuffle(rooms)` (Act rooms) | main | |
+| `world.py:404` | `rng.choice(rooms)` up to 10 tries (respawn) | main | |
+| `world.py:700, 745, 803, 1090, 1218, 1225` | `attack(..., self.rng, ...)` | main | via dice |
+| `world.py:983` | `roll(self.rng, *item["dice"])` (bombs) | main | |
+| `world.py:992` | `saving_throw(self.rng, ...)` per monster in blast | main | |
+| `world.py:1347` | `d20(self.rng)` (initiative) | main | |
+| `ai.py:92` | `world.rng.random() < RANGED_ATTACK_CHANCE` | main | short-circuit: only drawn when the earlier conditions hold |
+| `ai.py:132-133` | `rng.random() < MONSTER_WANDER_CHANCE`, `rng.choice(NEIGHBOURS_8)` | main | |
+| `world.py:614` | `loot_rng.random() < 0.04 * tinkering` | loot | drawn even at level 0 (left operand evaluated first) |
+| `world.py:829` | `loot_rng.choices(("tonic", "brew", "elixir"), (6, 3, 1))[0]` | loot | |
+| `world.py:1036` (`loot.py:32`) | `roll_box`: `rng.choices(keys, weights)[0]` | loot | |
+| `world.py:1148` | `loot_rng.uniform(0.6, 1.4)` | loot | `uniform` = `a + (b - a) * random()` |
+| `world.py:1176` | `loot_rng.choice(C.HEADLINER_DROPS)` | loot | |
+| `world.py:1179-1180` | `loot_rng.random() < ITEM_DROP_CHANCE`, then `choice(drops)` | loot | |
+| `world.py:1209` | `loot_rng.choices(keys, weights)[0]` x2 | loot | |
+| `shop.py:91` | `self.rng.random()` in Knuth Poisson loop | shop | |
+| `world.py:278-279` | `deal_rng.random() < OFFER_CHANCE`, `deal_rng.choice(sorted(CONTRACTS))` | deal | only from floor 2 (`depth >= OFFER_FROM_FLOOR` is checked first) |
+| `showrunner.py:125, 128` | `rng.random() >= QUIP_CHANCE`, `rng.choice(lines)` | show | |
+| `showrunner.py:134, 138` | `rng.random()` (spice), `rng.choice(pool)` | show | |
+| `showrunner.py:159` | `rng.random() >= SPEAK_CHANCE * chattiness` | show | |
+| `bot.py:234-237` | `pick.choice(RACES)`, `choice(CLASSES)`, `choice(STORIES)`, `choice(list(GENDERS))` | bot pick | |
+| `bot.py:252`, play loop | `coin.random() < 0.5` per offer | bot coin | |
+| `save.py:20-26` | `getstate()` / `setstate()` on main, loot, deal, shop, show | all | state is `(3, (624 words + index), None)`; the save stores `[list_of_625_ints, null]` |
+
+Short-circuit evaluation decides whether a draw happens in several places (`ai.py:92`, `world.py:347`, `world.py:614`, `world.py:278`). GDScript `and` / `or` also short-circuit, so keep each condition in the same position.
+
+### 5.3 `PyRandom` required API (`godot/rules/py_random.gd`)
+
+Implemented in P0 with this surface; names in brackets are what the code uses.
+
+```gdscript
+class_name PyRandom
+extends RefCounted
+
+var words_used: int = 0          # 32-bit outputs drawn so far (trace counter)
+
+func _init(seed_value: int = 0) -> void      # = seed_int(seed_value)
+func seed_int(n: int) -> void                # CPython random_seed: abs(n) split into 32-bit words, little end first;
+                                             # n == 0 gives key [0]; then init_by_array(key) (init_genrand(19650218) first)
+func genrand_uint32() -> int                 # MT19937 with tempering; increments words_used
+func random() -> float                       # (a >> 5) * 67108864.0 + (b >> 6), times 1.0 / 9007199254740992.0
+func getrandbits(k: int) -> int              # k <= 32: genrand_uint32() >> (32 - k); 32 < k <= 62: words little end first,
+                                             # the top word shifted right by (32 * words - k); k == 0 returns 0 with no draw
+func randbelow(n: int) -> int                # _randbelow_with_getrandbits: k = bit_length(n); r = getrandbits(k); while r >= n: redraw
+func randrange(start: int, stop = null, step: int = 1) -> int
+func randint(a: int, b: int) -> int
+func choice(seq: Array) -> Variant           # seq[randbelow(seq.size())]; push_error and null on empty
+func choices(population: Array, weights = null, k: int = 1, cum_weights = null) -> Array
+                                             # no weights: population[floor(random() * n)]; weights: int accumulate stays int,
+                                             # float accumulate is left-to-right float addition; total = float(cum[-1]);
+                                             # bisect_right(cum, random() * total, 0, n - 1)
+func shuffle(x: Array) -> void
+func sample(population: Array, k: int) -> Array   # setsize = 21, plus 4 ** ceil(log(k * 3) / log(4)) when k > 5;
+                                                  # pool branch if n <= setsize else set branch (redraw on repeats)
+func uniform(a: float, b: float) -> float
+func get_state() -> Array                    # [624 words..., index] (625 ints), the save format's first element
+func set_state(state: Array) -> void
+func state_digest() -> String                # sha256 hex of "index,w0,...,w623" (HashingContext), for traces
+static func bit_length(n: int) -> int
+```
+
+`randbelow(1)` still draws (CPython redraws `getrandbits(1)` until it gets 0); nothing in the game calls `randint(a, a)`, but keep the semantics. Every method needs exact semantics except `getrandbits` above 63 bits (use `getrandbits_words`) and `choices(cum_weights=...)`, which nothing uses. `tools/check_py_random.gd` with `scripts/py_random_reference.py` is the P0 proof; the same check also runs as `tests/test_py_random.gd` (116 parametrised seeds).
+
+### 5.4 Iteration order that affects rules or RNG consumption
+
+| Place | What is iterated | Effect | Exact match? |
+|---|---|---|---|
+| `entities.monster_table` | `MONSTERS` dict order | maps `choices` index to a monster | Yes: JSON key order |
+| `items.floor_loot_table` | `FLOOR_LOOT` list | maps `choices` index | Yes: array |
+| `loot.roll_box` | box table list | maps index | Yes |
+| `shop.end_of_floor` | `self.stock` (from `BASE_DEMAND` order) | Poisson draw order | Yes: JSON key order |
+| `world.new_floor` | `sorted(CONTRACTS)` | `deal_rng.choice` index | Yes: string sort by code point |
+| `achievements._on_event` | `ACHIEVEMENTS` dict order | unlock order, so box, toast, message and event order (and `show` draws per `achievement` event) | Yes |
+| `Achievements.__init__` | a `set` of event names (`{a["on"] for a in ...}`), Python string hashing, random per process | only which event lists get the `_on_event` subscriber, and each event gets exactly one, appended during the same constructor call | Order-insensitive: no effect on rules. GDScript iterates a de-duplicated Array in first-seen order. |
+| `EventBus` subscriber lists | subscription order: `Practice` (World `__init__`), `Achievements`, `Showrunner` (LINES order for `_announce`, then `_box_reaction`, `_viewers`, `_idle`, `_pet_quip`), `FunFacts`, then later `Telemetry` | which handler runs first, so `show` draw order and message order | Yes, if constructors subscribe in the same order. Nested emits are depth first in both. |
+| `Showrunner.__init__` | `LINES` keys | subscription per event | Yes |
+| `Practice.__init__` | fixed tuple of listeners | per event order | Yes |
+| `bot.spend_points` | `targets` dict (with key collision when the fight and class attributes coincide) | `max(gaps, key=gaps.get)` tie order | Yes: Godot Dictionary keeps the first insertion position on overwrite |
+| `bot._choose` | `w.floor_items` dict (`loot = [xy for xy in w.floor_items ...]`), then `min(..., key=cheb)` | first minimum wins | Yes: insertion order, erase and re-insert go to the end in both |
+| `world.update_fov`, `_respawn`, `ai` | `self.visible` (a `set` of int tuples) | only membership and marking `explored` | Order-insensitive |
+| `ai._occupied`, `taken`, `Encounter.reacted`, `World._acted`, `FunFacts.said`, `Practice.used`, `Tracker.equipped`, `sample`'s `selected` | sets | membership, subset, or sorted before saving | Order-insensitive |
+| `dice.dice_distribution` | dict built in a fixed loop | float summation order in `expected_damage` | Yes (same insertion order) |
+| `telemetry` row dicts | insertion order | CSV column order | Yes |
+
+Result: no set or dict iteration feeds the rules in an order that GDScript cannot reproduce. Python's per-process string hash randomisation touches only the `Achievements.__init__` set, which is order-insensitive. Int and tuple sets (deterministic in Python but dependent on table size and history) are only used for membership. So no "sort in both versions" fix is needed; if a future change iterates a set, the owner should decide to sort at that point in both versions (Python is frozen, so that is an owner call).
+
+---
+
+## 6. Parity traces
+
+### 6.1 What both versions emit
+
+JSON Lines, UTF-8, one object per line. Both sides write the same records in the same order; `scripts/parity_diff.py` parses both and compares values (so cosmetic number formatting cannot cause a false failure).
+
+| Record | When | Fields |
+|---|---|---|
+| `header` | first line | `{"k": "header", "impl": "python" or "godot", "trace_version": 1, "seed": 5, "policy": "hunter", "steps": 3000, "pet": null, "hero": null, "content_sha": "<sha256 of manifest.json>"}` |
+| `ev` | every `EventBus.emit`, before dispatch (pre-order: an outer event precedes the events its handlers emit) | `{"k": "ev", "i": 1234, "t": turn, "d": depth, "e": "kill", "p": {payload}, "r": [main, loot, shop, deal, show]}` where `r` holds `words_used` per stream at that moment. Payload is the event data as emitted (ints, floats, strings, bools, null). |
+| `turn` | on each `turn` event (inside `_tick_clock`, after the counter moves) | `{"k": "turn", "t": turn, "pos": [x, y], "hp": hp, "max_hp": m, "timer": timer, "state": "playing", "gold": g, "viewers": v, "combat": round or null, "pet": [x, y, hp, downed] or null, "mon": "<sha256/16 of monster list>", "inv": ["tonic", ...]}` |
+| `floor` | on `floor_start` | `{"k": "floor", "depth": d, "fp": "<sha256/16 of tiles, safe, rooms, stairs, furniture, safe_door, floor_items, monsters>", "rs": ["<state_digest/16 per stream>"]}` |
+| `act` | each policy action, after it returns | `{"k": "act", "n": 17, "a": "move", "arg": [1, 0], "ok": true}` |
+| `msg` | each `MessageLog.add` | `{"k": "msg", "text": "You hit the Knockoff Goblin for 6. (d20 14+4=18 vs AC 11)", "c": [225, 222, 235]}` |
+| `end` | last line | `{"k": "end", "state": "dead", "turn": 953, "depth": 2, "cause": "Killed by a Sewer Gnawer on floor 2", "rs": [...]}` |
+
+Canonical monster string, hashed with SHA-256 and cut to 16 hex characters: for each monster in list order, `key:x:y:hp:max_hp:alerted:unseen_turns:stunned:phase:dmg_bonus`, joined with `|`, booleans as `1`/`0`. Floor fingerprint: tiles row by row as digits, then `safe` and the other parts in the order listed, each section separated by `#`.
+
+### 6.2 Producing it without changing rules
+
+Python, `scripts/py_trace.py` (imports `crawler` read-only; nothing in `crawler/` changes):
+
+- `CountingRandom(random.Random)` overrides both `random()` (counts 2) and `getrandbits(k)` (counts `ceil(k / 32)`, 0 for `k == 0`). Overriding `getrandbits` keeps CPython's `_randbelow_with_getrandbits` (the subclass hook picks it when `getrandbits` is defined), so draws are unchanged. The harness sets `random.Random = CountingRandom` before constructing the World, and records instances in creation order (main, loot, shop, deal, show; then bot pick and coin).
+- `TracingEventBus(EventBus)` and `TracingMessageLog(MessageLog)` record and then call the parent; the harness assigns them to `crawler.world.EventBus` and `crawler.world.MessageLog` before `World(...)`, so the floor 1 events and messages emitted inside the constructor are captured.
+- A `turn` snapshot is written from the `ev` hook when the event name is `turn`; `floor` from `floor_start`.
+- Policies (6.4) drive the World and write `act` records.
+
+Godot, `tools/trace.gd` (`extends SceneTree`): sets `world.events.tap` and `world.messages.tap` before the first floor is built (`World.new(seed, pet, hero, tap_events, tap_messages)` takes two optional Callables for this; no rule reads them), reads `words_used` and `state_digest()` from the five streams, and runs the same policies from `tools/trace_policies.gd`.
+
+```
+python scripts/py_trace.py --seed 5 --policy hunter --steps 3000 --out /tmp/py.jsonl [--pet cat] [--no-msg]
+godot --headless --path godot -s res://tools/trace.gd -- --seed 5 --policy hunter --steps 3000 --out /tmp/gd.jsonl
+python scripts/parity_diff.py /tmp/py.jsonl /tmp/gd.jsonl [--scope core|full] [--context 12]
+```
+
+### 6.3 `scripts/parity_diff.py`
+
+- Streams both files record by record. Compares `k`, then every field; numbers compare by value (`float(a) == float(b)`, ints exactly), strings exactly.
+- On the first difference prints: the record index, the turn and depth, the last `--context` records from both sides (side by side), the field path that differs, and the RNG counter delta at that point (if `r` differs first, the cause is an extra or missing draw just before it, which narrows it to one call site in 5.2). Exit code 1.
+- `--scope core` (P1): ignores `msg` records, the `show` counter, `viewers` in `turn`, and events from systems still stubbed in P1 (`achievement`, `box_gained`, `viewers_gained`, `sponsor_gift`, `fun_fact`). `--scope full` (P2 onward) compares everything.
+- Also `--csv DIR_A DIR_B`: compares telemetry CSV tables cell by cell (floats by value) and reports byte differences separately.
+- Exit 0 prints `PARITY OK: <n> records, <turns> turns`.
+
+### 6.4 Seeds and scripted sequences
+
+Policies live in both `scripts/trace_policies.py` and `godot/tools/trace_policies.gd`, written line for line alike, and use their own `PyRandom` / `random.Random` stream (`seed ^ 0x7ACE`), which the trace also counts.
+
+| Policy | What it does | Purpose |
+|---|---|---|
+| `walk` | each step picks one of 9 actions (8 moves, wait) with `randrange(9)` | dungeon, FOV, wandering, monsters noticing you, combat starting by monster, opportunity attacks |
+| `hunter` | attack an adjacent monster (first in list order); else step towards the nearest visible monster (`min_by` cheb); else towards the nearest unexplored room centre; descend when on open stairs; wait otherwise | combat mode, kills, gold and drops (loot stream), floors 1-2, stairs timing |
+| `bot` | `BotPolicy.play` (P2) | everything |
+
+| Phase | Check | Seeds | Pass condition |
+|---|---|---|---|
+| P0 | `PyRandom` vs CPython | the 116 seeds in `py_random_reference.py` | identical outputs |
+| P1 | `Dungeon.generate_floor` x6 from one `PyRandom(seed)` | 0-199 | identical floor fingerprints and `words_used` |
+| P1 | `World.new(seed)` initial floor (monsters, items, boss, Acts) | 0-499 | identical `floor` record |
+| P1 | `walk`, 500 actions, no pet, no hero | 0-49 | `--scope core` OK |
+| P1 | `hunter`, 3,000 actions, no pet | 0-49 | `--scope core` OK |
+| P2 | `hunter` with each pet (`seed % 4`) and a hero | 50-99 | `--scope full` OK |
+| P2 | `bot` full runs with telemetry | 0-99 | `--scope full` OK, and CSV tables identical |
+| P2 | save at the first safe-room visit of bot seed 7 in Python, load in Godot, continue | 7, 11, 23 | traces identical after load (see R5 for the float caveat) |
+| P3 | Godot bot 2,000 runs | 0-1999 | `runs/bot_{runs,floors,boxes,shop,practice}.csv` identical to the committed files; if not, statistical parity (win rate and floor-of-death distribution within 95% intervals) and a report on the first diverging seed |
+
+Fixture tests (part of the normal test run, generated by `scripts/make_fixtures.py` into `godot/tests/fixtures/*.json`): dice and attack sequences, `chance_to_hit` and `expected_damage` tables, floors for seeds 0-9, box rolls, `repr_float` and `fixed` cases for every float the game writes, `fsum_py` cases.
+
+---
+
+## 7. Test framework
+
+### 7.1 GUT vs GdUnit4
+
+| Criterion | GUT 9.x (Godot 4 line) | GdUnit4 (v5/v6 line for Godot 4.x) |
+|---|---|---|
+| Headless CI | `godot --headless -s addons/gut/gut_cmdln.gd -gdir=res://tests -ginclude_subdirs -gexit` works headless | CLI tool refuses headless mode by default (input simulation needs a display); needs `--ignoreHeadlessMode`; wrapper scripts (`runtest.sh`) expect `GODOT_BIN` |
+| Exit codes | `-gexit` exits 0 when all pass, 1 on any failure | non-zero on failure (100 for failures; other codes for warnings), documented in its CLI |
+| Parametrised tests | `func test_x(p = use_parameters([[1, 2], [3, 4]]))`, `ParameterFactory.named_parameters`: close to `pytest.mark.parametrize` | `func test_x(a: int, b: int, test_parameters := [[1, 2], [3, 4]])`: typed and neat |
+| Assertions | `assert_eq`, `assert_ne`, `assert_true`, `assert_almost_eq`, `assert_has`, `assert_gt` ...: one call per pytest `assert`, so translation is mechanical | fluent `assert_int(x).is_equal(5)`, `assert_array(...)`: richer, more rewriting per assert |
+| Layout | any `test_*.gd` extending `GutTest` under the configured dirs; `.gutconfig.json` | suites extending `GdUnitTestSuite`, test dirs configured; HTML and JUnit reports in `reports/` |
+| Doubles, spies, input | `double()`, `stub()`, `spy`, `watch_signals`, `InputSender` | mocks and spies, `scene_runner` with input and frame stepping (strong for UI tests) |
+| Reports | JUnit XML (`-gjunit_xml_file`) | HTML and JUnit XML |
+| Weight and coupling | pure GDScript, small, tolerant across Godot minors | larger, releases track Godot minor versions closely, editor plugin |
+| Fit for this project | rules tests are plain RefCounted logic ported from pytest; headless is the main mode | best for P4-P7 scene tests; heavier for the bulk of rules tests |
+
+Recommendation: **GUT 9.x**, pinned to the release that lists Godot 4.7 support, vendored under `godot/addons/gut/` once GitHub or the Asset Library is reachable. Reasons: about 85% of the tests are headless rules tests whose pytest asserts map one to one onto GUT's assert functions; `use_parameters` mirrors `parametrize`; the CLI runs headless without flags and returns a plain 0/1; it is pure GDScript and small. GUT's doubles and `InputSender` are enough for the UI tests because the state machine is headless (`AppState`) and scene tests only need instantiation, a few frames and screenshots. If the owner later wants GdUnit4's scene runner for P8 juice tests, both can coexist in one project (separate dirs).
+
+### 7.2 Stopgap runner (`godot/tests/run_tests.gd`)
+
+Until GUT can be installed. Shaped so a test file migrates by changing one line (`extends TestCase` to `extends GutTest`).
+
+```
+godot/tests/
+  run_tests.gd            # extends SceneTree; the runner
+  support/test_case.gd    # class_name TestCase extends RefCounted: GUT-compatible subset
+  support/helpers.gd      # class_name TestHelpers: world factories mirroring the Python test helpers, tmp dirs, patching
+  support/stubs/          # P1-only stand-ins (none needed if the P1 system stubs live in rules/)
+  fixtures/               # generated by scripts/make_fixtures.py
+  test_*.gd               # one per pytest file (Appendix B)
+  ui/test_*.gd            # presentation logic tests
+```
+
+Runner behaviour:
+
+- Arguments after `--`: `--dir=res://tests` (default), `--file=<substring of path>`, `--test=<substring of method>`, `--verbose`.
+- Discovery: recursive `DirAccess` under the dir, files named `test_*.gd`, skipping `support/` and `fixtures/`, sorted by path.
+- For each file: `load()`; a `null` script (parse error) counts as a failed file. Instantiate; it must be a `TestCase`.
+- Methods: `get_script().get_script_method_list()` filtered to names starting with `test_`, in declaration order. Calls `before_all()` once, then per test `before_each()`, the test, `after_each()`; `after_all()` at the end (each only if defined).
+- Parametrised tests (GUT semantics): a test method with one argument that has a default is called repeatedly; inside, `use_parameters(params: Array)` returns `params[_param_index]`; the runner advances the index until it reaches `params.size()`. Each call is reported as `test_x[i]`.
+- `TestCase` assertions (GUT names and argument order): `assert_eq(got, expected, msg := "")`, `assert_ne`, `assert_true(v, msg)`, `assert_false`, `assert_null`, `assert_not_null`, `assert_almost_eq(got, expected, tolerance, msg)`, `assert_gt(a, b)`, `assert_lt`, `assert_between(v, lo, hi)`, `assert_has(container, item)`, `assert_does_not_have`, `assert_eq_deep(a, b)`, `assert_file_exists(path)`, `assert_file_does_not_exist(path)`, `fail_test(msg)`, `pass_test(msg)`, `pending(msg)`. Failures record `file:test:line` (from `get_stack()`) and the message; asserts do not abort the test (GUT behaviour).
+- A test with no asserts is reported as risky and fails the run (catches runtime errors that silently returned `null`).
+- Output: one line per failure, then `RESULT: <passed> passed, <failed> failed, <risky> risky, <pending> pending` and a sentinel line `TESTS PASSED` or `TESTS FAILED`; `quit(0)` or `quit(1)`.
+- `TestHelpers.tmp_dir(name) -> String` (`user://test_tmp/<name>/`, emptied first; the pytest `tmp_path`), `TestHelpers.patch_static(cls, prop, value)` and `patch_item(dict, key, value)` with `TestHelpers.restore_patches()` called from each test file's own `after_each()` (works the same under GUT), `TestHelpers.world(seed := 3, pet := null)` and the other helper factories ported from the pytest files.
+
+`scripts/gd_test.sh` (used by every brief and CI):
+
+```bash
+godot --headless --path godot --import >/dev/null 2>&1
+godot --headless --path godot -s res://tests/run_tests.gd -- "$@" 2>&1 | tee /tmp/gd_test.log
+status=${PIPESTATUS[0]}
+grep -q '^TESTS PASSED$' /tmp/gd_test.log && ! grep -q 'SCRIPT ERROR' /tmp/gd_test.log && [ "$status" -eq 0 ]
+```
+
+Migration to GUT: vendor `addons/gut/`, `sed -i 's/^extends TestCase$/extends GutTest/' godot/tests/**/test_*.gd`, delete `run_tests.gd` and `support/test_case.gd`, keep `support/helpers.gd`, switch `gd_test.sh` to `gut_cmdln.gd -gdir=res://tests -ginclude_subdirs -gprefix=test_ -gexit` (keeping the `SCRIPT ERROR` grep).
+
+---
+
+## 8. Project layout, autoloads, headless runs, telemetry
+
+### 8.1 Layout
+
+```
+godot/
+  project.godot            # main scene res://scenes/main.tscn; input map (10.5); autoload Game (presentation only)
+  rules/                   # headless rules, class_name per file, no Nodes
+    py_random.gd
+    py/ py_math.gd py_fmt.gd py_json.gd py_csv.gd
+    content.gd game_config.gd event_bus.gd message_log.gd
+    dice.gd attributes.gd combat.gd attack_result.gd
+    dungeon.gd dungeon_floor.gd dungeon_room.gd
+    entity.gd player.gd monster.gd pet.gd entities.gd
+    encounter.gd ai.gd bosses.gd items.gd loot.gd crafting.gd contracts.gd
+    shop.gd shop_stock.gd practice.gd achievements.gd achievement_tracker.gd achievement_rules.gd
+    showrunner.gd fun_facts.gd run_report.gd
+    world.gd save_game.gd user_settings.gd telemetry.gd
+  data/                    # generated JSON + manifest.json (never hand-edited)
+  scenes/                  # .tscn: main, fp_view, top_view, hud, menus/, screens/
+  ui/                      # presentation scripts: app_state.gd, main.gd, fp/, top/, hud/, menus/, screens/, theme/crawl_theme.tres
+  tests/                   # 7.2
+  tools/                   # SceneTree CLIs: bot.gd, bot_policy.gd, trace.gd, trace_policies.gd, check_py_random.gd, screenshots.gd
+  assets/                  # P9 (art bible layout), CREDITS.md
+scripts/                   # repo root: export_content.py, make_fixtures.py, py_trace.py, trace_policies.py, parity_diff.py,
+                           # gd_test.sh, gd_bot.py, py_random_reference.py, setup_godot.sh
+```
+
+### 8.2 Autoloads
+
+Rules never use autoloads. Presentation has one: `Game` (`ui/game.gd`, a Node): holds the current `World`, `UserSettings`, the `Telemetry` for player runs and paths (`user://saves/slot1.json`, `user://settings.json`, runs dir); switches top-level scenes. Audio (`Sfx`) may be added in P8. Tests of rules never load `Game`.
+
+### 8.3 Headless tests
+
+```
+scripts/gd_test.sh                       # all
+scripts/gd_test.sh --file=test_dungeon   # one file
+```
+
+### 8.4 Headless bot
+
+```
+godot --headless --path godot -s res://tools/bot.gd -- --runs 100 --start 0 --out /abs/path/runs_gd --deals random [--pet cat] [--no-events] [--summary-only]
+python scripts/gd_bot.py --runs 2000 --workers 4 --out runs_gd     # shards seeds over worker processes, merges shard CSVs in seed order
+```
+
+`tools/bot.gd` mirrors `analysis/bot.py main()`: deletes old `bot_*.csv` when `--start 0`, writes with prefix `bot_`, prints the same summary lines (formatted with `PyFmt`). Process sharding replaces `multiprocessing.Pool` (Godot threads would also work since rules share only read-only statics, but processes keep each run isolated and the merge order trivial). `--out` takes an absolute path; `user://` is the default for player runs only.
+
+### 8.5 Telemetry CSV writer
+
+`Telemetry` builds rows as Dictionaries with keys inserted in exactly this order (the committed headers):
+
+| Table | Columns |
+|---|---|
+| runs | run_id, source, seed, pet, race, backstory, gender, cls, outcome, depth, turns, kills, level, gold, viewers, peak_viewers, boxes, achievements, practice_levels, death_cause, then `meta` keys (bot: deals) |
+| floors | run_id, source, depth, turn, hp, max_hp, hp_frac, level, str, dex, con, int, cha, attack, ac, dmg_avg, potions, bombs, gold, boxes, cls, race, backstory, pet, pet_level, pet_down, timer_max, viewers, contract, damage_taken, gold_earned, kills_here, viewers_gained, result, died_here |
+| boxes | run_id, source, tier, item, value, ev, rerolled, turn, reason |
+| shop | run_id, source, depth, item, demand, sales, lost, delivered, on_hand, forecast_before, forecast, reorder_point, ordered |
+| practice | run_id, source, skill, level, used |
+| events | run_id, turn, floor, event, value, detail |
+
+`PyCsv.write_tables(tables, out_dir, prefix, skip)`: appends to `<out_dir>/<prefix><name>.csv`, writes the header when the file is new or empty, skips empty tables, header from the first row's keys. Cells: `null` gives empty, `bool` gives `True`/`False`, int plain, float `PyFmt.repr_float`, strings as is; a cell is quoted (with `"` doubled) when it contains `,`, `"`, `\r` or `\n`; every line ends `\r\n` (the committed files use CRLF). Event `value` is the first `VALUE_KEYS` entry that is an int or float but not a bool, else empty; `detail` is `PyFmt.str` of the first `DETAIL_KEYS` entry that is neither null nor `""` (so a `pet_kill` row's detail is `False`, as in Python).
+
+---
+
+## 9. Porting order
+
+Owner's grouping in `PHASES.md`: P1 rules core, P2 rules systems. One deviation proposed (flagged in section 11, Q1): `world.py` and `ai.py` are each ported whole in P1, including the pet, class-skill, box, shop and contract methods that live in them, because splitting one file across parallel briefs causes merge conflicts. Those features are still verified in P2 (their traces need the P2 systems). P2 then ports the separate listener systems, which touch disjoint files and can run in parallel.
+
+P1 systems not yet ported are minimal stand-ins in `rules/` with the final class names and constructor signatures: `Achievements` (subscribes, does nothing), `Showrunner` (`viewers = 50`, `peak`, `history`, `samples`, owns its `PyRandom` but never draws), `FunFacts` (no-op). None of them touch the main, loot, shop or deal streams in Python, so P1 core traces stay comparable.
+
+### 9.1 Slices
+
+Each slice is one rules-porter brief (about 300-600 Python lines plus tests).
+
+| Slice | Content | Depends on | Tests ported | Parity evidence |
+|---|---|---|---|---|
+| P0 (done) | `py_random.gd`, `export_content.py` and `godot/data/`, `run_tests.gd` and `support/`, bare `project.godot` loading data headless | | `test_py_random`, `test_content` | 116 RNG seeds |
+| S1 Foundations | `py_math`, `py_fmt`, `py_json`, `game_config`, `event_bus`, `message_log` (`content` was delivered in P0) | P0 | `test_py_math`, `test_py_fmt` (fixtures from Python) | fixtures |
+| S2 Dice and combat | `dice`, `attributes`, `entity`, `player`, `monster`, `pet`, `entities`, `attack_result`, `combat` | S1 | `test_combat`, `test_attributes::test_modifier_table` | dice and attack fixtures per seed |
+| S3 Dungeon | `dungeon`, `dungeon_floor`, `dungeon_room` (generation, safe room, distance maps, FOV) | S1 | `test_dungeon` | floors seeds 0-199 |
+| S4 Small rules modules | `encounter`, `bosses`, `items`, `loot`, `crafting`, `contracts` (effect and preview), `shop`, `shop_stock`, P1 stand-ins | S2 | `test_loot` (data and odds parts), shop policy tests from `test_phase4` | box roll and Poisson fixtures |
+| S5 Practice | `practice` | S1 (S2 for types) | `test_practice::test_xp_curve...` | |
+| S6 World A | `world.gd` lines 1-460 of `world.py`: init, traits, `refresh_stats`, attributes, prices, floors and spawns, queries, timer | S2, S3, S4, S5 | `test_attributes` (rest), `test_floors` (spawn parts) | World init fingerprint seeds 0-499 |
+| S7 World B and AI | `world.py` 1084-1557 (attacks, kills, drops, Acts, combat mode, opportunity attacks, turn flow) and `ai.gd` whole | S6 | `test_world`, `test_encounter` (non-save parts) | `walk` seeds 0-49 |
+| S8 World C | `world.py` 468-1080 (move, wait, descend, rest, safe-room activities, craft, shop trades, pet methods, class and skills, items, bombs, boxes) | S7 | `test_items`, `test_floors`, `test_phase3` (non-save), `test_phase4` (world parts), `test_achievement_loot` (world parts) | `hunter` seeds 0-49 core |
+| S9 Trace tooling (parallel from S1) | `scripts/py_trace.py`, `trace_policies.py`, `parity_diff.py`, `make_fixtures.py`, `godot/tools/trace.gd`, `trace_policies.gd` | S1 for the Godot half | self-test: a Python trace diffed against itself and against a deliberately perturbed copy | |
+| T1 Achievements | `achievements`, `achievement_tracker`, `achievement_rules` | S8 | `test_showrunner` (achievement tests), `test_achievement_loot` | |
+| T2 Showrunner | `showrunner` (lines, viewers, sponsor gifts, pet quips) | S8 | `test_showrunner` | `show` stream counters |
+| T3 Fun facts and report | `fun_facts`, `run_report` | S8 | `test_phase4` (fun facts, report) | |
+| T4 Telemetry | `telemetry`, `py_csv` | S8 | `test_telemetry` (writer parts) | CSV fixtures |
+| T5 Save and settings | `save_game`, `user_settings` | T1, T2, T3 | save tests in `test_phase3`, `test_phase4`, `test_practice`, `test_encounter`; `test_settings` | Python save loaded in Godot |
+| T6 Bot | `tools/bot_policy.gd`, `tools/bot.gd`, `scripts/gd_bot.py` | T1-T4 | `test_telemetry` (bot parts), `test_encounter::test_bot_*` | `bot` seeds 0-99 full, CSVs |
+
+Parallelism:
+
+```
+P0 ─ S1 ─┬─ S2 ─┬─ S4 ─┐
+         │      └──────┼─ S6 ─ S7 ─ S8 ─┬─ T1 ─┐
+         ├─ S3 ────────┤                ├─ T2 ─┼─ T5 ─┐
+         ├─ S5 ────────┘                ├─ T3 ─┘      ├─ T6 (P2 sign-off) ─ P3
+         └─ S9 (tooling, any time after S1)  └─ T4 ──────┘
+```
+
+- In parallel: S2, S3, S5 and S9 after S1; S4 after S2 alongside S3; T1, T2, T3 and T4 after S8.
+- Sequential: S6, S7, S8 (one file); T5 after the systems whose state it saves; T6 last.
+- P4 (presentation) can start on fixtures and a fake world once S8 lands; it does not need P2 or P3.
+
+---
+
+## 10. Presentation mapping (P4 to P7)
+
+### 10.1 First-person 3D (P4)
+
+- Recommendation: **generated meshes, not GridMap.** `FloorMeshBuilder.build(floor: DungeonFloor, depth: int) -> Node3D` uses `SurfaceTool` to emit only visible wall faces (a wall side next to a walkable tile), floor and ceiling quads, one surface per material: wall (2-3 variants chosen by a tile hash), safe wall, floor, safe floor, ceiling, stairs open, stairs locked. Reasons: per-floor tint and the "safe rooms and stairs never tinted" rule are just materials; variants by tile hash and the explored state need no MeshLibrary juggling; a 120 x 76 floor builds in milliseconds; and it is testable headless (count faces, check materials). GridMap would need a MeshLibrary item per variant and per tint (GridMap has no material override) and draws hidden cube faces, for no gain on a static grid.
+- Look: render at 320 x 200 in a `SubViewport` shown through a `TextureRect` with nearest filtering (hard pixels, as now); textures 64 x 64, `TEXTURE_FILTER_NEAREST`, no mipmaps (art bible section 3). `Camera3D` at eye height 0.5 tiles with a 70 degree horizontal FOV (`PLANE = 0.70`). `WorldEnvironment` depth fog ending at `LIGHT = FOV_RADIUS + 0.5` tiles, plus an `OmniLight3D` torch on the camera with the same range; tint per floor from `ui_config.json` `DEPTH_TINT`.
+- Billboards (P5): `Sprite3D`, `billboard = BILLBOARD_FIXED_Y`, `alpha_cut = ALPHA_CUT_DISCARD` (binary alpha), `texture_filter = NEAREST`, `pixel_size` so a 32 px sprite is `scale` tiles tall (monsters 0.62-0.71 by HP, Acts 0.85 / 0.95, Headliners 1.0, pets 0.5, furniture 0.75, items 0.32), feet on the floor; tier outline by a small shader or a second slightly larger sprite.
+- Camera behaviour: `FpCameraRig` (Node3D) runs `fp_logic.gd` maths in `_process(delta)` with `delta` capped at `MAX_DT` 0.05: free look (hold Q/E after `HOLD_DELAY` 0.2 s at `TURN_RATE` 180 degrees a second; a tap turns to the next 45 degree line), glide at `WALK_SPEED` 4 tiles a second and `TURN_SPEED` 2 pi radians a second, snap when the gap exceeds 2.5 tiles or on `dt >= 1`, held walking issues the next step when the glide has under `NEXT_STEP` 0.15 tiles left and at least `STEP_GAP` 0.2 s have passed, and stops after a blocked step or an attack until the key is released.
+- Grid-locked combat: `sync_combat()` each frame: when `world.combat != null`, `set_combat(true)` rounds the angle to the nearest 90 degrees (the camera glides there), W/S/A/D act on key press only (`_unhandled_input`), Q/E turn 90 degrees; held walk keys present at the start of the fight are marked stopped. Free look resumes when `combat` becomes null.
+
+### 10.2 Top-down (P5)
+
+`TileMapLayer` for terrain and furniture (a TileSet built from the 16 px glyph look first, the 32 px DCSS tiles in P9 per art bible question 1), a second `TileMapLayer` or a shader with an `ImageTexture` of explored and visible flags for fog (darken remembered tiles in code, no "dim" art). Entities as `Sprite2D` or glyph `Label` nodes; boss tier boxes and the orange provoke brackets drawn in `_draw`. `Camera2D` follows the player with the same clamping as `Renderer._camera`.
+
+### 10.3 HUD, menus, Theme (P6, P7)
+
+- `hud.tscn` (CanvasLayer): map area (the 3D `SubViewportContainer` or the top view), side panel (VBox: HP bar, attributes, AC, to-hit, damage dice, gold, viewers, timer, stairs countdown, pet, scout report), log (`RichTextLabel`, wrapping, coloured lines from `MessageLog`), initiative tracker (`PanelContainer`, `TRACKER_W` 270, `TRACKER_ROWS` 8, Move / Action / Bonus pips), toasts and the two-round combat banner (`COMBAT_TOAST_TURNS`), first-person warnings (orange label naming the keys that provoke, chevrons).
+- Tracker placement: top-left of the map area unless it would cover the player or a monster; actor rectangles come from `Camera3D.unproject_position` (3D) or tile rects (top-down); otherwise it moves to the bottom of the map area, as `Renderer.draw_tracker(avoid=)` does.
+- Menus are Control scenes over a dimmed view with HUD bits hidden (Phase 7 rule), driven by `AppState` (scene, overlay, cursor). One `Theme` resource `ui/theme/crawl_theme.tres` with the `config.py` colours (`BG`, `PANEL_BG`, `TEXT`, `TEXT_DIM`, `ACCENT`, `DANGER`, `WARN`, `GOOD`, `INFO`) and one monospace font (open question Q6).
+- Run report charts: `chart.gd` with `_draw` (bars, lines, axes, `nice_max`).
+
+### 10.4 Settings file
+
+`UserSettings` at `user://settings.json`, same JSON (`{"view": "fp"}`), same fallback rules; Tab toggles and saves; tests pass `""` to disable.
+
+### 10.5 Input map (`project.godot`)
+
+| Action | Keys |
+|---|---|
+| `move_n/s/e/w`, `move_ne/nw/se/sw` | arrows, W A S D (map view), numpad 8 2 6 4, 9 7 3 1 |
+| `walk_forward`, `walk_back`, `strafe_left`, `strafe_right` | W / Up, S / Down, A, D (first-person) |
+| `turn_left`, `turn_right` | Q / Left, E / Right (first-person) |
+| `wait` | `.`, Space, numpad 5 |
+| `descend` / `confirm` | `>` (Shift+Period), Enter, numpad Enter |
+| `pickup` G, `inventory` I, `rest` R, `safe_menu` M, `pet_command` C, `practice` K, `attributes` L, `skill_1` 1, `help` `?`, `toggle_view` Tab, `back` Esc, `accept_deal` Y, `decline_deal` N, `unequip` U, `drop` D, `reroll` R | as in README |
+
+The same physical key maps to different actions by view and scene (W walks in first-person, moves north on the map, moves the cursor in menus; R rests in play, rerolls on the reveal screen, opens the report on the end screen; L opens attributes in play, loads on the title). `ui/main.gd` resolves this the way `App.handle_key` does: it passes the action and the current context to `AppState`, never letting two contexts handle one press.
+
+---
+
+## 11. Risks, open questions and parity verdict
+
+### 11.1 Verdict
+
+**Seed-for-seed parity looks achievable** for the rules, the bot and the telemetry CSVs on Linux x86_64. Evidence: every RNG call site is a CPython method with a known algorithm (5.2); no set or dict iteration order that GDScript cannot reproduce feeds the rules (5.4); every Python numeric and text idiom that differs has a measured, tested replacement (3.3); and the installed Python 3.13 reproduces the committed `runs/bot_*.csv` byte for byte, so those files are a ready 2,000-run acceptance test. Statistical parity (bot win rate and floor-of-death distribution within confidence intervals over 2,000 runs) stays as the fallback for: other platforms whose libm differs (`pow`, `exp`, `log`), cross-implementation save loads (R5), and any divergence found late that the owner chooses not to chase.
+
+### 11.2 Risks
+
+| # | Risk | Likelihood / impact | Mitigation |
+|---|---|---|---|
+| R1 | Silent numeric mismatches: `int / int`, `//` and `%` on negatives, `round` half-even, Python 3.12 `sum`, `**0.5` vs `sqrt`, float factor order | High / breaks traces | `PyMath` only; verifier greps diffs for bare `/`, `%`, `round(`, `sqrt(`, `sort_custom(`; fixture tests; traces localise the first bad draw. |
+| R2 | Unstable `sort_custom` where Python's sort is stable (stairwell rooms, safe-room candidates, pounce targets) | High / different floors | `PyMath.stable_sort_by`; floor fingerprints for 200 seeds catch it in S3. |
+| R3 | Event subscriber order and nested emit order differ | Medium / `show` draws and messages diverge | Construct and subscribe in Python order; traces record pre-order emits with stream counters. |
+| R4 | Text formatting: `repr`, `{:,}`, `{:.0%}`, `capitalize`, `str(bool)` | Medium / CSV and message diffs | `PyFmt`, fixtures from Python for every format the game uses; `parity_diff` compares numbers by value. |
+| R5 | Float parsing in Godot is not correctly rounded for 16-17 digit decimals (17% off by 1 ulp in tests) | Low / Python saves loaded in Godot can differ in `streak_chance` and shop `forecast` by 1 ulp, which can flip a reorder comparison | Content floats are short (asserted). Godot-written saves add an `exact` map of IEEE hex for those fields (Python ignores unknown keys). Cross-loads from Python are best effort; owner decides if exact cross-load matters (Q4). |
+| R6 | Headless pitfalls: `-s` parse errors exit 0; runtime errors return `null` and continue; `class_name` needs `--import` | High / false passes | `gd_test.sh` sentinel and `SCRIPT ERROR` grep; risky (assert-less) tests fail; import step in every run. |
+| R7 | GDScript speed for 2,000 bot runs (Python: about 31 minutes on 4 cores) | Medium / slow P3 | Typed GDScript, `PackedInt32Array` distance maps and adjacency, process sharding; profile in T6 before the 2,000-run job. |
+| R8 | GUT and GdUnit4 not installable now | Certain / short term | Stopgap runner with GUT-compatible API (7.2); one-line migration. |
+| R9 | `world.py` is large and highly coupled; three sequential briefs on one file | Medium / schedule | Slices S6-S8 by line range with tests per slice; S9 tooling ready before S7 so traces guide S7 and S8. |
+| R10 | JSON numbers come back as floats in Godot | High / int division and comparisons go wrong | `manifest.json` `float_paths`; `Content` coerces every other number to int; `test_content` checks types for every table. |
+| R11 | Content drift between Python and JSON | Low (Python frozen) | `export_content.py --check` in CI; `content_sha` in trace headers. |
+| R12 | Test seams (EventBus/MessageLog `tap`, `static var` config, patchable content) leak into behaviour | Low | Seams are read by no rule; the verifier checks each. |
+| R13 | Platform libm: Windows, macOS and web exports may compute `pow`/`exp`/`log` differently | Medium for exports / small gameplay effect | Parity claimed and tested on Linux x86_64 only; other platforms checked statistically in P10. |
+
+### 11.3 Open questions for the owner
+
+1. **P1/P2 grouping.** Port `world.py` and `ai.py` whole in P1 (including pet, class-skill, box, shop and contract methods) and verify those features in P2, to avoid parallel edits of one file? (Recommended; conflicts with the letter of the PHASES list, not its intent.)
+2. **Test framework.** Approve GUT 9.x, and allow github.com (or the Asset Library) long enough to vendor it into `godot/addons/gut/`?
+3. **Acceptance for P3.** Is byte-identical `runs/bot_*.csv` for seeds 0-1999 the P3 bar (recommended), with statistical parity only as a fallback?
+4. **Saves.** Must a Python save load in Godot with exact continuation, or is "loads and plays, may differ by 1 ulp in two fields" acceptable? Exact would need an exact decimal parser in GDScript (doable, about 150 lines with big-integer arithmetic).
+5. **Where Godot writes data.** Player runs and saves in `user://` (Godot convention) or in the repo's `runs/` and `saves/` like Python (handy for the notebooks)? Proposed: `user://` by default, with `--runs-dir` and `--save-dir` options.
+6. **Font.** Which monospace font to bundle for the Theme (DejaVu Sans Mono matches the pygame look and has a permissive licence; licence to be rechecked at the source like the art)?
+7. **Test seams.** Approve the optional `tap` Callables on `EventBus` and `MessageLog` and `static var` config (needed for traces and for porting the monkeypatch tests).
+8. **Sorting fixes.** None are needed today (5.4). If a future change makes set order matter, sorting at that point in both versions is an owner decision because Python is frozen.
+
+---
+
+## Appendix A: measurements on Godot 4.7.2 (this environment)
+
+Probes were run headless with throwaway projects under the session scratchpad; results:
+
+| Probe | Result |
+|---|---|
+| `round(2.5)`, `round(-2.5)` | 3.0, -3.0 (half away from zero; Python gives 2, -2) |
+| `-7 / 2`, `-7 % 2`, `posmod(-7, 2)` | -3, -1, 1 (Python: -4, 1) |
+| `str(0.1 + 0.2)`, `var_to_str(0.1 + 0.2)` | `0.3`, `0.30000000000000004` |
+| `"%.nf" % x` vs Python `f"{x:.nf}"`, n = 0-3, 20,000 values | identical |
+| `var_to_str(x)` vs Python `repr(x)`, 20,000 values | 9 differ (17 vs 16 digits) and exponent styles differ |
+| Parsing Python `repr` strings (`JSON.parse_string`, `str_to_var`, `to_float`) | 3,344 of 20,015 off by 1 ulp (long digit strings); 0 of 20,022 wrong for decimals up to 15 significant digits |
+| `pow(x, 0.5)` vs `sqrt(x)`, x = 1-99,999 | differ for 82 values in Godot and in Python alike; Godot `pow` equals Python `x ** 0.5` |
+| Python 3.13 `sum()` vs naive loop on expected-damage-shaped sums | 183 of 750 differ; Neumaier model matches CPython on 200,000 random lists |
+| Dictionary order after `erase` and re-insert; `JSON.parse_string` key order | insertion order kept; re-insert goes to the end; document order kept |
+| `JSON.parse_string('{"z": 1}')` type of 1 | float |
+| `JSON.stringify({"b": 1, "a": 2})` | `{"a":2,"b":1}` (sorted by default) |
+| `"%+.0f" % -0.4` | `-0` (as Python) |
+| `"opening_act".capitalize()` | `Opening Act` (Python: `Opening_act`) |
+| `Array.sort()` on `["b", "a", "B", "_", "aa"]` | `["B", "_", "a", "aa", "b"]` (as Python) |
+| `-s` script with a parse error | exits 0 |
+| `class_name` without `--import` | not resolved; after `godot --headless --path . --import` it works |
+| `quit(3)` from a `-s` script | process exit code 3 |
+| Python 3.13.16 bot seeds 0-2 vs committed `runs/bot_*.csv` | byte-identical prefixes for runs, floors, boxes, shop and practice |
+
+## Appendix B: test files
+
+| pytest file | Godot test file | Slice | Notes |
+|---|---|---|---|
+| `test_combat.py` | `tests/test_combat.gd` | S2 | `pytest.approx` becomes `assert_almost_eq`; simulated damage uses `PyRandom` with the same seed. |
+| `test_attributes.py` | `tests/test_attributes.gd` | S2, S6 | `parametrize("attr", list(ATTRS))` becomes `use_parameters(Content.table("attributes").keys())`. |
+| `test_dungeon.py` | `tests/test_dungeon.gd` | S3 | `SEEDS` parametrised; FOV helpers on a hand-built floor. |
+| `test_loot.py` | `tests/test_loot.gd` | S4, S8 | |
+| `test_practice.py` | `tests/test_practice.gd` | S5, S8, T4, T5 | The test that wraps `world.attack` to see `bonus` instead checks the damage outcome with a seeded roll, or uses a counting `PyRandom`; no seam in `World`. |
+| `test_world.py` | `tests/test_world.gd` | S7, S8 | `test_random_play_smoke` seeds 0-11 with a `PyRandom` driver. |
+| `test_encounter.py` | `tests/test_encounter.gd` | S7, S8, T5, T6 | `monkeypatch.setattr(C, ...)` becomes `TestHelpers.patch_static(GameConfig, ...)`; `setitem(MONSTERS["goblin"], "init", 50)` becomes `patch_item(Content.monster("goblin"), "init", 50)`; `SPEAK_CHANCE` patch likewise on the config table. |
+| `test_floors.py` | `tests/test_floors.gd` | S6, S8 | |
+| `test_items.py` | `tests/test_items.gd` | S8 | pytest fixture `w` becomes `before_each`. |
+| `test_phase3.py` | `tests/test_phase3.gd` | S8, T5 | |
+| `test_phase4.py` | `tests/test_phase4.gd` | S4, S8, T3, T5 | |
+| `test_achievement_loot.py` | `tests/test_achievement_loot.gd` | S8, T1 | |
+| `test_showrunner.py` | `tests/test_showrunner.gd` | T1, T2 | `test_every_event_has_mild_and_spicy_lines_that_format` checks `PyFmt.format_map` over `lines.json`. |
+| `test_telemetry.py` | `tests/test_telemetry.gd` | T4, T6 | `test_bot_is_deterministic` uses `BotPolicy.play`. |
+| `test_settings.py` | `tests/test_settings.gd` | T5 | |
+| `test_firstperson.py` | `tests/ui/test_fp_logic.gd` (angle, steps, `target_ahead`, `open_facing`, glide) and `tests/ui/test_fp_scene.gd` (scene builds for every floor, every creature has a sprite) | P4, P5 | Minimap pixel tests become checks on the minimap image data. |
+| `test_render.py` | `tests/ui/test_app_state.gd` (key handling, Tab, menus, held keys, combat lock, provoke flags; headless) and `tests/ui/test_scenes.gd` (every scene instantiates and draws a frame); `tools/screenshots.gd` under `xvfb-run` for the screenshot sweep | P4-P7 | `CRAWL_SCREENSHOTS` becomes `-- --screenshots=<dir>`. |
+| (new) | `tests/test_py_random.gd`, `test_py_math.gd`, `test_py_fmt.gd`, `test_content.gd`, `test_parity_fixtures.gd` | P0, S1 | |

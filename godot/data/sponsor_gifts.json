@@ -1,0 +1,27 @@
+[
+ {
+  "viewers": 300,
+  "tier": "bronze",
+  "sponsor": "Brightly Snacks"
+ },
+ {
+  "viewers": 700,
+  "tier": "silver",
+  "sponsor": "Gloop Energy"
+ },
+ {
+  "viewers": 1500,
+  "tier": "gold",
+  "sponsor": "Vantage Mattress Co."
+ },
+ {
+  "viewers": 3000,
+  "tier": "platinum",
+  "sponsor": "Zorp Premium Hair Care"
+ },
+ {
+  "viewers": 6000,
+  "tier": "legendary",
+  "sponsor": "The Consortium of Mild Concern"
+ }
+]

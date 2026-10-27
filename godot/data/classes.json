@@ -1,0 +1,107 @@
+{
+ "brawler": {
+  "name": "Brawler",
+  "desc": "+2 STR; fists hit for 1d8. Solves problems with fists.",
+  "attrs": {
+   "str": 2
+  },
+  "martial_arts": true,
+  "skill": "haymaker",
+  "pairs": [
+   "tradie"
+  ]
+ },
+ "arcanist": {
+  "name": "Arcanist",
+  "desc": "+2 INT. Throws lightning at problems.",
+  "attrs": {
+   "int": 2
+  },
+  "skill": "arc_bolt"
+ },
+ "analyst": {
+  "name": "Analyst",
+  "desc": "+1 STR, +1 DEX, +1 INT, +2 to hit, +1 AC. Knows the odds and uses them.",
+  "attrs": {
+   "str": 1,
+   "dex": 1,
+   "int": 1
+  },
+  "hit": 2,
+  "ac": 1,
+  "skill": "scout_report"
+ },
+ "alchemist": {
+  "name": "Alchemist",
+  "desc": "+2 INT, +4 max HP; potions heal 30% more. Turns rubbish into medicine.",
+  "attrs": {
+   "int": 2
+  },
+  "max_hp": 4,
+  "class_potion_mult": 1.3,
+  "skill": "field_brew",
+  "pairs": [
+   "mixologist",
+   "parent"
+  ]
+ },
+ "beastmaster": {
+  "name": "Beastmaster",
+  "desc": "+2 CHA, +1 AC. Your companion fights like it means it.",
+  "attrs": {
+   "cha": 2
+  },
+  "ac": 1,
+  "skill": "rile_up",
+  "pairs": [
+   "dog_walker"
+  ]
+ },
+ "hype_man": {
+  "name": "Hype Man",
+  "desc": "+2 CHA, +1 AC, +6 max HP. Works the crowd while working the room.",
+  "attrs": {
+   "cha": 2
+  },
+  "ac": 1,
+  "max_hp": 6,
+  "skill": "crowd_work",
+  "pairs": [
+   "comedian"
+  ]
+ },
+ "demolitionist": {
+  "name": "Demolitionist",
+  "desc": "+2 DEX; bombs do 50% more damage. Loud.",
+  "attrs": {
+   "dex": 2
+  },
+  "bomb_mult": 1.5,
+  "skill": "pocket_popper",
+  "pairs": [
+   "veteran"
+  ]
+ },
+ "quartermaster": {
+  "name": "Quartermaster",
+  "desc": "+2 CHA, +1 AC. Knows a guy who knows a guy.",
+  "attrs": {
+   "cha": 2
+  },
+  "ac": 1,
+  "skill": "supply_drop",
+  "pairs": [
+   "category_mgr",
+   "rideshare"
+  ]
+ },
+ "duellist": {
+  "name": "Duellist",
+  "desc": "+2 DEX, +1 to hit. Insists on the proper forms.",
+  "attrs": {
+   "dex": 2
+  },
+  "hit": 1,
+  "skill": "riposte"
+ }
+}

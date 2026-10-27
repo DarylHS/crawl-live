@@ -1,0 +1,14 @@
+{
+ "female": {
+  "name": "Woman",
+  "address": "madam"
+ },
+ "male": {
+  "name": "Man",
+  "address": "sir"
+ },
+ "nonbinary": {
+  "name": "Non-binary",
+  "address": "friend"
+ }
+}

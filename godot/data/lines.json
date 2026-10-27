@@ -1,0 +1,489 @@
+{
+ "floor_start": {
+  "mild": [
+   "Floor {depth} is live. Smile for the cameras, {hero}.",
+   "Welcome to floor {depth}. Mind the monsters. And the ceiling.",
+   "Floor {depth}. The timer is running and so, ideally, are you."
+  ],
+  "spicy": [
+   "Floor {depth}. The audience has placed bets. You won't like the odds.",
+   "Welcome to floor {depth}, {address}. Please enjoy your impending doom.",
+   "Floor {depth}: now with fifteen percent more collapse.",
+   "Floor {depth}. Our insurers asked us to remind you that you have no insurance.",
+   "Floor {depth}. Try to die somewhere photogenic."
+  ]
+ },
+ "kill": {
+  "mild": [
+   "{name} down. The crowd approves.",
+   "A tidy kill. Ratings tick up.",
+   "One less {name}. Nobody will miss it."
+  ],
+  "spicy": [
+   "That {name} had a family. Probably a small one.",
+   "Brutal. Efficient. Slightly rude. Excellent television.",
+   "Another {name} dispatched. The merch team is taking notes.",
+   "You killed a {name}. Would you like a medal? There are no medals.",
+   "The {name} is dead and somehow you still look worse."
+  ]
+ },
+ "opportunity_attack": {
+  "mild": [
+   "Never turn your back in a fight. Basic stuff.",
+   "Attack of opportunity! Somebody wasn't watching their footwork.",
+   "A free swing. The rules allow it. The rules love it."
+  ],
+  "spicy": [
+   "You walked away mid-fight, {address}. It noticed.",
+   "Free hit! The audience calls that a 'strategic withdrawal'. Badly.",
+   "Tip from the producers: back away slower. Or don't. It's great television.",
+   "Leaving so soon? Have a parting gift. It's pointy."
+  ]
+ },
+ "multi_kill": {
+  "mild": [
+   "A streak! The chat is going feral.",
+   "Two in quick succession. Somebody clip that."
+  ],
+  "spicy": [
+   "Multi-kill! Sponsors are texting each other in all capitals.",
+   "That's how you edit a trailer, {address}.",
+   "Excellent carnage. HR has been informed. HR has applauded.",
+   "The body count is now a body tally."
+  ]
+ },
+ "clutch": {
+  "mild": [
+   "Barely alive and still swinging.",
+   "Clutch. The audience exhales."
+  ],
+  "spicy": [
+   "Low health, high ratings. The System approves of your poor decisions.",
+   "That was one hit away from a very short episode.",
+   "Your next of kin almost had a very lucrative week.",
+   "Dramatic tension: achieved. Life expectancy: unchanged."
+  ]
+ },
+ "damage_taken": {
+  "mild": [
+   "Ouch. The audience felt that.",
+   "Health is a resource. You are spending it."
+  ],
+  "spicy": [
+   "Your health bar is now mostly decorative.",
+   "That's going in the blooper reel, {address}.",
+   "Nice dodge. Wrong direction, but nice.",
+   "You're bleeding on the set. The cleaners are filing a complaint.",
+   "Have you considered not being hit? It's very popular."
+  ]
+ },
+ "level_up": {
+  "mild": [
+   "Level {level}. Congratulations.",
+   "Level {level}. Slightly less doomed."
+  ],
+  "spicy": [
+   "Level {level}! Here is a participation sticker. Don't eat it.",
+   "Level {level}. You've gone from 'certainly dead' to 'probably dead'.",
+   "Level {level}. The folks back home would be proud. They've changed the channel.",
+   "You levelled up, {address}. The monsters did too, but nobody told you."
+  ]
+ },
+ "descend": {
+  "mild": [
+   "Down you go. The cameras follow.",
+   "Next floor. Try to look surprised."
+  ],
+  "spicy": [
+   "Running away is a valid genre.",
+   "Stairs: the only strategy you've mastered.",
+   "Leaving already? The monsters were just warming up to you.",
+   "Down the stairs. Mind the plot holes."
+  ]
+ },
+ "rest": {
+  "mild": [
+   "Rested and recovered.",
+   "A quick nap. Everyone needs one."
+  ],
+  "spicy": [
+   "Napping on live television. Bold.",
+   "Ratings dip during rest. Just saying.",
+   "Sleep tight. The timer won't.",
+   "The viewers went to make a sandwich. Several sandwiches."
+  ]
+ },
+ "timer_warning": {
+  "mild": [
+   "The floor is creaking. Perhaps hurry.",
+   "Time is running short."
+  ],
+  "spicy": [
+   "Tick tock, {address}. The ceiling has opinions.",
+   "Collapse imminent. Cue the dramatic music.",
+   "Fewer minutes remain than you would like. Fewer still than you deserve.",
+   "The building is leaving. You may wish to join it."
+  ]
+ },
+ "achievement": {
+  "mild": [
+   "Achievement: {achievement}. {why} That earns you {reward}.",
+   "{achievement}! {why} Here's {reward} for your trouble."
+  ],
+  "spicy": [
+   "{achievement}. {why} The System is faintly impressed. Have {reward}. Don't make it weird.",
+   "Well, look at you: {achievement}. {why} That's worth {reward}. Try to act natural.",
+   "{achievement}! {why} Our accountants have approved {reward}. Reluctantly.",
+   "Ding! {achievement}. {why} You get {reward}, {address}. Open it somewhere safe, it's not that kind of box."
+  ]
+ },
+ "sponsor_gift": {
+  "mild": [
+   "{sponsor} sends a {tier} box.",
+   "A gift from {sponsor}: a {tier} box."
+  ],
+  "spicy": [
+   "{sponsor} sends a {tier} box. They'd like you to mention them on air. Repeatedly.",
+   "{sponsor} loves you today. Tomorrow is subject to market conditions.",
+   "Viewers pooled their money. {sponsor} took a cut and sent a {tier} box.",
+   "A {tier} box from {sponsor}. Terms and conditions are written on the inside."
+  ]
+ },
+ "player_death": {
+  "mild": [
+   "And that's a wrap.",
+   "The episode ends here."
+  ],
+  "spicy": [
+   "And the crowd goes... mild.",
+   "You have been cancelled, {address}.",
+   "A tragic finale. The sponsors send flowers. Plastic ones.",
+   "Dead. The ratings spike, briefly, out of politeness.",
+   "The System regrets nothing. The System would like that on the record."
+  ]
+ },
+ "victory": {
+  "mild": [
+   "You survived. Well done.",
+   "Escape confirmed."
+  ],
+  "spicy": [
+   "You survived. The producers are furious.",
+   "Escape confirmed. A sequel has been announced against your wishes.",
+   "The finale was almost watchable, {hero}.",
+   "Contestant survives. The odds-makers are weeping into their spreadsheets."
+  ]
+ },
+ "pet_kill": {
+  "mild": [
+   "{pet} gets the {name}.",
+   "{pet} claims a kill."
+  ],
+  "spicy": [
+   "{pet} did that. You were mostly decorative.",
+   "Polls show viewers prefer {pet} to you. By a lot.",
+   "{pet} carried the episode. Again.",
+   "A {name}, mauled by {pet}. The merch is selling out."
+  ]
+ },
+ "pet_downed": {
+  "mild": [
+   "{pet} is down! Get to a safe room.",
+   "{pet} needs help."
+  ],
+  "spicy": [
+   "{pet} is down! The comments section is furious with you specifically.",
+   "Losing {pet}? Bold creative choice.",
+   "{pet} has fallen. Your approval rating has fallen further.",
+   "{pet} needs a nap and a lawyer."
+  ]
+ },
+ "pet_ability": {
+  "mild": [
+   "{pet} uses {ability}.",
+   "{ability}, courtesy of {pet}."
+  ],
+  "spicy": [
+   "{ability}! {pet} is the real contestant here.",
+   "{pet} with the {ability}. Somebody clip that before {hero} takes credit.",
+   "{pet} remembers it has a special move. Do you?"
+  ]
+ },
+ "boss_phase": {
+  "mild": [
+   "{boss} is angry now.",
+   "Phase two! {boss} calls for help."
+  ],
+  "spicy": [
+   "{boss} is ANGRY now. Excellent television.",
+   "{boss} rips off the polite mask. It was a load-bearing mask.",
+   "{boss} demands reinforcements and a bigger trailer."
+  ]
+ },
+ "boss_kill": {
+  "mild": [
+   "{boss} is down!",
+   "You beat {boss}."
+  ],
+  "spicy": [
+   "{boss} is down! That was the expensive set piece.",
+   "{boss}: defeated. Somebody upstairs is getting fired.",
+   "The crowd roars. {boss} will be missed, mainly by their agent.",
+   "You beat {boss}, {address}. The writers are scrambling."
+  ]
+ },
+ "class_chosen": {
+  "mild": [
+   "{title}. Noted.",
+   "Welcome, {title}."
+  ],
+  "spicy": [
+   "A {title}. Bold. Let's see if it lasts.",
+   "{title}, is it? The betting markets have adjusted. Downwards.",
+   "Your class is registered: {title}. No refunds. No exchanges. No hope.",
+   "{title}: an inspired choice, said nobody yet."
+  ]
+ },
+ "act_kill": {
+  "mild": [
+   "{name} is off the bill.",
+   "That's {name} done. The show goes on."
+  ],
+  "spicy": [
+   "{name}, everybody! Let's hear it for... no, they're dead.",
+   "{name} won't be doing an encore.",
+   "Exit {name}, stage left, horizontally.",
+   "The crowd paid good money for {name}. Refunds are not available."
+  ]
+ },
+ "stairs_open": {
+  "mild": [
+   "The stairwells are open. Off you go.",
+   "Stairs unlocked. The floor is still collapsing, mind."
+  ],
+  "spicy": [
+   "Stairwells open! Please exit in an orderly fashion, or a chaotic one. Chaos rates better.",
+   "The stairs are open, {address}. The ceiling would like you to hurry.",
+   "Doors unlocked. Last one down is structurally integrated."
+  ]
+ },
+ "map_found": {
+  "mild": [
+   "A map. How organised of you.",
+   "Cartography! The System is mildly impressed."
+  ],
+  "spicy": [
+   "You took a map off a corpse. Very resourceful. Very grim.",
+   "A map! Now you can see exactly how lost you are.",
+   "Ooh, a map. Somebody's planning ahead. Unusual, for this audience."
+  ]
+ },
+ "nat20": {
+  "mild": [
+   "A natural 20 against {foe}. The dice approve.",
+   "Natural 20! Even the camera crew looked up."
+  ],
+  "spicy": [
+   "NATURAL TWENTY. Somebody screenshot this, it won't happen again.",
+   "A 20! {Foe}'s agent has been informed.",
+   "Natural 20, {address}. Statistically, you're due a long dry spell now. That's not how dice work, but it's how television works.",
+   "Twenty! Clip it, loop it, sell it."
+  ]
+ },
+ "nat1": {
+  "mild": [
+   "A natural 1. Unfortunate.",
+   "You rolled a 1. {Foe} looks embarrassed for you."
+  ],
+  "spicy": [
+   "Natural 1! You swung at {foe} and hit the concept of failure.",
+   "A 1. Our viewers are leaving comments. Mean ones.",
+   "Rolled a 1, {address}. The dice have no memory, but our replay team does.",
+   "A natural 1. That's going in the blooper reel."
+  ]
+ },
+ "foe_nat20": {
+  "mild": [
+   "{Foe} rolled a natural 20. Ouch.",
+   "Natural 20 for {foe}. That one will leave a mark."
+  ],
+  "spicy": [
+   "{Foe} rolls a 20! Our sponsors would like to remind you that health insurance is not available in the dungeon.",
+   "A natural 20 from {foe}. The audience gasps. Some of them cheer. Rude.",
+   "Twenty for {foe}! Even monsters get lucky, {address}."
+  ]
+ },
+ "foe_nat1": {
+  "mild": [
+   "{Foe} rolled a 1. Small mercies.",
+   "Natural 1 for {foe}."
+  ],
+  "spicy": [
+   "{Foe} rolls a 1 and nearly falls over. Gold.",
+   "A natural 1 from {foe}. It's never going to live this down. Well. Briefly.",
+   "{Foe} fumbles! Even the dungeon has off days."
+  ]
+ },
+ "practice_level": {
+  "mild": [
+   "{title} {level}. Practice makes slightly less terrible.",
+   "{title} is now level {level}."
+  ],
+  "spicy": [
+   "{title} {level}! The System is legally required to acknowledge this.",
+   "{title} level {level}. Your old career counsellor would be stunned.",
+   "Congratulations on {title} {level}. A real skill. For a given value of real.",
+   "{title} {level}. You're getting good at this. Concerning.",
+   "{title} up to {level}. Somebody start a highlights reel. A short one."
+  ]
+ },
+ "box_junk": {
+  "mild": [
+   "A {item}. From a {tier} box. Hm.",
+   "{item}. It's... something."
+  ],
+  "spicy": [
+   "A {item}. From a {tier} box. The odds were on the screen, {address}.",
+   "{item}! Worth {value} gold. The box was worth {ev}. Do the maths. Actually, don't.",
+   "Congratulations on your {item}. Frame it. It's all you'll have.",
+   "A {item}. The System would like to say it's sorry. The System is not sorry."
+  ]
+ },
+ "box_bad": {
+  "mild": [
+   "{item}. Below average, but useful.",
+   "A {item}. Not the best roll."
+  ],
+  "spicy": [
+   "{item}. Worth {value} gold, from a box worth {ev}. Luck owes you nothing.",
+   "A {item}. The house thanks you for your contribution.",
+   "{item}. Under par. Like most things about this run."
+  ]
+ },
+ "box_meh": {
+  "mild": [
+   "{item}. About what you'd expect.",
+   "A perfectly average {item}."
+  ],
+  "spicy": [
+   "{item}. Exactly average. The statisticians are thrilled. Nobody else is.",
+   "A {item}. Fine. It's fine. Everything's fine.",
+   "{item}. The expected value, delivered with expected enthusiasm."
+  ]
+ },
+ "box_good": {
+  "mild": [
+   "{item}! Above average.",
+   "Nice. A {item}."
+  ],
+  "spicy": [
+   "A {item}! Don't get used to it.",
+   "{item}, worth {value} against a box average of {ev}. The house is checking the dice.",
+   "Ooh, a {item}. The sponsors would like it back. They can't have it."
+  ]
+ },
+ "box_jackpot": {
+  "mild": [
+   "A {item}! Jackpot!",
+   "{item}! The crowd goes wild."
+  ],
+  "spicy": [
+   "A {item}?! Someone in accounting is getting fired.",
+   "{item}! The System is legally obliged to say congratulations. Congratulations.",
+   "A {item}! Enjoy it. Statistically, you won't see another.",
+   "{item}! The other crawlers are booing. Wave at them."
+  ]
+ },
+ "box_reroll": {
+  "mild": [
+   "Rerolling. Good luck.",
+   "Back in the box it goes."
+  ],
+  "spicy": [
+   "Paying to gamble again. The sponsors adore you.",
+   "Rerolling, {address}? The house has never been happier.",
+   "Put it back, pay the fee, pull the lever. Classic.",
+   "A reroll. Chasing losses: a time-honoured tradition."
+  ]
+ },
+ "box_trade": {
+  "mild": [
+   "Three boxes for one. A bigger roll.",
+   "Trade accepted."
+  ],
+  "spicy": [
+   "Three boxes for one. Bold maths. Wrong, but bold.",
+   "The house accepts your generous donation.",
+   "Trading up! The house edge waves hello.",
+   "Fewer boxes, bigger gamble. You'd fit right in at a casino, {address}."
+  ]
+ },
+ "contract_accepted": {
+  "mild": [
+   "Deal signed: {deal}.",
+   "{deal} is in effect for this floor."
+  ],
+  "spicy": [
+   "Signed without reading it. Legal is thrilled.",
+   "{deal}. You'll be hearing from our lawyers. Constantly.",
+   "Excellent. {deal} has a clause about organ donation. It's fine.",
+   "{deal} signed. The sponsor would like you to know you're a valued asset."
+  ]
+ },
+ "contract_declined": {
+  "mild": [
+   "Deal declined.",
+   "No deal. Sensible."
+  ],
+  "spicy": [
+   "Declined? The sponsor will remember this. Sponsors never forget.",
+   "No deal. How responsible. How dull.",
+   "You said no to {deal}. The audience said 'boo'."
+  ]
+ },
+ "shop_buy": {
+  "mild": [
+   "Thank you for shopping.",
+   "A wise purchase. Probably."
+  ],
+  "spicy": [
+   "Retail therapy, mid-apocalypse. Inspiring.",
+   "Bought at full price. The shop sends its warmest regards.",
+   "Your consumer confidence is noted and monetised.",
+   "Another satisfied customer. For now."
+  ]
+ },
+ "shop_sell": {
+  "mild": [
+   "Sold.",
+   "The shop takes it off your hands."
+  ],
+  "spicy": [
+   "The shop pays forty cents on the dollar and calls it generous.",
+   "Sold! For a fraction of its worth. As is tradition.",
+   "One person's junk is another shop's profit margin."
+  ]
+ },
+ "shop_sold_out": {
+  "mild": [
+   "Sold out. Try the next floor.",
+   "None left, sorry."
+  ],
+  "spicy": [
+   "Sold out. Other crawlers got there first. They were faster. And better.",
+   "Out of stock. Supply chains: they're not just for the surface.",
+   "Nothing left, {address}. Have you tried planning ahead?"
+  ]
+ },
+ "craft": {
+  "mild": [
+   "Crafted. Nicely done.",
+   "Something useful, from rubbish."
+  ],
+  "spicy": [
+   "Arts and crafts, mid-apocalypse. Charming.",
+   "You made something. Your old school would be shocked.",
+   "Upcycling! The environment thanks you. The monsters don't care."
+  ]
+ }
+}

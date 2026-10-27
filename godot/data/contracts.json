@@ -1,0 +1,35 @@
+{
+ "gloop_blitz": {
+  "sponsor": "Gloop Energy",
+  "name": "Gloop Blitz",
+  "desc": "A Silver box now and +50% gold this floor, but monsters do +1 damage.",
+  "gold_mult": 1.5,
+  "monster_damage": 1,
+  "bonus_box": "silver"
+ },
+ "snack_sprint": {
+  "sponsor": "Brightly Snacks",
+  "name": "Snack Sprint",
+  "desc": "A Silver box now and +40% viewers, but the floor collapses 20% sooner.",
+  "viewer_mult": 1.4,
+  "timer_mult": 0.8,
+  "bonus_box": "silver"
+ },
+ "power_naps": {
+  "sponsor": "Vantage Mattress Co.",
+  "name": "Power Nap Package",
+  "desc": "Resting heals twice as fast, but you earn 30% less gold.",
+  "rest_mult": 2,
+  "gold_mult": 0.7
+ },
+ "hazard_pay": {
+  "sponsor": "The Consortium of Mild Concern",
+  "name": "Hazard Pay",
+  "desc": "A Gold box now, double gold and +50% viewers. Monsters get +25% HP and +2 damage.",
+  "gold_mult": 2.0,
+  "viewer_mult": 1.5,
+  "monster_hp_mult": 1.25,
+  "monster_damage": 2,
+  "bonus_box": "gold"
+ }
+}

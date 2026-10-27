@@ -1,0 +1,124 @@
+{
+ "1": {
+  "name": "The Grease Trap King",
+  "glyph": "K",
+  "colour": [
+   230,
+   200,
+   90
+  ],
+  "hp": 24,
+  "ac": 11,
+  "attack": 4,
+  "dmg": [
+   1,
+   6,
+   0
+  ],
+  "save": 2,
+  "xp": 25,
+  "box": "silver"
+ },
+ "2": {
+  "name": "The Overdue Librarian",
+  "glyph": "L",
+  "colour": [
+   220,
+   170,
+   120
+  ],
+  "hp": 42,
+  "ac": 12,
+  "attack": 5,
+  "dmg": [
+   1,
+   6,
+   2
+  ],
+  "save": 3,
+  "xp": 40,
+  "box": "silver"
+ },
+ "3": {
+  "name": "Foreman Gristle",
+  "glyph": "F",
+  "colour": [
+   235,
+   140,
+   70
+  ],
+  "hp": 84,
+  "ac": 13,
+  "attack": 6,
+  "dmg": [
+   2,
+   6,
+   0
+  ],
+  "save": 3,
+  "xp": 60,
+  "box": "gold"
+ },
+ "4": {
+  "name": "High Hexer Volka",
+  "glyph": "H",
+  "colour": [
+   225,
+   110,
+   235
+  ],
+  "hp": 77,
+  "ac": 14,
+  "attack": 7,
+  "dmg": [
+   2,
+   4,
+   2
+  ],
+  "save": 5,
+  "xp": 75,
+  "box": "gold",
+  "ranged": 5
+ },
+ "5": {
+  "name": "The Shrink-Wrapped Colossus",
+  "glyph": "W",
+  "colour": [
+   180,
+   210,
+   240
+  ],
+  "hp": 126,
+  "ac": 15,
+  "attack": 7,
+  "dmg": [
+   2,
+   6,
+   1
+  ],
+  "save": 4,
+  "xp": 100,
+  "box": "platinum"
+ },
+ "6": {
+  "name": "Executive Producer Glorm",
+  "glyph": "P",
+  "colour": [
+   255,
+   90,
+   90
+  ],
+  "hp": 196,
+  "ac": 15,
+  "attack": 9,
+  "dmg": [
+   2,
+   6,
+   1
+  ],
+  "save": 6,
+  "xp": 200,
+  "box": "legendary",
+  "final": true
+ }
+}

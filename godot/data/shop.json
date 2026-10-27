@@ -1,0 +1,13 @@
+{
+ "base_demand": {
+  "tonic": 3.0,
+  "brew": 1.5,
+  "elixir": 0.5,
+  "popper": 1.5,
+  "fireworks": 0.7,
+  "jersey": 0.8,
+  "vest": 0.5,
+  "pan": 0.8,
+  "cleaver": 0.4
+ }
+}

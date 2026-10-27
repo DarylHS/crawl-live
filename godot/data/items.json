@@ -1,0 +1,246 @@
+{
+ "fists": {
+  "name": "Fists",
+  "style": "unarmed",
+  "dice": [
+   1,
+   4
+  ]
+ },
+ "items": {
+  "pan": {
+   "name": "Dented Frying Pan",
+   "kind": "weapon",
+   "style": "blunt",
+   "value": 10,
+   "dice": [
+    1,
+    6
+   ],
+   "colour": [
+    190,
+    190,
+    200
+   ],
+   "desc": "Seen better breakfasts."
+  },
+  "cleaver": {
+   "name": "Pocket Cleaver",
+   "kind": "weapon",
+   "style": "blade",
+   "value": 22,
+   "dice": [
+    1,
+    8
+   ],
+   "hit": 1,
+   "colour": [
+    200,
+    200,
+    215
+   ],
+   "desc": "Small, rude and well balanced."
+  },
+  "katana": {
+   "name": "Overpriced Katana",
+   "kind": "weapon",
+   "style": "blade",
+   "value": 60,
+   "dice": [
+    1,
+    10
+   ],
+   "hit": 2,
+   "dmg": 1,
+   "colour": [
+    150,
+    220,
+    255
+   ],
+   "desc": "Comes with a certificate of questionable origin."
+  },
+  "extinguisher": {
+   "name": "Fire Extinguisher",
+   "kind": "weapon",
+   "style": "blunt",
+   "value": 26,
+   "dice": [
+    2,
+    6
+   ],
+   "colour": [
+    220,
+    60,
+    50
+   ],
+   "desc": "Heavy, red and surprisingly well balanced. Puts out fires and faces."
+  },
+  "sledge": {
+   "name": "Demolition Sledge",
+   "kind": "weapon",
+   "style": "blunt",
+   "value": 55,
+   "dice": [
+    1,
+    12
+   ],
+   "dmg": 1,
+   "colour": [
+    170,
+    150,
+    120
+   ],
+   "desc": "For load-bearing walls and load-bearing monsters."
+  },
+  "jersey": {
+   "name": "Padded Gym Jersey",
+   "kind": "armour",
+   "value": 10,
+   "ac": 1,
+   "colour": [
+    140,
+    170,
+    220
+   ],
+   "desc": "Smells faintly of ambition."
+  },
+  "vest": {
+   "name": "Riot Vest",
+   "kind": "armour",
+   "value": 22,
+   "ac": 2,
+   "max_dex": 2,
+   "colour": [
+    120,
+    150,
+    200
+   ],
+   "desc": "Rated for crowds. Mostly."
+  },
+  "plate": {
+   "name": "Stagehand Plate",
+   "kind": "armour",
+   "value": 45,
+   "ac": 4,
+   "max_dex": 0,
+   "colour": [
+    170,
+    190,
+    230
+   ],
+   "desc": "Heavy, shiny and very on-brand. No room to dodge."
+  },
+  "tonic": {
+   "name": "Fizzy Tonic",
+   "kind": "potion",
+   "value": 8,
+   "heal": 10,
+   "colour": [
+    240,
+    120,
+    150
+   ],
+   "desc": "Restores 10 HP. Tastes like pennies."
+  },
+  "brew": {
+   "name": "Sponsor Brew",
+   "kind": "potion",
+   "value": 15,
+   "heal": 18,
+   "colour": [
+    240,
+    90,
+    130
+   ],
+   "desc": "Restores 18 HP. Contains real fruit, allegedly."
+  },
+  "elixir": {
+   "name": "Producer's Elixir",
+   "kind": "potion",
+   "value": 30,
+   "heal": 32,
+   "colour": [
+    255,
+    70,
+    120
+   ],
+   "desc": "Restores 32 HP. Strictly off the record."
+  },
+  "popper": {
+   "name": "Party Popper Bomb",
+   "kind": "bomb",
+   "value": 10,
+   "dice": [
+    3,
+    6
+   ],
+   "radius": 1,
+   "colour": [
+    255,
+    170,
+    60
+   ],
+   "desc": "3d6 to the target and its neighbours."
+  },
+  "fireworks": {
+   "name": "Crate of Fireworks",
+   "kind": "bomb",
+   "value": 20,
+   "dice": [
+    5,
+    6
+   ],
+   "radius": 2,
+   "colour": [
+    255,
+    120,
+    40
+   ],
+   "desc": "5d6 in a wide, loud burst."
+  },
+  "sock": {
+   "name": "Soggy Sock",
+   "kind": "junk",
+   "value": 2,
+   "colour": [
+    150,
+    140,
+    120
+   ],
+   "desc": "Why is it warm?"
+  },
+  "trophy": {
+   "name": "Half a Trophy",
+   "kind": "junk",
+   "value": 4,
+   "colour": [
+    210,
+    180,
+    80
+   ],
+   "desc": "Participation was close enough."
+  },
+  "remote": {
+   "name": "Mystery Remote",
+   "kind": "junk",
+   "value": 3,
+   "colour": [
+    130,
+    130,
+    140
+   ],
+   "desc": "Controls nothing you own."
+  },
+  "mug": {
+   "name": "Sponsor Mug",
+   "kind": "junk",
+   "value": 2,
+   "colour": [
+    200,
+    200,
+    160
+   ],
+   "desc": "'Drink responsibly. Or don't. Ratings.'"
+  }
+ }
+}

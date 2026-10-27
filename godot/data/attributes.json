@@ -1,0 +1,27 @@
+{
+ "str": {
+  "name": "Strength",
+  "short": "STR",
+  "does": "Melee hits and damage with fists and blunt weapons"
+ },
+ "dex": {
+  "name": "Dexterity",
+  "short": "DEX",
+  "does": "Armour Class, blades (finesse), bomb save DC"
+ },
+ "con": {
+  "name": "Constitution",
+  "short": "CON",
+  "does": "Max HP each level, faster natural healing"
+ },
+ "int": {
+  "name": "Intelligence",
+  "short": "INT",
+  "does": "Class skill power and recharge; perception, insight, first aid"
+ },
+ "cha": {
+  "name": "Charisma",
+  "short": "CHA",
+  "does": "Viewers gained, shop prices; willpower against fear and charm"
+ }
+}

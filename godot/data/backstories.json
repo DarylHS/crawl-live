@@ -1,0 +1,76 @@
+{
+ "veteran": {
+  "name": "Military Veteran",
+  "perk": "+2 DEX, +1 to hit",
+  "desc": "Has done worse, in worse places, for less.",
+  "attrs": {
+   "dex": 2
+  },
+  "hit": 1
+ },
+ "mixologist": {
+  "name": "Mixologist",
+  "perk": "+2 CHA; potions heal 40% more",
+  "desc": "Shaken, not stirred, still bleeding.",
+  "attrs": {
+   "cha": 2
+  },
+  "potion_mult": 1.4
+ },
+ "dog_walker": {
+  "name": "Dog Walker",
+  "perk": "+2 CON; companion starts at level 3 with +4 HP",
+  "desc": "Handled eight leads at once. One companion is a holiday.",
+  "attrs": {
+   "con": 2
+  },
+  "pet_head_start": true
+ },
+ "comedian": {
+  "name": "Stand-up Comedian",
+  "perk": "+2 CHA; +50% viewers from kills",
+  "desc": "Tough crowd. Literally.",
+  "attrs": {
+   "cha": 2
+  },
+  "kill_viewer_mult": 1.5
+ },
+ "parent": {
+  "name": "Stay-at-home Parent",
+  "perk": "+2 CON, +4 max HP; rest 25% faster",
+  "desc": "Has survived worse on four hours' sleep.",
+  "attrs": {
+   "con": 2
+  },
+  "max_hp": 4,
+  "rest_mult": 1.25
+ },
+ "tradie": {
+  "name": "Tradie",
+  "perk": "+2 STR; crafting takes half the time",
+  "desc": "Brought their own tools. Quoted the dungeon for repairs.",
+  "attrs": {
+   "str": 2
+  },
+  "craft_mult": 0.5
+ },
+ "category_mgr": {
+  "name": "Category Manager",
+  "perk": "+2 INT; shop prices 15% lower, sell for more",
+  "desc": "Has negotiated with scarier suppliers than this.",
+  "attrs": {
+   "int": 2
+  },
+  "buy_mult": 0.85,
+  "sell_mult": 1.4
+ },
+ "rideshare": {
+  "name": "Rideshare Driver",
+  "perk": "+2 CHA; +60 minutes on every floor's timer",
+  "desc": "Always knows a shortcut. Five stars, would be crushed again.",
+  "attrs": {
+   "cha": 2
+  },
+  "timer_bonus": 60
+ }
+}

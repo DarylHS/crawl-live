@@ -1,0 +1,345 @@
+{
+ "config": {
+  "TILE": 16,
+  "VIEW_W": 64,
+  "VIEW_H": 40,
+  "PANEL_W": 256,
+  "LOG_H": 128,
+  "SCREEN_W": 1280,
+  "SCREEN_H": 768,
+  "FPS": 30,
+  "LOG_LINES": 7,
+  "NUM_FLOORS": 6,
+  "FOV_RADIUS": 8,
+  "MAP_W": 120,
+  "MAP_H": 76,
+  "MAX_ROOMS": 44,
+  "ROOM_MIN_W": 5,
+  "ROOM_MAX_W": 12,
+  "ROOM_MIN_H": 4,
+  "ROOM_MAX_H": 9,
+  "STAIRS_PER_FLOOR": 3,
+  "EXTRA_CORRIDORS": 12,
+  "SAFE_W": 7,
+  "SAFE_H": 5,
+  "FLOOR_TURNS_BASE": 720,
+  "FLOOR_TURNS_PER_DEPTH": 60,
+  "TIMER_WARNINGS": [
+   0.5,
+   0.25,
+   0.1
+  ],
+  "RESPAWN_START": 45,
+  "RESPAWN_END": 15,
+  "RESPAWN_CAP": 1.25,
+  "HEADLINER_DROPS": [
+   "katana",
+   "sledge",
+   "plate",
+   "elixir",
+   "fireworks"
+  ],
+  "PLAYER_BASE_HP": 34,
+  "HP_PER_LEVEL": 7,
+  "REGEN_INTERVAL": 7,
+  "REST_MIN_TIMER": 60,
+  "MONSTER_LOSE_TRACK": 10,
+  "MONSTER_WANDER_CHANCE": 0.25,
+  "RANGED_ATTACK_CHANCE": 0.6,
+  "PET_REVIVE_TURNS": 30,
+  "INVENTORY_SIZE": 16,
+  "ITEM_DROP_CHANCE": 0.25,
+  "FLOOR_ITEM_CHANCE": 0.3,
+  "BOMB_RANGE": 6,
+  "TOAST_TURNS": 8,
+  "SASS_LEVEL": 7,
+  "GOLD_PER_XP": 0.5,
+  "BG": [
+   12,
+   11,
+   16
+  ],
+  "PANEL_BG": [
+   22,
+   20,
+   30
+  ],
+  "TEXT": [
+   225,
+   222,
+   235
+  ],
+  "TEXT_DIM": [
+   130,
+   126,
+   145
+  ],
+  "ACCENT": [
+   255,
+   196,
+   64
+  ],
+  "DANGER": [
+   235,
+   80,
+   80
+  ],
+  "WARN": [
+   255,
+   140,
+   40
+  ],
+  "GOOD": [
+   110,
+   210,
+   120
+  ],
+  "INFO": [
+   110,
+   170,
+   240
+  ],
+  "WALL_LIT": [
+   88,
+   80,
+   110
+  ],
+  "WALL_DIM": [
+   40,
+   37,
+   52
+  ],
+  "FLOOR_LIT": [
+   52,
+   48,
+   64
+  ],
+  "FLOOR_DIM": [
+   24,
+   22,
+   31
+  ],
+  "SAFE_LIT": [
+   42,
+   92,
+   64
+  ],
+  "SAFE_DIM": [
+   20,
+   42,
+   30
+  ],
+  "PLAYER_COLOUR": [
+   255,
+   255,
+   255
+  ]
+ },
+ "ai": {
+  "CHASE_RADIUS": 25,
+  "PET_LEASH": 2,
+  "POUNCE_RANGE": 3,
+  "SQUAWK_RANGE": 3,
+  "MOUSE_FLEE_FRAC": 0.3
+ },
+ "attributes": {
+  "BASE_SCORE": 10,
+  "START_POINTS": 6,
+  "POINTS_PER_LEVEL": 2,
+  "MAX_SCORE": 30
+ },
+ "bosses": {
+  "MAP_RADIUS": 22,
+  "PHASE_TWO": {
+   "damage_bonus": 3,
+   "ranged": 5,
+   "adds": [
+    "cultist",
+    "cultist"
+   ]
+  }
+ },
+ "classes": {
+  "CHOICE_FLOOR": 3,
+  "FLAT_BONUSES": [
+   "max_hp",
+   "ac",
+   "hit",
+   "dr"
+  ]
+ },
+ "contracts": {
+  "OFFER_FROM_FLOOR": 2,
+  "OFFER_CHANCE": 0.7
+ },
+ "crafting": {
+  "CRAFT_TURNS": 10
+ },
+ "dungeon": {
+  "NEIGHBOURS_8": [
+   [
+    -1,
+    -1
+   ],
+   [
+    0,
+    -1
+   ],
+   [
+    1,
+    -1
+   ],
+   [
+    -1,
+    0
+   ],
+   [
+    1,
+    0
+   ],
+   [
+    -1,
+    1
+   ],
+   [
+    0,
+    1
+   ],
+   [
+    1,
+    1
+   ]
+  ]
+ },
+ "encounter": {
+  "PARTS": [
+   "move",
+   "action",
+   "bonus"
+  ],
+  "PART_NAMES": {
+   "move": "move",
+   "action": "action",
+   "bonus": "bonus action"
+  }
+ },
+ "funfacts": {
+  "MIN_GAP": 25,
+  "MISS_STREAK": 4,
+  "BOX_DROUGHT": 3
+ },
+ "items": {
+  "GLYPHS": {
+   "weapon": ")",
+   "armour": "[",
+   "potion": "!",
+   "bomb": "*",
+   "junk": "~"
+  },
+  "EQUIP_SLOTS": {
+   "weapon": "weapon",
+   "armour": "armour"
+  }
+ },
+ "lines": {
+  "JACKPOT_VALUE": 45
+ },
+ "loot": {
+  "TIERS": [
+   "bronze",
+   "silver",
+   "gold",
+   "platinum",
+   "legendary"
+  ],
+  "TRADE_UP_COST": 3,
+  "REROLL_FEE_FRAC": 0.3
+ },
+ "practice": {
+  "MAX_LEVEL": 15,
+  "SMALL_MONSTER_HP": 12,
+  "CARDIO_STEPS": 40
+ },
+ "shop": {
+  "DEMAND_GROWTH": 0.1,
+  "ALPHA": 0.3,
+  "LEAD_TIME": 1,
+  "SAFETY_Z": 1.0,
+  "SCARCITY_MARKUP": 0.6,
+  "SELL_RATE": 0.4
+ },
+ "showrunner": {
+  "START_VIEWERS": 50,
+  "MIN_VIEWERS": 20,
+  "SAMPLE_EVERY": 10,
+  "IDLE_TURNS": 10,
+  "DECAY": 0.97,
+  "MULTI_WINDOW": 4,
+  "CLUTCH_FRAC": 0.25,
+  "SPEAK_CHANCE": {
+   "kill": 0.4,
+   "damage_taken": 0.5,
+   "shop_buy": 0.5,
+   "shop_sell": 0.3,
+   "craft": 0.7,
+   "nat20": 0.8,
+   "nat1": 0.6,
+   "foe_nat20": 0.6,
+   "foe_nat1": 0.4,
+   "opportunity_attack": 0.5
+  },
+  "QUIP_CHANCE": 0.6,
+  "FLEE_QUIP_GAP": 8,
+  "PET_EVENTS": {
+   "pet_kill": "kill",
+   "pet_ability": "ability",
+   "pet_level_up": "level_up",
+   "pet_downed": "downed",
+   "pet_flee": "flee"
+  }
+ },
+ "telemetry": {
+  "SKIP": [
+   "turn"
+  ],
+  "VALUE_KEYS": [
+   "damage",
+   "amount",
+   "xp",
+   "healed",
+   "price",
+   "kills",
+   "level",
+   "turns",
+   "timer_left",
+   "chance",
+   "fee",
+   "phase",
+   "depth"
+  ],
+  "DETAIL_KEYS": [
+   "monster",
+   "item",
+   "tier",
+   "contract",
+   "skill",
+   "cause",
+   "source",
+   "ability",
+   "recipe",
+   "slot",
+   "to",
+   "boss",
+   "cls",
+   "attr",
+   "tier"
+  ]
+ },
+ "world": {
+  "PET_MODES": [
+   "follow",
+   "attack",
+   "stay"
+  ]
+ }
+}

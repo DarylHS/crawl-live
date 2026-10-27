@@ -1,0 +1,372 @@
+{
+ "first_blood": {
+  "name": "First Blood",
+  "desc": "Killed your first monster.",
+  "tier": "bronze",
+  "on": "kill",
+  "rule": {
+   "kind": "counter_gte",
+   "counter": "kills",
+   "n": 1
+  }
+ },
+ "pest_control": {
+  "name": "Pest Control",
+  "desc": "Killed 15 monsters.",
+  "tier": "bronze",
+  "on": "kill",
+  "rule": {
+   "kind": "counter_gte",
+   "counter": "kills",
+   "n": 15
+  }
+ },
+ "close_call": {
+  "name": "Close Call",
+  "desc": "Landed a kill on 25% HP or less.",
+  "tier": "silver",
+  "on": "kill",
+  "rule": {
+   "kind": "field_lte_floordiv",
+   "field": "player_hp",
+   "of": "player_max_hp",
+   "div": 4
+  }
+ },
+ "deep_diver": {
+  "name": "Deep Diver",
+  "desc": "Reached floor 3.",
+  "tier": "silver",
+  "on": "floor_start",
+  "rule": {
+   "kind": "field_gte",
+   "field": "depth",
+   "n": 3
+  }
+ },
+ "cutting_it_fine": {
+  "name": "Cutting It Fine",
+  "desc": "Took the stairs with under 10% of the timer left.",
+  "tier": "gold",
+  "on": "descend",
+  "rule": {
+   "kind": "field_lt_frac",
+   "field": "timer_left",
+   "of": "timer_max",
+   "frac": 0.1
+  }
+ },
+ "demolition": {
+  "name": "Demolition",
+  "desc": "Killed two monsters with one bomb.",
+  "tier": "silver",
+  "on": "bomb",
+  "rule": {
+   "kind": "field_gte",
+   "field": "kills",
+   "n": 2
+  }
+ },
+ "pyrotechnician": {
+  "name": "Pyrotechnician",
+  "desc": "Killed three monsters with one bomb.",
+  "tier": "gold",
+  "on": "bomb",
+  "rule": {
+   "kind": "field_gte",
+   "field": "kills",
+   "n": 3
+  }
+ },
+ "opening_night": {
+  "name": "Opening Night",
+  "desc": "Took down an Opening Act.",
+  "tier": "bronze",
+  "on": "act_kill",
+  "rule": {
+   "kind": "field_eq",
+   "field": "tier",
+   "value": "opening"
+  }
+ },
+ "upstaged": {
+  "name": "Upstaged",
+  "desc": "Took down a Featured Act.",
+  "tier": "silver",
+  "on": "act_kill",
+  "rule": {
+   "kind": "field_eq",
+   "field": "tier",
+   "value": "featured"
+  }
+ },
+ "locksmith": {
+  "name": "Locksmith",
+  "desc": "Used a Headliner's key to leave a floor early.",
+  "tier": "silver",
+  "on": "descend",
+  "rule": {
+   "kind": "field_true",
+   "field": "early"
+  }
+ },
+ "one_hp_wonder": {
+  "name": "One HP Wonder",
+  "desc": "Took a hit and lived on exactly 1 HP.",
+  "tier": "gold",
+  "on": "damage_taken",
+  "rule": {
+   "kind": "field_eq",
+   "field": "hp",
+   "value": 1
+  }
+ },
+ "crowd_pleaser": {
+  "name": "Crowd Pleaser",
+  "desc": "Reached 1,000 viewers.",
+  "tier": "silver",
+  "on": "viewers_gained",
+  "rule": {
+   "kind": "world_gte",
+   "stat": "viewers",
+   "n": 1000
+  }
+ },
+ "best_friends": {
+  "name": "Best Friends",
+  "desc": "Got your companion to level 3.",
+  "tier": "silver",
+  "on": "pet_level_up",
+  "rule": {
+   "kind": "field_gte",
+   "field": "level",
+   "n": 3
+  }
+ },
+ "pet_project": {
+  "name": "Pet Project",
+  "desc": "Your companion landed 10 kills.",
+  "tier": "silver",
+  "on": "pet_kill",
+  "rule": {
+   "kind": "counter_gte",
+   "counter": "pet_kills",
+   "n": 10
+  }
+ },
+ "jack_of_all_trades": {
+  "name": "Jack of All Trades",
+  "desc": "Got 8 practice skills to level 3.",
+  "tier": "gold",
+  "on": "practice_level",
+  "rule": {
+   "kind": "field_gte",
+   "field": "many_at_3",
+   "n": 8
+  }
+ },
+ "critical_darling": {
+  "name": "Critical Darling",
+  "desc": "Rolled a natural 20.",
+  "tier": "bronze",
+  "on": "nat20",
+  "rule": {
+   "kind": "always"
+  }
+ },
+ "blooper_reel": {
+  "name": "Blooper Reel",
+  "desc": "Rolled a natural 1. The audience loved it.",
+  "tier": "bronze",
+  "on": "nat1",
+  "rule": {
+   "kind": "always"
+  }
+ },
+ "cursed_dice": {
+  "name": "Cursed Dice",
+  "desc": "Rolled five natural 1s in one run.",
+  "tier": "silver",
+  "on": "nat1",
+  "rule": {
+   "kind": "counter_gte",
+   "counter": "nat1s",
+   "n": 5
+  }
+ },
+ "underfoot": {
+  "name": "Underfoot",
+  "desc": "Reached Stomping level 3. Squish.",
+  "tier": "bronze",
+  "on": "practice_level",
+  "rule": {
+   "kind": "all",
+   "rules": [
+    {
+     "kind": "field_eq",
+     "field": "skill",
+     "value": "stomping"
+    },
+    {
+     "kind": "field_gte",
+     "field": "level",
+     "n": 3
+    }
+   ]
+  }
+ },
+ "bare_knuckle_tv": {
+  "name": "Bare-Knuckle Television",
+  "desc": "Killed 10 monsters with your bare hands.",
+  "tier": "silver",
+  "on": "kill",
+  "rule": {
+   "kind": "counter_gte",
+   "counter": "unarmed_kills",
+   "n": 10
+  }
+ },
+ "cartographer": {
+  "name": "Cartographer",
+  "desc": "Collected three maps from Opening Acts.",
+  "tier": "silver",
+  "on": "map_found",
+  "rule": {
+   "kind": "counter_gte",
+   "counter": "maps",
+   "n": 3
+  }
+ },
+ "pack_rat": {
+  "name": "Pack Rat",
+  "desc": "Picked up 10 items.",
+  "tier": "bronze",
+  "on": "item_pickup",
+  "rule": {
+   "kind": "counter_gte",
+   "counter": "pickups",
+   "n": 10
+  }
+ },
+ "hoarder": {
+  "name": "Hoarder",
+  "desc": "Filled every slot in your pack.",
+  "tier": "bronze",
+  "on": "item_pickup",
+  "rule": {
+   "kind": "world_gte",
+   "stat": "inventory_len",
+   "n_config": "INVENTORY_SIZE"
+  }
+ },
+ "dressed_to_kill": {
+  "name": "Dressed to Kill",
+  "desc": "Wore a weapon and armour at once.",
+  "tier": "bronze",
+  "on": "equip",
+  "rule": {
+   "kind": "equipped_all",
+   "slots": [
+    "weapon",
+    "armour"
+   ]
+  }
+ },
+ "dumpster_diver": {
+  "name": "Dumpster Diver",
+  "desc": "Sold five pieces of junk.",
+  "tier": "bronze",
+  "on": "shop_sell",
+  "rule": {
+   "kind": "counter_gte",
+   "counter": "junk_sold",
+   "n": 5
+  }
+ },
+ "upcycler": {
+  "name": "Upcycler",
+  "desc": "Crafted something out of rubbish.",
+  "tier": "bronze",
+  "on": "craft",
+  "rule": {
+   "kind": "always"
+  }
+ },
+ "nap_champion": {
+  "name": "Nap Champion",
+  "desc": "Rested for three hours in one go.",
+  "tier": "bronze",
+  "on": "rest",
+  "rule": {
+   "kind": "field_gte",
+   "field": "turns",
+   "n": 180
+  }
+ },
+ "headliner_1": {
+  "name": "Show Stopper: The Grease Trap King",
+  "desc": "Took down floor 1's Headliner, The Grease Trap King.",
+  "tier": "silver",
+  "on": "boss_kill",
+  "rule": {
+   "kind": "field_eq",
+   "field": "depth",
+   "value": 1
+  }
+ },
+ "headliner_2": {
+  "name": "Show Stopper: The Overdue Librarian",
+  "desc": "Took down floor 2's Headliner, The Overdue Librarian.",
+  "tier": "silver",
+  "on": "boss_kill",
+  "rule": {
+   "kind": "field_eq",
+   "field": "depth",
+   "value": 2
+  }
+ },
+ "headliner_3": {
+  "name": "Show Stopper: Foreman Gristle",
+  "desc": "Took down floor 3's Headliner, Foreman Gristle.",
+  "tier": "gold",
+  "on": "boss_kill",
+  "rule": {
+   "kind": "field_eq",
+   "field": "depth",
+   "value": 3
+  }
+ },
+ "headliner_4": {
+  "name": "Show Stopper: High Hexer Volka",
+  "desc": "Took down floor 4's Headliner, High Hexer Volka.",
+  "tier": "gold",
+  "on": "boss_kill",
+  "rule": {
+   "kind": "field_eq",
+   "field": "depth",
+   "value": 4
+  }
+ },
+ "headliner_5": {
+  "name": "Show Stopper: The Shrink-Wrapped Colossus",
+  "desc": "Took down floor 5's Headliner, The Shrink-Wrapped Colossus.",
+  "tier": "platinum",
+  "on": "boss_kill",
+  "rule": {
+   "kind": "field_eq",
+   "field": "depth",
+   "value": 5
+  }
+ },
+ "headliner_6": {
+  "name": "Show Stopper: Executive Producer Glorm",
+  "desc": "Took down floor 6's Headliner, Executive Producer Glorm.",
+  "tier": "legendary",
+  "on": "boss_kill",
+  "rule": {
+   "kind": "field_eq",
+   "field": "depth",
+   "value": 6
+  }
+ }
+}

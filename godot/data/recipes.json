@@ -1,0 +1,42 @@
+[
+ {
+  "key": "sock_tea",
+  "name": "Sock Tea",
+  "needs": [
+   "sock",
+   "mug"
+  ],
+  "makes": "tonic",
+  "desc": "Brew a Soggy Sock in a Sponsor Mug. It heals. Don't ask how."
+ },
+ {
+  "key": "remote_rocket",
+  "name": "Remote Rocket",
+  "needs": [
+   "remote",
+   "popper"
+  ],
+  "makes": "fireworks",
+  "desc": "Wire a Mystery Remote into a Party Popper Bomb for a much bigger bang."
+ },
+ {
+  "key": "trophy_blade",
+  "name": "Trophy Blade",
+  "needs": [
+   "trophy",
+   "pan"
+  ],
+  "makes": "cleaver",
+  "desc": "Grind Half a Trophy into the edge of a Dented Frying Pan."
+ },
+ {
+  "key": "trophy_plate",
+  "name": "Trophy Plating",
+  "needs": [
+   "trophy",
+   "jersey"
+  ],
+  "makes": "vest",
+  "desc": "Bolt trophy scraps onto a Padded Gym Jersey."
+ }
+]

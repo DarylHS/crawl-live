@@ -1,0 +1,58 @@
+{
+ "acts": {
+  "opening": {
+   "title": "Opening Act",
+   "hp": 2.0,
+   "attack": 1,
+   "ac": 1,
+   "dmg": 1,
+   "save": 2,
+   "xp": 3,
+   "gold": 2
+  },
+  "featured": {
+   "title": "Featured Act",
+   "hp": 3.0,
+   "attack": 2,
+   "ac": 1,
+   "dmg": 2,
+   "save": 3,
+   "xp": 5,
+   "gold": 3
+  }
+ },
+ "names": {
+  "gnawer": [
+   "Gnawer Matriarch",
+   "The Rat Queen of Aisle Nine"
+  ],
+  "goblin": [
+   "Goblin Shift Supervisor",
+   "The Goblin Regional Manager"
+  ],
+  "vacbot": [
+   "Vacuum Bot Prime",
+   "The Self-Emptying Overlord"
+  ],
+  "skeleton": [
+   "Skeleton Middle Manager",
+   "The Bone Auditor"
+  ],
+  "brute": [
+   "Brute Bouncer",
+   "The Tunnel Brute Champion"
+  ],
+  "cultist": [
+   "Cultist Influencer",
+   "The Hex Cult Spokesperson"
+  ],
+  "golem": [
+   "Golem Understudy",
+   "The Stitched Superstar"
+  ],
+  "stalker": [
+   "Stalker Stand-in",
+   "The Shadow Producer"
+  ]
+ }
+}

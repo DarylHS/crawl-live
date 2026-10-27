@@ -1,0 +1,132 @@
+{
+ "bronze": {
+  "name": "Bronze",
+  "colour": [
+   205,
+   140,
+   80
+  ],
+  "table": [
+   {
+    "item": "sock",
+    "weight": 4
+   },
+   {
+    "item": "tonic",
+    "weight": 4
+   },
+   {
+    "item": "popper",
+    "weight": 3
+   },
+   {
+    "item": "jersey",
+    "weight": 3
+   }
+  ]
+ },
+ "silver": {
+  "name": "Silver",
+  "colour": [
+   200,
+   205,
+   215
+  ],
+  "table": [
+   {
+    "item": "trophy",
+    "weight": 2
+   },
+   {
+    "item": "pan",
+    "weight": 3
+   },
+   {
+    "item": "brew",
+    "weight": 4
+   },
+   {
+    "item": "vest",
+    "weight": 3
+   }
+  ]
+ },
+ "gold": {
+  "name": "Gold",
+  "colour": [
+   255,
+   196,
+   64
+  ],
+  "table": [
+   {
+    "item": "cleaver",
+    "weight": 3
+   },
+   {
+    "item": "vest",
+    "weight": 3
+   },
+   {
+    "item": "brew",
+    "weight": 3
+   },
+   {
+    "item": "fireworks",
+    "weight": 2
+   }
+  ]
+ },
+ "platinum": {
+  "name": "Platinum",
+  "colour": [
+   150,
+   225,
+   235
+  ],
+  "table": [
+   {
+    "item": "cleaver",
+    "weight": 2
+   },
+   {
+    "item": "plate",
+    "weight": 3
+   },
+   {
+    "item": "elixir",
+    "weight": 3
+   },
+   {
+    "item": "fireworks",
+    "weight": 2
+   }
+  ]
+ },
+ "legendary": {
+  "name": "Legendary",
+  "colour": [
+   235,
+   110,
+   255
+  ],
+  "table": [
+   {
+    "item": "katana",
+    "weight": 3
+   },
+   {
+    "item": "plate",
+    "weight": 3
+   },
+   {
+    "item": "elixir",
+    "weight": 3
+   },
+   {
+    "item": "fireworks",
+    "weight": 1
+   }
+  ]
+ }
+}

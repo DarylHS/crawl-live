@@ -1,0 +1,122 @@
+{
+ "fisticuffs": {
+  "name": "Fisticuffs",
+  "group": "Fighting",
+  "trains": "Landing punches with no weapon equipped",
+  "effect": "+1 unarmed damage every 2 levels"
+ },
+ "blades": {
+  "name": "Bladework",
+  "group": "Fighting",
+  "trains": "Landing hits with a bladed weapon",
+  "effect": "+1 damage with blades every 3 levels"
+ },
+ "bludgeoning": {
+  "name": "Bludgeoning",
+  "group": "Fighting",
+  "trains": "Landing hits with a blunt weapon",
+  "effect": "+1 blunt damage every 3 levels"
+ },
+ "stomping": {
+  "name": "Stomping",
+  "group": "Fighting",
+  "trains": "Squashing small monsters in melee",
+  "effect": "+1 damage against small monsters every 2 levels"
+ },
+ "cheap_shots": {
+  "name": "Cheap Shots",
+  "group": "Fighting",
+  "trains": "Landing critical hits",
+  "effect": "Crit range +1 every 5 levels (crits on 19-20 at level 5)"
+ },
+ "giant_killer": {
+  "name": "Giant Killer",
+  "group": "Fighting",
+  "trains": "Damaging bosses",
+  "effect": "+3% damage against bosses per level"
+ },
+ "lobbing": {
+  "name": "Lobbing",
+  "group": "Fighting",
+  "trains": "Throwing bombs",
+  "effect": "+8% bomb damage per level"
+ },
+ "dodging": {
+  "name": "Dodging",
+  "group": "Survival",
+  "trains": "Being missed by attacks",
+  "effect": "+1 Armour Class every 4 levels"
+ },
+ "pain_tolerance": {
+  "name": "Pain Tolerance",
+  "group": "Survival",
+  "trains": "Getting hit and living",
+  "effect": "+1 max HP per level"
+ },
+ "first_aid": {
+  "name": "First Aid",
+  "group": "Survival",
+  "trains": "Drinking potions",
+  "effect": "+8% potion healing per level"
+ },
+ "power_napping": {
+  "name": "Power Napping",
+  "group": "Survival",
+  "trains": "Resting in safe rooms",
+  "effect": "Rest heals 10% faster per level"
+ },
+ "cardio": {
+  "name": "Cardio",
+  "group": "Survival",
+  "trains": "Walking (lots of walking)",
+  "effect": "+2 minutes on each new floor's timer per level"
+ },
+ "sneaking": {
+  "name": "Sneaking",
+  "group": "Survival",
+  "trains": "Moving near monsters that haven't noticed you",
+  "effect": "Monsters notice you 1 tile later per 4 levels"
+ },
+ "scavenging": {
+  "name": "Scavenging",
+  "group": "Wheeling and dealing",
+  "trains": "Picking things up",
+  "effect": "+2% chance of loot in each room per level"
+ },
+ "pickpocketing": {
+  "name": "Pickpocketing",
+  "group": "Wheeling and dealing",
+  "trains": "Looting gold from the fallen",
+  "effect": "+5% gold from kills per level"
+ },
+ "haggling": {
+  "name": "Haggling",
+  "group": "Wheeling and dealing",
+  "trains": "Buying and selling in the shop",
+  "effect": "-2% shop prices and +3% sale prices per level"
+ },
+ "gambling": {
+  "name": "Gambling",
+  "group": "Wheeling and dealing",
+  "trains": "Opening loot boxes",
+  "effect": "-5% reroll fees per level"
+ },
+ "tinkering": {
+  "name": "Tinkering",
+  "group": "Wheeling and dealing",
+  "trains": "Crafting",
+  "effect": "Crafts 8% faster, 4% bonus-item chance per level"
+ },
+ "showmanship": {
+  "name": "Showmanship",
+  "group": "Wheeling and dealing",
+  "trains": "Entertaining the audience",
+  "effect": "+3% viewers gained per level"
+ },
+ "pet_bonding": {
+  "name": "Pet Bonding",
+  "group": "Wheeling and dealing",
+  "trains": "Your companion fighting alongside you",
+  "effect": "Companion deals +5% damage per level"
+ }
+}

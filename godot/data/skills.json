@@ -1,0 +1,53 @@
+{
+ "haymaker": {
+  "name": "Haymaker",
+  "cooldown": 10,
+  "desc": "A guaranteed hit on an adjacent monster for double damage."
+ },
+ "arc_bolt": {
+  "name": "Arc Bolt",
+  "cooldown": 20,
+  "range": 6,
+  "desc": "Zap the nearest visible monster within 6 tiles for 6 + 2 x level + INT modifier. No roll to hit: lightning finds a way."
+ },
+ "scout_report": {
+  "name": "Scout Report",
+  "cooldown": 25,
+  "duration": 20,
+  "desc": "For 20 turns, see exact hit chances and expected damage for every visible monster, both ways."
+ },
+ "field_brew": {
+  "name": "Field Brew",
+  "cooldown": 12,
+  "desc": "Turn one piece of junk from your pack into a random potion, anywhere."
+ },
+ "rile_up": {
+  "name": "Rile Up",
+  "cooldown": 20,
+  "duration": 5,
+  "desc": "Your companion does double damage for 5 turns."
+ },
+ "crowd_work": {
+  "name": "Crowd Work",
+  "cooldown": 25,
+  "duration": 10,
+  "desc": "For 10 turns kills earn triple viewers and your companion hits 50% harder."
+ },
+ "pocket_popper": {
+  "name": "Pocket Popper",
+  "cooldown": 15,
+  "range": 6,
+  "desc": "Throw a free Party Popper Bomb at the nearest visible monster."
+ },
+ "supply_drop": {
+  "name": "Supply Drop",
+  "cooldown": 999,
+  "desc": "Open the shop wherever you are for one purchase, plus a free Fizzy Tonic. Once per floor."
+ },
+ "riposte": {
+  "name": "Riposte",
+  "cooldown": 18,
+  "charges": 2,
+  "desc": "Parry the next 2 attacks against you and strike back each time."
+ }
+}

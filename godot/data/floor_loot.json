@@ -1,0 +1,77 @@
+[
+ {
+  "item": "sock",
+  "weight": 4,
+  "min_floor": 1
+ },
+ {
+  "item": "remote",
+  "weight": 3,
+  "min_floor": 1
+ },
+ {
+  "item": "mug",
+  "weight": 3,
+  "min_floor": 1
+ },
+ {
+  "item": "trophy",
+  "weight": 2,
+  "min_floor": 1
+ },
+ {
+  "item": "tonic",
+  "weight": 6,
+  "min_floor": 1
+ },
+ {
+  "item": "brew",
+  "weight": 3,
+  "min_floor": 2
+ },
+ {
+  "item": "elixir",
+  "weight": 1,
+  "min_floor": 4
+ },
+ {
+  "item": "popper",
+  "weight": 3,
+  "min_floor": 1
+ },
+ {
+  "item": "fireworks",
+  "weight": 1,
+  "min_floor": 3
+ },
+ {
+  "item": "pan",
+  "weight": 2,
+  "min_floor": 1
+ },
+ {
+  "item": "jersey",
+  "weight": 2,
+  "min_floor": 1
+ },
+ {
+  "item": "cleaver",
+  "weight": 1,
+  "min_floor": 2
+ },
+ {
+  "item": "vest",
+  "weight": 1,
+  "min_floor": 2
+ },
+ {
+  "item": "extinguisher",
+  "weight": 1,
+  "min_floor": 2
+ },
+ {
+  "item": "sledge",
+  "weight": 1,
+  "min_floor": 4
+ }
+]
