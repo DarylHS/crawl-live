@@ -7,7 +7,7 @@
 #
 # 1. imports the project (class_name needs .godot/global_script_class_cache.cfg; a headless
 #    parse error can still exit 0, so step 4 also greps the log),
-# 2. regenerates the Python references into a temp dir (not committed: the RNG one is 12.7 MB),
+# 2. regenerates the Python references and fixtures (make_fixtures.py) into a temp dir (not committed: the RNG one is 12.7 MB),
 # 3. runs GUT (addons/gut, settings in godot/.gutconfig.json),
 # 4. passes only if the exit status is 0, GUT reports 'All tests passed!' and no SCRIPT ERROR /
 #    parse error / failed-to-load line appears.
@@ -23,7 +23,8 @@ trap 'rm -rf "$REFDIR"' EXIT
 
 python3 "$ROOT/scripts/py_random_reference.py" "$REFDIR/py_random_ref.json" || { echo "FAIL: py_random_reference.py"; exit 1; }
 python3 "$ROOT/scripts/content_reference.py" "$REFDIR/content_ref.json" || { echo "FAIL: content_reference.py"; exit 1; }
-export PY_RANDOM_REF="$REFDIR/py_random_ref.json" CONTENT_REF="$REFDIR/content_ref.json"
+python3 "$ROOT/scripts/make_fixtures.py" "$REFDIR/fixtures.json" || { echo "FAIL: make_fixtures.py"; exit 1; }
+export PY_RANDOM_REF="$REFDIR/py_random_ref.json" CONTENT_REF="$REFDIR/content_ref.json" FIXTURES="$REFDIR/fixtures.json"
 
 ARGS=()
 for a in "$@"; do
