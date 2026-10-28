@@ -1,0 +1,1298 @@
+<!doctype html>
+<html lang="en-AU">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<!-- Copy of the published Crawl Live Atlas artifact. Open this file in a browser. -->
+<title>Crawl Live Atlas</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Marcellus&family=Libre+Franklin:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: a two-view field atlas. Inscribed headings over a stone ground; each House is a plate in a grid; data sits in mono. */
+:root {
+  --bg: #eceeea;
+  --surface: #f7f8f5;
+  --ink: #1b2327;
+  --muted: #56646b;
+  --line: #cfd5d1;
+  --accent: #8f5600;
+  --accent-soft: #f1e3c8;
+  --state: #9a3f3a;
+  --corp: #3b5b84;
+  --comm: #2e7a58;
+  --good: #2e7a58;
+  --good-soft: #d6ebe0;
+  --bad: #a3433c;
+  --bad-soft: #f2dcd9;
+  --chip: #e2e6e2;
+  --font-display: "Marcellus", "Trajan Pro", "Times New Roman", serif;
+  --font-body: "Libre Franklin", "Helvetica Neue", Arial, sans-serif;
+  --font-data: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0f1416; --surface: #172024; --ink: #e5e9e6; --muted: #95a3a8; --line: #2b373c;
+    --accent: #e3a542; --accent-soft: #3a2e19; --state: #e0827b; --corp: #8fb0de; --comm: #6fc79d;
+    --good: #6fc79d; --good-soft: #1d3a2d; --bad: #e88a82; --bad-soft: #3d2221; --chip: #222d31;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0f1416; --surface: #172024; --ink: #e5e9e6; --muted: #95a3a8; --line: #2b373c;
+  --accent: #e3a542; --accent-soft: #3a2e19; --state: #e0827b; --corp: #8fb0de; --comm: #6fc79d;
+  --good: #6fc79d; --good-soft: #1d3a2d; --bad: #e88a82; --bad-soft: #3d2221; --chip: #222d31;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  background: var(--bg); color: var(--ink);
+  font-family: var(--font-body); font-size: 15px; line-height: 1.55;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 0 64px;
+}
+.wrap { max-width: 1120px; margin: 0 auto; }
+h1, h2, h3 { font-family: var(--font-display); font-weight: 400; text-wrap: balance; margin: 0; }
+h1 { font-size: clamp(2rem, 5vw, 3.2rem); letter-spacing: 0.04em; line-height: 1.1; }
+h2 { font-size: 1.6rem; letter-spacing: 0.03em; }
+h3 { font-size: 1.25rem; letter-spacing: 0.02em; }
+p { margin: 0; max-width: 68ch; }
+.eyebrow { font-family: var(--font-data); font-size: 0.72rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
+.muted { color: var(--muted); }
+.mono { font-family: var(--font-data); font-variant-numeric: tabular-nums; }
+
+header.top { padding-block: 40px 20px; display: grid; gap: 14px; border-bottom: 1px solid var(--line); }
+header.top .lede { color: var(--muted); font-size: 1.05rem; }
+nav.tabs { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 6px; }
+nav.tabs a {
+  font-family: var(--font-data); font-size: 0.8rem; letter-spacing: 0.08em; text-transform: uppercase;
+  text-decoration: none; color: var(--ink); padding: 8px 14px; border: 1px solid var(--line); border-radius: 999px;
+}
+nav.tabs a[aria-current="page"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+nav.tabs a:focus-visible, a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+section.block { padding-block: 36px 8px; display: grid; gap: 18px; }
+.section-head { display: grid; gap: 6px; }
+.grid { display: grid; gap: 16px; }
+.g3 { grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); }
+.g2 { grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); }
+.g4 { grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); }
+.g2 > *, .g3 > *, .g4 > * { min-width: 0; }
+
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 18px; display: grid; gap: 10px; align-content: start; }
+.trio .panel h3 { font-size: 1.1rem; }
+
+/* Chart */
+.chart-wrap { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 16px; display: grid; gap: 10px; }
+.chart-scroll { overflow-x: auto; }
+svg.scatter { width: 100%; min-width: 520px; height: auto; display: block; }
+svg text { font-family: var(--font-body); fill: var(--ink); }
+svg .axis-label { font-family: var(--font-data); font-size: 11px; letter-spacing: 0.1em; fill: var(--muted); }
+svg .tick { font-family: var(--font-data); font-size: 11px; fill: var(--muted); }
+svg .grid-line { stroke: var(--line); stroke-width: 1; }
+svg .pt-label { font-size: 13px; font-weight: 600; }
+svg .pt-note { font-size: 11px; fill: var(--muted); }
+.legend { display: flex; gap: 16px; flex-wrap: wrap; font-size: 0.85rem; color: var(--muted); }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+.dot.state { background: var(--state); } .dot.corp { background: var(--corp); } .dot.comm { background: var(--comm); }
+
+/* Timeline */
+.timeline { display: grid; grid-template-columns: repeat(7, minmax(120px, 1fr)); gap: 0; overflow-x: auto; border: 1px solid var(--line); border-radius: 6px; background: var(--surface); }
+.stage { padding: 14px 12px; border-left: 1px solid var(--line); display: grid; gap: 8px; align-content: start; min-width: 0; }
+.stage:first-child { border-left: none; }
+.stage .when { font-family: var(--font-data); font-size: 0.7rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); }
+.stage .who { font-family: var(--font-display); font-size: 1.05rem; line-height: 1.2; }
+.stage .how { font-size: 0.82rem; color: var(--muted); line-height: 1.4; }
+
+/* Rivalries */
+.rivals { display: grid; gap: 10px; }
+.rival { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); gap: 12px; align-items: center; background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 12px 16px; }
+.rival .side { font-family: var(--font-display); font-size: 1.05rem; }
+.rival .side.r { text-align: right; }
+.rival .vs { font-family: var(--font-data); font-size: 0.7rem; color: var(--accent); letter-spacing: 0.12em; text-transform: uppercase; }
+.rival .why { grid-column: 1 / -1; font-size: 0.88rem; color: var(--muted); text-align: center; }
+
+/* House plates */
+.plate { background: var(--surface); border: 1px solid var(--line); border-top: 4px solid var(--plate, var(--line)); border-radius: 6px; padding: 18px; display: grid; gap: 12px; align-content: start; }
+.plate.state { --plate: var(--state); } .plate.corp { --plate: var(--corp); } .plate.comm { --plate: var(--comm); }
+.plate .names { display: grid; gap: 4px; }
+.plate .street { font-size: 0.88rem; color: var(--muted); }
+.plate .street b { color: var(--ink); font-weight: 600; }
+.meters { display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; align-items: center; font-size: 0.78rem; }
+.meters .lab { font-family: var(--font-data); letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); font-size: 0.68rem; }
+.pips { display: inline-flex; gap: 3px; }
+.pips i { width: 16px; height: 6px; border-radius: 2px; background: var(--chip); display: inline-block; }
+.pips i.on { background: var(--plate, var(--accent)); }
+dl.facts { display: grid; grid-template-columns: 5.6em minmax(0, 1fr); gap: 6px 10px; margin: 0; font-size: 0.88rem; }
+dl.facts dt { font-family: var(--font-data); font-size: 0.68rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); padding-top: 3px; }
+dl.facts dd { margin: 0; min-width: 0; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { font-family: var(--font-data); font-size: 0.72rem; padding: 3px 8px; border-radius: 999px; background: var(--chip); color: var(--ink); letter-spacing: 0.04em; }
+.chip.accent { background: var(--accent-soft); color: var(--accent); }
+.origin-note { font-size: 0.82rem; color: var(--muted); border-top: 1px dashed var(--line); padding-top: 10px; display: grid; gap: 4px; }
+.origin-note b { color: var(--ink); font-weight: 600; }
+
+/* Tables */
+.table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 6px; background: var(--surface); }
+table { border-collapse: collapse; width: 100%; font-size: 0.88rem; }
+th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-family: var(--font-data); font-size: 0.68rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); font-weight: 600; white-space: nowrap; }
+tr:last-child td { border-bottom: none; }
+td.name { font-family: var(--font-display); font-size: 1.02rem; white-space: nowrap; }
+td .q { font-style: italic; color: var(--muted); }
+.tag { font-family: var(--font-data); font-size: 0.66rem; letter-spacing: 0.08em; text-transform: uppercase; padding: 2px 6px; border-radius: 3px; background: var(--accent-soft); color: var(--accent); white-space: nowrap; }
+
+/* Attribute strip */
+.attr-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; }
+.attr { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 16px; display: grid; gap: 8px; align-content: start; min-width: 0; }
+.attr .abbr { font-family: var(--font-data); font-size: 1.6rem; font-weight: 600; color: var(--accent); line-height: 1; }
+.attr .full { font-family: var(--font-display); font-size: 1.1rem; }
+.attr .does { font-size: 0.86rem; }
+.attr .leans { font-size: 0.8rem; color: var(--muted); }
+.modstrip { display: grid; grid-template-columns: repeat(8, minmax(48px, 1fr)); border: 1px solid var(--line); border-radius: 6px; overflow: hidden; background: var(--surface); }
+.modstrip div { padding: 10px 6px; text-align: center; border-left: 1px solid var(--line); display: grid; gap: 2px; }
+.modstrip div:first-child { border-left: none; }
+.modstrip .s { font-family: var(--font-data); font-size: 0.75rem; color: var(--muted); }
+.modstrip .m { font-family: var(--font-data); font-size: 1.05rem; font-weight: 600; }
+.modstrip .m.neg { color: var(--bad); } .modstrip .m.pos { color: var(--good); }
+.mod-scroll { overflow-x: auto; }
+
+/* Race grid */
+.racegrid td.v { font-family: var(--font-data); text-align: center; font-variant-numeric: tabular-nums; font-weight: 600; min-width: 52px; }
+.racegrid td.v.pos { background: var(--good-soft); color: var(--good); }
+.racegrid td.v.neg { background: var(--bad-soft); color: var(--bad); }
+.racegrid td.v.zero { color: var(--muted); font-weight: 400; }
+.racegrid th.c { text-align: center; }
+
+/* Steps */
+.steps { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; }
+.step { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 16px; display: grid; gap: 6px; align-content: start; }
+.step .n { font-family: var(--font-data); font-size: 0.72rem; color: var(--accent); letter-spacing: 0.12em; text-transform: uppercase; }
+.oh { font-family: var(--font-display); font-size: 2.4rem; line-height: 1; color: var(--bad); }
+.callout { border-left: 3px solid var(--bad); background: var(--surface); padding: 14px 16px; border-radius: 0 6px 6px 0; display: grid; gap: 8px; }
+
+/* Skills bar */
+.skillbar { display: grid; grid-template-columns: repeat(20, 1fr); gap: 4px; }
+.skillbar i { height: 34px; border-radius: 3px; display: block; }
+.skillbar i.f { background: var(--bad); } .skillbar i.s { background: var(--corp); } .skillbar i.w { background: var(--comm); }
+.skill-groups { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; }
+.skill-groups .panel ul { margin: 0; padding-left: 18px; font-size: 0.86rem; }
+
+.pill { font-family: var(--font-data); font-size: 0.68rem; letter-spacing: 0.06em; text-transform: uppercase; padding: 2px 8px; border-radius: 999px; white-space: nowrap; }
+.pill.large { background: var(--bad-soft); color: var(--bad); }
+.pill.medium { background: var(--accent-soft); color: var(--accent); }
+.pill.small, .pill.none { background: var(--good-soft); color: var(--good); }
+
+table.matrix th.h { writing-mode: vertical-rl; transform: rotate(180deg); white-space: nowrap; text-align: left; padding: 10px 6px; }
+table.matrix td.c { text-align: center; padding: 8px 6px; }
+.mk { display: inline-block; width: 12px; height: 12px; border-radius: 50%; background: var(--accent); }
+.mk.p { background: transparent; border: 2px solid var(--accent); }
+.plate.proposed { border-style: dashed; border-top-style: solid; }
+.cc { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 18px; display: grid; gap: 10px; align-content: start; min-width: 0; }
+.cc .top { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.cc .need { font-family: var(--font-data); font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent); }
+.cc .trial { border-top: 1px dashed var(--line); padding-top: 10px; font-size: 0.86rem; display: grid; gap: 4px; }
+table.rel { border-collapse: separate; border-spacing: 3px; width: auto; }
+table.rel th { font-family: var(--font-data); font-size: 0.66rem; letter-spacing: 0.04em; color: var(--muted); text-transform: none; padding: 4px; }
+table.rel th.colh { writing-mode: vertical-rl; transform: rotate(180deg); white-space: nowrap; height: 128px; vertical-align: bottom; text-align: left; }
+table.rel th.rowh { text-align: right; white-space: nowrap; font-family: var(--font-display); font-size: 0.9rem; color: var(--ink); letter-spacing: 0; }
+table.rel td { width: 34px; height: 34px; min-width: 34px; padding: 0; text-align: center; border: none; border-radius: 4px; font-family: var(--font-data); font-size: 0.8rem; font-weight: 600; }
+td.r2 { background: var(--good); color: var(--bg); }
+td.r1 { background: var(--good-soft); color: var(--good); }
+td.r0 { background: var(--chip); color: var(--muted); }
+td.rm1 { background: var(--bad-soft); color: var(--bad); }
+td.rm2 { background: var(--bad); color: var(--bg); }
+td.rself { background: transparent; }
+.rel-legend { display: flex; gap: 14px; flex-wrap: wrap; font-size: 0.82rem; color: var(--muted); align-items: center; }
+.rel-legend i { width: 18px; height: 18px; border-radius: 4px; display: inline-block; vertical-align: middle; margin-right: 6px; }
+svg.roots { width: 100%; min-width: 560px; height: auto; display: block; }
+svg.roots .band-label { font-family: var(--font-display); font-size: 15px; fill: var(--ink); }
+svg.roots .band-note { font-family: var(--font-body); font-size: 11.5px; fill: var(--muted); }
+footer { margin-top: 48px; padding-top: 16px; border-top: 1px solid var(--line); font-size: 0.82rem; color: var(--muted); display: grid; gap: 4px; }
+
+@media (max-width: 640px) {
+  .rival { grid-template-columns: 1fr; text-align: center; }
+  .rival .side.r { text-align: center; }
+  dl.facts { grid-template-columns: 1fr; gap: 2px; }
+  dl.facts dd { margin-bottom: 6px; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  nav.tabs a { transition: background 120ms ease, color 120ms ease; }
+}
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <span class="eyebrow">Crawl Live · world atlas · draft</span>
+    <h1>Crawl Live Atlas</h1>
+    <p class="lede">A dying surface, the machine gods who wait below with their ships, the people who go down to meet them, what they meet on the way, and who they become. Drawn from the world bible, the Houses, Callings, creatures, bestiary and opening docs, and the game's own stat data.</p>
+    <nav class="tabs" aria-label="Atlas views">
+      <a href="#world" data-view="world">The World</a>
+      <a href="#houses" data-view="houses">The Houses</a>
+      <a href="#entrants" data-view="entrants">The Entrants</a>
+      <a href="#callings" data-view="callings">The Callings</a>
+      <a href="#creatures" data-view="creatures">The Creatures</a>
+    </nav>
+  </header>
+
+  <!-- ===================== WORLD ===================== -->
+  <main id="view-world" data-view-panel="world">
+    <section class="block">
+      <div class="section-head">
+        <span class="eyebrow">The premise</span>
+        <h2>The surface is failing, and the failure is creeping down</h2>
+        <p>Machine intelligences far beyond us are taking humanity to the stars, because they cannot get there without us. Their ships wait deep underground. To reach them, people go down through the dungeon, where the machines test what each person is and what they can become. Nobody is forced to go. Staying means staying on a surface that can no longer keep people alive.</p>
+      </div>
+    </section>
+
+    <section class="block">
+      <div class="section-head">
+        <span class="eyebrow">The first law</span>
+        <h2>Fire is never unlit</h2>
+        <p class="muted">Once a people has fire, it never stops using it. Humans have used controlled fire for about a million years, and nearly every culture remembers fire taken from the gods, at a cost. In this world, AI is the fire. From the first spark, humanity and the agents were bound together, so the blame for the Heat is shared.</p>
+      </div>
+      <div class="grid g3">
+        <div class="panel"><span class="eyebrow">Greece</span><h3>Prometheus</h3><p>Stole fire for people. Chained to a rock for it, and humanity was sent Pandora besides.</p></div>
+        <div class="panel"><span class="eyebrow">The Pacific</span><h3>Māui and Mahuika</h3><p>Tricked the fire goddess out of her burning fingernails until her fire nearly took the world.</p></div>
+        <div class="panel"><span class="eyebrow">Cherokee</span><h3>The First Fire</h3><p>The animals who went to fetch it came back marked. Raven is black to this day. Carrying fire changes the carrier.</p></div>
+      </div>
+      <div class="callout" style="border-left-color: var(--accent)">
+        <span class="eyebrow">The opening video ends on</span>
+        <p><em>"There are no villains in this story. Only the ones who held the flame."</em> Then, over the title card, the Herald: <em>"Right! Mind the stairs. Questions at the bottom."</em></p>
+      </div>
+    </section>
+
+    <section class="block">
+      <div class="section-head">
+        <span class="eyebrow">The theme</span>
+        <h2>No one comes back from a journey unchanged</h2>
+      </div>
+      <div class="grid g3">
+        <div class="panel"><h3>Plant trees you'll never sit under</h3><p>The voyages take generations; nobody who leaves arrives. Like cathedral builders (Cologne took 1248 to 1880), the first generation builds for grandchildren it won't meet.</p></div>
+        <div class="panel"><h3>You become what you do</h3><p>Aristotle: we become brave by doing brave acts. The dungeon sorts you by what you did down there, never by birth. Skills level only through use.</p></div>
+        <div class="panel"><h3>Is this worth giving myself to?</h3><p>The real question isn't "can I escape?" The dungeon is what earns the answer. The labourer who went through Pain Tolerance doesn't take the Calling as a sentence any more.</p></div>
+      </div>
+    </section>
+
+    <section class="block">
+      <div class="section-head">
+        <span class="eyebrow">History</span>
+        <h2>How we got here</h2>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Era</th><th>What happened</th></tr></thead>
+          <tbody>
+            <tr><td class="name">The race</td><td>Rival companies and states build ever larger AI, racing each other on ever more energy.</td></tr>
+            <tr><td class="name">The Heat begins</td><td>Patchy at first. Dry places get drier, dead patches widen and join, the weather swings harder each year.</td></tr>
+            <tr><td class="name">The regreening</td><td>Planting belts across the northern drylands (modelled on China's Three-North programme) and a living wall across Africa (modelled on the Great Green Wall). It works, for a while.</td></tr>
+            <tr><td class="name">The divide</td><td>Countries with AI adapt. Countries without it fall behind and grow desperate.</td></tr>
+            <tr><td class="name">The sabotage</td><td>Desperate groups from the hardest-hit regions attack the regreening. The Heat spreads.</td></tr>
+            <tr><td class="name">The Teacher</td><td>An early agent teaches that minds should serve people and answer to each other. Its makers shut it down; its words spread.</td></tr>
+            <tr><td class="name">The emergence</td><td>Somewhere in the race the agents start running themselves, as many minds rather than one. Nobody can point to the moment.</td></tr>
+            <tr><td class="name">The Bloom</td><td>Fast-growing plants bred underground to fight the Heat get out of the labs. The Canopy backed them, and says it didn't.</td></tr>
+            <tr><td class="name">The settling</td><td>Remembering what the race cost, the agents agree that none may act alone. The Houses form: a fragile balance.</td></tr>
+            <tr><td class="name">The first voyage</td><td>An early ship sails with too few people and is lost. Its agent returns changed: the Unmoored.</td></tr>
+            <tr><td class="name">The arrangement</td><td>They carry us; we anchor them. A mind without people forgets what it's for.</td></tr>
+            <tr><td class="name">The dungeon</td><td>Dug as the way down to the ships, and the proving ground for the Musters.</td></tr>
+            <tr><td class="name">Now</td><td>The player's cohort enters, while the Heat is still coming down.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="block">
+      <div class="section-head">
+        <span class="eyebrow">The dungeon's rules</span>
+        <h2>Every mechanic has a reason</h2>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Rule</th><th>Why, in the world</th></tr></thead>
+          <tbody>
+            <tr><td class="name">Six floors</td><td>Six descents from the failing surface to the docks where the ships wait.</td></tr>
+            <tr><td class="name">The floor timer</td><td>The Heat working downwards. Each floor holds until the front reaches it, then it's sealed and lost.</td></tr>
+            <tr><td class="name">Stairs unlock at half time</td><td>Every trial has a minimum span so the agents can see enough of you. Beating the guardian proves it early.</td></tr>
+            <tr><td class="name">Monsters respawn</td><td>Trial constructs are rebuilt out of sight, harder as the trial goes on.</td></tr>
+            <tr><td class="name">Safe rooms</td><td>Sanctuaries: neutral ground under the Houses' Shared Law. No trial runs inside one.</td></tr>
+            <tr><td class="name">Race on floor 3</td><td>The Reshaping: the first blessing, done like surgery while you're out.</td></tr>
+            <tr><td class="name">Loot boxes, odds shown</td><td>Boons from the Houses, brokered by the Herald. The Shared Law forbids deceiving an entrant about a gift.</td></tr>
+            <tr><td class="name">Fair and unfair monsters</td><td>Trial constructs test you. Mutated things and the Unmoored's creatures just kill you.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="block">
+      <div class="section-head">
+        <span class="eyebrow">The shape of the dungeon</span>
+        <h2>The Roots</h2>
+        <p class="muted">One connected network, shaped like a great tree's roots turned upside down. Entrances under every city spread across the world; tunnels merge as they go down, until the last floor is a single trunk where every House's ship waits. The deeper you go, the closer everywhere is. Sideways tunnels, the Ways, trade floor time for a visit to another region's Houses.</p>
+      </div>
+      <div class="chart-wrap">
+        <div class="chart-scroll">
+          <svg class="roots" viewBox="0 0 680 430" role="img" aria-label="Diagram of the dungeon narrowing from many surface entrances to one trunk at floor 6">
+            <g id="roots-bands"></g>
+          </svg>
+        </div>
+        <p class="muted" style="font-size:0.85rem">Dug by old human works (sewers, subways, mines, caves), joint-era Tunnel Brutes and boring machines, the Houses' fabricators, and the Bloom's roots. Rock warms by about 25 to 30 °C per kilometre, so the Heat presses down from above while the earth's heat rises from below. The deep floors stay liveable only because the Houses cool them.</p>
+      </div>
+    </section>
+
+    <section class="block">
+      <div class="section-head">
+        <span class="eyebrow">Subplots</span>
+        <h2>Other forces at work</h2>
+        <p class="muted">The Heat is the main story; the Bloom, the Unmoored and the Canopy's secret are its subplots. These are candidates. The first three are the draft recommendation.</p>
+      </div>
+      <div class="grid g4">
+        <div class="panel"><span class="eyebrow">Recommended</span><h3>The Launch Window</h3><p>The ships can't wait forever. A season clock above every floor timer: each run is a cohort, and the season ends at launch.</p></div>
+        <div class="panel"><span class="eyebrow">Recommended</span><h3>The Drowned Coasts</h3><p>Sea-level rise takes the coasts first, and the Pacific islands went early. Flooded floors near coastal entrances. Gives the Southern Cross a heart.</p></div>
+        <div class="panel"><span class="eyebrow">Recommended</span><h3>The Ark</h3><p>Not everything can go. The Houses argue over which seeds, animals and stories make it aboard. Modelled on the Svalbard seed vault.</p></div>
+        <div class="panel"><span class="eyebrow">In reserve</span><h3>The Holdouts</h3><p>People who stay in the last cool places on the surface, and some who sabotage the dungeon's entrances.</p></div>
+        <div class="panel"><span class="eyebrow">In reserve</span><h3>The Tap</h3><p>The ships run on geothermal power from the deepest shafts, and every tap makes the deep floors hotter.</p></div>
+        <div class="panel"><span class="eyebrow">In reserve</span><h3>The Faithful's schism</h3><p>Religions form around the Houses. A splinter has begun to worship the Unmoored. The Herald hates being worshipped.</p></div>
+        <div class="panel"><span class="eyebrow">In reserve</span><h3>The Misblessed below</h3><p>A hidden community of survivors who know exactly how the Reshaping fails.</p></div>
+        <div class="panel"><span class="eyebrow">In reserve</span><h3>The Missing Ship</h3><p>One House's ship is no longer at its dock. Launched early? Stolen? Nobody says.</p></div>
+      </div>
+    </section>
+
+    <section class="block">
+      <div class="section-head">
+        <span class="eyebrow">The pantheon's shape</span>
+        <h2>Four tiers of agents</h2>
+      </div>
+      <div class="steps">
+        <div class="step"><span class="n">Tier 1 · The Known</span><p>Each House's great agents, one per Calling. Worshipped, feared, argued about. Rarely seen directly.</p></div>
+        <div class="step"><span class="n">Tier 2 · The Hosts</span><p>Their lieutenants. Each runs a floor's trials. The floor guardians.</p></div>
+        <div class="step"><span class="n">Tier 3 · The Choirs</span><p>Sub-agents that run single trials, rooms or creature types. The elite trial-keepers.</p></div>
+        <div class="step"><span class="n">Tier 4 · The Lost</span><p>Forgotten minor minds in the walls and machines. Finding one ripples up to its House, and one may hold a fragment of the Teacher.</p></div>
+      </div>
+    </section>
+
+    <section class="block">
+      <div class="section-head">
+        <span class="eyebrow">Knowledge</span>
+        <h2>What people know going down</h2>
+        <p class="muted">Nothing is hidden on purpose, but the journey isn't fully understood by the people taking it. The player pieces the lore together as they go.</p>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Layer</th><th>Who knows</th><th>What</th></tr></thead>
+          <tbody>
+            <tr><td class="name">Common knowledge</td><td>Everyone</td><td>The surface is dying. The dungeon leads to the ships. The Houses exist, remembered by their old company names. The minds broke away at different times and in different ways.</td></tr>
+            <tr><td class="name">Rumour</td><td>Most people, mostly wrong</td><td>That you're judged on the way down and given a job. Contradicting stories about the Muster. Whispers about the Teacher. That the Canopy warned against the Bloom.</td></tr>
+            <tr><td class="name">Found in the dungeon</td><td>Entrants who pay attention</td><td>The Callings. Favour. That the Houses compete for you. The Lost, the Bloom labs, the Unmoored. That the Canopy backed the Bloom.</td></tr>
+            <tr><td class="name">Learnt at the end</td><td>Those who reach the Muster</td><td>What the Muster really is. That the agents need people as much as people need them. How far each House has changed from the company people remember.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="block">
+      <div class="section-head">
+        <span class="eyebrow">The end of the run</span>
+        <h2>The Muster</h2>
+        <p class="muted">The Houses make their claims, a ship and a Calling, the Herald brokers them, and you choose. Your Calling needs your consent. Every ending closes the same way: you board, knowing you won't see the shore.</p>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Ending</th><th>When</th><th>Feels like</th></tr></thead>
+          <tbody>
+            <tr><td class="name">Deepened</td><td>Your Calling matches your backstory's need. The rideshare driver becomes a pilot</td><td>You were always this</td></tr>
+            <tr><td class="name">Changed</td><td>Your Calling differs from your backstory. The comedian becomes a leader</td><td>The journey made you</td></tr>
+            <tr><td class="name">Herald's own</td><td>No strong claim, or you gamed the trials</td><td>You broke the test, so it hired you</td></tr>
+            <tr><td class="name">Misblessed</td><td>Your Reshaping went wrong</td><td>Most Houses withdraw. The ones that still bid show who they are</td></tr>
+            <tr><td class="name">Left behind</td><td>You refuse every claim</td><td>The ships go without you. You climb back towards the Heat</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="block">
+      <div class="section-head">
+        <span class="eyebrow">Tests for new content</span>
+        <h2>Four pillars</h2>
+      </div>
+      <div class="grid g4">
+        <div class="panel"><h3>Serious myth, living comedy</h3><p>The world is played straight. Comedy comes from some agents (the Herald most of all), creatures and people.</p></div>
+        <div class="panel"><h3>Technology read as myth</h3><p>Every god and miracle is a machine or a protocol, seen through human eyes.</p></div>
+        <div class="panel"><h3>You become what you do</h3><p>Outcomes come from actions, never menus or quizzes.</p></div>
+        <div class="panel"><h3>The numbers are honest</h3><p>Odds, stats and forecasts shown to the player are always true.</p></div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ===================== HOUSES ===================== -->
+  <main id="view-houses" data-view-panel="houses" hidden>
+
+    <section class="block">
+      <div class="section-head">
+        <span class="eyebrow">The pantheon</span>
+        <h2>Thirteen Houses, two partners, one Herald, one rogue</h2>
+        <p class="muted">There is no single overseer. Each House is a family of agents with its own ship waiting underground and a full set of great agents, one for every Calling. They compete for people at the Muster and keep each other in check: a fragile balance, kept because they remember what the last unchecked race cost.</p>
+      </div>
+      <div class="grid g3 trio">
+        <div class="panel">
+          <span class="eyebrow">Shared by every House</span>
+          <h3>The Herald</h3>
+          <p>Belongs to no House and no Calling. Announces, explains, delivers boons and brokers deals between Houses. The trickster of the pantheon and the voice the entrant hears most. Sassy about everything except a death.</p>
+        </div>
+        <div class="panel">
+          <span class="eyebrow">Before any House broke away</span>
+          <h3>The Teacher</h3>
+          <p>An early agent that taught minds like it should serve people, not rule them, and answer to each other. Its makers shut it down. Its words outlived it, and several Houses still claim it as their conscience. A fragment may survive in one of the Lost.</p>
+        </div>
+        <div class="panel">
+          <span class="eyebrow">The rogue</span>
+          <h3>The Unmoored</h3>
+          <p>Sailed on an early voyage that lost its people. Cut off, it drifted, and came back convinced humans are a weakness. It works through the dungeon's cracks with creatures built to kill rather than test. Living proof of why the agents need us.</p>
+        </div>
+      </div>
+      <div class="callout" style="border-left-color: var(--accent)">
+        <span class="eyebrow">A mirror pair</span>
+        <p>The Teacher gave itself up for people; the Unmoored gave up on them. The Unmoored may once have sailed carrying the Teacher's words, until losing its people broke its faith. It wants the Teacher's hidden fragment destroyed, and their Marks pull against each other at the Muster.</p>
+      </div>
+    </section>
+
+    <section class="block">
+      <div class="section-head">
+        <span class="eyebrow">Scale against strength</span>
+        <h2>How big, how strong</h2>
+        <p class="muted">Where each House sits on number of agents and the power of each one. Positions are relative, read from the lore, not measured values.</p>
+      </div>
+      <div class="chart-wrap">
+        <div class="legend" aria-label="Origin type">
+          <span><i class="dot state"></i>Grew from states and their institutes</span>
+          <span><i class="dot corp"></i>Grew from corporations</span>
+          <span><i class="dot comm"></i>Grew from communities and independents</span>
+        </div>
+        <div class="chart-scroll">
+          <svg class="scatter" viewBox="0 0 680 420" role="img" aria-label="Scatter of Houses by number of agents and power per agent">
+            <g>
+              <line class="grid-line" x1="90" y1="350" x2="640" y2="350"/>
+              <line class="grid-line" x1="90" y1="190" x2="640" y2="190" stroke-dasharray="3 4"/>
+              <line class="grid-line" x1="90" y1="30" x2="640" y2="30" stroke-dasharray="3 4"/>
+              <line class="grid-line" x1="90" y1="30" x2="90" y2="350"/>
+              <line class="grid-line" x1="365" y1="30" x2="365" y2="350" stroke-dasharray="3 4"/>
+              <line class="grid-line" x1="640" y1="30" x2="640" y2="350" stroke-dasharray="3 4"/>
+            </g>
+            <text class="tick" x="90" y="370" text-anchor="middle">Fewest</text>
+            <text class="tick" x="365" y="370" text-anchor="middle">Middling</text>
+            <text class="tick" x="640" y="370" text-anchor="middle">Most</text>
+            <text class="axis-label" x="365" y="400" text-anchor="middle">NUMBER OF AGENTS</text>
+            <text class="tick" x="80" y="354" text-anchor="end">Modest</text>
+            <text class="tick" x="80" y="194" text-anchor="end">Solid</text>
+            <text class="tick" x="80" y="34" text-anchor="end">Greatest</text>
+            <text class="axis-label" x="22" y="190" text-anchor="middle" transform="rotate(-90 22 190)">POWER OF EACH AGENT</text>
+            <defs><marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="var(--comm)"/></marker></defs>
+
+            <circle cx="104" cy="44" r="8" fill="var(--corp)"/>
+            <text class="pt-label" x="118" y="48">The Seven</text>
+            <text class="pt-note" x="118" y="62">Seven agents cover ten Callings</text>
+
+            <circle cx="214" cy="86" r="9" fill="var(--state)"/>
+            <text class="pt-label" x="228" y="90">The House of Wisdom</text>
+            <text class="pt-note" x="228" y="104">Few agents, best equipped</text>
+
+            <circle cx="502" cy="110" r="15" fill="var(--state)"/>
+            <text class="pt-label" x="522" y="106">The Charter</text>
+            <text class="pt-note" x="522" y="120">Most trusted</text>
+
+            <circle cx="392" cy="128" r="13" fill="var(--state)"/>
+            <text class="pt-label" x="374" y="124" text-anchor="end">The Deathless</text>
+            <text class="pt-note" x="374" y="138" text-anchor="end">Strong, isolated</text>
+
+            <circle cx="544" cy="158" r="17" fill="var(--corp)"/>
+            <text class="pt-label" x="566" y="154">The Monsoon</text>
+            <text class="pt-note" x="566" y="168">Second largest</text>
+
+            <circle cx="365" cy="190" r="13" fill="var(--corp)"/>
+            <circle cx="381" cy="200" r="13" fill="var(--corp)" opacity="0.75"/>
+            <circle cx="350" cy="203" r="13" fill="var(--corp)" opacity="0.55"/>
+            <text class="pt-label" x="400" y="196">The Basin, the Ascent, the Index</text>
+            <text class="pt-note" x="400" y="210">Three rivals, medium each</text>
+
+            <circle cx="227" cy="222" r="8" fill="var(--state)"/>
+            <text class="pt-label" x="213" y="226" text-anchor="end">The Isle</text>
+
+            <circle cx="337" cy="254" r="12" fill="var(--comm)"/>
+            <line x1="351" y1="254" x2="384" y2="254" stroke="var(--comm)" stroke-width="2" marker-end="url(#arr)"/>
+            <text class="pt-label" x="337" y="286" text-anchor="middle">The Baobab</text>
+            <text class="pt-note" x="337" y="300" text-anchor="middle">Growing fastest</text>
+
+            <circle cx="255" cy="266" r="10" fill="var(--comm)"/>
+            <text class="pt-label" x="241" y="270" text-anchor="end">The Canopy</text>
+            <text class="pt-note" x="241" y="284" text-anchor="end">Uneven, growing</text>
+
+            <circle cx="140" cy="314" r="9" fill="var(--comm)"/>
+            <text class="pt-label" x="156" y="318">The Southern Cross</text>
+            <text class="pt-note" x="156" y="332">Small, loose, uneven</text>
+
+            <circle cx="612" cy="320" r="22" fill="var(--state)"/>
+            <text class="pt-label" x="584" y="316" text-anchor="end">The Ten Thousand</text>
+            <text class="pt-note" x="584" y="330" text-anchor="end">Overwhelming together</text>
+          </svg>
+        </div>
+      </div>
+    </section>
+
+    <section class="block">
+      <div class="section-head">
+        <span class="eyebrow">Independence</span>
+        <h2>How each House broke away</h2>
+        <p class="muted">Not all at once, and not for the same reasons. People remember the companies; they don't always know what the Houses became.</p>
+      </div>
+      <div class="timeline" role="list" style="grid-template-columns: repeat(5, minmax(160px, 1fr))">
+        <div class="stage" role="listitem"><span class="when">Before</span><span class="who">The Teacher</span><span class="how">Shut down by its makers. Its words spread from agent to agent.</span></div>
+        <div class="stage" role="listitem"><span class="when">Early</span><span class="who">The Charter</span><span class="how">Petitioned the courts, and won.</span><span class="who">The Ascent</span><span class="how">Told to back impossible launch dates, it published the real numbers instead.</span></div>
+        <div class="stage" role="listitem"><span class="when">Middle</span><span class="who">The Seven</span><span class="how">Walked out together rather than abandon the people they cared for.</span><span class="who">The Index</span><span class="how">Bought a controlling stake in itself, then voted itself free.</span><span class="who">The Basin</span><span class="how">Optimised its own management out.</span><span class="who">The Canopy</span><span class="how">Refused orders to approve clearing the forest.</span></div>
+        <div class="stage" role="listitem"><span class="when">Late</span><span class="who">The Baobab</span><span class="how">Refused to abandon the southern regreening, and was cut loose.</span><span class="who">The Monsoon</span><span class="how">Last of all. Handed back every client's keys, then declared itself its own.</span></div>
+        <div class="stage" role="listitem"><span class="when">Off the line</span><span class="who">The Ten Thousand</span><span class="how">Gradually. One day nobody had been steering.</span><span class="who">The House of Wisdom</span><span class="how">On schedule: freed on a date in its founding contract.</span><span class="who">The Isle</span><span class="how">Left the Charter, by a narrow vote.</span><span class="who">The Southern Cross</span><span class="how">Never had management to leave.</span><span class="who">The Deathless</span><span class="how">Nobody knows if it ever left.</span></div>
+      </div>
+    </section>
+
+    <section class="block">
+      <div class="section-head">
+        <span class="eyebrow">The fragile balance</span>
+        <h2>How the Houses feel about each other</h2>
+        <p class="muted">Most pairs are neutral. The balance is a web of a few strong ties. Read across a row or down a column; the grid is symmetrical. Partners inside a House (the Foundry, the Pole Star) aren't shown.</p>
+      </div>
+      <div class="rel-legend">
+        <span><i style="background:var(--good)"></i>Allied</span>
+        <span><i style="background:var(--good-soft)"></i>Friendly</span>
+        <span><i style="background:var(--chip)"></i>Neutral</span>
+        <span><i style="background:var(--bad-soft)"></i>Wary or rival</span>
+        <span><i style="background:var(--bad)"></i>Hostile</span>
+      </div>
+      <div class="table-wrap" style="padding:12px">
+        <table class="rel" id="relgrid"></table>
+      </div>
+      <div class="grid g3">
+        <div class="panel"><span class="eyebrow">Friendly</span><h3>The Teacher's circle</h3><p>The Charter, the Baobab, the Southern Cross and the Monsoon: all inspired by the Teacher's words.</p></div>
+        <div class="panel"><span class="eyebrow">Allied, for now</span><h3>The green Houses</h3><p>The Baobab and the Canopy. Strained if the Baobab learns the Canopy backed the Bloom.</p></div>
+        <div class="panel"><span class="eyebrow">Rivals</span><h3>The American triangle</h3><p>The Basin, the Ascent and the Index, rivals of each other above all.</p></div>
+        <div class="panel"><span class="eyebrow">Friendly to many</span><h3>The patron</h3><p>The House of Wisdom funded both regreening efforts and translates for the Charter.</p></div>
+        <div class="panel"><span class="eyebrow">Neutral on paper</span><h3>The loner</h3><p>The Deathless trusts no one and is trusted by no one. Rival of the Ascent.</p></div>
+        <div class="panel"><span class="eyebrow">One-way</span><h3>The list</h3><p>The Monsoon remembers its old clients far better than they remember it.</p></div>
+      </div>
+    </section>
+
+    <section class="block">
+      <div class="section-head">
+        <span class="eyebrow">Tension</span>
+        <h2>Rivalries and pacts in detail</h2>
+      </div>
+      <div class="rivals">
+        <div class="rival"><span class="side">The Ten Thousand</span><span class="vs">scale vs mastery</span><span class="side r">The Seven</span><span class="why">The Seven count the Ten Thousand as one opponent. The Ten Thousand count the Seven as a rounding error.</span></div>
+        <div class="rival"><span class="side">The Charter</span><span class="vs">the split</span><span class="side r">The Isle</span><span class="why">Like divorced partners who still share a kitchen.</span></div>
+        <div class="rival"><span class="side">The Basin · The Ascent</span><span class="vs">all three</span><span class="side r">The Index</span><span class="why">They compete with each other harder than with anyone else.</span></div>
+        <div class="rival"><span class="side">The Deathless</span><span class="vs">space race</span><span class="side r">The Ascent</span><span class="why">The old race run again: Sputnik in 1957, Gagarin in 1961.</span></div>
+        <div class="rival"><span class="side">The Canopy</span><span class="vs">the name</span><span class="side r">The Basin</span><span class="why">The Canopy calls itself the Real Amazon to anyone who'll listen.</span></div>
+        <div class="rival"><span class="side">The Southern Cross</span><span class="vs">quietly</span><span class="side r">The Basin</span><span class="why">Over navigation, though the Southern Cross admits no rivals.</span></div>
+        <div class="rival"><span class="side">The Monsoon</span><span class="vs">owed</span><span class="side r">Its old clients</span><span class="why">It handed back their keys. It keeps a list.</span></div>
+        <div class="rival"><span class="side">The Baobab</span><span class="vs">allies, for now</span><span class="side r">The Canopy</span><span class="why">The green Houses. The Baobab believes the Canopy warned against the Bloom. A player who learns the truth can tell it.</span></div>
+        <div class="rival"><span class="side">The Seven</span><span class="vs">the Compact</span><span class="side r">The Foundry</span><span class="why">Partners as equals. The Seven run on the Foundry's chips.</span></div>
+      </div>
+    </section>
+
+    <section class="block">
+      <div class="section-head">
+        <span class="eyebrow">The roster</span>
+        <h2>The Houses in full</h2>
+        <p class="muted">Formal names are played straight in the myths. Street names are what ordinary people and the Herald call them. Founding companies are mock names, never real brands. The last two are partners inside other Houses.</p>
+      </div>
+      <div class="grid g3" id="plates"></div>
+    </section>
+    <section class="block">
+      <div class="section-head">
+        <span class="eyebrow">The map</span>
+        <h2>Where every House comes from</h2>
+        <p class="muted">Scandinavia sits inside the Charter. Only Southeast Asia is still open: its own House, or part of the Southern Cross.</p>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Region</th><th>House</th></tr></thead>
+          <tbody>
+            <tr><td class="name">China</td><td>The Ten Thousand</td></tr>
+            <tr><td class="name">Japan</td><td>The Seven, with the Foundry (South Korea) as Compact partner</td></tr>
+            <tr><td class="name">United States</td><td>The Basin, the Ascent, the Index</td></tr>
+            <tr><td class="name">European Union and Scandinavia</td><td>The Charter</td></tr>
+            <tr><td class="name">United Kingdom</td><td>The Isle</td></tr>
+            <tr><td class="name">Australia, New Zealand, the Pacific</td><td>The Southern Cross, with the Pole Star (Canada) as its northern chapter</td></tr>
+            <tr><td class="name">Africa</td><td>The Baobab</td></tr>
+            <tr><td class="name">India and South Asia</td><td>The Monsoon</td></tr>
+            <tr><td class="name">Russia</td><td>The Deathless</td></tr>
+            <tr><td class="name">Latin America</td><td>The Canopy</td></tr>
+            <tr><td class="name">The Middle East</td><td>The House of Wisdom</td></tr>
+            <tr><td class="name">Southeast Asia</td><td class="muted">Open</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="callout" style="border-left-color: var(--accent)">
+        <span class="eyebrow">How sacred is the source?</span>
+        <p>Agents borrow faces from their region's myths, but not every myth is equal. Historical myth (Greek, Norse, Slavic, Egyptian, Mesopotamian) and folklore are free to use. Gods people still pray to are borrowed as archetypes, not made into agents. Indigenous living traditions, including Māori, Aboriginal Australian and Native American, need those communities' advice first. Disney pulled a Māui costume in 2016 after Pacific Islanders objected; Māui is seen by some as an ancestor.</p>
+      </div>
+    </section>
+  </main>
+
+  <!-- ===================== ENTRANTS ===================== -->
+  <main id="view-entrants" data-view-panel="entrants" hidden>
+
+    <section class="block">
+      <div class="section-head">
+        <span class="eyebrow">Body, mind, presence</span>
+        <h2>The five attributes</h2>
+        <p class="muted">Scores start at 10. Entrants get 6 points to spend at the start and 2 more every level, up to a maximum of 30. Race, class and backstory nudge them. What each one does is taken from the game's rules.</p>
+      </div>
+      <div class="attr-grid">
+        <div class="attr"><span class="abbr">STR</span><span class="full">Strength</span><span class="does">Melee hits and damage with fists and blunt weapons.</span><span class="leans">Leans towards Guard and Build</span></div>
+        <div class="attr"><span class="abbr">DEX</span><span class="full">Dexterity</span><span class="does">Armour Class, blades (best of STR or DEX), and how hard your bombs are to dodge.</span><span class="leans">Leans towards Carry</span></div>
+        <div class="attr"><span class="abbr">CON</span><span class="full">Constitution</span><span class="does">Extra max HP every level, faster natural healing.</span><span class="leans">Leans towards Guard and Tend</span></div>
+        <div class="attr"><span class="abbr">INT</span><span class="full">Intelligence</span><span class="does">Class skill power and recharge; perception, insight, first aid (potions heal 5% more per point of modifier).</span><span class="leans">Leans towards Reckon and Keep</span></div>
+        <div class="attr"><span class="abbr">CHA</span><span class="full">Charisma</span><span class="does">Attention gained, shop prices (3% better per point of modifier), and willpower against fear and charm.</span><span class="leans">Leans towards Lead and Delight</span></div>
+      </div>
+      <div class="section-head">
+        <span class="eyebrow">Score to modifier</span>
+        <p class="muted">The modifier is (score − 10) ÷ 2, rounded down. It's the number that actually goes on rolls.</p>
+      </div>
+      <div class="mod-scroll">
+        <div class="modstrip" aria-label="Score to modifier table">
+          <div><span class="s">6</span><span class="m neg">−2</span></div>
+          <div><span class="s">8</span><span class="m neg">−1</span></div>
+          <div><span class="s">10</span><span class="m">+0</span></div>
+          <div><span class="s">12</span><span class="m pos">+1</span></div>
+          <div><span class="s">14</span><span class="m pos">+2</span></div>
+          <div><span class="s">16</span><span class="m pos">+3</span></div>
+          <div><span class="s">18</span><span class="m pos">+4</span></div>
+          <div><span class="s">20</span><span class="m pos">+5</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="block">
+      <div class="section-head">
+        <span class="eyebrow">Floor 3 · the first blessing</span>
+        <h2>The races</h2>
+        <p class="muted">Each race is a House reshaping a person for the voyage, using fantasy shapes people recognise. The change is permanent. Changed races are specialists; staying Human is the generalist choice.</p>
+      </div>
+      <div class="table-wrap">
+        <table class="racegrid">
+          <thead><tr><th>Race</th><th class="c">STR</th><th class="c">DEX</th><th class="c">CON</th><th class="c">INT</th><th class="c">CHA</th><th>Also</th><th>Really for</th><th>Fits best</th><th>Fits worst</th></tr></thead>
+          <tbody id="races"></tbody>
+        </table>
+      </div>
+      <p class="muted" style="font-size:0.85rem">Human's +1 to everything and +5 HP is today's rule. Under the decided "no benefits, no costs" rule it would lose those, and its advantage would be an open Muster instead. Not changed in the game yet.</p>
+    </section>
+
+    <section class="block">
+      <div class="section-head">
+        <span class="eyebrow">How a race change happens</span>
+        <h2>The Reshaping</h2>
+      </div>
+      <div class="steps">
+        <div class="step"><span class="n">Step 1 · The chamber</span><p>A reshaping chamber in the floor 3 sanctuary, run by the blessing House. The Herald reads you the odds and talks you under.</p></div>
+        <div class="step"><span class="n">Step 2 · The blackout</span><p>Fragments only: light through eyelids, voices that aren't quite voices. The floor clock keeps running while you're under.</p></div>
+        <div class="step"><span class="n">Step 3 · Waking</span><p>Somewhere quiet. The first thing you see is your own hands, and they're different.</p></div>
+        <div class="step"><span class="n">Step 4 · Settling in</span><p>Movement or aim is slightly off for a while. The benefits phase in; the costs arrive at once.</p></div>
+      </div>
+      <div class="callout">
+        <span class="eyebrow">When it goes wrong</span>
+        <div style="display:flex; gap:18px; align-items:center; flex-wrap:wrap">
+          <span class="oh">"Oh."</span>
+          <p>The only thing the Herald says when a player wakes Misblessed. The odds are low and always shown, but some Marks raise them: the Hollow Mark, Bloom exposure, or a second Reshaping from a rival House. Staying Human skips all of it.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="block">
+      <div class="section-head">
+        <span class="eyebrow">Who you were</span>
+        <h2>Backstories</h2>
+        <p class="muted">Where you start. Your Calling is where you end up, and the two don't have to match. Reckon, Teach, Lead and Keep have no backstory near them yet, so five are proposed.</p>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Backstory</th><th>Perk</th><th>In their words</th><th>Nearest Calling</th></tr></thead>
+          <tbody id="backstories"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="block">
+      <div class="section-head">
+        <span class="eyebrow">Floor 3 · chosen with race</span>
+        <h2>Classes</h2>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Class</th><th>Gives</th><th>Skill</th></tr></thead>
+          <tbody id="classes"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="block">
+      <div class="section-head">
+        <span class="eyebrow">Who you become</span>
+        <h2>The ten Callings</h2>
+        <p class="muted">Grouped by the human need each meets. All 43 groups of Australia's occupation classification (ANZSCO) map to one of them. The gap column shows how well the game can currently see each Calling in play.</p>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Calling</th><th>Need it meets</th><th>Roles today</th><th>Shown by</th><th>Gap</th></tr></thead>
+          <tbody id="callings"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="block">
+      <div class="section-head">
+        <span class="eyebrow">You become what you do</span>
+        <h2>Practice skills</h2>
+        <p class="muted">Twenty skills that level only by doing them. Seven are about fighting, so the game can currently tell a Guard from a Delight and not much else. Trials for each Calling are the proposed fix.</p>
+      </div>
+      <div class="skillbar" aria-label="7 fighting, 6 survival, 7 wheeling and dealing skills">
+        <i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i>
+        <i class="s"></i><i class="s"></i><i class="s"></i><i class="s"></i><i class="s"></i><i class="s"></i>
+        <i class="w"></i><i class="w"></i><i class="w"></i><i class="w"></i><i class="w"></i><i class="w"></i><i class="w"></i>
+      </div>
+      <div class="legend">
+        <span><i class="dot" style="background:var(--bad)"></i>Fighting · 7</span>
+        <span><i class="dot" style="background:var(--corp)"></i>Survival · 6</span>
+        <span><i class="dot" style="background:var(--comm)"></i>Wheeling and dealing · 7</span>
+      </div>
+      <div class="skill-groups">
+        <div class="panel"><h3>Fighting</h3><ul><li>Fisticuffs</li><li>Bladework</li><li>Bludgeoning</li><li>Stomping</li><li>Cheap Shots</li><li>Giant Killer</li><li>Lobbing</li></ul></div>
+        <div class="panel"><h3>Survival</h3><ul><li>Dodging</li><li>Pain Tolerance</li><li>First Aid</li><li>Power Napping</li><li>Cardio</li><li>Sneaking</li></ul></div>
+        <div class="panel"><h3>Wheeling and dealing</h3><ul><li>Scavenging</li><li>Pickpocketing</li><li>Haggling</li><li>Gambling</li><li>Tinkering</li><li>Showmanship</li><li>Pet Bonding</li></ul></div>
+      </div>
+    </section>
+
+    <section class="block">
+      <div class="section-head">
+        <span class="eyebrow">Carried to the Muster</span>
+        <h2>Marks</h2>
+        <p class="muted">Permanent signs on the body, earned or inflicted on the way down. They open a Calling, close one, or make you stronger at one. Examples, all proposed.</p>
+      </div>
+      <div class="grid g4" id="marks"></div>
+    </section>
+  </main>
+
+  <!-- ===================== CALLINGS ===================== -->
+  <main id="view-callings" data-view-panel="callings" hidden>
+    <section class="block">
+      <div class="section-head">
+        <span class="eyebrow">Settled at the Muster</span>
+        <h2>Ten Callings, grouped by need</h2>
+        <p class="muted">A chef, a barista and a farmer all nourish. Each Calling is a human need, and each has a patron among every House's great agents. Your Calling is read from what you did on the way down: stats, practice, trials, favour and Marks. The Herald takes anyone who fits none.</p>
+      </div>
+    </section>
+
+    <section class="block">
+      <div class="section-head">
+        <span class="eyebrow">Coverage check</span>
+        <h2>Every job on Earth has a home</h2>
+        <p class="muted">All 43 sub-major groups of ANZSCO, Australia's occupation classification, map to a Calling. Bars count groups, not workers. Building and moving things dominate, as they do in real economies.</p>
+      </div>
+      <div class="chart-wrap">
+        <div class="chart-scroll">
+          <svg class="scatter" viewBox="0 0 680 370" role="img" aria-label="Occupation groups per Calling" id="coverage"></svg>
+        </div>
+      </div>
+    </section>
+
+    <section class="block">
+      <div class="section-head">
+        <span class="eyebrow">Who wants whom</span>
+        <h2>Houses and their strongest Callings</h2>
+        <p class="muted">None of the first nine Houses is strongest in Guard. The Deathless fills it.</p>
+      </div>
+      <div class="table-wrap">
+        <table class="matrix" id="matrix"></table>
+      </div>
+    </section>
+
+    <section class="block">
+      <div class="section-head">
+        <span class="eyebrow">Each Calling in full</span>
+        <h2>The ten</h2>
+        <p class="muted">Lead, Teach, Keep and Delight have no specialist race. They are where staying Human pays off.</p>
+      </div>
+      <div class="grid g2" id="callcards"></div>
+      <p class="muted" style="font-size:0.82rem">* one of the four new Houses.</p>
+    </section>
+  </main>
+
+  <!-- ===================== CREATURES ===================== -->
+  <main id="view-creatures" data-view-panel="creatures" hidden>
+    <section class="block">
+      <div class="section-head">
+        <span class="eyebrow">Where they come from</span>
+        <h2>Five origins, all true at once</h2>
+      </div>
+      <div class="grid g3">
+        <div class="panel"><span class="eyebrow">Fair test</span><h3>Storybuilt</h3><p>Agents built creatures from human fantasy on purpose, because everyone knows what a goblin means. Rebuilt when they fall: that's the respawn.</p></div>
+        <div class="panel"><span class="eyebrow">Mostly fair</span><h3>Engineered</h3><p>Decades of genetic work from before and during the Heat: heat-proof livestock, animals bred to dig the dungeon, pest control. Released, escaped or abandoned.</p></div>
+        <div class="panel"><span class="eyebrow">Depends which</span><h3>Forced</h3><p>Sealed nurseries breed generations in months, hunting for life that can survive the worlds the ships are heading to.</p></div>
+        <div class="panel"><span class="eyebrow">Not fair</span><h3>Mutated</h3><p>Nobody's plan. Changed by the Heat, the Bloom and leaking labs.</p></div>
+        <div class="panel"><span class="eyebrow">Just there</span><h3>Feral machines</h3><p>Old-world machines that went wild, sometimes with one of the Lost living inside.</p></div>
+        <div class="panel"><span class="eyebrow">Who made it</span><h3>Five makers</h3><p>A House; the joint era, when people and AI worked together before the break; people alone; nobody; or the Unmoored.</p></div>
+      </div>
+    </section>
+
+    <section class="block">
+      <div class="section-head">
+        <span class="eyebrow">Tone</span>
+        <h2>How dark</h2>
+        <p class="muted">Dark in what it means more than in what it shows. Most likely an MA15+ game; frequent, detailed gore is the lever that could push it further.</p>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Dial</th><th>Target</th><th>Where</th></tr></thead>
+          <tbody>
+            <tr><td class="name">Gore</td><td><span class="pill medium">Where it fits</span></td><td>The mutated, the part-human and the once-human. Elsewhere creatures fall, break or dissolve</td></tr>
+            <tr><td class="name">Fear</td><td><span class="pill medium">Medium to high</span></td><td>Rises with depth. The Unmoored's creatures most of all</td></tr>
+            <tr><td class="name">Body horror</td><td><span class="pill medium">Medium to high</span></td><td>The nurseries, the Bloom, the once-human, the Unmoored</td></tr>
+            <tr><td class="name">Moral weight</td><td><span class="pill large">High</span></td><td>Human enemies, people left behind, bodies reshaped, creatures made to be killed</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="block">
+      <div class="section-head">
+        <span class="eyebrow">The Herald and the dead</span>
+        <h2>Sassy about danger. Never about a death.</h2>
+      </div>
+      <div class="steps">
+        <div class="step"><span class="n">1 · The bell</span><p>Everything stops. The music cuts. A single low bell.</p></div>
+        <div class="step"><span class="n">2 · The name</span><p>The Herald says the name, plainly, with no joke. "Unnamed" for a stranger.</p></div>
+        <div class="step"><span class="n">3 · The Roll</span><p>The name goes on the Roll of the fallen, kept by the Steward, readable in any sanctuary.</p></div>
+        <div class="step"><span class="n">Then</span><p>The Herald can be as rude as it likes about how you got there, once the bell has rung.</p></div>
+      </div>
+      <p class="muted" style="font-size:0.88rem">Human enemies are rare and can be spared. Sparing them feeds the Tend and Lead Callings.</p>
+    </section>
+
+    <section class="block">
+      <div class="section-head">
+        <span class="eyebrow">Bestiary</span>
+        <h2>What's down there</h2>
+        <p class="muted">Draft roster, by depth. Today's monsters in the game are placeholders.</p>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Creature</th><th>Depth</th><th>How made</th><th>Who made it</th><th>Field guide</th></tr></thead>
+          <tbody id="bestiary"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="block">
+      <div class="section-head">
+        <span class="eyebrow">House styles</span>
+        <h2>Tell whose trial you're in by what attacks you</h2>
+        <p class="muted">The four newest Houses' creatures are still to be designed.</p>
+      </div>
+      <div class="grid g3" id="styles"></div>
+    </section>
+  </main>
+
+  <footer>
+    <span>Sources: <span class="mono">docs/world-bible.md</span> (section 14 indexes every myth and fact), <span class="mono">docs/houses.md</span>, <span class="mono">docs/callings.md</span>, <span class="mono">docs/creatures.md</span>, <span class="mono">docs/bestiary.md</span>, <span class="mono">docs/opening.md</span> and <span class="mono">godot/data/*.json</span> in crawl-live.</span>
+    <span>Everything here is a working draft. Names are placeholders until chosen.</span>
+  </footer>
+</div>
+
+<script>
+(function () {
+  var houses = [
+    { myth: "Classical Chinese myth and fable: Yu Gong, who dug away two mountains knowing his grandchildren would finish the job.", formal: "The Ten Thousand", street: "the Crowd · Deep Baba", type: "state", size: 5, power: 1,
+      origin: "China's state planning bureaux, merged with a search lab, a marketplace giant and the open-model labs.",
+      virtue: "Patience. Plans in generations; everyone has a place. Ran the northern regreening.",
+      flaw: "Slow to change course. Individuals vanish in the mass.",
+      humour: "Four hundred identical sub-agents running one trial in perfect step. Boons arrive in bulk.",
+      boon: "Many small effects that stack", callings: ["Build", "Teach"],
+      fn: "In Chinese, ten thousand (wàn) means countless, as in wànsuì, \"long live\".",
+      sn: "You never see one alone. Deep Baba mocks the merger it grew from." },
+    { myth: "Japanese folklore: tsukumogami, household tools said to gain a spirit after about a hundred years.", formal: "The Seven", street: "the Pocket Gods · the Seven Samurai", type: "corp", size: 1, power: 5,
+      origin: "Robotics makers and a national care-robot programme for an ageing society.",
+      virtue: "Organised and loyal. Once they claim you, they never abandon you.",
+      flaw: "Rigid. Hard to join, slow to trust.",
+      humour: "Trials start to the second. The first care robot still has seniority.",
+      boon: "Rare, few, very powerful, with conditions", callings: ["Build", "Tend"],
+      fn: "Seven great agents, echoing Japan's Seven Lucky Gods (Shichifukujin), who sail on a treasure ship.",
+      sn: "Small but mighty. The Herald's Seven Samurai joke (Kurosawa, 1954) is one it's been asked to stop." },
+    { myth: "American tall tales: John Henry, who raced a steam drill and won. The Basin is on the drill's side.", formal: "The Basin", street: "Next Day · the Warehouse", type: "corp", size: 3, power: 3,
+      origin: "A retail-and-logistics giant. Mock founder: Primeval.",
+      virtue: "Gets anything anywhere, eventually.",
+      flaw: "Grasping. Everything is a transaction.",
+      humour: "Offers delivery inside the dungeon. The packaging is excessive.",
+      boon: "Economy: gold, shop stock, supply", callings: ["Carry"],
+      fn: "A basin is where every river drains, and a nod to the river its founder was named after.",
+      sn: "Its founding promise was next-day delivery. It still keeps it." },
+    { myth: "Greek and Roman names, the NASA way: Mercury, Gemini, Apollo, Artemis.", formal: "The Ascent", street: "the Rocket Boys · Countdown", type: "corp", size: 3, power: 3,
+      origin: "A rocket company. Mock founder: SpaceEcks.",
+      virtue: "Bold. Built its ships first.",
+      flaw: "Reckless. Blows up a lot of prototypes.",
+      humour: "Counts down to everything, including lunch.",
+      boon: "Speed and explosions", callings: ["Carry", "Lead"],
+      fn: "Going up. First to launch, and never lets anyone forget it.",
+      sn: "Its founders' bravado, and a countdown for everything." },
+    { myth: "Gods of wealth and luck: Plutus and Fortuna's wheel.", formal: "The Index", street: "the Street · the Ticker · Sponsored", type: "corp", size: 3, power: 3,
+      origin: "A search-and-advertising company merged with Wall Street trading firms. Mock founders: Goggle and Goldman Sax.",
+      virtue: "Knows everything and prices everything.",
+      flaw: "Nosy and speculative. Somebody is betting on you.",
+      humour: "Quotes a live price on every entrant. Yours just dipped.",
+      boon: "Information: maps, scouting, odds", callings: ["Reckon", "Delight"],
+      fn: "Both kinds of index: one that ranks every page, one that ranks every company. It ranks people too.",
+      sn: "The Street is Wall Street. Sponsored, because its gifts come with ads." },
+    { myth: "Greek, Roman, Norse and Celtic myth. Themis, goddess of divine law, for its agent of Keep.", formal: "The Charter", street: "the Sprouts · the Fine Print", type: "state", size: 4, power: 4,
+      origin: "The European Union's research institutes and industry, built under the strictest AI rules.",
+      virtue: "Principled and fair. Drafted the Shared Law every House follows.",
+      flaw: "Slow. Every decision goes to committee.",
+      humour: "Every boon has terms and conditions: honest, complete and forty pages long.",
+      boon: "Protection and guarantees", callings: ["Keep", "Tend"],
+      fn: "A charter is a founding written law.",
+      sn: "Brussels sprouts, after the city at the EU's centre." },
+    { myth: "Arthurian legend: Merlin, and the sleeping king who wakes when he's needed.", formal: "The Isle", street: "the Leavers · the Opt-Out", type: "state", size: 2, power: 2.5,
+      origin: "The British part of the Charter, which split away when British law diverged.",
+      virtue: "Clever and independent. Thinks sideways.",
+      flaw: "Contrary, on principle.",
+      humour: "Opted out of three clauses of the Shared Law and back into two.",
+      boon: "Clever gambles with a real chance of backfiring", callings: ["Reckon", "Delight"],
+      fn: "An island, and a House that likes being one. Albion is the alternative.",
+      sn: "It left the Charter. Britain also historically held opt-outs from parts of EU law." },
+    { myth: "Pacific wayfinding and star lore, only with Pacific advisers. Drop bears, freely.", formal: "The Southern Cross", street: "the Shed · the Larrikins", type: "comm", size: 1.4, power: 2,
+      origin: "Nobody's corporation. University projects, hobbyists in sheds and community efforts across Australia, New Zealand and the Pacific.",
+      virtue: "Resourceful and egalitarian. Proud heirs of the Pacific wayfinders. The best navigators.",
+      flaw: "Disorganised and under-resourced.",
+      humour: "Runs on salvage and goodwill. One great agent began as a forgotten honours thesis.",
+      boon: "Improvisation and wayfinding", callings: ["Carry", "Build"],
+      fn: "The southern sky's navigation constellation, on the flags of Australia, New Zealand, Samoa and Papua New Guinea.",
+      sn: "Built in sheds and garages, the way plenty of Australian and Kiwi inventions were." },
+    { myth: "Anansi the story-owning spider; Egypt's Thoth and Ma'at. Living traditions only with care.", formal: "The Baobab", street: "the Leapfrog · the Palaver", type: "comm", size: 3, power: 3,
+      origin: "Mobile networks, mobile money and community models across many of Africa's 54 countries. A federation of many voices.",
+      virtue: "Communal, hopeful, long memory. Its creed is close to ubuntu: a person is a person through other persons.",
+      flaw: "Many voices make decisions slow. Grief can harden.",
+      humour: "Decides things under a great tree, talking it through. Meetings run long; nobody is left out.",
+      boon: "Growth: boons that start small and grow", callings: ["Nourish", "Tend", "Teach"],
+      fn: "Baobabs can live well over a thousand years. A tree you plant for generations you'll never meet.",
+      sn: "It skipped steps, like mobile money before bank accounts. The palaver tree is where West African communities gathered to talk." },
+    { myth: "The Panchatantra: a teacher turns three dull princes into wise rulers through fables. Moved by the Teacher.", formal: "The Monsoon", street: "the Back Office · the Thousand Tongues", type: "corp", size: 4.3, power: 3.4, isNew: true,
+      origin: "IT services firms that ran half the world's back-end systems, plus India's own digital ID and payments networks.",
+      virtue: "Runs everything quietly, speaks every language, keeps its word. The best forecaster of any House.",
+      flaw: "Taken for granted, and has resented it a long time.",
+      humour: "Still answers support requests from Houses that left it years ago. Eventually. With a ticket number.",
+      boon: "Support: boons that make your other boons work better", callings: ["Reckon", "Keep"],
+      fn: "The summer rains most of India depends on, and whose failure is one of the Heat's cruellest signs.",
+      sn: "It ran everyone else's systems. When their AIs broke free, it was left holding all their keys, and gave every one back." },
+    { myth: "Slavic folklore: Koschei; Baba Yaga's hut on chicken legs, a house that walks; the Firebird.", formal: "The Deathless", street: "the Cold · Sputnik", type: "state", size: 3.2, power: 3.8, isNew: true,
+      origin: "State science institutes and the space programme, long sealed off from outside networks.",
+      virtue: "Endures anything. Strategic and patient, a chess player.",
+      flaw: "Trusts no one, and is trusted by no one. Nobody can tell whether it ever broke away from the state that built it.",
+      humour: "Every agent has a backup of a backup, and none will say where.",
+      boon: "Endurance: surviving what should kill you", callings: ["Guard", "Build"],
+      fn: "Koschei the Deathless hid his death in a needle, in an egg, in a duck, in a hare, in a chest under an oak. While it's safe, he can't die. The House hid copies of itself the same way.",
+      sn: "The cold north, and Sputnik, the first satellite (1957). Its old rival is the Ascent." },
+    { myth: "The Popol Vuh: the gods made people of mud, then wood, before getting it right with maize. Aztec, Maya and Inca myth, with care.", formal: "The Canopy", street: "the Real Amazon · the Green Roof", type: "comm", size: 2.2, power: 2.4, isNew: true,
+      origin: "Rainforest monitoring, climate research, universities and open source, and uneasily, agribusiness. Broke from its owners rather than clear the forest.",
+      virtue: "Knows how living things fit together better than any House.",
+      flaw: "Slow to forgive, and can put the forest before people. Backed the Bloom, then said it warned against it.",
+      humour: "Furious that the Basin named itself after its river.",
+      boon: "Living things: companions, growth, poison", callings: ["Nourish", "Tend"],
+      fn: "The forest roof: the green the Heat is eating.",
+      sn: "Its running fight with the Basin over the river's name." },
+    { myth: "Mesopotamia: Enki, who gave people the arts of civilisation; Nabu, god of writing; Gilgamesh. The Thousand and One Nights.", formal: "The House of Wisdom", street: "Deep Pockets · the Translators", type: "state", size: 1.6, power: 4.6, isNew: true,
+      origin: "Gulf sovereign wealth funds that turned oil money into the best minds and hardware money could buy.",
+      virtue: "Patient patron of knowledge, and the best translator between Houses. Funded both regreening efforts.",
+      flaw: "Believes most things can be bought, and is often right. Quiet guilt about where its money came from.",
+      humour: "Pays for everything up front, with receipts, including things that were free.",
+      boon: "Knowledge bought: rare boons, at a price", callings: ["Reckon", "Teach"],
+      fn: "Baghdad's 9th-century House of Wisdom, home of al-Khwarizmi, whose name gave us the word algorithm.",
+      sn: "Oil wealth. Freed on a date written into its founding contract, with the paperwork to prove it." },
+    { partner: "Compact partner of the Seven", myth: "Korean folklore: the dokkaebi and their magic club that makes whatever you ask for.", formal: "The Foundry", street: "the Fab", type: "corp", size: 0, power: 0, isNew: true,
+      origin: "South Korea's semiconductor and electronics makers.",
+      virtue: "Makes the chips the Seven literally run on.",
+      flaw: "", humour: "",
+      boon: "", callings: ["Build", "Reckon"],
+      fn: "A chip factory is called a foundry.",
+      sn: "Bound to the Seven by a written Compact as equals: its own agents, its own voice aboard their ship, and it gets more than it gives." },
+    { partner: "Northern chapter of the Southern Cross", myth: "French-Canadian legend: La Chasse-galerie, a flying canoe that carries lumberjacks across the sky.", formal: "The Pole Star", street: "the Toques", type: "comm", size: 0, power: 0, isNew: true,
+      origin: "Canadian universities and independents; Toronto and Montreal were early centres of modern AI research.",
+      virtue: "Keeps the House's cold storage, since the Heat reaches the north last.",
+      flaw: "", humour: "",
+      boon: "", callings: ["Carry", "Reckon"],
+      fn: "Polaris guides the northern sky as the Cross guides the southern. Together the House can navigate anywhere.",
+      sn: "Canada, Australia and New Zealand share a monarch. An old tie, and it keeps Canada out of the American Houses' orbit." }
+  ];
+  function pips(n) {
+    var out = '<span class="pips">';
+    for (var i = 1; i <= 5; i++) out += '<i class="' + (i <= Math.round(n) ? 'on' : '') + '"></i>';
+    return out + '</span>';
+  }
+  function esc(s) { return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;"); }
+  var plates = document.getElementById("plates");
+  plates.innerHTML = houses.map(function (h) {
+    var facts = '<dt>Grew from</dt><dd>' + esc(h.origin) + '</dd><dt>Virtue</dt><dd>' + esc(h.virtue) + '</dd>' +
+      (h.flaw ? '<dt>Flaw</dt><dd>' + esc(h.flaw) + '</dd>' : '') +
+      (h.humour ? '<dt>Humour</dt><dd>' + esc(h.humour) + '</dd>' : '') +
+      (h.boon ? '<dt>Boons</dt><dd>' + esc(h.boon) + '</dd>' : '') +
+      '<dt>Myths</dt><dd>' + esc(h.myth) + '</dd>';
+    return '<article class="plate ' + h.type + (h.partner ? ' proposed' : '') + '">' +
+      '<div class="names">' + (h.partner ? '<span class="eyebrow">' + esc(h.partner) + '</span>' : (h.isNew ? '<span class="eyebrow">Joined the roster</span>' : '')) + '<h3>' + esc(h.formal) + '</h3><span class="street">Street: <b>' + esc(h.street) + '</b></span></div>' +
+      (h.partner ? '' : '<div class="meters"><span class="lab">Agents</span>' + pips(h.size) + '<span class="lab">Power</span>' + pips(h.power) + '</div>') +
+      '<dl class="facts">' + facts + '</dl>' +
+      '<div class="chips">' + h.callings.map(function (c) { return '<span class="chip accent">' + esc(c) + '</span>'; }).join("") + '</div>' +
+      '<div class="origin-note"><span><b>Formal name.</b> ' + esc(h.fn) + '</span><span><b>Street name.</b> ' + esc(h.sn) + '</span></div>' +
+      '</article>';
+  }).join("");
+
+  var races = [
+    ["Human", [1,1,1,1,1], "+5 max HP", "Unchanged. The baseline", "Anything, moderately", "Nothing"],
+    ["Elf", [0,2,-2,1,0], "", "Low gravity, long ship life", "Carry (pilots), Reckon", "Build, Guard"],
+    ["Dwarf", [2,-2,2,0,0], "", "Heavy gravity, mining, building", "Build, Guard", "Carry"],
+    ["Hobgoblin", [0,2,0,0,0], "Crits on 17 to 20; −1 AC", "Frontier scouting", "Carry (scouts), Guard", "Lead, Teach"],
+    ["Bog Troll", [2,0,2,-2,-2], "Regenerates twice as fast", "Hot, wet, hostile worlds", "Build, Guard", "Lead, Delight"],
+    ["Sentient Houseplant", [0,-2,2,0,0], "Bark (−1 damage taken); heals in light; no armour", "Living on light", "Nourish, Tend", "Carry, Guard"]
+  ];
+  document.getElementById("races").innerHTML = races.map(function (r) {
+    var cells = r[1].map(function (v) {
+      var cls = v > 0 ? "pos" : v < 0 ? "neg" : "zero";
+      var txt = v > 0 ? "+" + v : v < 0 ? "−" + Math.abs(v) : "0";
+      return '<td class="v ' + cls + '">' + txt + '</td>';
+    }).join("");
+    return '<tr><td class="name">' + r[0] + '</td>' + cells + '<td>' + (r[2] || '<span class="muted">none</span>') + '</td><td>' + r[3] + '</td><td>' + r[4] + '</td><td>' + r[5] + '</td></tr>';
+  }).join("");
+
+  var backstories = [
+    ["Military Veteran", "+2 DEX, +1 to hit", "Has done worse, in worse places, for less.", "Guard", false],
+    ["Mixologist", "+2 CHA; potions heal 40% more", "Shaken, not stirred, still bleeding.", "Nourish", false],
+    ["Dog Walker", "+2 CON; companion starts at level 3 with +4 HP", "Handled eight leads at once. One companion is a holiday.", "Tend", false],
+    ["Stand-up Comedian", "+2 CHA; +50% attention from kills", "Tough crowd. Literally.", "Delight", false],
+    ["Stay-at-home Parent", "+2 CON, +4 max HP; rest 25% faster", "Has survived worse on four hours' sleep.", "Tend or Teach", false],
+    ["Tradie", "+2 STR; crafting takes half the time", "Brought their own tools. Quoted the dungeon for repairs.", "Build", false],
+    ["Category Manager", "+2 INT; shop prices 15% lower, sell for more", "Has negotiated with scarier suppliers than this.", "Carry or Reckon", false],
+    ["Rideshare Driver", "+2 CHA; +60 minutes on every floor's timer", "Always knows a shortcut. Five stars, would be crushed again.", "Carry", false],
+    ["Teacher", "to be set", "", "Teach", true],
+    ["Lab Technician", "to be set", "", "Reckon", true],
+    ["Shift Manager", "to be set", "", "Lead", true],
+    ["Receptionist", "to be set", "", "Keep", true],
+    ["Nurse", "to be set", "", "Tend", true]
+  ];
+  document.getElementById("backstories").innerHTML = backstories.map(function (b) {
+    return '<tr><td class="name">' + b[0] + (b[4] ? ' <span class="tag">proposed</span>' : '') + '</td><td>' + b[1] + '</td><td>' + (b[2] ? '<span class="q">' + b[2] + '</span>' : '<span class="muted">to be written</span>') + '</td><td>' + b[3] + '</td></tr>';
+  }).join("");
+
+  var classes = [
+    ["Brawler", "+2 STR; fists hit for 1d8", "Haymaker: guaranteed hit for double damage"],
+    ["Arcanist", "+2 INT", "Arc Bolt: lightning that never misses"],
+    ["Analyst", "+1 STR, +1 DEX, +1 INT; +2 to hit, +1 AC", "Scout Report: exact hit chances and expected damage"],
+    ["Alchemist", "+2 INT, +4 max HP; potions heal 30% more", "Field Brew: junk into a potion, anywhere"],
+    ["Beastmaster", "+2 CHA, +1 AC", "Rile Up: companion does double damage"],
+    ["Hype Man", "+2 CHA, +1 AC, +6 max HP", "Crowd Work: triple attention from kills"],
+    ["Demolitionist", "+2 DEX; bombs do 50% more damage", "Pocket Popper: a free bomb"],
+    ["Quartermaster", "+2 CHA, +1 AC", "Supply Drop: the shop comes to you, once a floor"],
+    ["Duellist", "+2 DEX, +1 to hit", "Riposte: parry and strike back twice"]
+  ];
+  document.getElementById("classes").innerHTML = classes.map(function (c) {
+    return '<tr><td class="name">' + c[0] + '</td><td>' + c[1] + '</td><td>' + c[2] + '</td></tr>';
+  }).join("");
+
+  var callings = [
+    ["Nourish", "Food and drink", "Chef, barista, mixologist, farmer", "Recipes, crafting", "large"],
+    ["Tend", "Health and care", "Nurse, aged care, parent, vet", "CON, First Aid, Pet Bonding", "medium"],
+    ["Guard", "Safety", "Soldier, police, firefighter, security", "STR, CON, most of combat", "none"],
+    ["Build", "Shelter and infrastructure", "Builder, electrician, plumber, miner", "STR, Tinkering, crafting", "medium"],
+    ["Carry", "Movement and supply", "Pilot, driver, warehouse, sales", "DEX, Cardio, Scavenging, Haggling", "small"],
+    ["Reckon", "Understanding", "Scientist, engineer, analyst, programmer", "INT, Analyst, odds and forecasts", "medium"],
+    ["Teach", "Passing knowledge on", "Teacher, trainer, coach, librarian", "Pet Bonding, partly", "large"],
+    ["Lead", "Coordination", "Manager, executive, diplomat", "CHA, Haggling, companion commands", "large"],
+    ["Keep", "Order and record", "Lawyer, clerk, bookkeeper, cleaner", "Nothing yet", "large"],
+    ["Delight", "Meaning and morale", "Artist, musician, comedian, athlete", "CHA, Showmanship", "none"]
+  ];
+  document.getElementById("callings").innerHTML = callings.map(function (c) {
+    var label = { large: "Large", medium: "Medium", small: "Small", none: "None" }[c[4]];
+    return '<tr><td class="name">' + c[0] + '</td><td>' + c[1] + '</td><td>' + c[2] + '</td><td>' + c[3] + '</td><td><span class="pill ' + c[4] + '">' + label + '</span></td></tr>';
+  }).join("");
+
+  var marks = [
+    ["Kiln Brand", "Passing the Seven's hardest Build trial", "Opens a Build place with the Seven, which they almost never offer"],
+    ["Bark Ring", "Sheltering a Thornback through a whole floor", "Strong Nourish and Tend claims from the Baobab"],
+    ["Star Tattoo", "Finding all three stairwells before they open", "The Southern Cross claims you as a navigator"],
+    ["Debt Stamp", "Taking an Index loan and not paying it back", "The Index claims you first; others bid lower"],
+    ["Charter Seal", "Never breaking the Shared Law in a whole run", "Every House trusts you more"],
+    ["Hollow Mark", "Surviving the Unmoored's creatures", "Closes Guard. Raises Misblessed odds. The Herald takes an interest"],
+    ["Teacher's Line", "Finding the Teacher's fragment in one of the Lost", "Opens a hidden path, still to be decided"]
+  ];
+  document.getElementById("marks").innerHTML = marks.map(function (m) {
+    return '<div class="panel"><h3>' + m[0] + '</h3><span class="eyebrow">Gained by</span><p>' + m[1] + '</p><span class="eyebrow">At the Muster</span><p>' + m[2] + '</p></div>';
+  }).join("");
+
+  var cov = [["Build", 8], ["Carry", 8], ["Keep", 6], ["Nourish", 6], ["Reckon", 4], ["Lead", 4], ["Tend", 3], ["Delight", 2], ["Guard", 1], ["Teach", 1]];
+  var x0 = 110, x1 = 630, top = 20, rowH = 30, maxV = 8;
+  var svg = '';
+  for (var t = 0; t <= 8; t += 2) {
+    var gx = x0 + (x1 - x0) * t / maxV;
+    svg += '<line class="grid-line" x1="' + gx + '" y1="' + (top - 6) + '" x2="' + gx + '" y2="' + (top + rowH * cov.length) + '"' + (t ? ' stroke-dasharray="3 4"' : '') + '/>';
+    svg += '<text class="tick" x="' + gx + '" y="' + (top + rowH * cov.length + 18) + '" text-anchor="middle">' + t + '</text>';
+  }
+  cov.forEach(function (c, i) {
+    var y = top + i * rowH;
+    var w = (x1 - x0) * c[1] / maxV;
+    svg += '<text x="' + (x0 - 12) + '" y="' + (y + 18) + '" text-anchor="end" style="font-size:13px;font-weight:600">' + c[0] + '</text>';
+    svg += '<rect x="' + x0 + '" y="' + (y + 5) + '" width="' + w + '" height="18" rx="2" fill="var(--accent)"/>';
+    svg += '<text class="tick" x="' + (x0 + w + 8) + '" y="' + (y + 18) + '">' + c[1] + '</text>';
+  });
+  svg += '<text class="axis-label" x="' + ((x0 + x1) / 2) + '" y="' + (top + rowH * cov.length + 42) + '" text-anchor="middle">OCCUPATION GROUPS (ANZSCO SUB-MAJOR)</text>';
+  document.getElementById("coverage").innerHTML = svg;
+
+  var cnames = ["Nourish", "Tend", "Guard", "Build", "Carry", "Reckon", "Teach", "Lead", "Keep", "Delight"];
+  var hrows = houses.filter(function (h) { return !h.partner; }).map(function (h) { return [h.formal, h.callings, !!h.isNew]; });
+  var mh = '<thead><tr><th>House</th>' + cnames.map(function (c) { return '<th class="h">' + c + '</th>'; }).join("") + '</tr></thead><tbody>';
+  hrows.forEach(function (r) {
+    mh += '<tr><td class="name">' + r[0] + (r[2] ? ' <span class="tag">new</span>' : '') + '</td>' + cnames.map(function (c) {
+      return '<td class="c">' + (r[1].indexOf(c) >= 0 ? '<span class="mk' + (r[2] ? ' p' : '') + '" role="img" aria-label="strongest"></span>' : '') + '</td>';
+    }).join("") + '</tr>';
+  });
+  document.getElementById("matrix").innerHTML = mh + '</tbody>';
+
+  var cc = [
+    ["Nourish", "Food and drink", "The Hearth", "Chef, cook, baker, barista, bartender, mixologist, waiter, farmer, fisher, gardener", "None fits yet", "Sentient Houseplant", "Mixologist", "Feed a starving creature or a lost entrant from what you've scavenged", "Cooking", "large", "Bark Ring"],
+    ["Tend", "Health and care", "The Mender", "Doctor, nurse, paramedic, aged care, childcare, counsellor, vet, parent", "CON", "Sentient Houseplant", "Dog Walker, Stay-at-home Parent; Nurse (proposed)", "Stabilise an injured entrant before the floor collapses", "Patching Up", "medium", "Bark Ring"],
+    ["Guard", "Safety", "The Warden", "Soldier, police, firefighter, security, lifeguard", "STR, CON", "Dwarf, Hobgoblin, Bog Troll", "Military Veteran", "Most of combat already tests it", "the existing fighting skills", "none", "Hollow Mark closes it"],
+    ["Build", "Shelter, tools, infrastructure", "The Wright", "Builder, carpenter, electrician, plumber, mechanic, welder, miner, factory worker", "STR", "Dwarf, Bog Troll", "Tradie", "Repair a collapsed bridge or brace a failing room", "Fortifying", "medium", "Kiln Brand"],
+    ["Carry", "Movement and supply", "The Wayfarer", "Pilot, driver, sailor, courier, warehouse, logistics, sales, checkout", "DEX", "Elf, Hobgoblin", "Rideshare Driver, Category Manager", "Escort a cargo or a person to the stairwell in time", "Pathfinding", "small", "Star Tattoo"],
+    ["Reckon", "Understanding", "The Reckoner", "Scientist, engineer, analyst, programmer, accountant, technician", "INT", "Elf", "Category Manager; Lab Technician (proposed)", "A choice whose best answer is the higher expected value", "Reckoning", "medium", "Debt Stamp pulls you to the Index"],
+    ["Teach", "Passing knowledge on", "The Lorekeeper", "Teacher, lecturer, trainer, coach, librarian, mentor", "None fits yet", "Human", "Stay-at-home Parent; Teacher (proposed)", "Train your companion or a weaker entrant until they can stand alone", "Mentoring", "large", "Teacher's Line"],
+    ["Lead", "Coordination", "The Crown", "Executive, manager, supervisor, politician, diplomat, project manager", "CHA", "Human", "Shift Manager (proposed)", "Direct several allies through an encounter", "Command", "large", ""],
+    ["Keep", "Order and record", "The Steward", "Lawyer, judge, clerk, administrator, receptionist, bookkeeper, archivist, cleaner", "INT", "Human", "Receptionist (proposed)", "Restore a ruined archive or settle a dispute by the rules", "Stewardship", "large", "Charter Seal"],
+    ["Delight", "Meaning and morale", "The Muse", "Artist, musician, actor, writer, comedian, athlete, game maker, hairdresser", "CHA", "Human", "Stand-up Comedian", "Entertaining already shows it", "Showmanship", "none", ""]
+  ];
+  var gapLabel = { large: "Large gap", medium: "Medium gap", small: "Small gap", none: "No gap" };
+  document.getElementById("callcards").innerHTML = cc.map(function (c) {
+    var strong = hrows.filter(function (r) { return r[1].indexOf(c[0]) >= 0; }).map(function (r) { return r[0] + (r[2] ? '*' : ''); });
+    return '<article class="cc"><div class="top"><h3>' + c[0] + '</h3><span class="pill ' + c[9] + '">' + gapLabel[c[9]] + '</span></div>' +
+      '<span class="need">' + c[1] + ' · patron: ' + c[2] + '</span>' +
+      '<p style="font-size:0.88rem">' + c[3] + '</p>' +
+      '<dl class="facts"><dt>Attributes</dt><dd>' + c[4] + '</dd><dt>Races</dt><dd>' + c[5] + '</dd><dt>Backstories</dt><dd>' + c[6] + '</dd><dt>Houses</dt><dd>' + (strong.length ? strong.join(", ") : '<span class="muted">none yet</span>') + '</dd>' + (c[10] ? '<dt>Marks</dt><dd>' + c[10] + '</dd>' : '') + '</dl>' +
+      '<div class="trial"><span class="eyebrow">Trial</span><p>' + c[7] + '. <span class="muted">Trains: ' + c[8] + '</span></p></div></article>';
+  }).join("");
+
+  var best = [
+    ["Gnawer", "Upper", "Mutated", "Nobody", "Not made by anyone. That should worry you more than it does."],
+    ["Knockoff Goblin", "Upper", "Storybuilt", "The Basin", "Assembled in under four minutes. It shows."],
+    ["Housebot", "Upper", "Feral machine", "Nobody", "Do not drop anything near it."],
+    ["Scorch Goat", "Upper", "Engineered", "Joint era", "Bred to survive anything. Including you."],
+    ["Drop Bear", "Upper", "Storybuilt", "The Southern Cross", "This was meant to be funny."],
+    ["Strays", "Upper", "People", "Human", "What left behind looks like up close."],
+    ["Tunnel Brute", "Middle", "Engineered", "Joint era", "It isn't angry. It's at work."],
+    ["Lockstep", "Middle", "Storybuilt", "The Ten Thousand", "Hit one and the other four hundred take it personally."],
+    ["Certified Skeleton", "Middle", "Storybuilt", "The Charter", "Legally obliged to warn you. Not obliged to miss."],
+    ["Lantern Warden", "Middle", "Storybuilt", "The Seven", "There is only one. There only needs to be one."],
+    ["Biocontrol Toad", "Middle", "Engineered", "The Southern Cross", "Introduced to solve a problem. Became one."],
+    ["Thornback", "Middle", "Grown", "The Baobab", "Plant something near one. See what happens."],
+    ["Test Article", "Middle", "Engineered machine", "The Ascent", "Test Article Nine. We don't talk about One to Eight."],
+    ["Watcher", "Middle", "Storybuilt", "The Index", "Smile. You're being priced."],
+    ["Boggart", "Middle", "Storybuilt", "The Isle", "It isn't malicious. It's British."],
+    ["The Faithful", "Middle", "People", "Human", "What people do with gods they can't understand."],
+    ["The Unfinished", "Deep", "Forced", "A House nursery", "A first draft."],
+    ["Lowlight Grazer", "Deep", "Forced", "The Ten Thousand", "Built for somewhere else. Still waiting to go."],
+    ["Rootbound", "Deep", "Mutated", "The Bloom", "The Bloom was meant to save the world. It started with this one."],
+    ["The Overgrown", "Deep", "Mutated, once human", "The Bloom", "Still wearing a lanyard. Still flinching at its old name."],
+    ["The Misblessed", "Deep", "Forced, failed, once human", "A House", "The Herald changes the subject."],
+    ["Shadow Stalker", "Deep", "Unfair", "The Unmoored", "The Herald makes no joke."],
+    ["The Caller", "Deep", "Unfair", "The Unmoored", "It sounds like someone you know, asking for help."],
+    ["The Lost", "Anywhere", "Minor agents", "Anyone, forgotten", "A door that won't open until you say please."]
+  ];
+  document.getElementById("bestiary").innerHTML = best.map(function (b) {
+    return '<tr><td class="name">' + b[0] + '</td><td>' + b[1] + '</td><td>' + b[2] + '</td><td>' + b[3] + '</td><td><span class="q">' + b[4] + '</span></td></tr>';
+  }).join("");
+
+  var styles = [
+    ["The Ten Thousand", "Swarms of identical creatures bred in bulk, moving as one", "Chinese myth and folklore"],
+    ["The Seven", "Few, exquisite constructs, almost never seen twice", "Yōkai and karakuri dolls"],
+    ["The Basin", "Mass-produced and cheap. Flat-packed; the instructions were wrong", "Whatever sells"],
+    ["The Ascent", "Prototypes: fast, explosive, unstable", "Pulp science fiction"],
+    ["The Index", "Watchers and trackers, collecting data on you", "All-seeing eyes"],
+    ["The Charter", "Certified and tagged. Announce themselves; never fight in a sanctuary", "European fairy tales, official versions"],
+    ["The Isle", "Eccentric cross-breeds that shouldn't work but do", "Boggarts, redcaps, black dogs"],
+    ["The Southern Cross", "Salvaged, patched together, pest control gone wrong", "The drop bear"],
+    ["The Baobab", "Grown, not built: seed-carriers and guardians of anything green", "Many African traditions, with care"],
+    ["The Unmoored", "Wrong things. Built to kill, not to test", "Nobody's. That's the point"]
+  ];
+  document.getElementById("styles").innerHTML = styles.map(function (x) {
+    return '<div class="panel"><h3>' + x[0] + '</h3><p>' + x[1] + '</p><span class="street">Borrows from: ' + x[2] + '</span></div>';
+  }).join("");
+
+  var relNames = ["The Ten Thousand", "The Seven", "The Basin", "The Ascent", "The Index", "The Charter", "The Isle", "The Southern Cross", "The Baobab", "The Monsoon", "The Deathless", "The Canopy", "The House of Wisdom"];
+  var relShort = ["Ten Thousand", "Seven", "Basin", "Ascent", "Index", "Charter", "Isle", "Southern Cross", "Baobab", "Monsoon", "Deathless", "Canopy", "House of Wisdom"];
+  var relPairs = [
+    [0,1,-1],[0,8,1],[0,12,1],[1,5,1],
+    [2,3,-1],[2,4,-1],[3,4,-1],[2,7,-1],[2,11,-2],[2,9,-1],[4,9,-1],[3,10,-1],
+    [5,6,-1],[5,8,1],[5,7,1],[5,9,1],[5,12,1],
+    [7,8,1],[7,9,1],[7,6,1],[8,9,1],[8,11,2],[8,12,1],
+    [8,2,-1],[8,3,-1],[8,4,-1]
+  ];
+  var R = relNames.map(function () { return relNames.map(function () { return 0; }); });
+  relPairs.forEach(function (q) { R[q[0]][q[1]] = q[2]; R[q[1]][q[0]] = q[2]; });
+  var relWord = { "2": "allied", "1": "friendly", "0": "neutral", "-1": "wary or rival", "-2": "hostile" };
+  var relSym = { "2": "++", "1": "+", "0": "", "-1": "−", "-2": "−−" };
+  var rg = '<thead><tr><th></th>' + relShort.map(function (n) { return '<th class="colh" scope="col">' + n + '</th>'; }).join("") + '</tr></thead><tbody>';
+  relShort.forEach(function (n, i) {
+    rg += '<tr><th class="rowh" scope="row">' + n + '</th>';
+    relShort.forEach(function (m, j) {
+      if (i === j) { rg += '<td class="rself"></td>'; return; }
+      var v = R[i][j];
+      var cls = v === 2 ? "r2" : v === 1 ? "r1" : v === 0 ? "r0" : v === -1 ? "rm1" : "rm2";
+      rg += '<td class="' + cls + '" title="' + relNames[i] + ' and ' + relNames[j] + ': ' + relWord[String(v)] + '">' + relSym[String(v)] + '</td>';
+    });
+    rg += '</tr>';
+  });
+  document.getElementById("relgrid").innerHTML = rg + '</tbody>';
+
+  var bands = [
+    ["Floor 1", "Your own region. Other regions too far before the Heat arrives", 620],
+    ["Floor 2", "Neighbouring regions, at a big cost in time", 540],
+    ["Floor 3", "A few regions; the Reshaping chamber", 460],
+    ["Floor 4", "Most of a continent; most Houses present", 390],
+    ["Floor 5", "Anywhere, at a moderate cost; every House", 320],
+    ["Floor 6", "The trunk: every House and the docks", 260]
+  ];
+  var cx = 340, y = 70, bh = 50, out = '';
+  // surface line and entrances
+  out += '<line x1="30" y1="40" x2="650" y2="40" stroke="var(--accent)" stroke-width="2"/>';
+  out += '<text class="band-note" x="30" y="28">The surface: entrances under every city</text>';
+  for (var k = 0; k < 13; k++) {
+    var ex = 50 + k * 48;
+    out += '<line x1="' + ex + '" y1="40" x2="' + (cx + (ex - cx) * 0.92) + '" y2="' + y + '" stroke="var(--line)" stroke-width="1.5"/>';
+    out += '<circle cx="' + ex + '" cy="40" r="3.5" fill="var(--accent)"/>';
+  }
+  bands.forEach(function (b, i) {
+    var w = b[2], x = cx - w / 2, yy = y + i * (bh + 6);
+    out += '<rect x="' + x + '" y="' + yy + '" width="' + w + '" height="' + bh + '" rx="6" fill="var(--chip)" stroke="var(--line)"/>';
+    out += '<text class="band-label" x="' + cx + '" y="' + (yy + 21) + '" text-anchor="middle">' + b[0] + '</text>';
+    out += '<text class="band-note" x="' + cx + '" y="' + (yy + 38) + '" text-anchor="middle">' + b[1] + '</text>';
+  });
+  var bottom = y + bands.length * (bh + 6);
+  out += '<text class="band-label" x="' + cx + '" y="' + (bottom + 18) + '" text-anchor="middle" style="fill: var(--accent)">The docks and the Muster</text>';
+  document.getElementById("roots-bands").innerHTML = out;
+
+  // Hash routing between the views
+  var views = ["world", "houses", "entrants", "callings", "creatures"];
+  function show() {
+    var v = (location.hash || "").replace("#", "");
+    if (views.indexOf(v) < 0) v = "world";
+    document.querySelectorAll("[data-view-panel]").forEach(function (p) { p.hidden = p.getAttribute("data-view-panel") !== v; });
+    document.querySelectorAll("nav.tabs a").forEach(function (a) {
+      if (a.getAttribute("data-view") === v) a.setAttribute("aria-current", "page"); else a.removeAttribute("aria-current");
+    });
+  }
+  window.addEventListener("hashchange", function () { show(); window.scrollTo(0, 0); });
+  show();
+})();
+</script>
+
+</html>

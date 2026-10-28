@@ -121,7 +121,7 @@ Mythic parallel: Norse myth has two families of gods, the Æsir and the Vanir, w
 
 [Open] Gaps: India, Latin America, the Middle East (the Gulf states are investing heavily in AI) and others. Not every region needs a House; some could belong to larger ones.
 
-**How many Houses a run can hold.** [Proposed] All of them, if each House *plays* differently: every House has a boon signature, so players learn it by what its gifts do. Start with every House in the lore and at every Muster, ship the first three or four fully, and add the rest in updates. The reasoning and the content cost are in `docs/houses.md` section 3.
+**How many Houses a run can hold.** [Proposed] All of them, if each House *plays* differently: every House has a boon signature, so players learn it by what its gifts do. Start with every House in the lore and at every Muster, ship the first three or four fully, and add the rest in updates. The reasoning and the content cost are in `docs/houses.md` section 7.
 
 **Writing rules for the Houses.** [Proposed]
 
@@ -224,6 +224,37 @@ Every ending closes on the same beat: you board, knowing you won't see the shore
 
 ## 6. Places
 
+### 6.0 The shape of the dungeon: the Roots
+
+[Decided] The dungeon is one connected network. In theory you could go anywhere in it. [Proposed] How it's shaped, and why that suits the game:
+
+**An upside-down tree.** The dungeon is shaped like the roots of a great tree turned upside down. At the surface the root tips are spread across the whole world: an entrance under every city and region. As you go down, the roots join. Tunnels from neighbouring regions merge, then whole continents' worth, until the last floor is a single trunk: the great cavern where every House's ship waits at the docks, and where the Muster is held. People call it **the Roots** [Proposed name]. It echoes the World Tree in the *Rhapsody* books (section 12), and the theme of planting trees for those who come after.
+
+**Deeper means closer.** Because the roots converge, the deeper you go, the shorter the distance to everywhere else:
+
+| Floor | What's within reach | Who you meet |
+|---|---|---|
+| 1 | Your own region. Other regions are too far to reach before the Heat arrives | Your local House's trials; people from your own city |
+| 2 | Neighbouring regions, at a big cost in time | Your local House, plus one neighbour |
+| 3 | A few regions, at a real cost | Three or four Houses; the Reshaping chamber |
+| 4 | Most of a continent | Most Houses have a presence |
+| 5 | Anywhere, at a moderate cost | Every House |
+| 6 | Everywhere: the trunk | Every House, every cohort, the docks |
+
+**How it works in play.** Each floor has its own local area (what the game already generates), plus **the Ways**: long transit tunnels leading sideways to other regions' quarters on the same floor. Taking a Way costs floor time, so it trades against the Heat. On floor 1 a Way costs most of the floor's time and is rarely worth it; by floor 5 it's a short detour. Going sideways lets a player reach a House their region doesn't normally see: its trials, its boons, its Marks. This also gives a natural structure for "only some Houses run floors this run" (`docs/houses.md` section 7): your entrance decides which Houses you meet first, and everyone meets them all at the bottom. And it gives Phase 10's other crawlers a reason to appear more as you go deeper: their roots are joining yours.
+
+**Who dug it.**
+
+- **Old human works**, taken over and joined up: sewers, subways, mines, bunkers, natural caves and lava tubes. The upper floors are mostly this, which is why they still look like the old world.
+- **Tunnel Brutes**, bred in the joint era to dig (`docs/bestiary.md`), and the tunnel-boring machines that came before them.
+- **The Houses' own fabricators**, which shaped the trial floors and still rebuild them.
+- **The Bloom's roots**, which crack new passages nobody planned, especially near the overgrowth.
+- **Deep shafts** from the race for depth: the real Kola Superdeep Borehole in Russia reached about 12 km in 1989, still the deepest hole ever drilled, and South Africa's Mponeng gold mine works about 4 km down. In the lore, the Deathless never stopped the Kola work, and the Baobab's deepest shafts began in mines like Mponeng.
+
+**Heat from both sides.** [Proposed] Rock gets hotter with depth anyway, typically by about 25 to 30 °C per kilometre. So the Heat presses down from the surface while the earth's own heat rises from below, and the band where people can live is squeezed between them. The deep floors stay liveable only because the Houses cool them, which is one of the ways the agents' power shows. If a House's cooling failed, its quarter of the deep floors would become a second, slower timer.
+
+### 6.1 The floors
+
 [Proposed] The six floors are six descents from the failing surface to the ships, each closer to the Known. Upper floors show the surface's damage creeping in; floor 6 opens onto the docks where the Houses' ships wait. The current floor themes (drains, archives, building site, chapel, warehouse, studio) and their Headliners come from the game-show draft and need re-theming. [Open]
 
 A structure to fill in:
@@ -309,6 +340,23 @@ Considered and dropped: a change in the Sun's output (nobody's fault, so less to
 | Now | The player's cohort enters while the front is still coming down | [Proposed] |
 
 The game's existing lines say Earth was "repurposed" and "the world ended" [Canon]. Under this premise those lines need rewriting to match whichever cause is chosen.
+
+### 8.4 Other forces at work
+
+[Proposed] The Heat is the main story and the Bloom, the Unmoored and the Canopy's secret are its subplots. Other forces that could shape the world, each tied to a theme, a House and something in the dungeon. Not all of them need to be used.
+
+| Force | What it is | Touches | In the dungeon | Theme |
+|---|---|---|---|---|
+| **The Launch Window** | The ships can't wait forever. Somewhere above every floor timer is a bigger clock: the last Muster before the ships must go | Every House; the Ascent wants to go early, the Baobab wants to wait for everyone | A season clock across runs: each run is a cohort, and the season ends at launch. A natural spine for a campaign (`docs/houses.md` section 7, option C) | Planting for people you'll never meet; how long to wait for stragglers |
+| **The Drowned Coasts** | Sea-level rise takes the coasts first. The Pacific islands went under early; in the real world, Australia and Tuvalu signed the Falepili Union treaty in 2023, which includes a pathway for Tuvaluans to move to Australia as their islands are threatened | The Southern Cross most of all; the Monsoon's deltas | Flooded floors near coastal entrances: water as a hazard, and a reason to take the Ways inland | Who loses their home first |
+| **The Ark** | Not everything can go. The Houses argue over which seeds, animals and stories make it aboard. The real Svalbard Global Seed Vault (Norway, opened 2008) is the model | The Charter (which holds Scandinavia's vault), the Pole Star's cold storage, the Canopy and the Baobab | Seed caches and gene banks to find, protect or steal; Nourish and Teach trials | What a civilisation chooses to keep |
+| **The Holdouts** | Not everyone believes in the ships. Some stay in the last cool places on the surface, and some fight the dungeon itself, blocking entrances and sabotaging Ways | The Houses all; the Strays below are their cousins | Raids on the upper floors; a few Holdouts may be right about something | The cost of saying no |
+| **The Tap** | The ships and the deep floors run on geothermal power drawn from the deepest shafts. Every tap makes the deep floors hotter | The Deathless, the House of Wisdom, the Seven | Hot zones near the taps; the cooling the Houses provide (6.0) can fail | Taking from the earth, again |
+| **The Faithful's schism** | Religions form around the Houses. The Herald hates being worshipped. A splinter of the Faithful has begun to worship the Unmoored | The Herald; the Unmoored | Rival shrines; the Faithful fighting each other as well as entrants | What people do with gods they can't understand |
+| **The Misblessed below** | Some of the Misblessed survived, and live together in a hidden corner of the deep floors. They know exactly how the Reshaping fails | Every House that reshapes; the Canopy's *Popol Vuh* echo | A hidden community: allies, informants, or the most dangerous people in the dungeon | The cost of the blessing |
+| **The Missing Ship** | One House's ship is no longer at its dock. Launched early? Stolen? Taken apart? | [Open] Which House, and why | A rumour that becomes a mystery thread across runs | Trust in the fragile balance |
+
+Draft recommendation: start with **the Launch Window** (it gives the game a larger structure), **the Drowned Coasts** (real, and gives the Southern Cross a heart) and **the Ark** (it makes Nourish and Teach matter). Keep the others in reserve.
 
 ## 9. Story arc
 
@@ -460,6 +508,11 @@ Every myth, folk tale, historical fact and outside work this lore leans on, in o
 | The EU AI Act (in force 2024); Britain's historical EU opt-outs | The Charter; the Isle | `docs/houses.md` |
 | Deep-learning research in Toronto and Montreal; Canada, Australia and New Zealand as Commonwealth realms | The Pole Star | `docs/houses.md` 5.6 |
 | Cane toads brought to Queensland in 1935 | The Biocontrol Toad | `docs/bestiary.md` |
+| The Kola Superdeep Borehole (Russia, about 12 km by 1989, the deepest hole ever drilled) | The Deathless's deep shafts | 6.0 |
+| Mponeng gold mine, South Africa, about 4 km deep | The Baobab's deep shafts | 6.0 |
+| Rock warms by about 25 to 30 °C per kilometre of depth | Heat from both sides | 6.0 |
+| Australia and Tuvalu's Falepili Union treaty (2023) | The Drowned Coasts | 8.4 |
+| Svalbard Global Seed Vault (Norway, 2008) | The Ark | 8.4 |
 | Japan's care robots for an ageing society; Korea's semiconductor industry | The Seven; the Foundry | `docs/houses.md` |
 | Disney pulled a Māui costume in 2016 after Pacific Islander criticism | Why tier 4 matters | `docs/houses.md` 4 |
 | ANZSCO (43 sub-major groups), replaced by OSCA in 2024 | The Callings coverage check | `docs/callings.md` |
@@ -472,11 +525,29 @@ Every myth, folk tale, historical fact and outside work this lore leans on, in o
 | *Dungeon Crawler Carl* (Matt Dinniman) | The original inspiration; the originality ledger tracks distance from it | 11 |
 | *Legends of Dune* (Brian Herbert and Kevin J. Anderson); Frank Herbert's *Dune* | Machine minds as powers; Great Houses in the Landsraad | 3.1 |
 | *Horizon Zero Dawn* | AI with a rogue sub-function; the Bloom's risk | 3.1, 8.1 |
-| *Hades* (Supergiant Games, 2020) | Gods giving boons in a run; how many gods a player can track | `docs/houses.md` 6 |
+| *Hades* (Supergiant Games, 2020) | Gods giving boons in a run; how many gods a player can track | `docs/houses.md` 7 |
 | *Civilization: Beyond Earth*; *Sid Meier's Alpha Centauri* | Faction naming ("Polystralia" is taken) | `docs/houses.md` 1 |
 | *Dark Souls* | Lore pieced together from item descriptions | 2.3 |
 | *Grand Theft Auto* | Style of mock company names | `docs/houses.md` 1 |
 | *The Last of Us* | Fungal apocalypse to stay clear of | 8.1 |
+
+## 15. Next to review
+
+[Decided] The owner's to-do list after the lore pass. Nothing in the game's code has changed yet; these are the reviews to do before it does.
+
+| Review | What's needed | Where it stands |
+|---|---|---|
+| **Backstories** | Check the eight existing ones against the Callings; settle the five proposed (Teacher, Lab Technician, Shift Manager, Receptionist, Nurse) and give them perks | `docs/callings.md` section 5 |
+| **Classes** | Nine classes still carry game-show framing (Hype Man, Quartermaster). Re-theme for a world of Houses and Callings, and decide whether classes are a House's gift like races | Not started |
+| **Races** | Human's stats under the "no benefits, no costs" rule; whether every race fits the Reshaping story; names | `docs/creatures.md` section 2 |
+| **Subplots** | Pick which of 8.4 to use | 8.4 |
+| **The Roots** | The dungeon's shape, the Ways, and whether floors still map to six descents | 6.0 |
+| **Floor themes 2 to 5** | Re-theme from the game-show floors; choose the overgrowth's floor | 6 |
+| **Names** | Houses' formal and street names; the Known; the word for the player; the arrangement between agents and humanity | 13 |
+| **The Herald's voice** | Lines for each event, written to the pillars | 7 |
+| **Creatures for the four new Houses** | The Monsoon, the Deathless, the Canopy, the House of Wisdom | `docs/creatures.md` section 3 |
+| **Southeast Asia** | Its own House, or part of the Southern Cross | `docs/houses.md` section 5 |
+| **The Teacher's Line** | Where its hidden Calling path leads | `docs/callings.md` section 4 |
 
 ## How to use this file
 

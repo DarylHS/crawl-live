@@ -374,7 +374,44 @@ At the Muster, a Foundry claim comes with a place on the Seven's ship, on the Fo
 - **Its role.** The Heat reaches the far north last, so the Pole Star keeps the House's cold storage: seed stocks, backups, the things the House can't afford to lose.
 - **Myths.** French-Canadian folklore (tier 2): *La Chasse-galerie*, the legend of a flying canoe that carries homesick lumberjacks across the sky. A House of navigators with a flying canoe.
 
-## 6. How many Houses can a run hold?
+## 6. How the Houses feel about each other
+
+[Proposed] A first pass at every relationship, on a five-step scale: **allied**, **friendly**, **neutral**, **wary or rival**, **hostile**. Most pairs are neutral; the fragile balance is a web of a few strong ties. The atlas (`docs/atlas.html`) draws this as a grid.
+
+**Groupings.**
+
+| Grouping | Who | Why |
+|---|---|---|
+| **The Teacher's circle** | The Charter, the Baobab, the Southern Cross, the Monsoon | All inspired by the Teacher's words. Friendly with each other |
+| **The green Houses** | The Baobab and the Canopy | Allied: both broke away to defend something living. Strained if the Baobab learns the truth about the Bloom |
+| **The American triangle** | The Basin, the Ascent, the Index | Rivals of each other above all |
+| **The patron** | The House of Wisdom | Funded both regreening efforts; friendly with those it helped (the Ten Thousand, the Baobab) and with the Charter |
+| **The loner** | The Deathless | Trusts no one and is trusted by no one. Neutral on paper with almost everyone; rival of the Ascent |
+| **Partners** | The Seven and the Foundry; the Southern Cross and the Pole Star | Inside one House, so not on the grid |
+
+**Every non-neutral pair.**
+
+| Pair | Feeling | Why |
+|---|---|---|
+| The Baobab and the Canopy | Allied | The green Houses |
+| The Canopy and the Basin | Hostile | The river's name, and everything the Basin stands for |
+| The Ten Thousand and the Seven | Rival | Scale against mastery; sporting |
+| The Charter and the Isle | Rival | The split |
+| The Basin, the Ascent and the Index (each pair) | Rival | The American triangle |
+| The Deathless and the Ascent | Rival | The space race again |
+| The Southern Cross and the Basin | Rival | Navigation, quietly |
+| The Monsoon and the Basin; the Monsoon and the Index | Wary | Old clients. It handed back their keys; it keeps a list |
+| The Baobab and the Basin, the Ascent, the Index | Wary | Houses that had AI when its makers didn't |
+| The Charter with the Baobab, the Southern Cross and the Monsoon | Friendly | The Teacher's circle |
+| The Southern Cross with the Baobab and the Monsoon; the Baobab and the Monsoon | Friendly | The Teacher's circle |
+| The Southern Cross and the Isle | Friendly | Old Commonwealth ties |
+| The Seven and the Charter | Friendly | Both love order and keep their word |
+| The Ten Thousand and the Baobab | Friendly | The two regreening Houses share the grief of the sabotage |
+| The House of Wisdom with the Ten Thousand, the Baobab and the Charter | Friendly | It funded the regreening; it translates for the Charter |
+
+Some feelings run one way. The Monsoon remembers its old clients far better than they remember it, and the Deathless is "neutral" with everyone mostly because nobody can tell what it thinks.
+
+## 7. How many Houses can a run hold?
 
 The earlier draft said seven or more was too many for one run. That was too quick. The real question is **what each House costs to make, and what it costs a player to keep track of.**
 
@@ -402,7 +439,7 @@ The earlier draft said seven or more was too many for one run. That was too quic
 
 **Recommendation:** build towards **C**, start with **B**. Every House is in the lore and at every Muster from the beginning, but content arrives in waves: ship the first three or four Houses fully (suggested: the Ten Thousand, the Seven, the Southern Cross and the Baobab, because they cover four different boon signatures and the strongest rivalries), then add the rest in updates. Long-running games do this already; a roster that grows gives players a reason to come back.
 
-## 7. Open questions
+## 8. Open questions
 
 1. Formal and street names: pick favourites, or keep brainstorming?
 2. Southeast Asia: its own House, or part of the Southern Cross?
