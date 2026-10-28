@@ -1,8 +1,8 @@
 extends TestCase
 ## tests/test_encounter.py: initiative ordering with ties (S4) and the combat-mode tests on a World
 ## (S7: starting, initiative, the turn budget, ending, attacks of opportunity) and the bomb, item, skill,
-## pickup, descend and rest tests (S8). The tests that need saves or the bot are listed in
-## docs/port-plan.md B.1 (slices T5, T6).
+## pickup, descend and rest tests (S8) and the bot tests (T6). The tests that need saves are listed in
+## docs/port-plan.md B.1 (slice T5).
 
 
 func after_each() -> void:
@@ -858,3 +858,30 @@ func test_arc_bolt_starts_combat_as_your_action() -> void:
 	assert_true(w.combat != null and w.combat.has_entity(g))
 	assert_false(w.combat.has("action"))
 	assert_true(w.combat.has("move"))
+
+
+# --- Bot (T6) ---------------------------------------------------------------------------
+
+func test_bot_finishes_runs_in_combat_mode(seed_value = use_parameters([0, 1, 2])) -> void:
+	var r := BotPolicy.play(seed_value, "", "random", false, 60000)
+	var w: World = r[0]
+	assert_true(w.state == "dead" or w.state == "victory")
+
+
+func test_bot_flees_through_a_provoke_only_when_hurt() -> void:
+	var w := _world()
+	var aoo := _record(w, "opportunity_attack")
+	var fight := _melee_fight(w)
+	var x: int = fight[0]
+	var y: int = fight[1]
+	var g: Monster = fight[2]
+	var st := BotPolicy.BotState.new()
+	var r := BotPolicy.choose(w, st)
+	assert_eq(r[0], "move")
+	assert_eq(Vector2i(x, y) + (r[1] as Vector2i), Vector2i(g.x, g.y))     # healthy: attack
+	w.player.hp = int(w.player.max_hp * 0.2)
+	w.inventory.clear()
+	r = BotPolicy.choose(w, st)
+	assert_eq(r[0], "move")
+	assert_ne(Vector2i(x, y) + (r[1] as Vector2i), Vector2i(g.x, g.y))     # hurt, no potion: run
+	assert_true(aoo.is_empty())

@@ -10,12 +10,13 @@ extends RefCounted
 ## policy then calls do("wait", null), exactly like the bot does.
 ##
 ## Status: `walk` (slice S7) and `hunter` (slice S8) are complete and proven against Python at core
-## scope (seeds 0-49, with and without pets and heroes); `bot` needs the T6 BotPolicy.
+## scope (seeds 0-49, with and without pets and heroes); `bot` (slice T6) drives BotPolicy in bot.play's loop.
 
 const POLICY_NAMES := ["walk", "hunter", "bot"]
 ## World methods each policy can call (trace.gd refuses a policy whose methods are missing).
 const POLICY_METHODS := {"walk": ["move_player", "wait"],
-		"hunter": ["move_player", "wait", "descend", "pickup", "use_item"], "bot": []}
+		"hunter": ["move_player", "wait", "descend", "pickup", "use_item"],
+		"bot": ["move_player", "wait", "descend", "rest", "pickup", "use_item", "use_skill", "revive_pet"]}
 const POTIONS := ["tonic", "brew", "elixir"]
 
 
@@ -155,6 +156,56 @@ class HunterPolicy extends RefCounted:
 			do.call("wait", null)
 
 
+## `bot`: BotPolicy's choose, spend_points and manage_items inside bot.play's loop (class pick when
+## pending, contract coin flip, free item management, one act, wait when refused). spend_points,
+## manage_items and the remote shop_buy after a Supply Drop call the World directly and write no `act`
+## records. The coin stream is `rng` (PyRandom(seed ^ 0xB07)); race, class, pet and hero come from
+## BotPolicy.run_config(seed) (its 4 draws on the seed * 7919 + 13 stream are not traced).
+class BotTracePolicy extends RefCounted:
+	var policy_name := "bot"
+	var cfg: Dictionary
+	var rng: PyRandom
+	var state := BotPolicy.BotState.new()
+
+	func _init(seed_value: int, rng_value: PyRandom) -> void:
+		cfg = BotPolicy.run_config(seed_value)
+		rng = rng_value             # the coin stream
+
+	func step(w: World, do: Callable) -> void:
+		if w.pending_choice:
+			do.call("choose_class", [cfg["race"], cfg["cls"]])
+		if PyMath.truthy(w.pending_offer):
+			do.call("accept" if rng.random() < 0.5 else "decline", null)
+		BotPolicy.spend_points(w, cfg["cls"])
+		BotPolicy.manage_items(w)
+		var r := BotPolicy.choose(w, state)
+		var act: String = r[0]
+		var arg: Variant = r[1]
+		var ok: bool
+		if act == "move":
+			ok = do.call("move", [arg.x, arg.y])
+		elif act == "skill":
+			ok = do.call("skill", null)
+			if ok and w.remote_shop:
+				BotPolicy.remote_shop_buy(w)
+		elif act in ["descend", "rest", "pickup", "use", "revive", "wait"]:
+			ok = do.call(act, arg)
+		else:
+			ok = do.call("wait", null)
+		if not ok:
+			do.call("wait", null)
+
+
+## [pet species ("" for none), hero Dictionary or null] a policy uses unless the command line overrides
+## it (Python default_setup).
+static func default_setup(policy_name: String, seed_value: int) -> Array:
+	if policy_name == "bot":
+		var cfg := BotPolicy.run_config(seed_value)
+		var pet: String = cfg["pet"]
+		return [pet if pet != "none" else "", {"name": "Bot", "gender": cfg["gender"], "backstory": cfg["backstory"]}]
+	return ["", null]
+
+
 ## A policy object for `policy_name` driven by `rng`, or null (with push_error) when it is not
 ## available yet.
 static func make_policy(policy_name: String, seed_value: int, rng_value: PyRandom) -> Object:
@@ -162,5 +213,7 @@ static func make_policy(policy_name: String, seed_value: int, rng_value: PyRando
 		return WalkPolicy.new(seed_value, rng_value)
 	if policy_name == "hunter":
 		return HunterPolicy.new(seed_value, rng_value)
+	if policy_name == "bot":
+		return BotTracePolicy.new(seed_value, rng_value)
 	push_error("TracePolicies.make_policy: policy '%s' is not ported yet" % policy_name)
 	return null

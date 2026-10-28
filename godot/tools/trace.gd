@@ -1,6 +1,6 @@
 extends SceneTree
 ## Godot side of the parity traces (port plan 6.2): floor-only modes (pure generate_floor, and World mode
-## with --spawns) and run mode (a policy plays the World: --policy walk or hunter; bot needs T6).
+## with --spawns) and run mode (a policy plays the World: --policy walk, hunter or bot).
 ##
 ##   godot --headless --path godot -s res://tools/trace.gd -- --seed 5 --policy walk --steps 500 --out /tmp/gd.jsonl
 ##       [--pet cat|dog|budgie|mouse|none] [--hero GENDER:BACKSTORY] [--no-msg]
@@ -106,9 +106,13 @@ func _initialize() -> void:
 			path = _resolve(opts.get("--out", "trace_%d.jsonl" % seed_value))
 		var records: Array
 		var pet: String = opts.get("--pet", "")
-		if pet == "none":
+		var dsetup: Array = TracePolicies.default_setup(policy, seed_value) if not opts.has("--floor-only") \
+				else ["", null]
+		if not opts.has("--pet"):
+			pet = dsetup[0]             # the bot's companion from run_config; "" for the other policies
+		elif pet == "none":
 			pet = ""
-		var hero: Variant = null
+		var hero: Variant = dsetup[1]
 		if opts.has("--hero"):
 			var parts := String(opts["--hero"]).split(":")
 			var story := parts[1] if parts.size() > 1 else ""

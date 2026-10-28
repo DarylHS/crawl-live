@@ -2,8 +2,8 @@ extends TestCase
 ## Telemetry and PyCsv (crawler/telemetry.py, tests/test_telemetry.py; slice T4), plus the byte-for-byte
 ## comparison of the CSV files with Python's.
 ##
-## Ported here: test_write_tables_appends_with_one_header. Not ported yet (see port plan Appendix B.1):
-## the bot tests (T6) and test_game_logs_finished_player_runs (needs the App, P5).
+## Ported here: test_write_tables_appends_with_one_header and the two bot tests (T6). Not ported yet
+## (see port plan Appendix B.1): test_game_logs_finished_player_runs (needs the App, P5).
 ##
 ## CHAOS_CSV (made by scripts/gd_test.sh): Python's CSV files for chaos seeds 0-15 (scripts/chaos_trace.py
 ## --telemetry-dir). tools/chaos.gd writes the same runs in a child Godot process and
@@ -46,6 +46,40 @@ func test_write_tables_appends_with_one_header() -> void:
 	var text := FileAccess.get_file_as_string(dir + "t_runs.csv")
 	assert_eq(text.count("run_id,source,seed"), 1)
 	assert_eq(text.count("\r\n"), 3)
+
+
+func test_bot_run_produces_consistent_tables() -> void:
+	var r := BotPolicy.play(3, "", "random", true)
+	var w: World = r[0]
+	var t: Dictionary = r[1]
+	var run: Dictionary = t["runs"][0]
+	assert_true(run["outcome"] in ["victory", "killed", "collapse"])
+	var floors: Array = t["floors"]
+	var depths := []
+	var died := 0
+	for f in floors:
+		depths.append(f["depth"])
+		died += int(f["died_here"])
+	var want := []
+	for d in range(1, w.depth + 1):
+		want.append(d)
+	assert_eq(depths, want)
+	assert_eq(died, int(run["outcome"] != "victory"))
+	for i in range(floors.size() - 1):
+		assert_eq(floors[i]["result"], "cleared")
+	assert_eq((t["boxes"] as Array).size(), w.box_log.size())
+	var events := {}
+	for e in t["events"]:
+		events[e["event"]] = true
+	assert_true(events.has("kill") and (events.has("floor_start") or w.depth == 1))
+	assert_false(events.has("turn"))
+
+
+func test_bot_is_deterministic() -> void:
+	var a := BotPolicy.play(5, "", "random", true)
+	var b := BotPolicy.play(5, "", "random", true)
+	assert_eq_deep(a[1]["runs"], b[1]["runs"])
+	assert_eq_deep(a[1]["floors"], b[1]["floors"])
 
 
 # --- Telemetry tables ------------------------------------------------------
