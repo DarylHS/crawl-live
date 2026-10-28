@@ -47,7 +47,7 @@ from crawler.items import ITEMS, describe, floor_loot_table, glyph, value  # noq
 from crawler.loot import BOX_TIERS, TIERS, box_stats, next_tier, odds, reroll_fee, roll_box  # noqa: E402
 from crawler.shop import BASE_DEMAND, Shop  # noqa: E402
 
-SEEDS = range(200)
+SEEDS = range(int(sys.argv[2]) if len(sys.argv) > 2 else 200)   # optional 2nd argument: number of seeds
 
 
 class FakeWorld:

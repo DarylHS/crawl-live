@@ -9,7 +9,7 @@ extends RefCounted
 ## initiative order around you.
 ##
 ## LAYOUT (one file, three slices; see docs/port-plan.md 9.1; all three are done):
-##   S6 (this slice, world.py lines 1-466): state and init, traits, refresh_stats, attributes,
+##   S6 (world.py lines 1-466): state and init, traits, refresh_stats, attributes,
 ##       prices, floors and spawns, contracts, queries, timer_text.
 ##   S7 appends below the marked "S7" section: attacks, kills, drops, Acts, combat mode, opportunity
 ##       attacks, turn flow (world.py 1084-1557) and ai.gd.
@@ -17,8 +17,8 @@ extends RefCounted
 ##       craft, shop trades, pet methods, class and skills, items, bombs, boxes (world.py 468-1080).
 ## A few small methods from those slices are already here because S6 code or the S6 tests need them
 ## (listed under "Pulled forward"), and S7 pulled move_player, wait and the pet methods forward from the
-## S8 range for the `walk` trace (listed under "Pulled forward from S8 by S7"); S8 must not port
-## them a second time.
+## S8 range for the `walk` trace (listed under "Pulled forward from S8 by S7"); S8 did not port
+## them again.
 ##
 ## Python module imports that S6 does not need are not mirrored here (Ai.CHASE_RADIUS, Bosses.MAP_RADIUS
 ## and PHASE_TWO, Crafting.CRAFT_TURNS, Loot.TRADE_UP_COST, Practice.SMALL_MONSTER_HP are read from their
@@ -1720,8 +1720,8 @@ func use_skill() -> bool:
 		remote_shop = true
 		if inventory.size() < GameConfig.INVENTORY_SIZE:
 			inventory.append("tonic")
-		messages.add("A sponsor drone lowers a shop crate, with a free Fizzy Tonic taped to the lid. One purchase, then it leaves.",
-				GameConfig.ACCENT)
+		messages.add("A sponsor drone lowers a shop crate, with a free Fizzy Tonic taped to the lid. "
+				+ "One purchase, then it leaves.", GameConfig.ACCENT)
 	elif key == "riposte":
 		riposte = spec["charges"]
 		messages.add("En garde. You'll parry the next %d attacks." % spec["charges"], GameConfig.INFO)

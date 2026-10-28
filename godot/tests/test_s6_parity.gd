@@ -1,7 +1,7 @@
 extends TestCase
 ## Parity of World's floors and spawns with Python (port plan 6.4, slice S6). scripts/gd_test.sh
 ## sets SPAWN_TRACES to a directory with floors_<seed>.jsonl from
-## `py_trace.py --floor-only --spawns --floors 6` (seeds 0-49). The full acceptance run (seeds 0-499)
+## `py_trace.py --floor-only --spawns --floors 6` (seeds 0-19 in the suite). The full acceptance run (seeds 0-499)
 ## is tools/trace.gd + scripts/parity_diff.py --dirs.
 ##
 ## The `show` stream (index 4 of rs and words) is dropped from both sides: Showrunner is still a
@@ -63,7 +63,7 @@ func test_pet_and_hero_world_traces_match_python(combo = use_parameters(COMBOS))
 	assert_true(true)
 
 
-func test_world_floor_traces_match_python(seed_value = use_parameters(range(50))) -> void:
+func test_world_floor_traces_match_python(seed_value = use_parameters(range(20))) -> void:
 	var dir := _need("SPAWN_TRACES")
 	if dir == "":
 		return

@@ -1,6 +1,6 @@
 extends TestCase
 ## Parity of the dungeon with Python (port plan 6.4, slice S3). scripts/gd_test.sh produces
-##  - FLOOR_TRACES: a directory with floors_<seed>.jsonl from `py_trace.py --floor-only` (seeds 0-49), and
+##  - FLOOR_TRACES: a directory with floors_<seed>.jsonl from `py_trace.py --floor-only` (seeds 0-19 in the suite), and
 ##  - DUNGEON_FIXTURES: FOV and distance-map digests from scripts/make_dungeon_fixtures.py.
 ## The full acceptance run (seeds 0-199) is done with tools/trace.gd and scripts/parity_diff.py.
 
@@ -12,7 +12,7 @@ func _need(var_name: String) -> String:
 	return v
 
 
-func test_floor_traces_match_python(seed_value = use_parameters(range(50))) -> void:
+func test_floor_traces_match_python(seed_value = use_parameters(range(20))) -> void:
 	var dir := _need("FLOOR_TRACES")
 	if dir == "":
 		return

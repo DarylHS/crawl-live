@@ -1,5 +1,5 @@
 extends TestCase
-## Per-seed parity for slice S4 against Python: scripts/make_fixtures_s4.py runs, for seeds 0-199, a
+## Per-seed parity for slice S4 against Python: scripts/make_fixtures_s4.py runs, for seeds 0-199 (0-49 in the suite), a
 ## scripted sequence over the loot stream (seed ^ 0x100F) and the shop stream (seed ^ 0x5A0F): box
 ## rolls for every tier, floor loot tables and draws, odds / box_stats / reroll_fee, item texts,
 ## crafting, boss and Act stat blocks, Encounter initiative with ties, contract effects and previews
@@ -194,11 +194,11 @@ func _check_seed(seed_value: int) -> String:
 	return ""
 
 
-func test_seeds_0_to_199() -> void:
+func test_fixture_seeds() -> void:
 	if not S4Support.require(self):
 		return
 	var seeds: Array = S4Support.doc()["seeds"]
-	assert_eq(seeds.size(), 200)
+	assert_gte(seeds.size(), 50)                  # gd_test.sh makes 50, parity_all.sh 200
 	var first_failures: Array = []
 	for s in range(seeds.size()):
 		var msg := _check_seed(s)
@@ -206,7 +206,7 @@ func test_seeds_0_to_199() -> void:
 			first_failures.append(msg)
 	assert_eq(first_failures, [], "mismatching seeds (%d steps checked, %d mismatches)" % [_steps, _mismatches])
 	assert_eq(_mismatches, 0)
-	assert_gt(_steps, 200 * 90)
+	assert_gt(_steps, seeds.size() * 90)
 	gut.p("S4 parity: %d steps over %d seeds, %d mismatches" % [_steps, seeds.size(), _mismatches])
 
 

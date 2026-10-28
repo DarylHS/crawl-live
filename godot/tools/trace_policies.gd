@@ -9,9 +9,8 @@ extends RefCounted
 ## performs one action and writes its `act` record. If the main action of a step returns false the
 ## policy then calls do("wait", null), exactly like the bot does.
 ##
-## Status: `walk` is complete and proven against Python (slice S7). `hunter` is written but cannot
-## run until slice S8 lands World.descend, pickup and use_item (perform() reports them missing), and
-## its parity is unchecked; `bot` needs the T6 BotPolicy.
+## Status: `walk` (slice S7) and `hunter` (slice S8) are complete and proven against Python at core
+## scope (seeds 0-49, with and without pets and heroes); `bot` needs the T6 BotPolicy.
 
 const POLICY_NAMES := ["walk", "hunter", "bot"]
 ## World methods each policy can call (trace.gd refuses a policy whose methods are missing).
@@ -30,8 +29,7 @@ static func cheb(a: Vector2i, b: Vector2i) -> int:
 	return maxi(absi(a.x - b.x), absi(a.y - b.y))
 
 
-## Run one named action on the World; returns its ok flag. Actions S8 has not yet ported push_error
-## and return false.
+## Run one named action on the World; returns its ok flag.
 static func perform(w: World, action: String, arg: Variant) -> bool:
 	match action:
 		"move":
@@ -47,9 +45,6 @@ static func perform(w: World, action: String, arg: Variant) -> bool:
 		"descend", "rest", "pickup", "use", "skill", "revive":
 			var method: String = {"descend": "descend", "rest": "rest", "pickup": "pickup", "use": "use_item",
 					"skill": "use_skill", "revive": "revive_pet"}[action]
-			if not w.has_method(method):
-				push_error("TracePolicies.perform: World.%s is not ported yet (slice S8)" % method)
-				return false
 			return w.call(method, arg) if action == "use" else w.call(method)
 	push_error("TracePolicies.perform: unknown action '%s'" % action)
 	return false

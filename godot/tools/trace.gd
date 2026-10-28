@@ -1,12 +1,12 @@
 extends SceneTree
 ## Godot side of the parity traces (port plan 6.2): floor-only modes (pure generate_floor, and World mode
-## with --spawns) and run mode (a policy plays the World; slice S7 has --policy walk).
+## with --spawns) and run mode (a policy plays the World: --policy walk or hunter; bot needs T6).
 ##
 ##   godot --headless --path godot -s res://tools/trace.gd -- --seed 5 --policy walk --steps 500 --out /tmp/gd.jsonl
 ##       [--pet cat|dog|budgie|mouse|none] [--hero GENDER:BACKSTORY] [--no-msg]
 ##   godot --headless --path godot -s res://tools/trace.gd -- --seeds 0-49 --policy walk --steps 500 --out-dir /tmp/gd_walk
 ##       (writes <policy>_<seed>.jsonl per seed, like scripts/py_trace.py; default --policy hunter,
-##       default --steps 500, which needs slice S8 for hunter)
+##       default --steps 500)
 ##
 ##   godot --headless --path godot -s res://tools/trace.gd -- --seed 5 --floor-only --floors 6 --out /tmp/gd.jsonl
 ##   godot --headless --path godot -s res://tools/trace.gd -- --seeds 0-199 --floor-only --out-dir /tmp/gd_floors

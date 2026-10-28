@@ -1,7 +1,7 @@
 extends TestCase
 ## Parity of the `hunter` policy run traces with Python (port plan 6.4, slice S8). scripts/gd_test.sh
 ## sets HUNTER_TRACES to a directory with hunter_<seed>.jsonl from
-## `py_trace.py --seeds 0-9 --policy hunter --steps 3000` and HUNTER_COMBOS to one with <name>.jsonl for
+## `py_trace.py --seeds 0-4 --policy hunter --steps 3000` and HUNTER_COMBOS to one with <name>.jsonl for
 ## the pet and hero combinations below. The full acceptance run (seeds 0-49, no pet, each pet and heroes) is
 ## tools/trace.gd + scripts/parity_diff.py --dirs --scope core.
 ##
@@ -53,7 +53,7 @@ func _hunter_diff(py_path: String, seed_value: int, pet: String, hero: Variant) 
 	return ""
 
 
-func test_hunter_traces_match_python(seed_value = use_parameters(range(10))) -> void:
+func test_hunter_traces_match_python(seed_value = use_parameters(range(5))) -> void:
 	var dir := _need("HUNTER_TRACES")
 	if dir == "":
 		return
