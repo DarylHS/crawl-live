@@ -15,8 +15,12 @@
 #   chaos    chaos harness, seeds 0-215, 2500 steps (scripts/chaos_diff.py)
 #   csv      telemetry CSV files of the same chaos runs (T4: chaos_trace.py / chaos.gd --telemetry-dir, compared
 #            byte for byte with parity_diff.py --csv; every outcome, boxes, shop, practice, events)
-# The bot policy needs the T6 BotPolicy and is not included. Every system is real on both sides and
-# compared in full; --mute (scripts/mute.py) stays a debugging option and nothing here uses it.
+#   bot      bot policy (T6), seeds 0-99, 3000 steps (full scope; pet, hero, race, class from run_config)
+#   botcsv   Godot bot CSVs for seeds 0-99 (scripts/gd_bot.py, N workers, --no-events), compared byte for byte
+#            with the committed runs/bot_*.csv rows of those seeds (scripts/bot_csv_check.py). About 6 minutes
+#            on 4 cores, run after the trace jobs.
+# Every system is real on both sides and compared in full; --mute (scripts/mute.py) stays a debugging option and
+# nothing here uses it.
 set -u
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 GODOT="${GODOT:-godot}"
@@ -50,6 +54,7 @@ add_set floors "--floor-only --floors 6" "--floor-only --floors 6" 199 25
 add_set spawns "--floor-only --spawns --floors 1" "--floor-only --spawns --floors 1" 499 50
 add_set walk "--policy walk --steps 500" "--policy walk --steps 500" 49 13
 add_set hunter "--policy hunter --steps 3000" "--policy hunter --steps 3000" 49 13
+add_set bot "--policy bot --steps 3000" "--policy bot --steps 3000" 49 5
 COMBOS=("cat female:tradie" "dog male:rideshare" "budgie male:dog_walker" "mouse female:comedian"
 	"cat :" "dog female:veteran" "mouse male:parent" "budgie female:mixologist")
 for combo in "${COMBOS[@]}"; do
@@ -77,6 +82,7 @@ check() { # check LABEL PY_DIR GD_DIR SEEDS SCOPE
 check floors "$WORK/py_floors" "$WORK/gd_floors" 0-199 full
 check spawns "$WORK/py_spawns" "$WORK/gd_spawns" 0-499 full
 check walk "$WORK/py_walk" "$WORK/gd_walk" 0-49 full
+check bot "$WORK/py_bot" "$WORK/gd_bot" 0-49 full
 check hunter "$WORK/py_hunter" "$WORK/gd_hunter" 0-49 full
 for combo in "${COMBOS[@]}"; do
 	set -- $combo
@@ -101,6 +107,12 @@ if grep -q 'All tests passed!' "$log" && ! grep -Eq 'SCRIPT ERROR|Parse Error' "
 else
 	echo "s4: FAILED"; tail -30 "$log"; fail=1
 fi
+
+out="$(python3 "$ROOT/scripts/gd_bot.py" --runs 100 --workers "$N" --no-events --out "$WORK/gd_botcsv" 2>&1 >/dev/null | grep -v 'shard .* done')"
+[ -d "$WORK/gd_botcsv" ] && out="$(python3 "$ROOT/scripts/bot_csv_check.py" "$WORK/gd_botcsv" --ref "$ROOT/runs" --seeds 0-99 2>&1)"
+rc=$?
+echo "botcsv: $(echo "$out" | tail -1)"
+[ "$rc" -eq 0 ] || { echo "$out" | head -40; fail=1; }
 
 echo "parity_all: $([ "$fail" -eq 0 ] && echo 'ALL IDENTICAL' || echo 'MISMATCH') in $(( $(date +%s) - START )) s"
 exit "$fail"
