@@ -1,7 +1,15 @@
 extends TestCase
 ## tests/test_phase4.py: item values, box stats against simulation, the shop policy tests (S4) and the
-## shop turnover and contract tests on a World (S6) and kills paying gold (S7). The rest (trade-up, reroll, buying and
-## selling in World, fun facts, run report, save) is listed in docs/port-plan.md B.1.
+## shop turnover and contract tests on a World (S6), kills paying gold (S7) and trade-up, reroll and
+## buying and selling in World (S8). The rest (fun facts, run report, save) is listed in
+## docs/port-plan.md B.1.
+
+
+func _safe(w: World) -> void:
+	var c := w.floor.safe_room.centre()
+	w.player.x = c.x
+	w.player.y = c.y
+	w.update_fov()
 
 
 func test_every_item_has_a_value() -> void:
@@ -163,3 +171,48 @@ func test_kills_pay_gold() -> void:
 		w.move_player(d.x, d.y)
 	assert_gt(w.gold, 0)
 	assert_eq(w.floor_stats[-1]["gold"], w.gold)
+
+
+func test_trade_up_in_safe_room() -> void:
+	var w := World.new(2)
+	w.boxes = []
+	for _i in range(Loot.TRADE_UP_COST):
+		w.boxes.append("bronze")
+	assert_false(w.trade_up("bronze"))                  # not in a safe room
+	_safe(w)
+	assert_true(w.trade_up("bronze"))
+	assert_eq(w.boxes, ["silver"])
+	w.boxes = ["legendary", "legendary", "legendary"]
+	assert_false(w.trade_up("legendary"))               # nothing above legendary
+
+
+func test_reroll_swaps_the_item_and_charges_the_fee() -> void:
+	var w := World.new(4)
+	_safe(w)
+	w.boxes = ["platinum"]
+	w.gold = 100
+	assert_true(w.open_box("platinum"))
+	var first: String = w.last_reveal[1]
+	assert_true(w.reroll())
+	assert_eq(w.gold, 100 - Loot.reroll_fee("platinum"))
+	assert_eq(w.inventory.size(), 1)
+	assert_true(w.box_log[-1]["rerolled"])
+	assert_true(not w.inventory.has(first) or w.inventory == [w.last_reveal[1]])
+	w.gold = 0
+	assert_false(w.reroll())                            # can't afford another
+
+
+func test_buying_and_selling_in_world() -> void:
+	var w := World.new(5)
+	w.gold = 50
+	assert_false(w.shop_buy("tonic"))                   # not in a safe room
+	_safe(w)
+	var price := w.shop.price("tonic")
+	assert_true(w.shop_buy("tonic"))
+	assert_eq(w.gold, 50 - price)
+	assert_eq(w.inventory, ["tonic"])
+	assert_true(w.shop_sell(0))
+	assert_eq(w.inventory, [])
+	assert_gt(w.gold, 50 - price)
+	w.gold = 0
+	assert_false(w.shop_buy("elixir"))                  # can't afford it

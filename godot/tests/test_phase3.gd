@@ -1,7 +1,7 @@
 extends TestCase
 ## tests/test_phase3.py: the data tests (S4), the World init and floor tests (S6) and the pet, boss and
-## ranged-monster tests that need attacks and Ai (S7). The rest (skills, crafting at the bench, the
-## pet command and revive, saves) is listed in docs/port-plan.md B.1.
+## ranged-monster tests that need attacks and Ai (S7), then skills, crafting at the bench and the pet
+## command and revive (S8). Saves are listed in docs/port-plan.md B.1.
 
 
 ## Chebyshev distance between two entities (crawler/ai.py cheb).
@@ -349,3 +349,114 @@ func test_following_pet_joins_the_players_fight() -> void:
 	for _i in range(4):
 		Ai.take_pet_turn(w)
 	assert_eq(Ai.cheb(pet, m), 1)
+
+
+# --- S8: descend, pet commands, skills, crafting ------------------------------------------------
+
+func test_monsters_never_stand_on_the_pet() -> void:
+	var w := World.new(7, ["cat", "Tom"])
+	w.player.max_hp = 10000
+	w.player.hp = 10000
+	var rng := PyRandom.new(7)
+	for _i in range(1500):
+		if w.state != "playing":
+			break
+		if w.on_stairs and not w.exit_sealed and rng.random() < 0.5:
+			w.descend()
+		else:
+			var d: Vector2i = rng.choice(DungeonFloor.NEIGHBOURS_8)
+			w.move_player(d.x, d.y)
+		var pet := w.active_pet
+		if pet != null:
+			for m in w.monsters:
+				assert_ne(Vector2i(m.x, m.y), Vector2i(pet.x, pet.y))
+
+
+func test_pet_command_cycles_modes() -> void:
+	var w := World.new(3, ["cat", "Tom"])
+	var modes: Array = [w.pet.mode]
+	for _i in range(3):
+		w.command_pet()
+		modes.append(w.pet.mode)
+	assert_eq(modes, ["follow", "attack", "stay", "follow"])
+
+
+func test_pet_downed_then_revived_in_safe_room() -> void:
+	var w := World.new(6, ["dog", "Rex"])
+	_clear(w)
+	var pet := w.pet
+	var spot: Vector2i = _free_tiles_near(w, pet.x, pet.y, 1)[0]
+	var m := Entities.spawn_monster("stalker", spot.x, spot.y)
+	m.attack = 100
+	m.alerted = true
+	w.monsters.append(m)
+	pet.hp = 1
+	for _i in range(20):                             # hit chance caps at 95%
+		if not pet.downed:
+			w.monster_attack_pet(m)
+	assert_true(pet.downed)
+	assert_null(w.active_pet)
+	w.monsters.clear()
+	assert_false(w.revive_pet())                     # not in a safe room
+	var c := w.floor.safe_room.centre()
+	w.player.x = c.x
+	w.player.y = c.y
+	var before := w.timer
+	assert_true(w.revive_pet())
+	assert_false(pet.downed)
+	assert_eq(pet.hp, pet.max_hp)
+	assert_eq(before - w.timer, GameConfig.PET_REVIVE_TURNS)
+
+
+func test_skill_needs_a_class_and_respects_cooldown() -> void:
+	var w := World.new(9)
+	_clear(w)
+	assert_false(w.use_skill())
+	w.choose_class("human", "analyst")
+	assert_true(w.use_skill())
+	assert_gt(w.scout_turns, 0)
+	assert_false(w.use_skill())                      # recharging
+	for _i in range(30):
+		w.wait()
+	assert_eq(w.skill_cooldown, 0)
+	assert_eq(w.scout_turns, 0)
+
+
+func test_haymaker_always_hits_double() -> void:
+	var w := World.new(10)
+	_clear(w)
+	w.choose_class("human", "brawler")
+	var spot: Vector2i = _free_tiles_near(w, w.player.x, w.player.y, 1)[0]
+	var m := Entities.spawn_monster("golem", spot.x, spot.y)
+	m.ac = 100
+	w.monsters.append(m)
+	assert_true(w.use_skill())
+	assert_lt(m.hp, m.max_hp)
+
+
+func test_arc_bolt_hits_nearest_visible() -> void:
+	var w := World.new(11)
+	_clear(w)
+	w.choose_class("elf", "arcanist")
+	var spot: Vector2i = _free_tiles_near(w, w.player.x, w.player.y, 3)[0]
+	var m := Entities.spawn_monster("golem", spot.x, spot.y)
+	w.monsters.append(m)
+	w.visible = {Vector2i(m.x, m.y): true}
+	assert_true(w.use_skill())
+	assert_eq(m.max_hp - m.hp, 6 + 2 * w.player.level + w.mod("int"))
+
+
+func test_crafting_in_safe_room_only_and_costs_time() -> void:
+	var w := World.new(16)
+	_clear(w)
+	var recipe: Dictionary = Crafting.recipes()[0]
+	w.inventory = (recipe["needs"] as Array).duplicate()
+	assert_false(w.craft(0))
+	var c := w.floor.safe_room.centre()
+	w.player.x = c.x
+	w.player.y = c.y
+	var before := w.timer
+	assert_true(w.craft(0))
+	assert_eq(w.inventory, [recipe["makes"]])
+	assert_eq(before - w.timer, Crafting.CRAFT_TURNS)
+	assert_false(w.craft(0))                         # parts used up
