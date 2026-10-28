@@ -5,9 +5,10 @@ extends RefCounted
 static var _patches: Array = []   # [[target, key, had_key, old_value, is_object], ...]
 
 
-## Empty scratch directory user://test_tmp/<name>/ (pytest's tmp_path).
+## Empty scratch directory user://test_tmp/<checkout hash>/<name>/ (pytest's tmp_path). The hash of the
+## project's real path keeps concurrent suites in different worktrees (same user://) apart.
 static func tmp_dir(dir_name: String) -> String:
-	var path := "user://test_tmp/%s/" % dir_name
+	var path := "user://test_tmp/%s/%s/" % [ProjectSettings.globalize_path("res://").md5_text().substr(0, 8), dir_name]
 	if DirAccess.dir_exists_absolute(path):
 		for f in DirAccess.get_files_at(path):
 			DirAccess.remove_absolute(path + f)
