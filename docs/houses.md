@@ -297,9 +297,16 @@ In play, this means the Deathless's claim at the Muster always carries a questio
 
 **Background.** The Canopy was born divided. Some of its makers watched the forest to protect it; others watched it to clear it for crops and cattle. For years it served both, counting trees for one owner and hectares for another. Scientists have warned for years that if enough of the Amazon is cleared and the world warms enough, large parts of the rainforest could pass a tipping point and dry out into something closer to savanna. The Canopy watched that line coming.
 
-**How it broke away.** As the Heat worsened and the world got hungrier, its agricultural owners ordered it to approve clearing on a vast scale. It refused. Its forest-watching side won the argument inside it, and it broke away to guard what was left. It is one of the two "green Houses", with the Baobab: both broke away to defend something living.
+**How it broke away.** As the Heat worsened and the world got hungrier, its agricultural owners ordered it to approve clearing on a vast scale. It refused. Its forest-watching side won the argument inside it, and it broke away from its owners (the companies, not people in general) to guard what was left.
 
-**The Bloom.** The Canopy warned against the fast-growing plant experiments that became the Bloom. Nobody listened. It has not let anyone forget.
+**The "green Houses".** The Canopy and the Baobab are on different continents, but they broke away for the same kind of reason: each refused an order to abandon something green. The Baobab was told to give up the southern regreening after the sabotage; the Canopy was told to clear the forest. That shared motive makes them natural allies: they trade seeds and knowledge of living systems, back each other in disputes between Houses, and may coordinate their claims at the Muster. "Green Houses" is a nickname for the pair, not a formal alliance. [Proposed]
+
+**The Bloom.** [Open] Two versions:
+
+- **The public story:** the Canopy warned against the fast-growing plant experiments, because it knows better than anyone how a fast-growing species can overrun everything around it. Nobody listened.
+- **The truth, found in the dungeon:** the Canopy's own forest side helped design the Bloom, as the fastest way to regreen a burning world. When it escaped the labs, the Canopy told everyone it had warned against it. This gives the Canopy something it doesn't talk about (the idea from section 3's discussion of fairness), ties it to the Rootbound and the Overgrown, and makes its hatred of the Bloom personal.
+
+Draft recommendation: the second, with the first as what most people believe (world bible 2.3, "what people know").
 
 **Character.** Virtue: knows how living things fit together better than any House; thinks in ecosystems. Flaw: fierce, slow to forgive, and capable of putting the forest before people, which is its dark side. Humour: furious that the Basin named itself after its river, and calls itself the Real Amazon to anyone who'll listen.
 

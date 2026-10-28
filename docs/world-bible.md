@@ -385,8 +385,102 @@ Also decided: the Heat is what's killing the surface, with the regreening, the s
 9. Ten Callings right? See `docs/callings.md` section 5.
 10. The Herald's and the Unmoored's lines.
 
+## 14. Myth, folklore and reference index
+
+Every myth, folk tale, historical fact and outside work this lore leans on, in one place, for later use in game text, item descriptions and the field guide. "Tier" is the borrowing rule in `docs/houses.md` section 4: **1** historical myth, use freely; **2** folklore, use freely; **3** living religion, archetypes only; **4** Indigenous living tradition, community advice first. Real-world facts have no tier.
+
+### Myth and folklore
+
+| Reference | From | Used for | Where | Tier |
+|---|---|---|---|---|
+| Prometheus steals fire; chained, eagle; Pandora sent | Greek (Hesiod) | Opening video, the first law | `docs/opening.md`, section 1 | 1 |
+| Māui takes fire from Mahuika's fingernails; it nearly burns the world | Polynesian, best known in Māori tellings | Opening video, the first law | `docs/opening.md`, section 1 | 4 |
+| The First Fire: animals come back scorched, Raven black; Water Spider succeeds | Cherokee (James Mooney, *Myths of the Cherokee*, 1900) | Opening video; carrying fire marks you; Marks | `docs/opening.md`, `docs/callings.md` 4 | 4 |
+| Mātariśvan brings Agni (fire) to people | Rigveda | Spare fire myth for the opening | `docs/opening.md` | 3 |
+| Trickster heroes who steal fire | Many Algonquian peoples | Spare fire myth | `docs/opening.md` | 4 |
+| Æsir and Vanir: rival god families who warred, made peace, exchanged hostages | Norse | Model for rival Houses | 3.2 | 1 |
+| Hermes: messenger, travellers, trade, thieves, guide of souls | Greek | The Herald | 3.5 | 1 |
+| Nine choirs of angels in three triads (*Celestial Hierarchy*, around AD 500) | Pseudo-Dionysius | Tiers of agents | 3.1, 3.3 | 1 |
+| The teacher put to death for what they taught | Socrates (and other traditions) | The Teacher archetype | `docs/houses.md` 3 | 1 |
+| The one who stays faithful and the one who falls | Many traditions | The Teacher and the Unmoored | 3.6 | Archetype |
+| Myth of the Metals: souls of gold, silver, bronze decide one's role | Plato, *Republic* | Cautionary mirror of the Callings: sorting by birth, which the dungeon does not do | Callings | 1 |
+| Three functions: sovereign, warrior, producer | Georges Dumézil's trifunctional hypothesis | Old precedent for gods mirroring social roles | Callings | Scholarship |
+| *Wàn* (ten thousand) means countless; *wànsuì*, "long live" | Chinese | The Ten Thousand's name | `docs/houses.md` | Language |
+| Yu Gong moves the mountains, knowing his descendants will finish | Chinese fable (*Liezi*) | The Ten Thousand; the tree-planting theme | `docs/houses.md` 4 | 2 |
+| Jingwei fills the sea with pebbles | Chinese myth | The Ten Thousand | `docs/houses.md` 4 | 1 |
+| Kublai Khan's invasions of Japan (1274, 1281), fleets wrecked by typhoons | History (Yuan dynasty) | Background flavour for the Ten Thousand and the Seven; keep the rivalry sporting | Chat note | History |
+| Seven Lucky Gods (*Shichifukujin*) on a treasure ship | Japanese | The Seven's name, by allusion | `docs/houses.md` | 3 |
+| *Tsukumogami*: tools that gain a spirit after about a hundred years | Japanese folklore | The Seven: tools that came alive | `docs/houses.md` 4 | 2 |
+| *Yōkai*; *karakuri* mechanical dolls | Japanese folklore and craft | The Seven's creatures; the Lantern Warden | `docs/creatures.md`, `docs/bestiary.md` | 2 |
+| *Seven Samurai* (Kurosawa, 1954) | Film | The Herald's banned joke about the Seven | `docs/houses.md` | Film |
+| John Henry races a steam drill, wins, dies | American folklore | The Basin: man against machine | `docs/houses.md` 4 | 2 |
+| Paul Bunyan | American tall tale | The Basin's scale | `docs/houses.md` 4 | 2 |
+| Mercury, Gemini, Apollo, Artemis | NASA programme names from Greek and Roman myth | The Ascent's agents | `docs/houses.md` 4 | 1 |
+| Plutus (wealth); Fortuna and her wheel (luck) | Greek; Roman | The Index's agents | `docs/houses.md` 4 | 1 |
+| Themis, goddess of divine law and order | Greek | The Charter's agent of Keep | `docs/houses.md` 4 | 1 |
+| Merlin; the sleeping king under the hill | Arthurian legend | The Isle | `docs/houses.md` 4 | 1 |
+| Albion, an ancient name for Britain | British | The Isle's alternative name | `docs/houses.md` | 1 |
+| Boggarts, redcaps, black dogs | British folklore | The Isle's creatures; the Boggart | `docs/bestiary.md` | 2 |
+| Pacific wayfinding by stars, swells and birds | Pacific peoples | The Southern Cross | `docs/houses.md` | 4 |
+| Drop bear, a predatory koala told to tourists | Modern Australian tall tale | The Southern Cross's creature | `docs/bestiary.md` | 2 |
+| Anansi, the Akan spider who owns all stories | West African folklore | The Baobab | `docs/houses.md` 4 | 2 |
+| Thoth (writing, knowledge); Ma'at (truth, balance) | Ancient Egyptian | The Baobab | `docs/houses.md` 4 | 1 |
+| Ogun and the *orisha* | Yoruba religion, practised today in West Africa and the Americas | The Baobab, archetypes only | `docs/houses.md` 4 | 3 |
+| *Ubuntu*: a person is a person through other persons | Southern African philosophy | The Baobab's creed | `docs/houses.md` | Philosophy |
+| The palaver tree, where communities gather to talk | West African tradition | The Baobab's street name and humour | `docs/houses.md` | Tradition |
+| *Panchatantra*: a teacher turns three princes into rulers through fables | Ancient Indian fables | The Monsoon; ties to the Teacher | `docs/houses.md` 5.1 | 2 |
+| Hindu deities | Hinduism | Archetypes only, never agents | `docs/houses.md` 5.1 | 3 |
+| Koschei the Deathless: death hidden in a needle, egg, duck, hare, chest, under an oak | Russian fairy tale | The Deathless | `docs/houses.md` 5.2 | 2 |
+| Baba Yaga's hut on chicken legs; the Firebird | Slavic folklore | The Deathless | `docs/houses.md` 5.2 | 2 |
+| *Popol Vuh*: people made of mud, then wood, then maize | K'iche' Maya creation story | The Canopy; the Reshaping and the Misblessed | `docs/houses.md` 5.3 | 1, with care |
+| Aztec, Maya and Inca myth; magical realism | Latin America | The Canopy | `docs/houses.md` 5.3 | 1, with care |
+| Enki gives the arts of civilisation; Nabu, god of writing; Gilgamesh seeks a way past death | Mesopotamian | The House of Wisdom | `docs/houses.md` 5.4 | 1 |
+| *One Thousand and One Nights*: Scheherazade survives by telling stories | Folk tales | The House of Wisdom | `docs/houses.md` 5.4 | 2 |
+| *Dokkaebi* and their magic club that makes anything | Korean folklore | The Foundry | `docs/houses.md` 5.5 | 2 |
+| *La Chasse-galerie*: a flying canoe carries lumberjacks home | French-Canadian legend | The Pole Star | `docs/houses.md` 5.6 | 2 |
+| The World Tree's roots; three companions changed in the earth's fire | Elizabeth Haydon's *Rhapsody* (1999) | The roots idea; the metamorphosis theme | 12 | Novel |
+
+### Real-world facts the lore stands on
+
+| Fact | Used for | Where |
+|---|---|---|
+| Controlled fire for about a million years (Wonderwerk Cave, South Africa) | The first law | 1 |
+| Cologne Cathedral, begun 1248, finished 1880 | The tree-planting theme | 1 |
+| Aristotle: we become brave by doing brave acts (*Nicomachean Ethics* II) | "You become what you do" | 1 |
+| "Plant trees whose shade you'll never sit in", usually called a Greek proverb, origin unconfirmed | The theme | 1 |
+| China's Three-North Shelter Forest Programme (1978 to 2050) | The northern regreening | 8.1 |
+| The African Union's Great Green Wall (2007; 100 million hectares by 2030), slowed by conflict in the Sahel | The southern regreening and its sabotage | 8.1 |
+| Data centre electricity demand projected by the IEA (2025) to more than double by 2030 | Grounding for the race worsening the Heat | Chat note |
+| Kenya's M-Pesa mobile money (2007) | The Baobab's origins | `docs/houses.md` |
+| India's Aadhaar ID (2009) and UPI payments (2016); 22 constitutionally recognised languages; the summer monsoon brings most of India's rain | The Monsoon | `docs/houses.md` 5.1 |
+| Sputnik (1957) and Gagarin (1961) | The Deathless and the Ascent | `docs/houses.md` 5.2 |
+| Brazil's satellite tracking of Amazon deforestation since the late 1980s; scientists' warnings of a rainforest tipping point | The Canopy | `docs/houses.md` 5.3 |
+| Baghdad's House of Wisdom (9th century); al-Khwarizmi, source of "algebra" and "algorithm" | The House of Wisdom | `docs/houses.md` 5.4 |
+| Research warning parts of the Gulf could pass the limit of heat and humidity the body can cool itself from, later this century | The House of Wisdom and the Heat | `docs/houses.md` 5.4 |
+| The EU AI Act (in force 2024); Britain's historical EU opt-outs | The Charter; the Isle | `docs/houses.md` |
+| Deep-learning research in Toronto and Montreal; Canada, Australia and New Zealand as Commonwealth realms | The Pole Star | `docs/houses.md` 5.6 |
+| Cane toads brought to Queensland in 1935 | The Biocontrol Toad | `docs/bestiary.md` |
+| Japan's care robots for an ageing society; Korea's semiconductor industry | The Seven; the Foundry | `docs/houses.md` |
+| Disney pulled a Māui costume in 2016 after Pacific Islander criticism | Why tier 4 matters | `docs/houses.md` 4 |
+| ANZSCO (43 sub-major groups), replaced by OSCA in 2024 | The Callings coverage check | `docs/callings.md` |
+| Australian classifications G, PG, M, MA15+, R18+ | Darkness targets | `docs/bestiary.md` |
+
+### Games, books and films the lore is measured against
+
+| Work | Relationship | Where |
+|---|---|---|
+| *Dungeon Crawler Carl* (Matt Dinniman) | The original inspiration; the originality ledger tracks distance from it | 11 |
+| *Legends of Dune* (Brian Herbert and Kevin J. Anderson); Frank Herbert's *Dune* | Machine minds as powers; Great Houses in the Landsraad | 3.1 |
+| *Horizon Zero Dawn* | AI with a rogue sub-function; the Bloom's risk | 3.1, 8.1 |
+| *Hades* (Supergiant Games, 2020) | Gods giving boons in a run; how many gods a player can track | `docs/houses.md` 6 |
+| *Civilization: Beyond Earth*; *Sid Meier's Alpha Centauri* | Faction naming ("Polystralia" is taken) | `docs/houses.md` 1 |
+| *Dark Souls* | Lore pieced together from item descriptions | 2.3 |
+| *Grand Theft Auto* | Style of mock company names | `docs/houses.md` 1 |
+| *The Last of Us* | Fungal apocalypse to stay clear of | 8.1 |
+
 ## How to use this file
 
 - New content gets a home here (or in `docs/callings.md`) before it goes into `crawler/` data or `godot/data/`.
+- Any new myth, folk tale or real-world fact the lore uses gets a row in section 14.
 - When an [Open] question is answered, update the entry. When a [Proposed] item is built, change it to [Canon].
 - The Godot port is mid-way through rules parity. Re-theming content should wait until parity is done (P3), so that the content files only change once.
