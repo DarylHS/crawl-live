@@ -32,7 +32,7 @@ LOG="${GD_TEST_LOG:-$TMP/gd_test_$(echo "$ROOT" | md5sum | cut -c1-8).log}"
 
 "$GODOT" --headless --path "$ROOT/godot" --import >/dev/null 2>&1
 
-KEY="$(cd "$ROOT" && find crawler scripts godot/data -type f \( -name '*.py' -o -name '*.json' \) | LC_ALL=C sort | xargs md5sum | md5sum | cut -c1-16)"
+KEY="$(cd "$ROOT" && find crawler analysis scripts godot/data -type f \( -name '*.py' -o -name '*.json' -o -name '*.sh' \) | LC_ALL=C sort | xargs md5sum | md5sum | cut -c1-16)"
 if [ "${GD_TEST_NO_CACHE:-}" = "1" ]; then
 	REFDIR="$(mktemp -d)"
 	trap 'rm -rf "$REFDIR"' EXIT

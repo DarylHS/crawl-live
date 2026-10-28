@@ -250,6 +250,16 @@ def test_malformed_and_missing_files_fail_cleanly(tmp_path):
     assert not ok and "1/2 traces identical" in text
 
 
+def test_dirs_mode_reports_a_chaos_file_instead_of_crashing(tmp_path):
+    da, db = tmp_path / "A", tmp_path / "B"
+    for d in (da, db):
+        PT.main(["--seeds", "0-1", "--policy", "walk", "--steps", "30", "--out-dir", str(d)])
+    for d in (da, db):
+        (d / "walk_1.jsonl").write_text('["chaos", 1]\n', encoding="utf-8")
+    ok, text = PD.compare_dirs(da, db)
+    assert not ok and "not a py_trace file (use chaos_diff.py)" in text and "1/2 traces identical" in text
+
+
 def test_non_rng_divergence_shows_last_counters(tmp_path):
     a, b = tmp_path / "a.jsonl", tmp_path / "b.jsonl"
     trace(a, seed=5, policy="walk", steps=100)

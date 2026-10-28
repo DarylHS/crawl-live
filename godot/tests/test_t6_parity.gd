@@ -2,7 +2,7 @@ extends TestCase
 ## Parity of the bot (port plan 6.4, slice T6) with Python.
 ##
 ## BOT_TRACES (scripts/gd_test.sh): bot_<seed>.jsonl from `py_trace.py --seeds 0-3 --policy bot --steps 3000`
-## (--mute funfacts until T3 lands); the Godot `bot` trace must equal it in full (every ev, turn, floor, act,
+## (nothing muted, as T3 landed); the Godot `bot` trace must equal it in full (every ev, turn, floor, act,
 ## msg and end record). Seeds 0-3 take in a victory, a collapse and two deaths. The pet, hero, race and class
 ## come from BotPolicy.run_config, as in py_trace.py.
 ##

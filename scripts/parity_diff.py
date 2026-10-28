@@ -68,9 +68,12 @@ def read_records(path):
                 line = line.strip()
                 if line:
                     try:
-                        yield json.loads(line)
+                        rec = json.loads(line)
                     except json.JSONDecodeError as e:
                         raise TraceFileError(f"file {path} line {no} malformed ({e.msg})")
+                    if no == 1 and not isinstance(rec, dict):
+                        raise TraceFileError(f"file {path} is not a py_trace file (use chaos_diff.py)")
+                    yield rec
     except OSError as e:
         raise TraceFileError(f"file {path} missing or unreadable ({e.strerror})")
 
