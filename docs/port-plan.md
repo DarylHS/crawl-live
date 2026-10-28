@@ -770,25 +770,16 @@ Every pytest test not yet ported is named here, with the slice that must port it
 
 | Slice | pytest test | Why deferred |
 |---|---|---|
-| S8 | `test_practice.py`: `test_stomping_adds_damage_against_small_monsters`, `test_hitting_trains_the_matching_weapon_skill` | need `World` attacks |
 | T4 | `test_practice.py`: `test_telemetry_has_one_practice_row_per_skill` | telemetry |
 | T5 | `test_practice.py`: `test_save_round_trip_keeps_practice` | saves |
-| S8 | `test_loot.py`: `test_box_opens_only_in_safe_room`, `test_open_box_needs_space_and_ownership` | need `World` |
-| S8 | `test_items.py`: `test_pickup_and_drop`, `test_pickup_respects_pack_size`, `test_equip_swaps_and_changes_stats`, `test_potion_heals_and_takes_a_turn`, `test_potion_refused_at_full_health`, `test_bomb_hits_blast_radius_only`, `test_bomb_needs_a_target_and_no_safe_room`, `test_junk_is_not_usable`, `test_monster_drops_use_loot_rng` | need `World` |
-| S8 | `test_phase4.py`: `test_trade_up_in_safe_room`, `test_reroll_swaps_the_item_and_charges_the_fee`, `test_buying_and_selling_in_world` | need `World` |
 | T3 | `test_phase4.py`: `test_miss_streak_fun_fact`, `test_box_drought_fun_fact`, `test_fun_facts_are_rate_limited`, `test_run_report_data` | fun facts, report |
 | T5 | `test_phase4.py`: `test_save_round_trip_keeps_phase4_state` | saves |
-| S8 | `test_phase3.py`: `test_monsters_never_stand_on_the_pet` | calls `World.descend` (the rest of the S7 pet, boss and ranged tests are ported) |
 | T1 | `test_phase3.py`: `test_boss_kill_awards_box_achievement_and_viewers` (only the asserts that the box is in `w.boxes`, `headliner_1` is in `achievements.unlocked` and the reason is in `box_reasons`; the kill, key and event are ported under the same name) | needs the real `Achievements` |
 | T2 | `test_phase3.py`: `test_boss_kill_awards_box_achievement_and_viewers` (the `viewers >= viewers + 150` assert), `test_mouse_runs_away_when_hurt` (the "Skritch:" quip in `messages.recent(5)`; the flee itself is ported, with a `pet_flee` event check in its place) | need the real `Showrunner` |
-| S8 | `test_phase3.py`: `test_pet_command_cycles_modes`, `test_pet_downed_then_revived_in_safe_room`, `test_skill_needs_a_class_and_respects_cooldown`, `test_haymaker_always_hits_double`, `test_arc_bolt_hits_nearest_visible`, `test_crafting_in_safe_room_only_and_costs_time` | need `World` |
 | T5 | `test_phase3.py`: `test_save_round_trip_and_identical_future`, `test_load_rejects_wrong_version` | saves |
-| S8 | `test_encounter.py`: `test_a_bomb_starts_combat_as_your_action`, `test_move_action_and_bonus_in_one_round` (drinks a tonic with `use_item`), `test_a_bomb_that_kills_the_last_fighter_and_catches_a_bystander_keeps_the_fight`, `test_moving_then_bombing_the_last_fighter_does_not_hand_back_your_move` | need `use_item` and bombs (the other 31 S7 combat-mode tests are ported) |
 | T2 | `test_encounter.py`: `test_system_lines_only_when_you_are_caught` | needs the real `Showrunner` (`SPEAK_CHANCE`, SYSTEM lines) |
-| S8 | `test_encounter.py`: `test_skills_pickups_and_descend_use_the_action`, `test_descending_ends_combat_and_uses_the_action`, `test_safe_room_time_passes_only_out_of_combat`, `test_haymaker_starts_combat_as_your_action`, `test_arc_bolt_starts_combat_as_your_action` | need `World` actions |
-| S8 | `test_floors.py`: `test_stairs_open_at_half_time_from_arrival` | needs `_tick_clock` (S7) and `descend` |
-| S8 | `test_floors.py`: `test_headliner_drops_a_key_that_opens_the_stairs` (its two `descend` asserts at the end: `w.descend()` and `not w.has_key`; the kill, key and item drop are ported as `test_headliner_drops_a_key`) | needs `descend` |
-| S8 | `test_world.py`: `test_descend_moves_to_next_floor_and_resets_timer`, `test_final_floor_needs_the_boss_dead`, `test_descend_without_stairs_does_nothing`, `test_rest_only_in_safe_room_and_costs_time`, `test_random_play_smoke` (seeds 0-11) | need `move_player`, `descend`, `rest` |
+| T1 | `test_achievement_loot.py`: `test_a_box_remembers_why_and_the_reveal_says_so`, `test_boxes_only_come_from_achievements_and_sponsors`, `test_achievement_event_tells_the_system_why_and_what` | the real `Achievements` |
+| T2 | `test_achievement_loot.py`: `test_sponsor_gift_says_who_sent_it` | the real `Showrunner` (`_gain`, sponsor gifts) |
 | T5 | `test_encounter.py`: `test_never_saves_mid_combat`, `test_save_and_load_in_a_safe_room_gives_the_same_future` | saves |
 | T6 | `test_encounter.py`: `test_bot_finishes_runs_in_combat_mode`, `test_bot_flees_through_a_provoke_only_when_hurt` | bot |
 
@@ -816,4 +807,9 @@ Every pytest test not yet ported is named here, with the slice that must port it
   - Python's `World.trait` is `World.get_trait` (`trait` is a reserved word in GDScript 4.7). `World.CHOICE_FLOOR` and `World.PET_MODES` are static vars read from config.
   - `race`, `cls`, `gender`, `backstory`, `contract`, `pending_offer`, `death_cause`, `last_reason`, `last_reveal` are Variants holding `null` as in Python. `World.new(seed, pet, hero, tap_events, tap_messages, tracer)`: `pet` is `[species, name]`, `hero` a Dictionary; `tracer` (optional object with `attach_world(world)`) is how `trace.gd` reaches the world before floor 1's `floor_start`.
   - The `--floor-only --spawns` trace compares at `--scope core` until T2 (the `show` stream draws in Python, never in the stand-in Showrunner). `parity_diff.py` core scope now also drops index 4 of a floor record's `words`. T2 should switch the check to full scope (`tests/test_s6_parity.gd` drops the show stream explicitly).
-  - `test_cardio_trains_by_walking_and_extends_the_next_timer` emits "step" events instead of walking with `move_player` (S8 to switch it).
+  - `test_cardio_trains_by_walking_and_extends_the_next_timer` emits "step" events instead of walking with `move_player` (S8 to switch it; done in S8).
+- **S8 (World C, done) notes for T1 to T6:**
+  - `world.gd` now covers all of `world.py` 1-1557. `_spend_turns` returns `false` when it refuses in a fight and `true` otherwise (Python: `False` / `None`; no caller reads it, one test asserts the refusal). `use_skill`, `use_item`, `pickup`, `drop`, `unequip`, `_explode`, `_reveal`, `trade_up` and the rest follow Python statement for statement; `Contracts.effect(self, "rest_mult")` is the only contracts read in the new range.
+  - `hunter` is proven against Python at `--scope core`: seeds 0-49, 3,000 steps, with no pet and with each pet plus heroes (see the S8 report); `tests/test_s8_parity.gd` runs seeds 0-9 and five pet/hero combinations through `gd_test.sh` (`HUNTER_TRACES`, `HUNTER_COMBOS`). Hunter rarely goes past floor 3, so rest, craft, class skills, bombs, boxes and shop trades are covered by the unit tests, not by a trace; the `bot` trace (T6) will exercise them. No stand-in effect beyond the documented core-scope ones showed up in the hunter traces.
+  - New helpers in `tests/support/helpers.gd`: `clear_world`, `free_tiles_near`, `play` (the Python `_clear`, `_free_tiles_near`, `_play`).
+  - The stomping test replays the roll on a copy of the main stream (`get_state`/`set_state`) instead of wrapping `attack`; it swings until the replayed roll hits so the bonus is visible.

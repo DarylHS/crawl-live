@@ -8,7 +8,7 @@ extends RefCounted
 ## is one turn in which you get a move, an action and a bonus action, and the fighters act in
 ## initiative order around you.
 ##
-## LAYOUT (one file, three slices; see docs/port-plan.md 9.1; S6 and S7 are done):
+## LAYOUT (one file, three slices; see docs/port-plan.md 9.1; all three are done):
 ##   S6 (this slice, world.py lines 1-466): state and init, traits, refresh_stats, attributes,
 ##       prices, floors and spawns, contracts, queries, timer_text.
 ##   S7 appends below the marked "S7" section: attacks, kills, drops, Acts, combat mode, opportunity
