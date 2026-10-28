@@ -1,6 +1,5 @@
 extends TestCase
-## tests/test_loot.py, the parts that need no World (data and odds). The two box-opening tests
-## (test_box_opens_only_in_safe_room, test_open_box_needs_space_and_ownership) wait for slice S8.
+## tests/test_loot.py: data and odds (S4) and the two box-opening tests (S8).
 
 
 func test_five_tiers_four_items_each() -> void:
@@ -48,3 +47,37 @@ func test_higher_tiers_are_better_on_average() -> void:
 	sorted_ev.sort()
 	assert_eq(ev, sorted_ev)
 	assert_lt(ev[0], ev[-1])
+
+
+func test_box_opens_only_in_safe_room() -> void:
+	var w := World.new(2)
+	w.add_box("gold", "test")
+	assert_false(w.open_box("gold"))
+	assert_eq(w.boxes, ["gold"])
+	var c := w.floor.safe_room.centre()
+	w.player.x = c.x
+	w.player.y = c.y
+	assert_true(w.open_box("gold"))
+	assert_eq(w.boxes, [])
+	assert_eq(w.inventory.size(), 1)
+	var tier: String = w.last_reveal[0]
+	var key: String = w.last_reveal[1]
+	var keys: Array = []
+	for row in Content.box("gold")["table"]:
+		keys.append(row["item"])
+	assert_eq(tier, "gold")
+	assert_true(keys.has(key))
+
+
+func test_open_box_needs_space_and_ownership() -> void:
+	var w := World.new(2)
+	var c := w.floor.safe_room.centre()
+	w.player.x = c.x
+	w.player.y = c.y
+	assert_false(w.open_box("gold"))                 # none owned
+	w.add_box("gold", "test")
+	w.inventory = []
+	for _i in range(16):
+		w.inventory.append("sock")
+	assert_false(w.open_box("gold"))
+	assert_eq(w.boxes, ["gold"])

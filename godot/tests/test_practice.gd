@@ -154,20 +154,67 @@ func test_haggling_and_gambling_change_prices() -> void:
 	assert_lt(w.reroll_fee("gold"), fee)
 
 
-## Python walks CARDIO_STEPS * 3 random steps with move_player; move_player arrives with slice S8,
-## so the steps are emitted directly (the same "step" events move_player sends). S8 should switch
-## this to the walking version.
 func test_cardio_trains_by_walking_and_extends_the_next_timer() -> void:
 	var w := World.new(8)
 	w.player.max_hp = 1000
 	w.player.hp = 1000
-	for _i in range(Practice.CARDIO_STEPS * 3):
-		w.events.emit("step", {"sneaky": false})
+	TestHelpers.play(w, PyRandom.new(1), Practice.CARDIO_STEPS * 3)
 	assert_true(w.training.used.has("cardio"))
 	w.training.levels["cardio"] = 4
 	var base: int = GameConfig.floor_turns(2) + int(w.get_trait("timer_bonus", 0))
 	w.new_floor(2)
 	assert_eq(w.timer_max, base + 8)
+
+
+## A gnawer next to the player with 999 HP (survives every hit; max_hp still "small").
+func _adjacent_gnawer(w: World) -> Monster:
+	TestHelpers.clear_world(w)
+	var spot: Vector2i = TestHelpers.free_tiles_near(w, w.player.x, w.player.y, 1)[0]
+	var m := Entities.spawn_monster("gnawer", spot.x, spot.y)
+	m.hp = 999
+	w.monsters.append(m)
+	return m
+
+
+## Python wraps world.attack to read `bonus`; there is no seam in World, so the same roll is replayed
+## on a copy of the main stream: the damage dealt must be that of an attack with bonus 2 (stomping 5
+## // 2), not bonus 0.
+func test_stomping_adds_damage_against_small_monsters() -> void:
+	var w := World.new(4)
+	var m := _adjacent_gnawer(w)
+	w.training.levels["stomping"] = 5
+	var checked := false
+	for _i in range(30):                    # swing until the replayed roll hits, so the bonus shows
+		var with_bonus := PyRandom.new(0)
+		with_bonus.set_state(w.rng.get_state())
+		var without := PyRandom.new(0)
+		without.set_state(w.rng.get_state())
+		var twin_a := Entities.spawn_monster("gnawer", m.x, m.y)
+		twin_a.hp = 999
+		var twin_b := Entities.spawn_monster("gnawer", m.x, m.y)
+		twin_b.hp = 999
+		var want := Combat.attack(w.player, twin_a, with_bonus, 1, false, 2)
+		var bare := Combat.attack(w.player, twin_b, without, 1, false, 0)
+		var before := m.hp
+		w._player_attack(m)
+		assert_eq(before - m.hp, want.damage)    # unarmed, no fisticuffs yet: all from stomping
+		if want.hit:
+			assert_ne(want.damage, bare.damage)
+			checked = true
+			break
+	assert_true(checked)
+
+
+func test_hitting_trains_the_matching_weapon_skill() -> void:
+	var w := World.new(5)
+	var m := _adjacent_gnawer(w)
+	for _i in range(10):                    # a few swings, so at least one lands
+		w._player_attack(m)
+	assert_true(w.training.used.has("fisticuffs") and w.training.used.has("stomping"))
+	w.equipment["weapon"] = "cleaver"
+	for _i in range(10):
+		w._player_attack(m)
+	assert_true(w.training.used.has("blades"))
 
 
 # --- Direct checks ------------------------------------------------------------------------------
