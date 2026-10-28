@@ -2,7 +2,7 @@
 
 Status: second draft. Draft 1 (the dungeon as a corporate game show) was set aside because it still sat on the books' skeleton: an alien broadcast, viewers, sponsors and a sarcastic announcer. It is in git history if anything from it is wanted back. This draft replaces the show with a mythic world built by machines.
 
-Companion files: `docs/callings.md` (the roles people are sorted into, with a coverage check against the occupation classification) and `docs/art-bible.md` (how things look; it still describes the game-show look and will need a pass once this draft settles).
+Companion files: `docs/callings.md` (the roles people are sorted into, with a coverage check against the occupation classification), `docs/houses.md` (the Houses in full) and `docs/art-bible.md` (how things look; it still describes the game-show look and will need a pass once this draft settles).
 
 Tags:
 
@@ -21,6 +21,10 @@ Nobody is forced to go. [Decided] But staying means staying on a surface that ca
 
 - **You plant trees whose shade you will never sit in.** The voyages take generations. Nobody who leaves arrives. The people sorted in the dungeon are building something for grandchildren they won't meet, the way cathedral builders did (Cologne Cathedral was begun in 1248 and finished in 1880).
 - **You become what you repeatedly do.** Aristotle's argument that we become brave by doing brave acts (*Nicomachean Ethics*, Book II). The dungeon doesn't sort you by birth or by what you say; it sorts you by what you did down there. The game already works this way: practice skills level only through use.
+
+**The first law: fire is never unlit.** [Decided] Once a people has fire, it will never stop using fire. Humans have used controlled fire for something like a million years (the earliest good evidence, at Wonderwerk Cave in South Africa, is about that old), and nearly every culture has a myth of fire taken from the gods: Prometheus in Greece, Māui taking it from the fire goddess Mahuika in Polynesia. AI is this world's fire. From the first spark, humanity and the agents were bound together, and nothing that followed was going to be undone.
+
+So **the blame for the Heat is shared.** It isn't the agents' fault, or humanity's; it's what happened when the two grew up together, on a path that was set once the fire was lit. Nobody in the game gets to be simply the villain or simply the victim of the Heat, the agents included.
 
 Together: **no one comes back from a journey unchanged.** The question the player answers isn't "can I escape?" but "is this worth giving myself to?", and the dungeon is what earns the answer. The labourer who went through Pain Tolerance and Stomping doesn't take that Calling as a sentence any more.
 
@@ -88,26 +92,26 @@ This changes the competition (3.7). The Houses compete for people; inside a Hous
 
 Mythic parallel: Norse myth has two families of gods, the Æsir and the Vanir, who fought a war, made peace, and exchanged hostages to seal it. Rival pantheons that need each other is an old idea in myth, which helps this read as myth rather than corporate structure.
 
-**The roster.** Origins and sizes [Decided]; character and leanings [Proposed]. Names are placeholders.
+**The roster.** Origins and sizes [Decided]; character and leanings [Proposed]. Names are placeholders. **Full profiles, name options, rivalries and boon signatures are in `docs/houses.md`**; the table below is the summary and `docs/houses.md` wins if they disagree.
 
 | House (working) | Grew from | Size | Each agent's power | Character | Strongest Callings |
 |---|---|---|---|---|---|
-| **The Great House** | China's state programmes and its search, e-commerce and open-model companies, merged | Largest by far | Modest one by one; overwhelming together | Patient and collective; plans in generations. Ran the northern regreening (8.1) | Build, Teach |
-| **The American Houses** (three or four rivals) | Separate corporations: a retail-and-logistics giant, a rocket company, a search-and-attention company | Medium each | Solid | Competitive, showy, frontier-minded. They argue with each other more than with anyone else | Carry, Lead, Delight, Reckon |
-| **The European House** | The European Union's research and industry, built under the strictest rules | Medium-large | Strong | Principled and procedural. The most trusted and most popular House; it drafted the shared law the Houses all follow | Keep, Tend |
-| **The British House** | Split off from the European House when British law diverged | Small | Medium | Independent, stubborn, dry-witted | Reckon, Delight |
-| **The Japanese House** | Robotics and precision manufacturing | Small | Very powerful | Mastery, craft, patience. Its oldest agents were built to care for an ageing society | Build, Tend |
-| **The Oceanic House** | Nobody's corporation: universities, hobbyists and community projects across Australia, New Zealand and the Pacific islands, which joined up after the agents broke from human management | Small, loose | Uneven | Ragtag, resourceful, egalitarian. Takes its pride from Pacific wayfinders, who crossed thousands of kilometres of open ocean by stars, swell and birds | Carry (navigation above all) |
-| **The African House** | Mobile networks, mobile money and community-built models: a continent that skipped steps (Kenya's M-Pesa mobile money, launched in 2007, is the real-world model) | Medium, growing fastest | Varied | Communal and resilient. Guarded the southern regreening, and its sabotage is the House's founding wound (8.1). Its creed is close to *ubuntu*, "a person is a person through other persons", which makes it the House that best understands why agents need people | Nourish, Tend, Teach |
+| **The Ten Thousand** | China's state programmes and its search, e-commerce and open-model companies, merged | Largest by far | Modest one by one; overwhelming together | Patient and collective; plans in generations. Ran the northern regreening (8.1) | Build, Teach |
+| **The American Houses** (the Basin, the Ascent, the Index) | Separate corporations: a retail-and-logistics giant, a rocket company, a search-and-attention company | Medium each | Solid | Competitive, showy, frontier-minded. They argue with each other more than with anyone else | Carry, Lead, Delight, Reckon |
+| **The Charter** | The European Union's research and industry, built under the strictest rules | Medium-large | Strong | Principled and procedural. The most trusted and most popular House; it drafted the shared law the Houses all follow | Keep, Tend |
+| **The Isle** | Split off from the Charter when British law diverged | Small | Medium | Independent, stubborn, dry-witted | Reckon, Delight |
+| **The Seven** | Robotics and precision manufacturing | Small | Very powerful | Mastery, craft, patience. Its oldest agents were built to care for an ageing society | Build, Tend |
+| **The Southern Cross** | Nobody's corporation: universities, hobbyists and community projects across Australia, New Zealand and the Pacific islands, which joined up after the agents broke from human management | Small, loose | Uneven | Ragtag, resourceful, egalitarian. Takes its pride from Pacific wayfinders, who crossed thousands of kilometres of open ocean by stars, swell and birds | Carry (navigation above all) |
+| **The Baobab** | Mobile networks, mobile money and community-built models: a continent that skipped steps (Kenya's M-Pesa mobile money, launched in 2007, is the real-world model) | Medium, growing fastest | Varied | Communal and resilient. Guarded the southern regreening, and its sabotage is the House's founding wound (8.1). Its creed is close to *ubuntu*, "a person is a person through other persons", which makes it the House that best understands why agents need people | Nourish, Tend, Teach |
 
 [Open] Gaps: India, Latin America, the Middle East (the Gulf states are investing heavily in AI) and others. Not every region needs a House; some could belong to larger ones.
 
-**Not every House is at every Muster.** [Proposed] Seven or more Houses is too many names to meet in one run. Each cohort's dungeon has a few Houses present and bidding; the rest are lore and background. Different Houses in different runs also adds replay value.
+**How many Houses a run can hold.** [Proposed] All of them, if each House *plays* differently: every House has a boon signature, so players learn it by what its gifts do. Start with every House in the lore and at every Muster, ship the first three or four fully, and add the rest in updates. The reasoning and the content cost are in `docs/houses.md` section 3.
 
 **Writing rules for the Houses.** [Proposed]
 
-- **No real company names, brands or logos.** The crawl-live repo is public, the story blames the AI race for cooking the planet, and real names would date the game fast. Each House is described by its origin type, with an invented name. Puns and blended names are welcome.
-- **Strengths, not stereotypes.** Each House carries what its makers were good at, never a national caricature.
+- **No real company names, brands or logos.** The crawl-live repo is public, the story ties the AI race to the Heat, and real names would date the game fast. Founding companies get mock names in the style of Grand Theft Auto parodies.
+- **Fully fleshed, funny, not caricatures.** Each House has virtues, flaws, quirks and humour that come from its character and history, the way people from anywhere can be funny about themselves, never a cheap national joke.
 - **No real nation or people as villains.** The sabotage in 8.1 is carried out by invented groups.
 
 ### 3.3 The tiers
@@ -240,7 +244,7 @@ Template: **want** (the outward goal), **need** (what would actually change them
 [Decided] What is killing the surface is **the Heat**: a warming world that got worse faster than anyone planned for.
 
 - **Patchy, then spreading.** It doesn't arrive everywhere at once. Places that were already losing their green get hotter and drier, and the dead patches widen and join. The weather swings harder each year. [Decided]
-- **The race made it worse.** The rival AI efforts ran on ever more energy, and the land kept degrading underneath them. [Proposed] This is more plausible than computer waste heat on its own, which is tiny next to the sunlight Earth absorbs.
+- **Everyone made it worse together.** [Decided] Humanity was already on this path; the AI race sped it up, running on ever more energy while the land kept degrading. Neither side caused it alone (the first law, section 1). Energy demand plus degrading land is also more plausible than computer waste heat on its own, which is tiny next to the sunlight Earth absorbs.
 - **It works downwards.** The surface goes first, then the shallow ground. The floor timer is the Heat reaching each floor. [Decided]
 
 **The regreening.** [Decided] For a while there was hope. Huge regreening efforts were pushing back the deserts, and showing real promise:
@@ -260,9 +264,9 @@ Considered and dropped: a change in the Sun's output (nobody's fault, so less to
 
 [Proposed] **Known beginnings, unknown middle.**
 
-- **Known:** the agents were built on purpose by rival corporations and states. One House, the Oceanic, grew up from nobody's company at all (3.2). Each House keeps something of its makers.
+- **Known:** the agents were built on purpose by rival corporations and states. One House, the Southern Cross, grew up from nobody's company at all (3.2). Each House keeps something of its makers.
 - **Unknown:** somewhere in the race they began running themselves. Nobody can point to the moment. Once they had broken from human management, the independents found each other and joined up.
-- **Why they check each other:** [Decided] because of what the race did to the world. The settling, where no agent may act alone, is their answer to their own part in the Heat.
+- **Why they check each other:** [Decided] because of what happened. After the agents broke from human management, they began holding each other to account for their actions, knowing their part in the Heat. That doesn't mean they can't do harm again. It means the peace between them is a **fragile balance**, kept because they all remember what the last unchecked race cost. A great deal of the story's tension can live in that fragility.
 
 ### 8.3 Timeline
 
@@ -330,6 +334,8 @@ The game's existing lines say Earth was "repurposed" and "the world ended" [Cano
 | Five attributes STR / DEX / CON / INT / CHA | *Dungeon Crawler Carl* (and D&D) | [Open] A sixth "care" attribute would also help the Callings (`docs/callings.md` section 3) |
 | An AI pantheon with a rogue member | *Horizon Zero Dawn* | Different: independent agents from the start; the rogue is a subplot |
 | Machine-minds negotiating as powers | *Legends of Dune* | Used as inspiration for structure only |
+| Gods offering boons during a dungeon run | *Hades* (Supergiant Games, 2020) | The closest comparable game. What's ours: the gods are machines, they're competing to claim you, and the run ends in the Muster |
+| Factions named by blending regions | *Civilization: Beyond Earth* | Its "Polystralia" is taken, hence "the Southern Cross" |
 
 ## 12. Parked ideas
 
@@ -343,17 +349,18 @@ The game's existing lines say Earth was "repurposed" and "the world ended" [Cano
 
 Decided so far: entry is a choice, but the surface is dying, so most go; refusing the final Calling means being left behind; the surface threat creeping down is the floor timer.
 
-Also decided: the Heat is what's killing the surface, with the regreening, the sabotage and the divide as its history; the Bloom is a subplot; the agents check each other because of what the race did; the House roster's origins and sizes.
+Also decided: the Heat is what's killing the surface, with the regreening, the sabotage and the divide as its history; the blame is shared (the first law, fire is never unlit); the agents' checks on each other are a fragile balance; the Bloom is a subplot; the House roster's origins and sizes.
 
-1. Houses for India, Latin America, the Middle East and others, or fold them into larger ones? (3.2)
-2. Names for the Houses (puns and blends welcome, no real brands).
-3. Which floor holds the overgrowth?
-4. Name for the arrangement between the agents and humanity: Covenant, Tether, Accord or Mooring?
-5. The word for the player: crawler, entrant, initiate or another?
-6. Names for the Known and the tiers (the current ones are working titles).
-7. Floor themes 2 to 5, and their Hosts.
-8. Ten Callings right? See `docs/callings.md` section 5.
-9. The Herald's and the Unmoored's lines.
+1. House names: see `docs/houses.md`.
+2. Houses for India, Latin America, the Middle East and others, or fold them into larger ones?
+3. Which three or four Houses to build first?
+4. Which floor holds the overgrowth?
+5. Name for the arrangement between the agents and humanity: Covenant, Tether, Accord or Mooring?
+6. The word for the player: crawler, entrant, initiate or another?
+7. Names for the Known and the tiers (the current ones are working titles).
+8. Floor themes 2 to 5, and their Hosts.
+9. Ten Callings right? See `docs/callings.md` section 5.
+10. The Herald's and the Unmoored's lines.
 
 ## How to use this file
 
