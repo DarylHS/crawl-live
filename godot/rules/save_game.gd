@@ -168,16 +168,55 @@ static func to_dict(w: World) -> Dictionary:
 	return d
 
 
+## Keys of the nested sections from_dict reads.
+const NESTED: Dictionary = {
+	"practice": ["levels", "xp", "used", "steps"],
+	"shop": ["stock", "log", "bought", "missed"],
+	"funfacts": ["last_turn", "said", "miss_streak", "streak_chance", "drought"],
+	"achievements": ["unlocked", "kills", "pickups", "equipped"],
+	"showrunner": ["viewers", "peak", "history", "kill_turns", "last_fun", "gift_idx", "last_flee_quip", "samples", "rng"],
+	"floor": ["width", "height", "depth", "tiles", "safe", "explored", "rooms", "start_room", "safe_room", "stairs",
+			"safe_door", "furniture"],
+}
+
+
+## "" when the nested sections have the keys (and the RNG states the 625 words) from_dict needs, else a message.
+static func _check_shape(d: Dictionary) -> String:
+	for section in NESTED:
+		if not d[section] is Dictionary:
+			return "'%s' is not an object" % section
+		for k in NESTED[section]:
+			if not d[section].has(k):
+				return "missing key '%s' in '%s'" % [k, section]
+	for k in ["player"]:
+		if not d[k] is Dictionary:
+			return "'%s' is not an object" % k
+	if d["pet"] != null and not d["pet"] is Dictionary:
+		return "'pet' is not an object"
+	for m in d["monsters"] if d["monsters"] is Array else [null]:
+		if not m is Dictionary:
+			return "'monsters' must be a list of objects"
+	for path in [["rng"], ["loot_rng"], ["deal_rng"], ["shop_rng"], ["showrunner", "rng"]]:
+		var v: Variant = d[path[0]] if path.size() == 1 else d[path[0]][path[1]]
+		if not (v is Array and v.size() == 2 and v[0] is Array and v[0].size() == 625):
+			return "'%s' is not an RNG state" % "/".join(path)
+	return ""
+
+
 ## Build a World from a to_dict() Dictionary (typed as PyJsonLoad gives it: ints are ints). Returns
 ## null on an unsupported version or a missing key (Python raises ValueError or KeyError).
 static func from_dict(d: Dictionary) -> World:
-	if d.get("version") != VERSION or typeof(d.get("version")) != TYPE_INT:
+	if typeof(d.get("version")) != TYPE_INT or d["version"] != VERSION:
 		push_error("SaveGame.from_dict: Unsupported save version %s" % str(d.get("version")))
 		return null
 	for key in REQUIRED:
 		if not d.has(key):
 			push_error("SaveGame.from_dict: missing key '%s'" % key)
 			return null
+	var bad := _check_shape(d)
+	if bad != "":
+		push_error("SaveGame.from_dict: %s" % bad)
+		return null
 	var w := World.new(d["seed"])
 	# Rebuild from scratch: drop anything the constructor's first floor produced.
 	w.messages.lines.clear()

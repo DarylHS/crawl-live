@@ -76,6 +76,31 @@ func test_repr_floats_parse_back_exactly() -> void:
 	gut.p("String.to_float misreads %d of 4000 repr floats; PyJsonLoad none" % wrong)
 
 
+func _bits(x: float) -> int:
+	var b := PackedByteArray()
+	b.resize(8)
+	b.encode_double(0, x)
+	return b.decode_s64(0)
+
+
+func test_tiny_and_subnormal_floats() -> void:
+	# bit patterns from CPython
+	assert_eq(_bits(PyJsonLoad.parse("5e-324")), 1)
+	assert_eq(_bits(PyJsonLoad.parse("1e-310")), 20240225330731)
+	assert_eq(_bits(PyJsonLoad.parse("2.2250738585072014e-308")), 4503599627370496)
+	assert_eq(_bits(PyJsonLoad.parse("1e-300")), 118622047889322841)
+	assert_eq(_bits(PyJsonLoad.parse("1.5e-320")), 3036)
+
+
+func test_invalid_number_forms_are_errors() -> void:
+	for text in ["01", "-01", "00", "1.", "1e", "1e+", "-", ".5", "1.e3", "+1", "1e-"]:
+		assert_null(PyJsonLoad.parse(text), text)
+		assert_ne(PyJsonLoad.error, "", text)
+	for text in ["0", "-0", "0.5", "10", "1e5", "1E+5", "0e0", "-0.0e-1"]:
+		PyJsonLoad.parse(text)
+		assert_eq(PyJsonLoad.error, "", text)
+
+
 func test_dumps_then_parse_is_the_identity_on_game_shaped_data() -> void:
 	var d := {"a": [1, 2.0, 0.1 + 0.2], "b": {"c": null, "d": "x\ny\u00e9"}, "e": 1e-05, "f": 123456789.123456, "g": true}
 	assert_eq(PyJsonLoad.parse(PyJson.dumps(d)), d)
@@ -208,6 +233,28 @@ func test_missing_and_corrupt_files_load_as_null() -> void:
 
 func _dict_of(w: World) -> Dictionary:
 	return PyJsonLoad.parse(SaveGame.dumps(w))
+
+
+func test_nested_gaps_and_odd_versions_are_errors_not_script_errors() -> void:
+	var d := _dict_of(World.new(8))
+	d["version"] = "7"
+	assert_null(SaveGame.from_dict(d))
+	assert_push_error("Unsupported save version")
+	d["version"] = true
+	assert_null(SaveGame.from_dict(d))
+	assert_push_error("Unsupported save version")
+	d = _dict_of(World.new(8))
+	d["floor"].erase("tiles")
+	assert_null(SaveGame.from_dict(d))
+	assert_push_error("missing key 'tiles' in 'floor'")
+	d = _dict_of(World.new(8))
+	d["showrunner"]["rng"][0] = [1, 2]
+	assert_null(SaveGame.from_dict(d))
+	assert_push_error("not an RNG state")
+	d = _dict_of(World.new(8))
+	d["player"] = 3
+	assert_null(SaveGame.from_dict(d))
+	assert_push_error("not an object")
 
 
 func test_missing_key_and_old_version_are_refused() -> void:

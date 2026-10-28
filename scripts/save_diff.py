@@ -4,7 +4,7 @@
 
 For each seed (a skip_<seed> marker on either side means no save point: both must agree) checks, as bytes:
   save     save_<seed>.json is identical in both directories (acceptance d: byte-identical saves)
-  traces   direct_<seed>, loaded_<seed> and xload_<seed> (when present) of both sides are all identical to
+  traces   direct_<seed>, loaded_<seed> and xload_<seed> of both sides (required for every seed with a save once a directory has any xload file) are all identical to
            PY_DIR/direct_<seed>.jsonl, which covers (a) a save/load/continue round trip equals continuing without
            saving, in each language and across them, (b) a Python save loaded in Godot, and (c) a Godot save
            loaded in Python.
@@ -69,7 +69,8 @@ def main():
             for kind in ("direct", "loaded", "xload"):
                 f = d / f"{kind}_{seed}.jsonl"
                 if not f.exists():
-                    if kind != "xload":
+                    # a directory that has cross-load traces for any seed must have one for every seed with a save
+                    if kind != "xload" or any(d.glob("xload_*.jsonl")):
                         print(f"seed {seed}: missing {label} {kind}")
                         bad += 1
                     continue

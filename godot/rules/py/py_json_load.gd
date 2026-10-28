@@ -14,6 +14,9 @@ extends RefCounted
 ## caveat of port plan risk R5 for any text produced by repr. Text that is not a repr (hand written, 0.10) keeps
 ## the scaled reading.
 ##
+## A lone surrogate escape (\\ud800 not followed by a low one) is not valid in a Godot String: it becomes whatever
+## String.chr makes of it (Python keeps the lone surrogate); saves never contain one (ensure_ascii pairs them).
+##
 ## Errors do not raise: parse() returns null and leaves the message in `error` (empty when fine), so
 ## a literal `null` is told apart by checking `error`. NaN, Infinity and -Infinity are accepted as
 ## Python's json accepts them. Objects keep insertion order; duplicate keys keep the last value.
@@ -250,15 +253,59 @@ static func _number() -> Variant:
 		else:
 			break
 	var tok := _b.slice(start, _i).get_string_from_ascii()
-	if not is_float:
-		if not tok.is_valid_int():
-			_err("bad number")
-			return null
-		return tok.to_int()
-	if not tok.is_valid_float():
+	if not _number_ok(tok):
 		_err("bad number")
 		return null
+	if not is_float:
+		return tok.to_int()
 	return _float(tok)
+
+
+## JSON's number grammar, as Python's json accepts it: -?(0|[1-9][0-9]*)(\.[0-9]+)?([eE][+-]?[0-9]+)?
+## (so 01, -01, 00, "1.", "1e" and "1e+" are errors).
+static func _number_ok(tok: String) -> bool:
+	var i := 0
+	var n := tok.length()
+	if i < n and tok[i] == "-":
+		i += 1
+	if i >= n or not tok[i].is_valid_int():
+		return false
+	if tok[i] == "0":
+		i += 1
+	else:
+		while i < n and tok[i].is_valid_int():
+			i += 1
+	if i < n and tok[i] == ".":
+		i += 1
+		var f := i
+		while i < n and tok[i].is_valid_int():
+			i += 1
+		if i == f:
+			return false
+	if i < n and (tok[i] == "e" or tok[i] == "E"):
+		i += 1
+		if i < n and (tok[i] == "+" or tok[i] == "-"):
+			i += 1
+		var e := i
+		while i < n and tok[i].is_valid_int():
+			i += 1
+		if i == e:
+			return false
+	return i == n
+
+
+## x scaled by 10**e10 in steps that never pass through an infinite power (pow(10, 309) is inf).
+static func _scale(x: float, e10: int) -> float:
+	if e10 == 0:
+		return x
+	var n := absi(e10)
+	if n <= 22:
+		return x * _P10[n] if e10 > 0 else x / _P10[n]
+	var a := n / 2
+	var b := n - a
+	if e10 > 0:
+		return x * pow(10.0, float(a)) * pow(10.0, float(b))
+	return x / pow(10.0, float(a)) / pow(10.0, float(b))
 
 
 ## Powers of ten that are exact doubles (10**0 .. 10**22).
@@ -291,15 +338,10 @@ static func _float(tok: String) -> float:
 	var m := digs.to_int() if digs != "" else 0
 	var x := float(m)
 	var exact := m < 9007199254740992 and absi(e10) <= 22
-	if e10 > 0:
-		x = x * _P10[e10] if e10 <= 22 else x * pow(10.0, float(e10))
-	elif e10 < 0:
-		x = x / _P10[-e10] if -e10 <= 22 else x / pow(10.0, float(-e10))
+	x = _scale(x, e10)
 	if neg:
 		x = -x
-	if m != 0 and (x == 0.0 or is_inf(x)):
-		return tok.to_float()      # beyond the scaling (subnormal or near the top of the range)
-	if not exact and m != 0:
+	if not exact and m != 0 and not is_inf(x) and x != 0.0:
 		x = _exact(x, tok)
 	return x
 
