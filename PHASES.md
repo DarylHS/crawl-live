@@ -52,7 +52,7 @@ The game is being ported to Godot 4 (GDScript) in `godot/`. The Python version s
 - [x] **P0 Plan and proof** (stop for review): `docs/port-plan.md`; `py_random.gd` matching Python for many seeds; JSON content generated; a bare Godot project that loads the data and runs headless tests; report on whether seed-for-seed parity is achievable and the risks.
 - [x] **P1 Rules core:** dice, attributes, dungeon generation, FOV, entities, combat, encounter/initiative, AI. Same seed gives identical floors and identical traces for scripted actions.
 - [x] **P2 Rules systems:** items, loot, achievements, showrunner, practice skills, classes, bosses, pet, shop, contracts, crafting, fun facts, save/load, telemetry. Parity traces over full bot runs.
-- [ ] **P3 Bot and data** (stop for review): GDScript bot, 2,000 runs, comparison with Phase 7 data, notebooks re-run.
+- [x] **P3 Bot and data** (stop for review): GDScript bot, 2,000 runs, comparison with Phase 7 data, notebooks re-run.
 - [ ] **P4 First-person 3D:** floor meshes or GridMap, per-floor tints and textures, distance fog, torchlight, free look and smooth walking, grid-locked combat camera matching Phase 7.
 - [ ] **P5 Entities and top-down:** Sprite3D billboards (placeholders first, art bible sizes, boss-tier outlines), minimap, top-down view (TileMapLayer), Tab switching, settings file.
 - [ ] **P6 HUD and combat UI:** log, side panel, initiative tracker, Move/Action/Bonus pips, provoke warnings and chevrons, banners, toasts, Analyst scout report.
@@ -229,3 +229,9 @@ The game is being ported to Godot 4 (GDScript) in `godot/`. The Python version s
 - Python-side bug found (owner decision, not fixed because Python is frozen): the v7 save keeps only three of the eight achievement-tracker counters (it drops unarmed kills, pet kills, maps, junk sold and natural 1s), so after a load those achievements unlock later. Godot copies this exactly. Fixing it means a v8 save in both versions.
 - Speed: the Godot bot is about 1.5-1.7x slower than Python per core. The 2,000-run batch is estimated at 55-70 minutes on 4 idle cores. Optimisation was deferred to keep parity safe (memo idea in plan R7 notes).
 - Open items for later: `PyFmt.repr_float` last-digit edge cases outside the game's ranges (plan 11.2a); save parsing takes about 0.1 s on a big save, so P7 should load with a loading state.
+
+### Port P3: bot and data (stopped for review)
+
+- The GDScript bot played seeds 0-1999 in 67 minutes on 4 cores (`scripts/gd_bot.py --runs 2000 --workers 4 --no-events`). All five CSV tables are byte-identical to the committed Phase 7 `runs/bot_*.csv` (134,590 rows), so the P3 bar in plan 11.3 is met and no statistical fallback was needed.
+- The four notebooks re-run on the Godot data with every output unchanged: victory 51.5%, loot box chi-square tests consistent with the stated odds, shop WAPE 79.3% naive vs 67.5% SES, death classifier ROC AUC 0.859. Details in `docs/p3-report.md`.
+- No balance changes come from the port. The Phase 7 outliers are still there for the owner: bog troll and houseplant win about 75% (others 44-53%), and the mouse pet wins 42% (others 53-57%).
