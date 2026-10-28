@@ -5,12 +5,12 @@ extends SceneTree
 ##   godot --headless --path godot -s res://tools/chaos.gd -- --seeds 0-9 --steps 600 --out-dir DIR
 ##   godot --headless --path godot -s res://tools/chaos.gd -- --seed 3 --steps 600 --out run.jsonl
 ##
-## --mute LIST (default achievements,showrunner,funfacts; also all, none): the subsystems to silence, as
-## chaos_trace.py. Muting a subsystem leaves out its events (achievement; viewers_gained, sponsor_gift,
-## showmanship practice_level; fun_fact) and, for the showrunner, unsubscribes it from the event bus (Python
-## replaces its _gain and _say with no-ops, which leaves no other effect on the compared state). The P1
-## stand-ins (Achievements, FunFacts) are silent already; list them while the Python side is real.
-## --mute-standins / --no-mute-standins are aliases for all and none.
+## --mute LIST (default showrunner,funfacts; also all, none): the subsystems to silence, as chaos_trace.py
+## (scripts/mute.py). Muting a subsystem leaves out its events (viewers_gained, sponsor_gift, showmanship
+## practice_level; fun_fact) and, for the showrunner, unsubscribes it from the event bus (Python replaces its
+## _gain and _say with no-ops, which leaves no other effect on the compared state). FunFacts is a silent P1
+## stand-in already; list it while the Python side is real. Achievements is real on both sides and cannot be
+## muted. --mute-standins / --no-mute-standins are aliases for all and none.
 const RACES := ['human', 'elf', 'dwarf', 'hobgoblin', 'bog_troll', 'houseplant']
 const CLASSES := ['brawler', 'arcanist', 'analyst', 'alchemist', 'beastmaster', 'hype_man', 'demolitionist', 'quartermaster', 'duellist']
 const TIERS := ['bronze', 'silver', 'gold', 'platinum', 'legendary']
@@ -19,8 +19,8 @@ const ATTRS := ['str', 'dex', 'con', 'int', 'cha']
 const PETS := ['none', 'cat', 'dog', 'budgie', 'mouse']
 const GENDERS := ['female', 'male', 'nonbinary']
 const BACKS := ['veteran', 'mixologist', 'dog_walker', 'comedian', 'parent', 'tradie', 'category_mgr', 'rideshare']
-const SUBSYSTEMS := ["achievements", "showrunner", "funfacts"]
-const MUTED_EVENTS := {"achievements": ["achievement"], "showrunner": ["viewers_gained", "sponsor_gift"],
+const SUBSYSTEMS := ["showrunner", "funfacts"]
+const MUTED_EVENTS := {"showrunner": ["viewers_gained", "sponsor_gift"],
 		"funfacts": ["fun_fact"]}
 
 var mute: Array = SUBSYSTEMS.duplicate()

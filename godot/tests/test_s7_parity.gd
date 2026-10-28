@@ -7,7 +7,7 @@ extends TestCase
 ##
 ## Compared in full (parity_diff.py --scope full), show stream and viewers included: the Showrunner is real
 ## since T2. The Python references are made with `py_trace.py --mute funfacts` (scripts/gd_test.sh)
-## while Achievements (T1) and FunFacts (T3) are still stand-ins; they remove that mute and nothing else here.
+## while FunFacts (T3) is still a stand-in; T3 removes that mute and nothing else here.
 ## A missing reference directory fails the test (run through scripts/gd_test.sh).
 
 const STEPS := 500

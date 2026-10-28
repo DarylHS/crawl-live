@@ -5,7 +5,7 @@ extends TestCase
 ## is tools/trace.gd + scripts/parity_diff.py --dirs.
 ##
 ## Compared in full, show stream included (the Showrunner is real since T2); the Python references are made
-## with --mute achievements,funfacts while those two are still stand-ins (scripts/gd_test.sh).
+## with --mute funfacts while FunFacts is still a stand-in (scripts/gd_test.sh).
 
 
 func _need(var_name: String) -> String:

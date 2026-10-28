@@ -3,6 +3,8 @@ extends RefCounted
 ## The achievement tests as data (port plan 4.4): Python's per-achievement lambdas become `rule`
 ## objects in achievements.json and this one interpreter. scripts/export_content.py proves every
 ## rule agrees with its lambda (rule_test there is the Python twin of `test`).
+## Payload fields read by rules must be int or String: bools, non-integral floats and NaN compare differently
+## from Python (the game never emits them).
 
 
 ## True when `rule` unlocks given the tracker `t` and the event payload `d`.

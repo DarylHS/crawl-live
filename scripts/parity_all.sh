@@ -6,16 +6,16 @@
 #   PARITY_JOBS=8 scripts/parity_all.sh   # parallel jobs (default: nproc)
 #   PARITY_KEEP=1 scripts/parity_all.sh   # keep the work directory (traces) for inspection
 #
-# Sets (all at --scope full; the Python side runs with --mute funfacts while Achievements (T1)
-# and FunFacts (T3) are still stand-ins in Godot; drop the mute when each lands):
+# Sets (all at --scope full; the Python side runs with --mute funfacts while FunFacts (T3) is still a
+# stand-in in Godot; drop the mute when it lands):
 #   floors   floor-only traces, seeds 0-199, 6 floors                  (full scope)
 #   spawns   World floors with spawns, seeds 0-499, 1 floor            (full)
 #   walk     walk policy, seeds 0-49, 500 steps                        (full)
 #   hunter   hunter policy, seeds 0-49, 3000 steps, with no pet and with 8 pet/hero combinations (full)
 #   s4       S4 fixtures (loot, shop, items, bosses), seeds 0-199, via the GUT test test_s4_parity
-#   chaos    chaos harness, seeds 0-215, 2500 steps (scripts/chaos_diff.py; achievements and funfacts muted)
+#   chaos    chaos harness, seeds 0-215, 2500 steps (scripts/chaos_diff.py; showrunner and funfacts muted)
 # The bot policy needs the T6 BotPolicy and is not included. The Showrunner (T2) is real and compared in
-# full. T1/T3 remove their entry from every "--mute funfacts" here and in gd_test.sh.
+# full. T3 removes funfacts from every "--mute" here and in gd_test.sh.
 set -u
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 GODOT="${GODOT:-godot}"

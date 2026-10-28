@@ -1,5 +1,5 @@
 extends TestCase
-## Ownership of the subsystems that hold their World weakly (the Achievements and FunFacts stand-ins, the real Showrunner): a world that owns one must be
+## Ownership of the subsystems that hold their World weakly (Achievements, the real Showrunner, the FunFacts stand-in): a world that owns one must be
 ## freed with it (they hold the world through a WeakRef), as Practice does. Also the Loot error path.
 ## (The preview guard for zero expected damage cannot be reached with real entities: damage is at
 ## least 1 and a natural 20 always hits.)

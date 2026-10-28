@@ -6,7 +6,7 @@ extends TestCase
 ## tools/trace.gd + scripts/parity_diff.py --dirs --scope full.
 ##
 ## Compared in full exactly as test_s7_parity.gd does (see its header): the Showrunner is real, the Python
-## references are made with --mute funfacts until T1 and T3 land.
+## references are made with --mute funfacts until T3 lands.
 ## A missing reference directory fails the test (run through scripts/gd_test.sh).
 
 const S7 := preload("res://tests/test_s7_parity.gd")

@@ -43,6 +43,7 @@ sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(ROOT / "scripts"))
 
 import crawler.world as cw  # noqa: E402
+from mute import parse_mute  # noqa: E402
 from crawler import config as C  # noqa: E402
 from crawler.dungeon import generate_floor  # noqa: E402
 from crawler.events import EventBus  # noqa: E402
@@ -248,14 +249,12 @@ def header(seed, policy, steps, pet, hero, mode):
             "content_sha": content_sha(), "mode": mode}
 
 
-MUTE = set()    # subsystems to silence (--mute): "achievements", "funfacts"; for runs against Godot stand-ins
+MUTE = set()    # subsystems to silence (--mute): "funfacts" (the only one py_trace can mute); for runs against Godot stand-ins
 
 
 def new_world(tracer, seed, pet, hero):
     with Patched(tracer):
         w = cw.World(seed, pet=(pet, "") if pet else None, hero=hero)
-    if "achievements" in MUTE:
-        w.achievements._unlock = lambda *a, **k: None
     if "funfacts" in MUTE:
         w.funfacts._say = lambda *a, **k: None
     assert len(tracer.rngs) == 5, f"expected 5 RNG streams, saw {len(tracer.rngs)}"
@@ -342,12 +341,12 @@ def main(argv=None):
     ap.add_argument("--floor-only", action="store_true")
     ap.add_argument("--floors", type=int, default=6)
     ap.add_argument("--spawns", action="store_true")
-    ap.add_argument("--mute", default="", help="comma list of achievements,funfacts: silence those real Python "
-                    "subsystems (while the Godot side is still a stand-in); default none")
+    ap.add_argument("--mute", default="", help="funfacts: silence that real Python subsystem while the Godot side "
+                    "is still a stand-in (names validated by scripts/mute.py); default none")
     a = ap.parse_args(argv)
-    names = {x for x in a.mute.split(",") if x}
-    if names - {"achievements", "funfacts"}:
-        ap.error(f"unknown subsystem(s) to mute: {sorted(names - {'achievements', 'funfacts'})}")
+    names = parse_mute(a.mute)
+    if names - {"funfacts"}:
+        ap.error(f"py_trace can only mute funfacts, not {sorted(names - {'funfacts'})}")
     MUTE.update(names)
     seeds = parse_seeds(a.seeds) if a.seeds else [a.seed if a.seed is not None else 0]
     if a.seeds and not a.out_dir:

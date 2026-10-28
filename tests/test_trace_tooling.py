@@ -270,11 +270,13 @@ def test_pet_none_option(tmp_path):
 def test_mute_lists_reject_unknown_names(capsys):
     import chaos_trace as CT
     assert CT.parse_mute("funfacts") == {"funfacts"} and CT.parse_mute("none") == set()
-    assert CT.parse_mute("all") == set(CT.SUBSYSTEMS)
+    assert CT.parse_mute("all") == set(CT.SUBSYSTEMS) == {"showrunner", "funfacts"}
+    with pytest.raises(SystemExit):
+        CT.parse_mute("achievements")
     with pytest.raises(SystemExit):
         CT.parse_mute("funfacts,bogus")
     with pytest.raises(SystemExit):
-        PT.main(["--seed", "1", "--policy", "walk", "--steps", "5", "--mute", "bogus", "--out", "/dev/null"])
+        PT.main(["--seed", "1", "--policy", "walk", "--steps", "5", "--mute", "achievements", "--out", "/dev/null"])
 
 
 def test_chaos_trace_mutes_only_the_named_subsystems(tmp_path):
@@ -286,6 +288,6 @@ def test_chaos_trace_mutes_only_the_named_subsystems(tmp_path):
 
     def events(path):
         return [e[0] for line in lines(path) for e in json.loads(line)[-2]]
-    assert "achievement" in events(outs["fun"]) and "achievement" not in events(outs["all"])
+    assert "achievement" in events(outs["fun"]) and "achievement" in events(outs["all"])
     assert "viewers_gained" in events(outs["fun"]) and "viewers_gained" not in events(outs["all"])
     assert "fun_fact" not in events(outs["fun"])

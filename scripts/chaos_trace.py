@@ -13,14 +13,13 @@ line; scripts/chaos_diff.py compares the two.
 
 Deterministic: the harness uses its own random.Random(seed ^ 0x5C8) and nothing else is random.
 
---mute LIST (default achievements,showrunner,funfacts): comma list of the subsystems to neutralise. While
-the Godot side still has a P1 stand-in for a subsystem (FunFacts: T3) that subsystem must be muted here and
-in chaos.gd; Achievements (T1) and the Showrunner (T2) are ported, so run with --mute funfacts (chaos.gd has
-no seam for a muted real Achievements and rejects it).
-Muting replaces the real Python Achievements._unlock, Showrunner._gain and _say, or FunFacts._say with
-no-ops, and leaves out the events and messages they would add (achievement; viewers_gained, sponsor_gift and
-showmanship practice_level; fun_fact). --mute none compares everything.
---mute-standins / --no-mute-standins are kept as aliases for the full list and none. Muting is the only deviation from an unmodified Python World."""
+--mute LIST (default showrunner,funfacts; see scripts/mute.py): comma list of the subsystems to neutralise.
+While the Godot side still has a P1 stand-in for a subsystem (FunFacts: T3) that subsystem must be muted
+here and in chaos.gd; the Showrunner (T2) is ported, so run with --mute funfacts. Achievements (T1) is real
+on both sides and cannot be muted. Muting replaces the real Showrunner._gain and _say, or FunFacts._say, with
+no-ops, and leaves out the events and messages they would add (viewers_gained, sponsor_gift and showmanship
+practice_level; fun_fact). --mute none compares everything.
+--mute-standins / --no-mute-standins are kept as aliases for all and none. Muting is the only deviation from an unmodified Python World."""
 import argparse
 import json
 import random
@@ -42,20 +41,10 @@ ATTRS = ['str', 'dex', 'con', 'int', 'cha']
 PETS = ['none', 'cat', 'dog', 'budgie', 'mouse']
 GENDERS = ['female', 'male', 'nonbinary']
 BACKS = ['veteran', 'mixologist', 'dog_walker', 'comedian', 'parent', 'tradie', 'category_mgr', 'rideshare']
-SUBSYSTEMS = ("achievements", "showrunner", "funfacts")
-MUTED_EVENTS = {"achievements": {"achievement"}, "showrunner": {"viewers_gained", "sponsor_gift"}, "funfacts": {"fun_fact"}}
-MUTED_FILES = {"achievements": "achievements.py", "showrunner": "showrunner.py", "funfacts": "funfacts.py"}
+from mute import SUBSYSTEMS, parse_mute  # noqa: E402
+MUTED_EVENTS = {"showrunner": {"viewers_gained", "sponsor_gift"}, "funfacts": {"fun_fact"}}
+MUTED_FILES = {"showrunner": "showrunner.py", "funfacts": "funfacts.py"}
 
-
-def parse_mute(text):
-    """'funfacts,showrunner' -> {'funfacts', 'showrunner'}; 'none' -> empty; 'all' -> everything."""
-    if text in ("", "none"):
-        return set()
-    names = set(SUBSYSTEMS) if text == "all" else set(text.split(","))
-    bad = names - set(SUBSYSTEMS)
-    if bad:
-        raise SystemExit(f"unknown subsystem(s) to mute: {sorted(bad)}")
-    return names
 
 
 def run(seed, steps, path, mute=frozenset(SUBSYSTEMS)):
@@ -68,8 +57,6 @@ def run(seed, steps, path, mute=frozenset(SUBSYSTEMS)):
     c = seed % 54
     race = RACES[c % 6]; cls = CLASSES[(c // 6) % 9]
     w = World(seed, pet=(pet, "") if pet != "none" else None, hero=hero)
-    if "achievements" in mute:
-        w.achievements._unlock = lambda *a, **k: None
     if "showrunner" in mute:
         w.showrunner._gain = lambda *a, **k: None
         w.showrunner._say = lambda *a, **k: None
@@ -311,8 +298,8 @@ def main():
     ap.add_argument("--steps", type=int, default=600)
     ap.add_argument("--out", help="output file for --seed")
     ap.add_argument("--out-dir", help="directory for chaos_<seed>.jsonl files")
-    ap.add_argument("--mute", default="achievements,showrunner,funfacts",
-                    help="comma list of achievements,showrunner,funfacts to neutralise (or all, none)")
+    ap.add_argument("--mute", default="showrunner,funfacts",
+                    help="comma list of showrunner,funfacts to neutralise (or all, none)")
     ap.add_argument("--mute-standins", action=argparse.BooleanOptionalAction, default=None,
                     help="alias: --mute-standins is --mute all, --no-mute-standins is --mute none")
     a = ap.parse_args()
