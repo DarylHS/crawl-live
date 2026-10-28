@@ -14,6 +14,8 @@
 #   hunter   hunter policy, seeds 0-49, 3000 steps, with no pet and with 8 pet/hero combinations (full)
 #   s4       S4 fixtures (loot, shop, items, bosses), seeds 0-199, via the GUT test test_s4_parity
 #   chaos    chaos harness, seeds 0-215, 2500 steps (scripts/chaos_diff.py; showrunner and funfacts muted)
+#   csv      telemetry CSV files of the same chaos runs (T4: chaos_trace.py / chaos.gd --telemetry-dir, compared
+#            byte for byte with parity_diff.py --csv; every outcome, boxes, shop, practice, events)
 # The bot policy needs the T6 BotPolicy and is not included. The Showrunner (T2) is real and compared in
 # full. T3 removes funfacts from every "--mute" here and in gd_test.sh.
 set -u
@@ -55,10 +57,10 @@ for combo in "${COMBOS[@]}"; do
 	set -- $combo
 	add_set "hunter_$1_${2//:/_}" "--policy hunter --steps 3000 --pet $1 --hero $2" "--policy hunter --steps 3000 --pet $1 --hero $2" 49 13
 done
-mkdir -p "$WORK/py_chaos" "$WORK/gd_chaos"
+mkdir -p "$WORK/py_chaos" "$WORK/gd_chaos" "$WORK/py_csv" "$WORK/gd_csv"
 for c in $(chunks 0 215 27); do
-	echo "python3 $ROOT/scripts/chaos_trace.py --seeds $c --steps 2500 --mute funfacts --out-dir $WORK/py_chaos" >> "$JOBS"
-	echo "$GODOT --headless --path $ROOT/godot -s res://tools/chaos.gd -- --seeds $c --steps 2500 --mute funfacts --out-dir $WORK/gd_chaos >/dev/null 2>&1" >> "$JOBS"
+	echo "python3 $ROOT/scripts/chaos_trace.py --seeds $c --steps 2500 --mute funfacts --out-dir $WORK/py_chaos --telemetry-dir $WORK/py_csv" >> "$JOBS"
+	echo "$GODOT --headless --path $ROOT/godot -s res://tools/chaos.gd -- --seeds $c --steps 2500 --mute funfacts --out-dir $WORK/gd_chaos --telemetry-dir $WORK/gd_csv >/dev/null 2>&1" >> "$JOBS"
 done
 echo "python3 $ROOT/scripts/make_fixtures_s4.py $WORK/fixtures_s4.json 200" >> "$JOBS"
 
@@ -86,6 +88,11 @@ out="$(python3 "$ROOT/scripts/chaos_diff.py" --dirs "$WORK/py_chaos" "$WORK/gd_c
 rc=$?
 echo "chaos: $(echo "$out" | tail -1)"
 [ "$rc" -eq 0 ] || { echo "$out" | grep -v ": SAME" | head -40; fail=1; }
+
+out="$(python3 "$ROOT/scripts/parity_diff.py" --csv "$WORK/py_csv" "$WORK/gd_csv" 2>&1)"
+rc=$?
+echo "csv: $(echo "$out" | tail -1)"
+[ "$rc" -eq 0 ] || { echo "$out" | head -40; fail=1; }
 
 log="$WORK/s4.log"
 FIXTURES_S4="$WORK/fixtures_s4.json" "$GODOT" --headless --path "$ROOT/godot" -s res://addons/gut/gut_cmdln.gd \

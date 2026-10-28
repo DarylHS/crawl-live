@@ -291,3 +291,92 @@ def test_chaos_trace_mutes_only_the_named_subsystems(tmp_path):
     assert "achievement" in events(outs["fun"]) and "achievement" in events(outs["all"])
     assert "viewers_gained" in events(outs["fun"]) and "viewers_gained" not in events(outs["all"])
     assert "fun_fact" not in events(outs["fun"])
+
+# --- CSV compare mode (slice T4) and the chaos telemetry mode ---------------------------------------
+
+def _csv_pair(tmp_path, text_a, text_b, name="t_runs.csv"):
+    da, db = tmp_path / "A", tmp_path / "B"
+    for d, text in ((da, text_a), (db, text_b)):
+        d.mkdir(parents=True)
+        (d / name).write_bytes(text.encode("utf-8"))
+    return da, db
+
+
+def test_csv_mode_identical_files(tmp_path):
+    da, db = _csv_pair(tmp_path, "a,b\r\n1,x\r\n2,y\r\n", "a,b\r\n1,x\r\n2,y\r\n")
+    ok, text = PD.compare_csv_dirs(da, db)
+    assert ok and text == "CSV OK: 1 files, 3 rows, byte-identical"
+    assert PD.main(["--csv", str(da), str(db)]) == 0
+
+
+def test_csv_mode_byte_difference_is_reported_separately(tmp_path):
+    # same cells by value, different bytes: float text and line endings
+    da, db = _csv_pair(tmp_path, "a,b\r\n1,0.00001\r\n", "a,b\n1.0,1e-05\n")
+    ok, text = PD.compare_csv_dirs(da, db)
+    assert not ok and "t_runs.csv: BYTES DIFFER" in text and "cells agree; first byte difference" in text
+    assert "CELLS DIFFER" not in text
+    ok, text = PD.compare_csv_dirs(da, db, cells_only=True)
+    assert ok and "cells identical (1 files differ in bytes)" in text
+    assert PD.main(["--csv", str(da), str(db)]) == 1
+    assert PD.main(["--csv", str(da), str(db), "--cells-only"]) == 0
+
+
+def test_csv_mode_cell_differences_name_file_row_and_column(tmp_path, capsys):
+    da, db = _csv_pair(tmp_path, "id,hp,note\r\n1,5,ok\r\n2,7,fine\r\n", "id,hp,note\r\n1,5,ok\r\n2,8,fine!\r\n")
+    ok, text = PD.compare_csv_dirs(da, db)
+    assert not ok and "CELLS DIFFER" in text
+    assert "row 2 column hp: A '7' B '8'" in text and "row 2 column note: A 'fine' B 'fine!'" in text
+    assert "CSV FAIL: 1 of 1 files differ" in text
+    assert PD.main(["--csv", str(da), str(db), "--cells-only"]) == 1       # a wrong cell always fails
+    assert "row 2 column hp" in capsys.readouterr().out
+
+
+def test_csv_mode_structure_differences(tmp_path):
+    ok, text = PD.compare_csv_dirs(*_csv_pair(tmp_path / "h", "a,b\r\n1,2\r\n", "a,c\r\n1,2\r\n"))
+    assert not ok and "header differs" in text
+    ok, text = PD.compare_csv_dirs(*_csv_pair(tmp_path / "r", "a,b\r\n1,2\r\n3,4\r\n", "a,b\r\n1,2\r\n"))
+    assert not ok and "row count differs: A 3 B 2" in text
+    ok, text = PD.compare_csv_dirs(*_csv_pair(tmp_path / "w", "a,b\r\n1,2\r\n", "a,b\r\n1,2,3\r\n"))
+    assert not ok and "2 cells in A, 3 in B" in text
+
+
+def test_csv_mode_quoted_cells_and_text_cells_compare_exactly(tmp_path):
+    same = 'a,b\r\n"x, ""y""",True\r\n'
+    ok, _ = PD.compare_csv_dirs(*_csv_pair(tmp_path / "s", same, same))
+    assert ok
+    ok, text = PD.compare_csv_dirs(*_csv_pair(tmp_path / "b", same, same.replace("True", "true")))
+    assert not ok and "A 'True' B 'true'" in text
+    ok, text = PD.compare_csv_dirs(*_csv_pair(tmp_path / "n", "a\r\n1\r\n", "a\r\n1.5\r\n"))
+    assert not ok
+
+
+def test_csv_mode_missing_files_and_empty_dirs(tmp_path):
+    da, db = tmp_path / "A", tmp_path / "B"
+    (da / "seed_1").mkdir(parents=True)
+    (db / "seed_1").mkdir(parents=True)
+    ok, text = PD.compare_csv_dirs(da, db)
+    assert not ok and "no .csv files" in text
+    (da / "seed_1" / "x_runs.csv").write_text("a\r\n1\r\n", newline="")
+    ok, text = PD.compare_csv_dirs(da, db)
+    assert not ok and "seed_1/x_runs.csv: MISSING in B" in text
+
+
+def test_chaos_telemetry_mode_is_deterministic_and_covers_every_outcome(tmp_path):
+    import csv
+    import chaos_trace as CT
+    outcomes = set()
+    for run in ("a", "b"):
+        for seed in (0, 4, 8, 12):          # (seed // 4) % 4 = 0, 1, 2, 3
+            CT.run(seed, 600, tmp_path / f"{run}{seed}.jsonl", mute={"funfacts"},
+                   telemetry_dir=tmp_path / run)
+    ok, text = PD.compare_csv_dirs(tmp_path / "a", tmp_path / "b")
+    assert ok and "byte-identical" in text
+    for seed in (0, 4, 8, 12):
+        with (tmp_path / "a" / f"seed_{seed}" / "chaos_runs.csv").open(newline="") as fh:
+            row = next(csv.DictReader(fh))
+        assert row["source"] == "chaos" and row["deals"] == "chaos" and row["run_id"] == f"chaos{seed}"
+        outcomes.add(row["outcome"])
+    assert outcomes == {"unfinished", "killed", "collapse", "victory"}
+    events = (tmp_path / "a" / "seed_4" / "chaos_events.csv").read_bytes()
+    assert b'"He said ""hi"", then\nleft"\r\n' in events and b",1e-05,0.30000000000000004\r\n" in events
+    assert b",6,turn,1,\r\n" not in events and b",turn,1," not in events      # SKIP: the "turn" event is never logged

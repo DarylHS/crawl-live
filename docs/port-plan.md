@@ -455,7 +455,7 @@ python scripts/parity_diff.py /tmp/py.jsonl /tmp/gd.jsonl [--scope core|full] [-
 - On the first difference prints: the record index, the turn and depth, the last `--context` records from both sides (side by side), the field path that differs, and the RNG counter delta at that point (if `r` differs first, the cause is an extra or missing draw just before it, which narrows it to one call site in 5.2). Exit code 1.
 - `--scope core` (P1): ignores `msg` records, the `i` counter of `ev` records, the `show` counter (index 4 of `r`, `rs` and a floor record's `words`), `viewers` in `turn`, events from systems still stubbed in P1 (`achievement`, `box_gained`, `viewers_gained`, `sponsor_gift`, `fun_fact`), `practice_level` events for `showmanship` (Python trains it from `viewers_gained`, which the stand-in never emits) and the `many_at_3` field of other `practice_level` payloads. `--scope full` (P2 onward) compares everything. The header's `impl` is never compared.
 - A missing or malformed file (bad JSON line) is reported as a failure for that pair (`file X line N malformed`), exit 1, no traceback. On a divergence that is not in `r`, the last `ev` RNG counters of both sides are printed as well. `--dirs DIR_A DIR_B [--seeds lo-hi]` compares same-named files and carries on past a bad pair.
-- The CSV compare mode (`--csv DIR_A DIR_B`: telemetry tables cell by cell, floats by value, byte differences reported separately) is not part of S9; it moves to slice T4.
+- The CSV compare mode (`--csv DIR_A DIR_B`: telemetry tables cell by cell, floats by value, byte differences reported separately) is implemented (slice T4): bytes first, then cells; see the T4 notes in B.2.
 - Exit 0 prints `PARITY OK: <n> records, <turns> turns`.
 
 ### 6.4 Seeds and scripted sequences
@@ -770,13 +770,14 @@ Every pytest test not yet ported is named here, with the slice that must port it
 
 | Slice | pytest test | Why deferred |
 |---|---|---|
-| T4 | `test_practice.py`: `test_telemetry_has_one_practice_row_per_skill` | telemetry |
 | T5 | `test_practice.py`: `test_save_round_trip_keeps_practice` | saves |
 | T3 | `test_phase4.py`: `test_miss_streak_fun_fact`, `test_box_drought_fun_fact`, `test_fun_facts_are_rate_limited`, `test_run_report_data` | fun facts, report |
 | T5 | `test_phase4.py`: `test_save_round_trip_keeps_phase4_state` | saves |
 | T5 | `test_phase3.py`: `test_save_round_trip_and_identical_future`, `test_load_rejects_wrong_version` | saves |
 | T5 | `test_encounter.py`: `test_never_saves_mid_combat`, `test_save_and_load_in_a_safe_room_gives_the_same_future` | saves |
 | T6 | `test_encounter.py`: `test_bot_finishes_runs_in_combat_mode`, `test_bot_flees_through_a_provoke_only_when_hurt` | bot |
+| T6 | `test_telemetry.py`: `test_bot_run_produces_consistent_tables`, `test_bot_is_deterministic` | bot |
+| P5 | `test_telemetry.py`: `test_game_logs_finished_player_runs` | needs the App (the game writing player runs to its runs directory) |
 
 ### B.2 Notes carried forward to later slices
 
@@ -802,6 +803,12 @@ Every pytest test not yet ported is named here, with the slice that must port it
   - World init already emits `floor_start`, so the show stream has drawn by the time `World.new` returns (tests replay it with `genrand_uint32` times `words_used`).
   - Muting for parity while a subsystem is still a stand-in: `chaos_trace.py`, `chaos.gd` and `chaos_diff.py` take `--mute showrunner,funfacts` (default both; `all`, `none`; names validated by `scripts/mute.py`; Achievements cannot be muted; `--mute-standins` / `--no-mute-standins` are aliases). `py_trace.py` takes `--mute funfacts` (it silences the real Python `FunFacts._say`; the Godot stand-in is silent already). `scripts/gd_test.sh` and `scripts/parity_all.sh` pass `--mute funfacts` to both and compare every trace set in full scope. T3 deletes its entry from those `--mute` lists (gd_test.sh, parity_all.sh, `tests/test_chaos_parity.gd` `MUTE`) when they land. `chaos.gd` mutes the showrunner by unsubscribing it (Python's muted showrunner has no other observable effect on the compared state).
   - Against unmuted Python (real Achievements and FunFacts), `walk` and `hunter` seeds 0-11 are identical at core scope and differ at full scope only where Achievements and FunFacts are silent in Godot: the first "Achievement unlocked" or FUN FACT message and what follows from it (boxes, viewers, show stream).
+- **T4 (Telemetry, done) notes for T6 and later:**
+  - `rules/telemetry.gd` (`Telemetry.new(world, source := "player", run_id := "", meta := {})`, `tables()`) and `rules/py/py_csv.gd` (`PyCsv.write_tables(tables, out_dir, prefix := "", skip := [])`, plus `encode_row/encode_rows/parse/read_dicts`). The writer takes any directory (absolute or `user://`), so `--runs-dir` is the caller's business (T6 bot, the game's `Game` autoload). `run_id` is a Variant (Python tests pass an int); a falsy one draws 12 hex characters from `Crypto`.
+  - The Telemetry reaches the World through a `WeakRef` and subscribes bound methods (`"*"` then `floor_start`, as Python). The caller owns the Telemetry, as in Python: drop it before the world and nothing leaks; drop it while the world lives and the bus holds a dead callable. Ownership test: `tests/test_telemetry.gd`.
+  - Rows depend on the real `Achievements` only through `runs.achievements` (`len(unlocked)`) and, through boxes and viewers, on whatever it awards. While T1 is a stand-in the Python side runs with `--mute achievements,funfacts` and both counts are 0. FunFacts only writes messages, so the CSVs do not depend on it. The Showrunner is real, so `viewers`, `peak_viewers` and `viewers_gained` are compared.
+  - Byte-compare: `chaos_trace.py` / `chaos.gd` take `--telemetry-dir DIR`. They attach a Telemetry at creation, then after the trace file is closed run `finale()` (by `(seed // 4) % 4`: leave unfinished, kill, collapse, win by walking down the stairs with the exit forced open), emit nine odd events straight on the bus (quotes, commas, CR and LF, unicode, `1e-05`, `1e+16`, `0.30000000000000004`, `True` as a value, `None` and empty details, the skipped `turn`) and write `DIR/seed_<n>/chaos_<table>.csv`. The `.jsonl` traces are unchanged, so CHAOS_TRACES still holds. `scripts/parity_diff.py --csv DIR_A DIR_B [--cells-only] [--max-diffs N]` compares them (bytes first, then cells, floats by value; byte-only differences are reported as BYTES DIFFER and fail unless `--cells-only`). Quick check: `test_telemetry.gd` (seeds 0-15 through `gd_test.sh`); large set: `parity_all.sh` (seeds 0-215, 2500 steps).
+  - Formatting traps checked (all identical to Python): CRLF line ends, `""` for a lone empty field (never reached, tables have many columns), quoting of `\r` and `\n` as well as `,` and `"`, `repr` of floats (`1e-05`, `1e+16`, `3.0`, `0.30000000000000004`), `True`/`False` for booleans and for `str(d[k])` of a `False` payload, `None` as an empty cell, a restval of `""` for a missing key, and unicode written as UTF-8 without a BOM.
 - **S6 (World A) notes for S7 and S8:**
   - `world.gd` has marked "S7" and "S8" append sections at the end. Already in the file, do not port again: `add_box`, `choose_class`, `equip` (S8 methods the S6 tests need) and `_end_combat` (S7; `new_floor` calls it). `_respawn` (S6 range) is there too but its caller `_tick_clock` is S7.
   - Python's `World.trait` is `World.get_trait` (`trait` is a reserved word in GDScript 4.7). `World.CHOICE_FLOOR` and `World.PET_MODES` are static vars read from config.

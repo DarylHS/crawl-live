@@ -217,6 +217,25 @@ func test_hitting_trains_the_matching_weapon_skill() -> void:
 	assert_true(w.training.used.has("blades"))
 
 
+func test_telemetry_has_one_practice_row_per_skill() -> void:
+	var w := World.new(10)
+	var t := Telemetry.new(w, "bot", 1)
+	w.training.gain("lobbing", 10)
+	var tables := t.tables()
+	assert_eq(tables["practice"].size(), Practice.skills().size())
+	var row: Dictionary = {}
+	for r in tables["practice"]:
+		if r["skill"] == "lobbing":
+			row = r
+			break
+	assert_eq(row["level"], w.practice("lobbing"))
+	assert_eq(row["used"], 1)
+	var total := 0
+	for k in w.training.levels:
+		total += w.training.levels[k]
+	assert_eq(tables["runs"][0]["practice_levels"], total)
+
+
 # --- Direct checks ------------------------------------------------------------------------------
 
 func test_constants_match_python() -> void:

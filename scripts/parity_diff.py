@@ -3,6 +3,7 @@
 Usage:
   python scripts/parity_diff.py A.jsonl B.jsonl [--scope core|full] [--context 12]
   python scripts/parity_diff.py --dirs DIR_A DIR_B [--seeds 0-49] [--scope core|full]
+  python scripts/parity_diff.py --csv DIR_A DIR_B [--cells-only] [--max-diffs 10]
 
 Exit code 0 when identical ("PARITY OK: <n> records, <turns> turns"), 1 on the first
 difference (or any file pair differing in --dirs mode, or a file missing on one side).
@@ -26,8 +27,19 @@ of both sides, side by side.
 
 --dirs mode compares files of the same name in both directories; --seeds A-B restricts
 to names ending in _<seed>.jsonl with seed in the range (e.g. hunter_17.jsonl).
+
+--csv mode (slice T4) compares telemetry CSV files instead of traces: every *.csv under DIR_A and DIR_B
+(recursively, matched by relative path; a file on one side only fails).  Per file the bytes are compared
+first (the P3 bar is byte-identical files).  When they differ the files are parsed with the csv module
+and compared cell by cell: same header, same row count, cells that both read as numbers by value (an int
+against a float, "1e-05" against "0.00001"), every other cell as an exact string.  A pair whose cells all
+agree but whose bytes differ (float or line-ending formatting) is reported as BYTES DIFFER and counts as
+a failure unless --cells-only is given; a pair with a differing cell is always a failure and its first
+--max-diffs cells are listed (file, row, column name, both values).  Exit 0 prints "CSV OK: <n> files,
+<rows> rows, byte-identical" (or "... cells identical" with --cells-only).
 """
 import argparse
+import csv
 import json
 import re
 import sys
@@ -258,6 +270,103 @@ def compare_dirs(dir_a, dir_b, seeds=None, scope="full", context=12):
     return failures == 0 and bool(names), "\n".join(lines)
 
 
+def _cell_num(text):
+    """int or float for a cell that reads as a number, else None."""
+    try:
+        return int(text)
+    except ValueError:
+        pass
+    try:
+        return float(text)
+    except ValueError:
+        return None
+
+
+def cells_equal(a, b):
+    """Cell comparison: numbers by value (int against float allowed), everything else exactly."""
+    if a == b:
+        return True
+    na, nb = _cell_num(a), _cell_num(b)
+    return na is not None and nb is not None and na == nb
+
+
+def _read_csv(path):
+    with open(path, encoding="utf-8", newline="") as fh:
+        return list(csv.reader(fh))
+
+
+def compare_csv_files(path_a, path_b, max_diffs=10):
+    """(status, rows, lines): status is "identical" (bytes), "bytes" (cells agree, bytes differ) or "cells"."""
+    raw_a, raw_b = Path(path_a).read_bytes(), Path(path_b).read_bytes()
+    rows_a, rows_b = _read_csv(path_a), _read_csv(path_b)
+    if raw_a == raw_b:
+        return "identical", len(rows_a), []
+    lines = []
+    diffs = 0
+    header = rows_a[0] if rows_a else []
+    if rows_a[:1] != rows_b[:1]:
+        lines.append(f"  header differs: A {rows_a[:1]} B {rows_b[:1]}")
+        diffs += 1
+    if len(rows_a) != len(rows_b):
+        lines.append(f"  row count differs: A {len(rows_a)} B {len(rows_b)} (including the header)")
+        diffs += 1
+    for i, (ra, rb) in enumerate(zip(rows_a, rows_b)):
+        if i == 0:
+            continue
+        if len(ra) != len(rb):
+            if diffs < max_diffs:
+                lines.append(f"  row {i}: {len(ra)} cells in A, {len(rb)} in B")
+            diffs += 1
+            continue
+        for j, (ca, cb) in enumerate(zip(ra, rb)):
+            if not cells_equal(ca, cb):
+                if diffs < max_diffs:
+                    col = header[j] if j < len(header) else f"#{j}"
+                    lines.append(f"  row {i} column {col}: A {ca!r} B {cb!r}")
+                diffs += 1
+    if diffs:
+        if diffs > max_diffs:
+            lines.append(f"  ... {diffs - max_diffs} more differences")
+        return "cells", len(rows_a), lines
+    first = next((k for k, (x, y) in enumerate(zip(raw_a, raw_b)) if x != y), min(len(raw_a), len(raw_b)))
+    lines.append(f"  cells agree; first byte difference at offset {first}: A {raw_a[first:first + 30]!r} B {raw_b[first:first + 30]!r}")
+    return "bytes", len(rows_a), lines
+
+
+def compare_csv_dirs(dir_a, dir_b, cells_only=False, max_diffs=10):
+    """Compare every *.csv under both directories; returns (ok, report text)."""
+    rel_a = {str(p.relative_to(dir_a)) for p in Path(dir_a).rglob("*.csv")}
+    rel_b = {str(p.relative_to(dir_b)) for p in Path(dir_b).rglob("*.csv")}
+    names = sorted(rel_a | rel_b)
+    failures, rows, byte_only, lines = 0, 0, 0, []
+    for name in names:
+        if name not in rel_a or name not in rel_b:
+            failures += 1
+            lines.append(f"{name}: MISSING in {'A' if name not in rel_a else 'B'}")
+            continue
+        status, n, detail = compare_csv_files(Path(dir_a) / name, Path(dir_b) / name, max_diffs)
+        rows += n
+        if status == "identical":
+            continue
+        if status == "bytes":
+            byte_only += 1
+            if not cells_only:
+                failures += 1
+            lines.append(f"{name}: BYTES DIFFER")
+        else:
+            failures += 1
+            lines.append(f"{name}: CELLS DIFFER")
+        lines.extend(detail)
+    if not names:
+        return False, "CSV FAIL: no .csv files found"
+    if failures:
+        lines.append(f"CSV FAIL: {failures} of {len(names)} files differ")
+    else:
+        how = "byte-identical" if not byte_only else f"cells identical ({byte_only} files differ in bytes)"
+        lines.append(f"CSV OK: {len(names)} files, {rows} rows, {how}")
+    return failures == 0, "\n".join(lines)
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("files", nargs="*")
@@ -265,7 +374,14 @@ def main(argv=None):
     ap.add_argument("--seeds", help="range such as 0-49 (with --dirs)")
     ap.add_argument("--scope", choices=("core", "full"), default="full")
     ap.add_argument("--context", type=int, default=12)
+    ap.add_argument("--csv", nargs=2, metavar=("DIR_A", "DIR_B"), help="compare telemetry CSV files")
+    ap.add_argument("--cells-only", action="store_true", help="with --csv: byte-only differences are not failures")
+    ap.add_argument("--max-diffs", type=int, default=10, help="with --csv: cells listed per file")
     a = ap.parse_args(argv)
+    if a.csv:
+        ok, text = compare_csv_dirs(a.csv[0], a.csv[1], a.cells_only, a.max_diffs)
+        print(text)
+        return 0 if ok else 1
     if a.dirs:
         seeds = None
         if a.seeds:
