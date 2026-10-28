@@ -293,7 +293,7 @@ Real underground places also give each House a home in the deep, which can show 
 | Part of the Tree | What it is | In the world |
 |---|---|---|
 | **The Roots** | The dungeon (6.0 to 6.2) | Where people are tested, sorted and changed |
-| **The Trunk** | Floor 20, the docks, and a sealed shaft rising from them to the surface | The departure halls. The craft at the docks are lifters and boarding halls, not starships. Sealed from the dungeon, so nobody climbs it without passing the Muster |
+| **The Trunk** | Floor 20, the docks, and a sealed shaft rising from them to a station on the seabed, with a riser up to the floating anchor (see below) | The departure halls. The craft at the docks are lifters and boarding halls, not starships. Sealed from the dungeon, so nobody climbs it without passing the Muster |
 | **The Tree** | A space elevator: a cable anchored on the equator and running up past geostationary orbit, about 36,000 km above the surface | The road to the sky. Climbers carry people and cargo up the cable |
 | **The branches** | The starships, built in orbit, where there is no gravity or weather to fight | Each House's ship. What waits underground is everything needed to fill them: people, seeds, stories |
 
@@ -301,22 +301,34 @@ Real underground places also give each House a home in the deep, which can show 
 
 - **The myth was already there.** Many peoples imagined a world tree joining the underworld, the earth and the heavens. In Norse myth, Yggdrasil connects the nine worlds. The Maya pictured the world tree as a great ceiba, roots in the underworld, branches in the sky (the Canopy claims the tree as its own). The dungeon has been the roots all along.
 - **It's serious science fiction.** Arthur C. Clarke built *The Fountains of Paradise* (1979) around a space elevator, and in 2012 the Japanese construction firm Obayashi announced a concept for one by 2050 (the Seven are proud of this). The honest gap: no one can yet make a cable strong enough at that length. A world of superintelligences that has solved it is a fair invention, and the cable's material can be one of the Houses' greatest secrets.
-- **It explains why the Roots converge.** An elevator's anchor has to sit on the equator, so every House's tunnels run towards one place.
+- **It explains why the Roots converge.** An elevator's anchor has to sit on the equator, so every House's tunnels run towards one place: the floating anchor beside Kiribati.
 - **It explains why the ships wait underground.** The surface is dying, the weather is violent and the Holdouts sabotage things; the deep is cool, shielded and powered by the Tap (8.4). Only the anchor itself stands on the surface, sealed.
 - **It keeps the theme.** Even the nearest star, Proxima Centauri, is 4.24 light years away: decades at a tenth of light speed, centuries more realistically. Nobody who leaves arrives.
 
 **The climb.** [Proposed] Concept designs for space elevators estimate about a week to climb to geostationary orbit. **Seven days up the Tree** can be the game's epilogue after the Muster: the Earth falling away, your Calling settling on you, the starship growing larger above. A quiet ending, after twenty floors of noise.
 
-**Where is the anchor?** [Open] It has to be on the equator, and the equator runs through the lore:
+**Why the equator.** Only a satellite directly above the equator can stay over the same spot on the ground (geostationary orbit), so the cable has to hang from a point on the equator. An anchor anywhere else would be dragged towards it.
 
-| Candidate | Why | House |
-|---|---|---|
-| **Kiribati**, in the Pacific | On the equator, and losing its islands to the rising sea. Humanity's way to the stars would begin where the Drowned Coasts (8.4) hurt most | The Southern Cross, which gets its heart |
-| **Ecuador** | Its name means "equator"; the Andes give a high, stable base | The Canopy |
-| **Kenya** | Equatorial highlands, close to the southern regreening | The Baobab |
-| **Indonesia** | The equator crosses Sumatra, Borneo and Sulawesi | Could finally settle Southeast Asia's House |
+**Where: a floating anchor beside Kiribati.** [Decided] The anchor is a floating platform on the open ocean near Kiribati, in the equatorial Pacific. Not on Kiribati's islands: beside them.
 
-Draft recommendation: **Kiribati**, for what it means. The tunnels would run under the ocean floor to reach it, which is the agents' work at its most impossible, and that suits the deepest act.
+- **It's the standard design.** Serious space elevator studies, including NASA-funded work by the physicist Bradley Edwards in the early 2000s, put the anchor on a mobile platform in the equatorial Pacific.
+- **It's been done, nearly.** From 1999 to 2014, Sea Launch flew rockets off the *Odyssey*, a converted oil-drilling platform, from a site on the equator at 154° W, near Kiritimati in Kiribati. People have already gone to space from this patch of ocean.
+- **The weather is calm.** Tropical cyclones almost never form within about 5° of the equator.
+- **It can move.** Shifting the platform slowly swings the lower cable aside, so it can dodge tracked debris.
+- **It's nobody's ground.** Open ocean belongs to no House, so the most important place on Earth is neutral, like the sanctuaries, under the Shared Law and the Herald's care.
+- **It means something.** Kiribati is mostly low coral atolls a few metres above the sea; in 2014 its government bought about 20 km² of land in Fiji, partly as insurance against rising water. It's the only country in all four hemispheres, and its Line Islands are the first inhabited place to see each new day. The place that sees every new day first is where people leave for a new world, and it's a place the Heat is drowning (the Drowned Coasts, 8.4). It gives the Southern Cross its heart.
+
+**How the dungeon reaches it.** [Proposed] The ocean there is roughly 4 to 5 km deep, so the shaft can't come straight up into the platform:
+
+1. **The sealed shaft** rises from the Trunk through the rock beneath an atoll to a **seabed station**.
+2. **A riser** (a pipe from seabed to surface, as deepwater oil fields use in water nearly 3 km deep) carries people and cargo up to the platform. At 4 to 5 km it's deeper than any built today, a step beyond, not a leap.
+3. **The platform is held down by tendons** fixed to the seabed. The cable pulls it up and its own buoyancy pushes it up, so it must be held down, which is exactly how tension-leg oil platforms already work. The tendons let it shift slowly; the riser bends with it.
+
+**The real risks**, and good story material: lightning on the cable in the atmosphere (part of why the eastern Pacific, where lightning is rare, is favoured); debris and micrometeorites higher up; the cable swaying, which needs damping. And the one real leap: a cable material many times stronger for its weight than anything made in bulk today. Carbon nanotubes and graphene manage it in tiny samples only. The Houses have solved it, and the material is their most closely guarded secret.
+
+**Care.** Kiribati is a living Pacific culture (tier 4, `docs/houses.md` section 4). Before writing its people or places in detail, take advice from I-Kiribati people.
+
+**Considered and not chosen:** Ecuador (its name means "equator"; Cayambe is the highest point on it; but earthquakes, and a land anchor can't move), Kenya (Italy's San Marco launch platform once operated off its coast; a land anchor nearer old conflicts), Indonesia (would settle Southeast Asia's House; earthquakes and volcanoes), Brazil (its Alcântara launch site is about 2° south, so a launch site, not an anchor site).
 
 ### 6.4 Recurring places
 
@@ -471,7 +483,7 @@ Draft recommendation: start with **the Launch Window** (it gives the game a larg
 
 Decided so far: entry is a choice, but the surface is dying, so most go; refusing the final Calling means being left behind; the surface threat creeping down is the floor timer.
 
-Also decided: the ships reach the stars by the Tree, a space elevator rising from the Trunk (6.3); the Heat is what's killing the surface, with the regreening, the sabotage and the divide as its history; the blame is shared (the first law, fire is never unlit); the agents' checks on each other are a fragile balance; the Bloom is a subplot; the House roster's origins and sizes.
+Also decided: the ships reach the stars by the Tree, a space elevator rising from the Trunk, anchored on a floating platform beside Kiribati (6.3); the Heat is what's killing the surface, with the regreening, the sabotage and the divide as its history; the blame is shared (the first law, fire is never unlit); the agents' checks on each other are a fragile balance; the Bloom is a subplot; the House roster's origins and sizes.
 
 1. House names: see `docs/houses.md`.
 2. Houses for India, Latin America, the Middle East and others, or fold them into larger ones?
@@ -577,7 +589,12 @@ Every myth, folk tale, historical fact and outside work this lore leans on, in o
 | Geostationary orbit is about 36,000 km up; elevator anchors must be on the equator | The Tree | 6.3 |
 | Arthur C. Clarke's *The Fountains of Paradise* (1979); Obayashi's 2012 space elevator concept for 2050; about a week to climb | The Tree; the Seven's pride; the epilogue | 6.3 |
 | Proxima Centauri, the nearest star, 4.24 light years away | Nobody who leaves arrives | 6.3 |
-| Kiribati sits on the equator and is threatened by rising seas; Ecuador's name means "equator" | Anchor candidates | 6.3 |
+| Kiribati: low atolls threatened by rising seas; bought land in Fiji (2014); the only country in all four hemispheres; its Line Islands see each new day first | The anchor beside Kiribati | 6.3 |
+| Bradley Edwards' NASA-funded studies (early 2000s): an anchor platform in the equatorial Pacific | The floating anchor | 6.3 |
+| Sea Launch (1999 to 2014): rockets from a converted oil platform on the equator at 154° W, near Kiritimati | The floating anchor | 6.3 |
+| Tension-leg platforms: oil rigs held down by tendons to the seabed; deepwater risers in water nearly 3 km deep | Holding the anchor; the riser | 6.3 |
+| Tropical cyclones almost never form within about 5° of the equator | Why the equatorial ocean | 6.3 |
+| Ecuador's name means "equator"; Cayambe, the highest point on it; Italy's San Marco platform off Kenya; Brazil's Alcântara launch site | Anchor sites considered | 6.3 |
 | Australia and Tuvalu's Falepili Union treaty (2023) | The Drowned Coasts | 8.4 |
 | Svalbard Global Seed Vault (Norway, 2008) | The Ark | 8.4 |
 | Japan's care robots for an ageing society; Korea's semiconductor industry | The Seven; the Foundry | `docs/houses.md` |
@@ -609,7 +626,7 @@ Every myth, folk tale, historical fact and outside work this lore leans on, in o
 | **Races** | Human's stats under the "no benefits, no costs" rule; whether every race fits the Reshaping story; names | `docs/creatures.md` section 2 |
 | **Subplots** | Pick which of 8.4 to use | 8.4 |
 | **The Roots** | Twenty floors decided. Next: floor themes per act, and whether a run is a full descent or an act at a time | 6.0 to 6.2 |
-| **The Tree's anchor** | Kiribati, Ecuador, Kenya or Indonesia | 6.3 |
+| **Kiribati** | Anchor decided (a floating platform beside it). Take I-Kiribati advice before writing it in detail | 6.3 |
 | **Floor themes** | Twenty floors across four acts; choose the overgrowth's floor | 6.2 |
 | **Names** | Houses' formal and street names; the Known; the word for the player; the arrangement between agents and humanity | 13 |
 | **The Herald's voice** | Lines for each event, written to the pillars | 7 |
