@@ -101,10 +101,17 @@ func test_unlock_flow_toast_message_event_box() -> void:
 	var toast: Array = w.toasts[-1]
 	assert_eq(toast, [w.turn, "Achievement: Blooper Reel", "bronze", "Bronze box. Open it in a safe room."])
 	assert_eq(w.box_reasons["bronze"][0], "Blooper Reel. Rolled a natural 1. The audience loved it.")
-	var lines := w.messages.recent(5)
-	assert_eq(lines[-2][0], "Achievement unlocked: Blooper Reel! Rolled a natural 1. The audience loved it.")
-	assert_eq(lines[-2][1], GameConfig.ACCENT)
-	assert_eq(lines[-1][0], "You receive a Bronze loot box. Open it in a safe room.")
+	# the Showrunner's System lines may sit between them; the order is achievement message, then box message
+	var texts: Array = []
+	var ach_line: Array = []
+	for l in w.messages.recent(0):
+		texts.append(l[0])
+		if l[0] == "Achievement unlocked: Blooper Reel! Rolled a natural 1. The audience loved it.":
+			ach_line = l
+	var ia := texts.find("Achievement unlocked: Blooper Reel! Rolled a natural 1. The audience loved it.")
+	assert_gte(ia, 0)
+	assert_eq(ach_line[1], GameConfig.ACCENT)
+	assert_gt(texts.find("You receive a Bronze loot box. Open it in a safe room."), ia)
 
 
 func test_unlock_order_follows_table_order() -> void:
@@ -121,7 +128,7 @@ func test_tracker_counters() -> void:
 	var w := World.new(10)
 	var t := w.achievements.tracker
 	_kill(w, null, "goblin", "melee")
-	w.events.emit("kill", {"monster": "x", "by": "melee", "style": "unarmed", "player_hp": 9, "player_max_hp": 9})
+	w.events.emit("kill", {"monster": "goblin", "by": "melee", "style": "unarmed", "player_hp": 9, "player_max_hp": 9})
 	assert_eq([t.kills, t.unarmed_kills], [2, 1])
 	w.events.emit("shop_sell", {"item_kind": "junk"})
 	w.events.emit("shop_sell", {"item_kind": "weapon"})
@@ -262,11 +269,11 @@ func test_hoarder_unlocks_on_a_full_pack() -> void:
 
 func test_crowd_pleaser_reads_the_showrunners_viewers() -> void:
 	var w := World.new(12)
-	w.showrunner.viewers = 999
-	w.events.emit("viewers_gained", {"amount": 1})
+	w.showrunner.viewers = 800
+	w.showrunner._gain(1)                      # viewers_gained fires, still under 1,000
 	assert_false(w.achievements.unlocked.has("crowd_pleaser"))
-	w.showrunner.viewers = 1000
-	w.events.emit("viewers_gained", {"amount": 1})
+	w.showrunner._gain(1000)                   # real Showrunner: viewers_gained -> Crowd Pleaser
+	assert_gte(w.viewers, 1000)
 	assert_true(w.achievements.unlocked.has("crowd_pleaser"))
 
 
