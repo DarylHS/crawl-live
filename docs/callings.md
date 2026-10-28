@@ -130,7 +130,9 @@ Your Calling should be read from how you played. So each Calling needs things in
 
 Where trials need other crawlers (Teach, Lead, some of Tend), they can use the companion until Phase 10 adds other entrants.
 
-**Attributes.** The five attributes (STR, DEX, CON, INT, CHA) were taken from the books in Phase 6a, with Wisdom folded into INT and CHA. Nourish, Tend and Teach have no natural attribute. [Open] Bring back a sixth attribute for care and attunement (Wisdom, or something with an original name)? That would also move the attribute set further from the books.
+**Attributes.** The five attributes (STR, DEX, CON, INT, CHA) were taken from the books in Phase 6a, with Wisdom folded into INT and CHA. Nourish, Tend and Teach have no natural attribute.
+
+[Proposed] Don't add a sixth attribute. Treat **attributes as raw capacity** (body, mind, presence) and let **Callings be read mainly from practice**: skills, trials and favour. That fits "you become what you do" better than a stat for caring, and Tend, Nourish and Teach get covered by their trials and practice skills rather than by a number you put points into.
 
 ## 4. Backstories
 
@@ -153,5 +155,4 @@ Backstories with no current match: **Reckon, Teach, Lead and Keep.** [Proposed] 
 
 1. Are ten Callings right? Merge Keep into Lead, or split Build into Build (infrastructure) and Make (manufacturing)?
 2. The patron agents' working titles (the Hearth, the Mender and so on) are placeholders. Mythic names, technical names, or both (a public name and a system designation)?
-3. A sixth attribute for care and attunement?
-4. Which trials to build first? Nourish and Reckon are the cheapest, because they can reuse crafting and the existing odds systems.
+3. Which trials to build first? Nourish and Reckon are the cheapest, because they can reuse crafting and the existing odds systems.
