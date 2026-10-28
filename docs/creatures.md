@@ -60,7 +60,15 @@ This does three things:
 
 Staying Human skips all of it: no time lost, no settling in, no change.
 
-When it goes wrong, the result is the Misblessed (`docs/bestiary.md` section 6). The Houses say it almost never goes wrong. The Herald doesn't say anything.
+When it goes wrong, the result is the Misblessed (`docs/bestiary.md` section 6). The Houses say it almost never goes wrong.
+
+**The odds.** [Decided] The chance is low, because nobody would choose this. But some Marks picked up earlier in the run make it likelier. [Proposed] Examples: the Hollow Mark (touched by the Unmoored's creatures), Bloom exposure from the overgrowth, or a second Reshaping offer from a rival House after the first.
+
+[Proposed] Because the numbers are always honest (pillar, world bible section 1), the Herald has to tell you the risk before you lie down, and you watch it rise if you're carrying the wrong Marks. It reads the number out like any other odds, with the usual sass, right up until it isn't sass.
+
+**If it happens to the player.** [Decided] You wake, look at your hands, and the Herald says only: *"Oh."* Nothing else.
+
+[Open] What then? Draft position: the run continues, harder, with a body that fights you. The Misblessed have a Muster of their own: most Houses quietly withdraw their claims, and the ones that still bid (the Seven, who never abandon anyone they've claimed; the Baobab, for whom a person is a person) say a lot about who they are.
 
 **The rules.** [Decided]
 
