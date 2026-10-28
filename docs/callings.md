@@ -134,7 +134,29 @@ Where trials need other crawlers (Teach, Lead, some of Tend), they can use the c
 
 [Proposed] Don't add a sixth attribute. Treat **attributes as raw capacity** (body, mind, presence) and let **Callings be read mainly from practice**: skills, trials and favour. That fits "you become what you do" better than a stat for caring, and Tend, Nourish and Teach get covered by their trials and practice skills rather than by a number you put points into.
 
-## 4. Backstories
+## 4. Marks
+
+[Decided] The Calling is settled at the Muster, at the end of the run. It's shaped by everything the player has become: stats, skills, trials, favour, and special things they came across along the way. Some of those special things are **Marks**: permanent signs on the body, earned or inflicted in the dungeon, that open a Calling, close one, or make the player better at one.
+
+The idea echoes the opening video's Cherokee fire story, where everyone who carried fire came back marked.
+
+[Proposed] Examples:
+
+| Mark | Gained by | Effect at the Muster |
+|---|---|---|
+| **Kiln Brand** | Passing the Seven's hardest Build trial | Opens the Seven's Wright to you, which they almost never allow. Strong Build claim |
+| **Bark Ring** | Sheltering a Thornback through a whole floor | Strong Nourish and Tend claims from the Baobab |
+| **Star Tattoo** | Finding all three stairwells on a floor before they open | Strong Carry claim from the Southern Cross: a navigator |
+| **Debt Stamp** | Taking an Index loan and not paying it back | The Index claims you first, whatever else you are. Other Houses bid lower |
+| **Charter Seal** | Never breaking the Shared Law in a whole run | Every House trusts you more. Closes nothing |
+| **Hollow Mark** | Being struck by the Unmoored's creatures and surviving | Closes Guard (the Houses won't arm someone the rogue has touched). But the Herald takes an interest |
+| **Teacher's Line** | Finding the fragment of the Teacher in one of the Lost | Opens a hidden Calling path. [Open] To what? |
+
+Marks are permanent, like race changes. A run can collect several, and they can pull against each other, which is where the Muster gets interesting.
+
+[Open] Whether a Human (no race change) is barred from any Calling is still under review (`docs/creatures.md` section 2).
+
+## 5. Backstories
 
 [Canon] The eight backstories are where you start; your Calling is where you end up. They don't have to match. A Rideshare Driver can become a Teach.
 
@@ -151,7 +173,7 @@ Where trials need other crawlers (Teach, Lead, some of Tend), they can use the c
 
 Backstories with no current match: **Reckon, Teach, Lead and Keep.** [Proposed] Candidates: Teacher (Teach), Lab Technician or IT Support (Reckon), Shift Manager (Lead), Receptionist or Office Administrator (Keep). A Nurse would give Tend a backstory that isn't about animals or children. Ten to twelve backstories is enough; there doesn't need to be one per role.
 
-## 5. Open questions
+## 6. Open questions
 
 1. Are ten Callings right? Merge Keep into Lead, or split Build into Build (infrastructure) and Make (manufacturing)?
 2. The patron agents' working titles (the Hearth, the Mender and so on) are placeholders. Mythic names, technical names, or both (a public name and a system designation)?

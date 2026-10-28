@@ -199,7 +199,7 @@ The biggest finding there: **seven of the 20 practice skills are fighting, so th
 
 [Proposed] How the game decides your Calling.
 
-**Inputs**, all from play: attributes, practice skill levels, class, trials attempted and passed, favour with each of the Known, Lost agents found and what you did to them, achievements.
+**Inputs**, all from play: attributes, practice skill levels, class, trials attempted and passed, favour with each of the Known, Lost agents found and what you did to them, achievements, and **Marks**: permanent brands, tattoos and other special things picked up on the way, which can open or close particular Callings (`docs/callings.md` section 4).
 
 **Output:** each of the Known makes a claim at the Muster, strongest first. You choose among the claims, or walk with the Herald.
 

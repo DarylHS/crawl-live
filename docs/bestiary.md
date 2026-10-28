@@ -4,18 +4,16 @@ Status: first draft of the creature roster, written out in words before anything
 
 ## 1. How dark?
 
-"Dark" means four different things, and the game can set each one separately. [Proposed] targets:
+"Dark" means four different things, and the game can set each one separately. [Decided] targets:
 
 | Dial | Means | Target | In practice |
 |---|---|---|---|
-| **Gore** | Blood, wounds, bodies broken | **Low** | Impacts and collapses, not wounds. Creatures fall, break or dissolve. No dismemberment |
-| **Fear** | Dread, being hunted, things in the dark | **Medium**; **high** only for the Unmoored | Most floors are tense, not frightening. The Unmoored's creatures are the one place the game is allowed to be properly scary |
-| **Body horror** | Bodies that are wrong: unfinished, fused with plants, too many of something | **Medium**, deep floors only | Saved for the nurseries, the Bloom and the Unmoored, so it means something when it appears |
-| **Moral weight** | What the player is asked to do, see and decide | **High** | This is where the game is really dark: human enemies, people left behind, bodies reshaped by the Houses, creatures made to be killed |
+| **Gore** | Blood, wounds, bodies broken | **Where it fits** | Available for the creatures it belongs to: the mutated, the part-human and those that were once human. Elsewhere creatures fall, break or dissolve |
+| **Fear** | Dread, being hunted, things in the dark | **Medium to high**, rising with depth | The upper floors are tense; the lower floors are frightening, and the Unmoored's creatures most of all |
+| **Body horror** | Bodies that are wrong: unfinished, fused with plants, too many of something | **Medium to high**, rising with depth | Mostly the lower floors: the nurseries, the Bloom, the once-human and the Unmoored |
+| **Moral weight** | What the player is asked to do, see and decide | **High** | Human enemies, people left behind, bodies reshaped by the Houses, creatures made to be killed |
 
-So the game is dark in what it *means* far more than in what it *shows*.
-
-For reference, Australian game classifications are G, PG, M, MA15+ and R18+. These targets would most likely land at **M or MA15+**; the classifier decides, but low gore keeps it well clear of R18+.
+For reference, Australian game classifications are G, PG, M, MA15+ and R18+. With gore available on some creatures and high fear on the lower floors, this most likely lands at **MA15+**. Frequent, detailed gore could push it towards R18+; the classifier decides, so how often and how closely gore is shown is the lever to watch.
 
 ### Human enemies
 
@@ -23,7 +21,18 @@ For reference, Australian game classifications are G, PG, M, MA15+ and R18+. The
 
 - **Rare.** Most of what the player fights isn't human.
 - **Can be spared.** A human enemy brought low can surrender, be talked down or be let go. Sparing feeds the Tend and Lead Callings and some Houses' favour; killing them weighs on others.
-- **The Herald never jokes about a dead person.** It jokes about everything else. When a human dies, it goes quiet, and the player notices.
+
+### The Herald and the dead
+
+[Decided] The Herald is sassy about almost everything, including danger: what's coming, how badly the player is about to choose, how likely they are to die. That stays.
+
+**But a death is never a joke.** When a person dies (the player, another entrant, a human enemy, even a Stray), something marks that it mattered. [Proposed] The rite:
+
+1. **Everything stops for a beat.** Music cuts out; a single low bell.
+2. **The Herald says the name** (or "unnamed" for a stranger), plainly, with no joke.
+3. **The name goes on the Roll**, a register of the fallen kept by the Steward, the great agent of Keep. The player can read the Roll in any sanctuary. Every death in the player's runs is there.
+
+On the player's own death, the death screen leads with the rite before anything else. The Herald can be as rude as it likes about *how* you got there, once the bell has rung.
 
 ## 2. Entry format
 
@@ -209,7 +218,30 @@ It sounds like someone you know, calling for help from the next room. Sometimes 
 - **Tells:** the Unmoored understands people well enough to use them.
 - **Darkness:** fear high; moral weight high, because it punishes the urge to help, which the game otherwise rewards.
 
-## 6. People
+## 6. The once-human (lower floors)
+
+[Proposed] Creatures that were people. This is where gore and body horror are allowed to go furthest, and where moral weight is highest. Each should leave the player sure that someone was lost here.
+
+### The Misblessed
+*Forced, by a House, and failed. Floors 4 to 6.*
+
+Entrants whose race change went wrong. The Houses don't talk about them, and the Herald changes the subject. Some are halfway to Dwarf and can't bear their own weight; some grew bark that never stopped. Most are past speaking; a few aren't, which is worse.
+- **Behaves:** often doesn't attack at all. Some ask for help. Some are past asking.
+- **Fights:** varies with what they were becoming.
+- **Tells:** the blessing has a cost the Houses don't advertise. The strongest answer to the worry that the AI looks too good.
+- **Darkness:** gore and body horror high; moral weight very high.
+- **When one dies:** the rite (section 1). They were people.
+
+### The Overgrown
+*Mutated, by nobody. The overgrowth.*
+
+Strays and entrants who sheltered in the old Bloom labs and were taken by the plants. Unlike the Rootbound animals, these still wear what they wore: a work shirt, a lanyard, a wedding ring on a hand that's mostly root.
+- **Behaves:** stands in the green, very still. Something in them still flinches at their old name.
+- **Fights:** grapples and drags towards the roots.
+- **Tells:** the Bloom killed people.
+- **Darkness:** gore and body horror high; fear high.
+
+## 7. People
 
 ### The Faithful
 *People. Floors 3 to 6. Replaces the Hex Cultists.*
@@ -229,29 +261,29 @@ People who went down and stopped. Some refused the trials, some failed and would
 - **Tells:** what "left behind" looks like up close. It's where the refusal ending leads.
 - **Moral weight:** high. Most Strays can be helped instead of fought.
 
-## 7. Not enemies
+## 8. Not enemies
 
 ### The Lost
 *Minor agents, made by anyone, forgotten by everyone.*
 
 Not a creature type but something living *inside* creatures and machines: forgotten minor agents (Tier 4 in the world bible). A Housebot that hoards spoons, a door that won't open until you say please. Finding one, and deciding to end it, free it or take it in, shifts your favour with the Houses, and some carry the deepest secrets in the dungeon (the Teacher, `docs/houses.md` section 3).
 
-## 8. Coverage check
+## 9. Coverage check
 
 | | Storybuilt | Engineered | Forced | Mutated | Machine | People |
 |---|---|---|---|---|---|---|
 | Upper | Knockoff Goblin, Drop Bear | Scorch Goat | | Gnawer | Housebot | Strays |
 | Middle | Lockstep, Certified Skeleton, Lantern Warden, Watcher, Boggart | Tunnel Brute, Biocontrol Toad, Test Article, Thornback (grown) | | | | The Faithful |
-| Deep | | | The Unfinished, Lowlight Grazer | Rootbound | | |
+| Deep | | | The Unfinished, Lowlight Grazer, the Misblessed (once-human) | Rootbound, the Overgrown (once-human) | | |
 | Unmoored | Shadow Stalker, The Caller | | | | | |
 
 Houses covered: the Basin, the Southern Cross (twice), the Ten Thousand (twice), the Charter, the Seven, the Baobab, the Ascent, the Index and the Isle. Joint era: the Scorch Goat and the Tunnel Brute.
 
 Gaps: no storybuilt creatures on the deep floors yet (the Hosts and guardians will fill that), and nothing yet for the Houses' boss tiers. Those come with the floor themes.
 
-## 9. Open questions
+## 10. Open questions
 
-1. Do the darkness targets in section 1 sit right?
-2. Do the human-enemy rules (rare, can be spared, the Herald goes quiet) sit right?
+1. The death rite: is a bell, the name and the Roll the right weight?
+2. How much should the Misblessed be able to say?
 3. Names: keep, change or brainstorm further?
 4. Which creatures to build first?
