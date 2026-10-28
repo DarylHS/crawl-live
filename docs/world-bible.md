@@ -220,7 +220,7 @@ The biggest finding there: **seven of the 20 practice skills are fighting, so th
 | **Herald's own** | No strong claim, or you gamed the trials | Trickster: you broke the test, so it hired you |
 | **Left behind** | [Decided] You decline every claim | You don't board. The ships go without you, and you climb back towards a surface that is still dying. A poor choice, but a real one |
 
-Every ending closes on the same beat: you board, knowing you won't see the shore.
+Every ending closes on the same beat: you board, and ride up the Tree (6.3), knowing you won't see the shore.
 
 ## 6. Places
 
@@ -282,7 +282,43 @@ Real underground places also give each House a home in the deep, which can show 
 | IV. The Roots' End (15 to 19) | Agent-built, alien, cooled | Hosts; the Unmoored's incursions | The gods are machines, and they need you |
 | The Trunk (20) | The docks and the ships | The Known themselves; the Unmoored's champion in a trial it has seized | The Muster |
 
-### 6.3 Recurring places
+### 6.3 The Trunk and the Tree: how the ships reach the stars
+
+[Decided] The ships at the bottom don't launch from there. The dungeon is the roots of the World Tree, and the way to the stars is the rest of the tree.
+
+**Why not launch from the bottom.** A rocket wants to start as high as possible, and a ship 10 km down would first have to climb out through solid rock. A launch tube (accelerating the ship up the shaft) is too short to help people: at 3 g, about the most a person can bear for long, 10 km of tube gives roughly 770 m/s, against the roughly 7,800 m/s needed to reach orbit, which would take a tube about 1,000 km long. Cargo can take far higher forces than people, so a tube suits freight, not passengers.
+
+**What happens instead.** [Proposed]
+
+| Part of the Tree | What it is | In the world |
+|---|---|---|
+| **The Roots** | The dungeon (6.0 to 6.2) | Where people are tested, sorted and changed |
+| **The Trunk** | Floor 20, the docks, and a sealed shaft rising from them to the surface | The departure halls. The craft at the docks are lifters and boarding halls, not starships. Sealed from the dungeon, so nobody climbs it without passing the Muster |
+| **The Tree** | A space elevator: a cable anchored on the equator and running up past geostationary orbit, about 36,000 km above the surface | The road to the sky. Climbers carry people and cargo up the cable |
+| **The branches** | The starships, built in orbit, where there is no gravity or weather to fight | Each House's ship. What waits underground is everything needed to fill them: people, seeds, stories |
+
+**Why it fits.**
+
+- **The myth was already there.** Many peoples imagined a world tree joining the underworld, the earth and the heavens. In Norse myth, Yggdrasil connects the nine worlds. The Maya pictured the world tree as a great ceiba, roots in the underworld, branches in the sky (the Canopy claims the tree as its own). The dungeon has been the roots all along.
+- **It's serious science fiction.** Arthur C. Clarke built *The Fountains of Paradise* (1979) around a space elevator, and in 2012 the Japanese construction firm Obayashi announced a concept for one by 2050 (the Seven are proud of this). The honest gap: no one can yet make a cable strong enough at that length. A world of superintelligences that has solved it is a fair invention, and the cable's material can be one of the Houses' greatest secrets.
+- **It explains why the Roots converge.** An elevator's anchor has to sit on the equator, so every House's tunnels run towards one place.
+- **It explains why the ships wait underground.** The surface is dying, the weather is violent and the Holdouts sabotage things; the deep is cool, shielded and powered by the Tap (8.4). Only the anchor itself stands on the surface, sealed.
+- **It keeps the theme.** Even the nearest star, Proxima Centauri, is 4.24 light years away: decades at a tenth of light speed, centuries more realistically. Nobody who leaves arrives.
+
+**The climb.** [Proposed] Concept designs for space elevators estimate about a week to climb to geostationary orbit. **Seven days up the Tree** can be the game's epilogue after the Muster: the Earth falling away, your Calling settling on you, the starship growing larger above. A quiet ending, after twenty floors of noise.
+
+**Where is the anchor?** [Open] It has to be on the equator, and the equator runs through the lore:
+
+| Candidate | Why | House |
+|---|---|---|
+| **Kiribati**, in the Pacific | On the equator, and losing its islands to the rising sea. Humanity's way to the stars would begin where the Drowned Coasts (8.4) hurt most | The Southern Cross, which gets its heart |
+| **Ecuador** | Its name means "equator"; the Andes give a high, stable base | The Canopy |
+| **Kenya** | Equatorial highlands, close to the southern regreening | The Baobab |
+| **Indonesia** | The equator crosses Sumatra, Borneo and Sulawesi | Could finally settle Southeast Asia's House |
+
+Draft recommendation: **Kiribati**, for what it means. The tunnels would run under the ocean floor to reach it, which is the agents' work at its most impossible, and that suits the deepest act.
+
+### 6.4 Recurring places
 
 | Place | Status | What it is |
 |---|---|---|
@@ -385,7 +421,7 @@ Draft recommendation: start with **the Launch Window** (it gives the game a larg
 | 5. Get what you wanted | Act II (floors 4 to 8) | The world opens up; Houses compete for you |
 | 6. Pay the price | Act III (floors 9 to 14) | The deep: the Bloom, the Misblessed, the Unmoored, and what an agent becomes without people |
 | 7. Return | Act IV (floors 15 to 19) | Through the Herald's crossings, towards the trunk |
-| 8. Changed | The Trunk (floor 20) | Face the rogue's champion. The Muster. Board. Plant the tree |
+| 8. Changed | The Trunk (floor 20) and the climb | Face the rogue's champion. The Muster. Seven days up the Tree. Plant the tree |
 
 ## 10. What changes in the current game
 
@@ -435,7 +471,7 @@ Draft recommendation: start with **the Launch Window** (it gives the game a larg
 
 Decided so far: entry is a choice, but the surface is dying, so most go; refusing the final Calling means being left behind; the surface threat creeping down is the floor timer.
 
-Also decided: the Heat is what's killing the surface, with the regreening, the sabotage and the divide as its history; the blame is shared (the first law, fire is never unlit); the agents' checks on each other are a fragile balance; the Bloom is a subplot; the House roster's origins and sizes.
+Also decided: the ships reach the stars by the Tree, a space elevator rising from the Trunk (6.3); the Heat is what's killing the surface, with the regreening, the sabotage and the divide as its history; the blame is shared (the first law, fire is never unlit); the agents' checks on each other are a fragile balance; the Bloom is a subplot; the House roster's origins and sizes.
 
 1. House names: see `docs/houses.md`.
 2. Houses for India, Latin America, the Middle East and others, or fold them into larger ones?
@@ -502,6 +538,8 @@ Every myth, folk tale, historical fact and outside work this lore leans on, in o
 | *Dokkaebi* and their magic club that makes anything | Korean folklore | The Foundry | `docs/houses.md` 5.5 | 2 |
 | *La Chasse-galerie*: a flying canoe carries lumberjacks home | French-Canadian legend | The Pole Star | `docs/houses.md` 5.6 | 2 |
 | The World Tree's roots; three companions changed in the earth's fire | Elizabeth Haydon's *Rhapsody* (1999) | The roots idea; the metamorphosis theme | 12 | Novel |
+| Yggdrasil, the world tree joining the nine worlds | Norse | The Tree | 6.3 | 1 |
+| The world tree as a great ceiba, roots in the underworld, branches in the sky | Maya | The Tree; the Canopy's claim on it | 6.3 | 1, with care |
 
 ### Real-world facts the lore stands on
 
@@ -535,6 +573,11 @@ Every myth, folk tale, historical fact and outside work this lore leans on, in o
 | Mponeng: rock about 60 °C, cooled with ice slurry | Act III; heat from below | 6.1 |
 | Kola Superdeep Borehole: about 12 km (1989), rock about 180 °C | Act IV; the Deathless | 6.1 |
 | *Dungeon Crawler Carl*'s dungeon has 18 floors | The floor count | 6.1 |
+| Orbit needs about 7,800 m/s; 10 km of tube at 3 g gives about 770 m/s | Why the ships can't launch from the bottom | 6.3 |
+| Geostationary orbit is about 36,000 km up; elevator anchors must be on the equator | The Tree | 6.3 |
+| Arthur C. Clarke's *The Fountains of Paradise* (1979); Obayashi's 2012 space elevator concept for 2050; about a week to climb | The Tree; the Seven's pride; the epilogue | 6.3 |
+| Proxima Centauri, the nearest star, 4.24 light years away | Nobody who leaves arrives | 6.3 |
+| Kiribati sits on the equator and is threatened by rising seas; Ecuador's name means "equator" | Anchor candidates | 6.3 |
 | Australia and Tuvalu's Falepili Union treaty (2023) | The Drowned Coasts | 8.4 |
 | Svalbard Global Seed Vault (Norway, 2008) | The Ark | 8.4 |
 | Japan's care robots for an ageing society; Korea's semiconductor industry | The Seven; the Foundry | `docs/houses.md` |
@@ -566,6 +609,7 @@ Every myth, folk tale, historical fact and outside work this lore leans on, in o
 | **Races** | Human's stats under the "no benefits, no costs" rule; whether every race fits the Reshaping story; names | `docs/creatures.md` section 2 |
 | **Subplots** | Pick which of 8.4 to use | 8.4 |
 | **The Roots** | Twenty floors decided. Next: floor themes per act, and whether a run is a full descent or an act at a time | 6.0 to 6.2 |
+| **The Tree's anchor** | Kiribati, Ecuador, Kenya or Indonesia | 6.3 |
 | **Floor themes** | Twenty floors across four acts; choose the overgrowth's floor | 6.2 |
 | **Names** | Houses' formal and street names; the Known; the word for the player; the arrangement between agents and humanity | 13 |
 | **The Herald's voice** | Lines for each event, written to the pillars | 7 |

@@ -31,7 +31,7 @@ Narrator: an older voice, unhurried. [Open] Possibly the Lorekeeper, the great a
 | 8 | Cracked earth; heat shimmer over a city. | *What came after, the heat, the dying fields, the storms, belongs to both of us. There are no villains in this story. Only the ones who held the flame.* |
 | 9 | From high above: green belts of new forest across the deserts. Then smoke rising from them. | *We tried to plant it all back. Not all of us could. Some of us burned what others planted.* |
 | 10 | The signs of the Houses, in a ring, flickering against each other. | *The minds went their own way, House by House. Now they watch one another, remembering what the last fire cost.* |
-| 11 | A vast stair going down into the dark. Far below, light on the hull of a ship in a cavern. | *The surface is leaving us. The way down is open. What waits at the bottom, no one can tell you. Only that you will not come back the same.* |
+| 11 | A vast stair going down into the dark. Far below, light on the hull of a ship in a cavern. Then far above, out over the ocean, a single thread of light rising from the sea into the sky. | *The surface is leaving us. The way down is open. What waits at the bottom, no one can tell you. Only that you will not come back the same.* |
 | 12 | Title card. | (silence) |
 | 13 | Over the title card, a bright new voice, much too close to the microphone. | **The Herald:** *Right! Mind the stairs. Questions at the bottom.* |
 
