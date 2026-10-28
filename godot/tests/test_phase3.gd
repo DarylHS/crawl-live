@@ -189,8 +189,7 @@ func test_dog_licks_wounds() -> void:
 
 
 func test_boss_kill_awards_box_achievement_and_viewers() -> void:
-	# The box and "headliner_1" unlock asserts need the real Achievements (T1; docs/port-plan.md B.1).
-	var w := World.new(13)
+		var w := World.new(13)
 	var boss := _headliner(w)
 	var viewers := w.viewers
 	var kills: Array = []
@@ -203,6 +202,13 @@ func test_boss_kill_awards_box_achievement_and_viewers() -> void:
 	assert_true(w.has_key)
 	assert_eq(w.player.kills, 1)
 	assert_gte(w.viewers, viewers + 150)
+	var box: String = Content.boss(1)["box"]
+	assert_true(w.boxes.has(box))
+	assert_true(w.achievements.unlocked.has("headliner_1"))
+	var found := false
+	for r in w.box_reasons[box]:
+		found = found or Content.boss(1)["name"] in r
+	assert_true(found)
 
 
 func test_final_boss_phase_two_calls_for_help() -> void:
