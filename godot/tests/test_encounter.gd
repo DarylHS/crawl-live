@@ -1,7 +1,8 @@
 extends TestCase
 ## tests/test_encounter.py: initiative ordering with ties (S4) and the combat-mode tests on a World
-## (S7: starting, initiative, the turn budget, ending, attacks of opportunity). The tests that need
-## bombs, items, skills, descend, rest or saves are listed in docs/port-plan.md B.1 (slices S8, T2, T5, T6).
+## (S7: starting, initiative, the turn budget, ending, attacks of opportunity) and the bomb, item, skill,
+## pickup, descend and rest tests (S8). The tests that need saves, the bot or the real Showrunner are
+## listed in docs/port-plan.md B.1 (slices T2, T5, T6).
 
 
 func after_each() -> void:
@@ -683,3 +684,157 @@ func test_no_warning_once_your_move_is_spent() -> void:
 	w.combat.spend("move")
 	assert_true(w.threats().is_empty())
 	assert_true(w.provokers(-1, 0).is_empty())
+
+
+# --- S8: items, bombs, skills, descend and rest in combat mode -------------------------------
+
+func test_a_bomb_starts_combat_as_your_action() -> void:
+	var w := _world()
+	var pos := _row(w)
+	w.player.x = pos.x
+	w.player.y = pos.y
+	w.update_fov()
+	var g := _goblin(w, pos.x + 3, pos.y)
+	w.inventory.append("popper")
+	assert_true(w.use_item(w.inventory.size() - 1))
+	assert_true(w.combat != null and w.combat.has_entity(g))
+	assert_false(w.combat.has("action"))
+
+
+func test_move_action_and_bonus_in_one_round() -> void:
+	var w := _world()
+	var g := _fight(w, 3, {"stunned": 9})
+	w.player.hp = 10
+	w.inventory.append("tonic")
+	var turn := w.turn
+	assert_true(w.use_item(w.inventory.size() - 1))              # bonus action: drink
+	w.player.hp = 10
+	w.inventory.append("tonic")
+	assert_false(w.use_item(w.inventory.size() - 1))             # only one bonus action
+	assert_true(w.move_player(1, 0))                             # move
+	assert_eq(w.turn, turn)
+	assert_false(w.move_player(1, 0))                            # second move refused
+	assert_eq(w.turn, turn)
+	assert_true("move" in w.messages.lines[-1][0])
+	g.x = w.player.x + 1                                         # it comes to you
+	assert_true(w.move_player(1, 0))                             # attack: move + action spent ...
+	assert_eq(w.turn, turn + 1)                                  # ... so the round ends by itself
+	assert_true(_all_true(w.combat.budget))                      # and the next turn is fresh
+	assert_true(w.move_player(1, 0))                             # one attack per turn
+	assert_false(w.move_player(1, 0))
+
+
+func test_a_bomb_that_kills_the_last_fighter_and_catches_a_bystander_keeps_the_fight() -> void:
+	var w := _world()
+	var starts := _record(w, "combat_start")
+	var ends := _record(w, "combat_end")
+	var g := _fight(w, 3, {"stunned": 9, "hp": 1})
+	var enc := w.combat
+	var turn := w.turn
+	var by := _goblin(w, g.x + 1, g.y, {"alerted": false})
+	w.inventory.append("popper")
+	assert_true(w.use_item(w.inventory.size() - 1))
+	assert_false(w.monsters.has(g))
+	assert_true(is_same(w.combat, enc))
+	assert_true(enc.has_entity(by))
+	assert_eq(starts.size(), 1)
+	assert_true(ends.is_empty())
+	assert_true(enc.has("move"))                                 # budget kept
+	assert_false(enc.has("action"))
+	assert_eq(w.turn, turn)
+	assert_true(w.move_player(1, 0))                             # move + action: the round ends once
+	assert_eq(w.turn, turn + 1)
+	assert_true(is_same(w.combat, enc))                          # a fresh turn, one tick later
+	assert_true(_all_true(enc.budget))
+
+
+func test_moving_then_bombing_the_last_fighter_does_not_hand_back_your_move() -> void:
+	var w := _world()
+	var starts := _record(w, "combat_start")
+	var g := _fight(w, 3, {"stunned": 9, "hp": 1})
+	var turn := w.turn
+	assert_true(w.move_player(1, 0))
+	_goblin(w, g.x + 1, g.y, {"alerted": false})
+	w.inventory.append("popper")
+	assert_true(w.use_item(w.inventory.size() - 1))
+	assert_eq(starts.size(), 1)
+	assert_eq(w.turn, turn + 1)                                  # no restart at round 1 mid-turn
+
+
+func test_skills_pickups_and_descend_use_the_action() -> void:
+	var w := _world()
+	_fight(w, 3, {"stunned": 9})
+	w.floor_items[Vector2i(w.player.x, w.player.y)] = ["sock", "sock"]
+	var turn := w.turn
+	assert_true(w.pickup())
+	assert_false(w.combat.has("action"))
+	assert_eq(w.turn, turn)
+	assert_true(w.choose_class("human", "analyst"))
+	assert_false(w.use_skill())
+	assert_eq(w.scout_turns, 0)                                  # action already spent
+	var s0: Vector2i = w.floor.stairs[0]
+	w.player.x = s0.x
+	w.player.y = s0.y
+	w.has_key = true
+	assert_false(w.descend())
+	assert_eq(w.depth, 1)
+	w.wait()
+	assert_true(w.use_skill())
+	assert_ne(w.scout_turns, 0)
+	assert_false(w.combat.has("action"))
+
+
+func test_descending_ends_combat_and_uses_the_action() -> void:
+	var w := _world()
+	_fight(w, 3, {"stunned": 9})
+	var s0: Vector2i = w.floor.stairs[0]
+	w.player.x = s0.x
+	w.player.y = s0.y
+	w.has_key = true
+	w.combat.spend("action")
+	assert_false(w.descend())
+	assert_eq(w.depth, 1)                                        # action already spent
+	w.combat.reset_budget()
+	assert_true(w.descend())
+	assert_eq(w.depth, 2)
+	assert_null(w.combat)
+
+
+func test_safe_room_time_passes_only_out_of_combat() -> void:
+	var w := _world()
+	_fight(w, 3, {"stunned": 9})
+	var turn := w.turn
+	assert_false(w._spend_turns(1))                              # refuses
+	assert_eq(w.turn, turn)
+	w.player.hp = 5
+	assert_false(w.rest())
+	assert_false(w.craft(0))
+	assert_eq(w.turn, turn)
+
+
+func test_haymaker_starts_combat_as_your_action() -> void:
+	var w := _world()
+	var pos := _row(w)
+	w.player.x = pos.x
+	w.player.y = pos.y
+	w.update_fov()
+	assert_true(w.choose_class("human", "brawler"))
+	var g := _goblin(w, pos.x + 1, pos.y, {"alerted": false})
+	assert_true(w.use_skill())
+	assert_true(w.combat != null and w.combat.has_entity(g))
+	assert_false(w.combat.has("action"))
+	assert_true(w.combat.has("move"))
+
+
+func test_arc_bolt_starts_combat_as_your_action() -> void:
+	var w := _world()
+	var pos := _row(w)
+	w.player.x = pos.x
+	w.player.y = pos.y
+	w.update_fov()
+	assert_true(w.choose_class("human", "arcanist"))
+	var g := _goblin(w, pos.x + 3, pos.y, {"alerted": false})
+	assert_true(w.use_skill())
+	assert_true(w.combat != null and w.combat.has_entity(g))
+	assert_false(w.combat.has("action"))
+	assert_true(w.combat.has("move"))

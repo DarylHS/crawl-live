@@ -1507,13 +1507,15 @@ func rest() -> bool:
 
 
 ## Pass time without monsters acting (safe-room activities).
-func _spend_turns(n: int) -> void:
+## Returns false when it refuses (in a fight), else true (Python returns False or None).
+func _spend_turns(n: int) -> bool:
 	if combat != null:                          # safe rooms end fights; never tick past one
-		return
+		return false
 	for _i in range(n):
 		if state != "playing":
-			return
+			return true
 		_tick_clock()
+	return true
 
 
 func _safe_room_activity_ok(turns: int) -> bool:
