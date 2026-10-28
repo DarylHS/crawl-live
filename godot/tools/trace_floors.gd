@@ -185,12 +185,16 @@ static func world_floor_record(w: World) -> Dictionary:
 
 
 ## Header plus one floor record per depth: World(seed) builds floor 1, then new_floor(2..floors).
-static func run_floors_world(seed_value: int, floors: int) -> Array:
+## `pet` is a species key ("" for none), `hero` a Dictionary or null (as py_trace --pet / --hero).
+static func run_floors_world(seed_value: int, floors: int, pet: String = "", hero: Variant = null) -> Array:
 	var sink := WorldSink.new()
-	var w := World.new(seed_value, null, null, Callable(sink, "on_event"), Callable(), sink)
+	var pet_arg: Variant = [pet, ""] if pet != "" else null
+	var w := World.new(seed_value, pet_arg, hero, Callable(sink, "on_event"), Callable(), sink)
 	for d in range(2, floors + 1):
 		w.new_floor(d)
 	w.events.tap = Callable()   # the tap holds the sink; drop it so nothing outlives the call
 	var h := header(seed_value)
 	h["mode"] = "floors_world"
+	h["pet"] = pet if pet != "" else null
+	h["hero"] = hero
 	return [h] + sink.records

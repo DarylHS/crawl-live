@@ -155,6 +155,7 @@ func add_toast(text: String, tier: String, sub: Variant = null, turn_value: Vari
 		toasts.append([t, text, tier])
 
 
+## Current viewer count (the Showrunner's).
 var viewers: int:
 	get:
 		return showrunner.viewers
@@ -199,10 +200,12 @@ func score(attr: String) -> int:
 	return total + nudge
 
 
+## Ability modifier of the effective score: (score - 10) // 2.
 func mod(attr: String) -> int:
 	return Attributes.mod(score(attr))
 
 
+## The equipped weapon's item row, or Items.FISTS when unarmed.
 func weapon() -> Dictionary:
 	var key: Variant = equipment["weapon"]
 	return Items.items()[key] if PyMath.truthy(key) else Items.FISTS
@@ -276,6 +279,7 @@ func practice(key: String) -> int:
 	return training.levels[key]
 
 
+## "unarmed", or the equipped weapon's style (default "blunt").
 func weapon_style() -> String:
 	var weapon_key: Variant = equipment["weapon"]
 	if PyMath.truthy(weapon_key):
@@ -288,18 +292,21 @@ func notice_range() -> int:
 	return GameConfig.FOV_RADIUS - PyMath.floordiv(practice("sneaking"), 4)
 
 
+## What the shop charges you: shop price times perks, Haggling and CHA, at least 1.
 func buy_price(key: String) -> int:
 	var mult: float = (float(get_trait("buy_mult", 1)) * (1 - 0.02 * practice("haggling"))
 			* (1 - 0.03 * mod("cha")))
 	return maxi(1, PyMath.round_half_even(shop.price(key) * mult))
 
 
+## What the shop pays you: sell price times perks, Haggling and CHA, at least 1.
 func sell_price(key: String) -> int:
 	var mult: float = (float(get_trait("sell_mult", 1)) * (1 + 0.03 * practice("haggling"))
 			* (1 + 0.03 * mod("cha")))
 	return maxi(1, PyMath.round_half_even(Shop.sell_price(key) * mult))
 
 
+## Fee to reroll a box of this tier, cut by Gambling, at least 1.
 func reroll_fee(tier: String) -> int:
 	return maxi(1, PyMath.round_half_even(Loot.reroll_fee(tier) * (1 - 0.05 * practice("gambling"))))
 
@@ -318,6 +325,9 @@ var skill: Variant:
 
 # --- Floors ---------------------------------------------------------------------
 
+## Build floor `new_depth`: end any fight, turn the shop over, generate the map, spawn monsters,
+## items, the Headliner and Acts (main stream, in Python's order), set timers, place the pet, announce
+## the floor, maybe offer a contract (deal stream) and emit floor_start.
 func new_floor(new_depth: int) -> void:
 	_end_combat("floor")
 	if depth != 0:
@@ -383,6 +393,8 @@ func _close_floor_stats() -> void:
 
 # --- Sponsor contracts ----------------------------------------------------------
 
+## Sign the pending contract: buff this floor's monsters, scale the timer, pay the signing bonus.
+## Returns false when nothing is on offer.
 func accept_contract() -> bool:
 	var key: Variant = pending_offer
 	if not PyMath.truthy(key):
@@ -416,6 +428,7 @@ func _contract_buff(m: Monster) -> void:
 		m.hp = m.max_hp
 
 
+## Turn down the pending contract. Returns false when nothing is on offer.
 func decline_contract() -> bool:
 	if not PyMath.truthy(pending_offer):
 		return false
@@ -595,6 +608,7 @@ var stairs_wait: int:
 		return maxi(0, stairs_open_turn - turn)
 
 
+## True while the stairwells are shut: before the unlock time and without the Headliner's key (never on the last floor).
 var stairs_locked: bool:
 	get:
 		if depth >= GameConfig.NUM_FLOORS:
@@ -618,6 +632,7 @@ func _place_pet() -> void:
 	pt.y = p.y
 
 
+## Recompute `visible` from the player's tile and mark those tiles explored.
 func update_fov() -> void:
 	visible = Dungeon.compute_fov(floor, player.x, player.y)
 	var explored := floor.explored
@@ -627,11 +642,13 @@ func update_fov() -> void:
 
 # --- Queries --------------------------------------------------------------------
 
+## The active pet standing on (x, y), or null.
 func pet_at(x: int, y: int) -> Pet:
 	var pt := active_pet
 	return pt if pt != null and pt.x == x and pt.y == y else null
 
 
+## The first monster standing on (x, y), or null.
 func monster_at(x: int, y: int) -> Monster:
 	for m in monsters:
 		if m.x == x and m.y == y:
@@ -639,11 +656,13 @@ func monster_at(x: int, y: int) -> Monster:
 	return null
 
 
+## True when the player stands in the safe room or its doorway.
 var in_safe_room: bool:
 	get:
 		return floor.is_safe(player.x, player.y)
 
 
+## True when the player stands on a stairs tile.
 var on_stairs: bool:
 	get:
 		return floor.tiles[player.y][player.x] == DungeonFloor.STAIRS

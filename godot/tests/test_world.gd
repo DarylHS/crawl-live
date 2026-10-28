@@ -182,3 +182,13 @@ func test_respawn_adds_a_monster_out_of_sight_and_reschedules() -> void:
 	var m: Monster = w.monsters[-1]
 	assert_false(w.visible.has(Vector2i(m.x, m.y)))
 	assert_gt(w._next_spawn, w.turn)
+
+
+func test_stairs_reachable_on_every_floor() -> void:
+	var w := World.new(11)
+	for depth in range(1, GameConfig.NUM_FLOORS + 1):
+		w.new_floor(depth)
+		var dist := w.floor.distance_map(w.player.x, w.player.y)
+		for s in w.floor.stairs:
+			assert_eq(w.floor.tiles[s.y][s.x], DungeonFloor.STAIRS)
+			assert_gt(dist[s.y * w.floor.width + s.x], 0)

@@ -13,8 +13,8 @@ Usage:
         (one file per seed: <policy>_<seed>.jsonl)
   python scripts/py_trace.py --seed 5 --floor-only --floors 6 --out f.jsonl
         (S3: generate_floor x6 from one rng(seed); per floor fp, words used, full dump)
-  python scripts/py_trace.py --seed 5 --floor-only --spawns --floors 2 --out f.jsonl
-        (World(seed) then new_floor(2..n); adds monsters, items, timers, player start)
+  python scripts/py_trace.py --seed 5 --floor-only --spawns --floors 2 --out f.jsonl [--pet cat] [--hero GENDER:BACKSTORY]
+        (World(seed, pet, hero) then new_floor(2..n); adds monsters, items, timers, player start)
 
 Default output path when --out is omitted: ./trace_<seed>.jsonl.
 Policies: walk, hunter, bot (see scripts/trace_policies.py).  --pet and --hero default
@@ -285,13 +285,16 @@ def run_trace(seed, policy, steps, out, pet=None, hero=None, msgs=True):
     return w
 
 
-def run_floors(seed, floors, spawns, out):
+def run_floors(seed, floors, spawns, out, pet=None, hero=None):
     """Floor-only trace.  Without spawns: generate_floor(rng, d) for d in 1..floors from one rng(seed).
     With spawns: World(seed) then new_floor(2..floors); floor records carry monsters and items."""
     tr = Tracer(out, msgs=False, events=False, detail=True)
-    tr.write(header(seed, None, 0, None, None, "floors_world" if spawns else "floors"))
+    if pet == "none":
+        pet = None
+    tr.write(header(seed, None, 0, pet if spawns else None, hero if spawns else None,
+                    "floors_world" if spawns else "floors"))
     if spawns:
-        w = new_world(tr, seed, None, None)
+        w = new_world(tr, seed, pet, hero)
         for d in range(2, floors + 1):
             w.new_floor(d)
         return
@@ -346,7 +349,7 @@ def main(argv=None):
             path = Path(a.out or f"trace_{seed}.jsonl")
         with open(path, "w", encoding="utf-8", newline="\n") as fh:
             if a.floor_only:
-                run_floors(seed, a.floors, a.spawns, fh)
+                run_floors(seed, a.floors, a.spawns, fh, pet=a.pet, hero=parse_hero(a.hero))
             else:
                 run_trace(seed, a.policy, a.steps, fh, pet=a.pet, hero=parse_hero(a.hero),
                           msgs=not a.no_msg)

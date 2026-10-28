@@ -30,11 +30,22 @@ python3 "$ROOT/scripts/make_fixtures.py" "$REFDIR/fixtures.json" || { echo "FAIL
 python3 "$ROOT/scripts/make_fixtures_s2.py" "$REFDIR/fixtures_s2.json" || { echo "FAIL: make_fixtures_s2.py"; exit 1; }
 python3 "$ROOT/scripts/practice_reference.py" "$REFDIR/practice_ref.json" || { echo "FAIL: practice_reference.py"; exit 1; }
 python3 "$ROOT/scripts/make_fixtures_s4.py" "$REFDIR/fixtures_s4.json" || { echo "FAIL: make_fixtures_s4.py"; exit 1; }
-export PY_RANDOM_REF="$REFDIR/py_random_ref.json" CONTENT_REF="$REFDIR/content_ref.json" FIXTURES="$REFDIR/fixtures.json" FIXTURES_S2="$REFDIR/fixtures_s2.json" PRACTICE_REF="$REFDIR/practice_ref.json" FIXTURES_S4="$REFDIR/fixtures_s4.json" DUNGEON_FIXTURES="$REFDIR/dungeon_fixtures.json" FLOOR_TRACES="$REFDIR/floor_traces" SPAWN_TRACES="$REFDIR/spawn_traces"
+export PY_RANDOM_REF="$REFDIR/py_random_ref.json" CONTENT_REF="$REFDIR/content_ref.json" FIXTURES="$REFDIR/fixtures.json" FIXTURES_S2="$REFDIR/fixtures_s2.json" PRACTICE_REF="$REFDIR/practice_ref.json" FIXTURES_S4="$REFDIR/fixtures_s4.json" DUNGEON_FIXTURES="$REFDIR/dungeon_fixtures.json" FLOOR_TRACES="$REFDIR/floor_traces" SPAWN_TRACES="$REFDIR/spawn_traces" SPAWN_COMBOS="$REFDIR/spawn_combos"
 python3 "$ROOT/scripts/make_dungeon_fixtures.py" "$REFDIR/dungeon_fixtures.json" || { echo "FAIL: make_dungeon_fixtures.py"; exit 1; }
 python3 "$ROOT/scripts/py_trace.py" --seeds 0-49 --floor-only --floors 6 --out-dir "$REFDIR/floor_traces" >/dev/null || { echo "FAIL: py_trace.py --floor-only"; exit 1; }
 
 python3 "$ROOT/scripts/py_trace.py" --seeds 0-49 --floor-only --spawns --floors 6 --out-dir "$REFDIR/spawn_traces" >/dev/null || { echo "FAIL: py_trace.py --floor-only --spawns"; exit 1; }
+# pet and hero combos (SPAWN_COMBOS): <name>.jsonl, mirrored in tests/test_s6_parity.gd
+mkdir -p "$REFDIR/spawn_combos"
+while read -r name seed pet hero; do
+	python3 "$ROOT/scripts/py_trace.py" --seed "$seed" --floor-only --spawns --floors 4 --pet "$pet" --hero "$hero" --out "$REFDIR/spawn_combos/$name.jsonl" >/dev/null || { echo "FAIL: py_trace.py combo $name"; exit 1; }
+done <<'COMBOS'
+cat_tradie_3 3 cat female:tradie
+dog_rideshare_8 8 dog male:rideshare
+budgie_none_12 12 budgie :
+mouse_mixologist_21 21 mouse female:mixologist
+none_parent_5 5 none male:parent
+COMBOS
 
 ARGS=()
 for a in "$@"; do

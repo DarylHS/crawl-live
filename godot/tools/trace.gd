@@ -1,16 +1,17 @@
 extends SceneTree
-## Godot side of the parity traces (port plan 6.2). Floor-only, pure generate_floor mode for now;
-## the run mode follows with World.
+## Godot side of the parity traces (port plan 6.2). Floor-only modes so far (pure generate_floor, and
+## World mode with --spawns); the run mode follows with the World's turn flow.
 ##
 ##   godot --headless --path godot -s res://tools/trace.gd -- --seed 5 --floor-only --floors 6 --out /tmp/gd.jsonl
 ##   godot --headless --path godot -s res://tools/trace.gd -- --seeds 0-199 --floor-only --out-dir /tmp/gd_floors
 ##       (writes floors_<seed>.jsonl per seed, like scripts/py_trace.py)
-##   add --spawns for World mode: World.new(seed), then new_floor(2..floors) (monsters, items, timers)
+##   add --spawns for World mode: World.new(seed, pet, hero), then new_floor(2..floors) (monsters,
+##   items, timers); --pet cat|dog|budgie|mouse|none and --hero GENDER:BACKSTORY as in py_trace.py
 ## Compare with: python scripts/parity_diff.py --dirs /tmp/py_floors /tmp/gd_floors
 ## Default --floors is 6; default output without --out is ./trace_<seed>.jsonl.
 
 
-const _VALUE_OPTS := ["--seed", "--seeds", "--floors", "--out", "--out-dir"]
+const _VALUE_OPTS := ["--seed", "--seeds", "--floors", "--out", "--out-dir", "--pet", "--hero"]
 const _FLAG_OPTS := ["--floor-only", "--spawns"]
 
 
@@ -89,7 +90,16 @@ func _initialize() -> void:
 			return
 		var records: Array
 		if opts.has("--spawns"):
-			records = TraceFloors.run_floors_world(seed_value, floors)
+			var pet: String = opts.get("--pet", "")
+			if pet == "none":
+				pet = ""
+			var hero: Variant = null
+			if opts.has("--hero"):
+				var parts := String(opts["--hero"]).split(":")
+				var story := parts[1] if parts.size() > 1 else ""
+				hero = {"name": "Bot", "gender": null if parts[0] == "" else parts[0],
+						"backstory": null if story == "" else story}
+			records = TraceFloors.run_floors_world(seed_value, floors, pet, hero)
 		else:
 			records = TraceFloors.run_floors(seed_value, floors)
 		f.store_string(TraceFloors.to_lines(records))

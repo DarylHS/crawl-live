@@ -23,6 +23,46 @@ static func _core(rec: Dictionary) -> Dictionary:
 	return rec
 
 
+## [name, seed, pet, hero "GENDER:BACKSTORY"]; mirrors the combo list in scripts/gd_test.sh.
+const COMBOS := [
+	["cat_tradie_3", 3, "cat", "female:tradie"],
+	["dog_rideshare_8", 8, "dog", "male:rideshare"],
+	["budgie_none_12", 12, "budgie", ":"],
+	["mouse_mixologist_21", 21, "mouse", "female:mixologist"],
+	["none_parent_5", 5, "none", "male:parent"],
+]
+
+
+func test_pet_and_hero_world_traces_match_python(combo = use_parameters(COMBOS)) -> void:
+	var dir := _need("SPAWN_COMBOS")
+	if dir == "":
+		return
+	var path := "%s/%s.jsonl" % [dir, combo[0]]
+	if not FileAccess.file_exists(path):
+		fail_test("missing " + path)
+		return
+	var py: Array = []
+	for line in FileAccess.get_file_as_string(path).split("\n", false):
+		py.append(JSON.parse_string(line))
+	var parts: PackedStringArray = String(combo[3]).split(":")
+	var story := parts[1] if parts.size() > 1 else ""
+	var hero := {"name": "Bot", "gender": null if parts[0] == "" else parts[0],
+			"backstory": null if story == "" else story}
+	var pet: String = "" if combo[2] == "none" else combo[2]
+	var mine := TraceFloors.run_floors_world(combo[1], 4, pet, hero)
+	assert_eq(mine.size(), py.size())
+	for i in mini(mine.size(), py.size()):
+		var got: Dictionary = _core(JSON.parse_string(PyJson.dumps(mine[i], false)))
+		var want: Dictionary = _core(py[i])
+		if want["k"] == "header":
+			want["impl"] = got["impl"]
+		var diff := TestCase.strict_diff(got, want)
+		if diff != "":
+			fail_test("%s record %d differs: %s" % [combo[0], i, diff.left(200)])
+			return
+	assert_true(true)
+
+
 func test_world_floor_traces_match_python(seed_value = use_parameters(range(50))) -> void:
 	var dir := _need("SPAWN_TRACES")
 	if dir == "":
