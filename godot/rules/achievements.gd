@@ -19,9 +19,6 @@ extends RefCounted
 ## key -> turn unlocked.
 var unlocked: Dictionary = {}
 var tracker: AchievementTracker
-## TEST SEAM (scripts/chaos_trace.py --mute achievements): when true, _unlock does nothing, exactly like
-## patching Python's Achievements._unlock to a no-op. The tracker still counts. Never set in the game.
-var silenced: bool = false
 var world: Object:
 	get:
 		return _world_ref.get_ref()
@@ -76,8 +73,6 @@ func _on_event(name: String, data: Dictionary) -> void:
 
 
 func _unlock(key: String, a: Dictionary) -> void:
-	if silenced:
-		return
 	var w: Object = world
 	unlocked[key] = w.turn
 	var box: String = Content.box(a["tier"])["name"]

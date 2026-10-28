@@ -136,6 +136,7 @@ func dump(n: int, tag: String, ok: Variant) -> void:
 		w.training.levels.duplicate(), w.training.xp.duplicate(), w.training.steps,
 		w.floor_stats.duplicate(true),
 		w.rng.state_digest().substr(0, 16), w.loot_rng.state_digest().substr(0, 16), w.shop.rng.state_digest().substr(0, 16), w.deal_rng.state_digest().substr(0, 16),
+		w.viewers, w.showrunner.peak, w.showrunner.rng.state_digest().substr(0, 16),
 		explored, evs.duplicate(), msgs.duplicate()]
 	out.store_line(PyJson.dumps(rec, false, -1, true))
 	evs.clear(); msgs.clear()
@@ -205,6 +206,10 @@ func _initialize() -> void:
 				var list := String(a[i + 1])
 				mute = [] if list in ["", "none"] else (SUBSYSTEMS.duplicate() if list == "all" else Array(list.split(",")))
 				for m in mute:
+					if m == "achievements":
+						push_error("chaos.gd: Achievements is real; there is no seam to mute it")
+						quit(2)
+						return
 					if not SUBSYSTEMS.has(m):
 						push_error("chaos.gd: unknown subsystem to mute " + m)
 						quit(2)

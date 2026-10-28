@@ -14,8 +14,9 @@ line; scripts/chaos_diff.py compares the two.
 Deterministic: the harness uses its own random.Random(seed ^ 0x5C8) and nothing else is random.
 
 --mute LIST (default achievements,showrunner,funfacts): comma list of the subsystems to neutralise. While
-the Godot side still has a P1 stand-in for a subsystem (Achievements: T1, FunFacts: T3) that subsystem must
-be muted here and in chaos.gd; the real Showrunner (T2) is ported, so run with --mute achievements,funfacts.
+the Godot side still has a P1 stand-in for a subsystem (FunFacts: T3) that subsystem must be muted here and
+in chaos.gd; Achievements (T1) and the Showrunner (T2) are ported, so run with --mute funfacts (chaos.gd has
+no seam for a muted real Achievements and rejects it).
 Muting replaces the real Python Achievements._unlock, Showrunner._gain and _say, or FunFacts._say with
 no-ops, and leaves out the events and messages they would add (achievement; viewers_gained, sponsor_gift and
 showmanship practice_level; fun_fact). --mute none compares everything.
@@ -47,7 +48,7 @@ MUTED_FILES = {"achievements": "achievements.py", "showrunner": "showrunner.py",
 
 
 def parse_mute(text):
-    """'achievements,funfacts' -> {'achievements', 'funfacts'}; 'none' -> empty; 'all' -> everything."""
+    """'funfacts,showrunner' -> {'funfacts', 'showrunner'}; 'none' -> empty; 'all' -> everything."""
     if text in ("", "none"):
         return set()
     names = set(SUBSYSTEMS) if text == "all" else set(text.split(","))
@@ -136,6 +137,7 @@ def run(seed, steps, path, mute=frozenset(SUBSYSTEMS)):
                dict(w.training.levels), dict(w.training.xp), w.training.steps,
                json.loads(json.dumps(w.floor_stats)),
                state_digest(w.rng)[:16], state_digest(w.loot_rng)[:16], state_digest(w.shop.rng)[:16], state_digest(w.deal_rng)[:16],
+               w.viewers, w.showrunner.peak, state_digest(w.showrunner.rng)[:16],
                sum(map(sum, w.floor.explored)), evs[:], msgs[:]]
         out.write(json.dumps(rec, separators=(",", ":")) + "\n"); evs.clear(); msgs.clear()
 

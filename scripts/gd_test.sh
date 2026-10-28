@@ -47,12 +47,12 @@ build_refs() {
 	python3 "$ROOT/scripts/practice_reference.py" "$R/practice_ref.json" || { echo "FAIL: practice_reference.py"; return 1; }
 	python3 "$ROOT/scripts/make_fixtures_s4.py" "$R/fixtures_s4.json" 50 || { echo "FAIL: make_fixtures_s4.py"; return 1; }
 	python3 "$ROOT/scripts/make_dungeon_fixtures.py" "$R/dungeon_fixtures.json" || { echo "FAIL: make_dungeon_fixtures.py"; return 1; }
-	python3 "$ROOT/scripts/py_trace.py" --mute achievements,funfacts --seeds 0-19 --floor-only --floors 6 --out-dir "$R/floor_traces" >/dev/null || { echo "FAIL: py_trace.py --floor-only"; return 1; }
-	python3 "$ROOT/scripts/py_trace.py" --mute achievements,funfacts --seeds 0-19 --floor-only --spawns --floors 6 --out-dir "$R/spawn_traces" >/dev/null || { echo "FAIL: py_trace.py --floor-only --spawns"; return 1; }
+	python3 "$ROOT/scripts/py_trace.py" --mute funfacts --seeds 0-19 --floor-only --floors 6 --out-dir "$R/floor_traces" >/dev/null || { echo "FAIL: py_trace.py --floor-only"; return 1; }
+	python3 "$ROOT/scripts/py_trace.py" --mute funfacts --seeds 0-19 --floor-only --spawns --floors 6 --out-dir "$R/spawn_traces" >/dev/null || { echo "FAIL: py_trace.py --floor-only --spawns"; return 1; }
 	# pet and hero combos (SPAWN_COMBOS): <name>.jsonl, mirrored in tests/test_s6_parity.gd
 	mkdir -p "$R/spawn_combos"
 	while read -r name seed pet hero; do
-		python3 "$ROOT/scripts/py_trace.py" --mute achievements,funfacts --seed "$seed" --floor-only --spawns --floors 4 --pet "$pet" --hero "$hero" --out "$R/spawn_combos/$name.jsonl" >/dev/null || { echo "FAIL: py_trace.py combo $name"; return 1; }
+		python3 "$ROOT/scripts/py_trace.py" --mute funfacts --seed "$seed" --floor-only --spawns --floors 4 --pet "$pet" --hero "$hero" --out "$R/spawn_combos/$name.jsonl" >/dev/null || { echo "FAIL: py_trace.py combo $name"; return 1; }
 	done <<'COMBOS'
 cat_tradie_3 3 cat female:tradie
 dog_rideshare_8 8 dog male:rideshare
@@ -60,11 +60,11 @@ budgie_none_12 12 budgie :
 mouse_mixologist_21 21 mouse female:mixologist
 none_parent_5 5 none male:parent
 COMBOS
-	python3 "$ROOT/scripts/py_trace.py" --mute achievements,funfacts --seeds 0-9 --policy walk --steps 500 --out-dir "$R/walk_traces" >/dev/null || { echo "FAIL: py_trace.py --policy walk"; return 1; }
+	python3 "$ROOT/scripts/py_trace.py" --mute funfacts --seeds 0-9 --policy walk --steps 500 --out-dir "$R/walk_traces" >/dev/null || { echo "FAIL: py_trace.py --policy walk"; return 1; }
 	# pet and hero combos (WALK_COMBOS): <name>.jsonl, mirrored in tests/test_s7_parity.gd
 	mkdir -p "$R/walk_combos"
 	while read -r name seed pet hero; do
-		python3 "$ROOT/scripts/py_trace.py" --mute achievements,funfacts --seed "$seed" --policy walk --steps 500 --pet "$pet" --hero "$hero" --out "$R/walk_combos/$name.jsonl" >/dev/null || { echo "FAIL: py_trace.py walk combo $name"; return 1; }
+		python3 "$ROOT/scripts/py_trace.py" --mute funfacts --seed "$seed" --policy walk --steps 500 --pet "$pet" --hero "$hero" --out "$R/walk_combos/$name.jsonl" >/dev/null || { echo "FAIL: py_trace.py walk combo $name"; return 1; }
 	done <<'COMBOS'
 cat_tradie_3 3 cat female:tradie
 cat_none_30 30 cat :
@@ -75,11 +75,11 @@ budgie_none_27 27 budgie :
 mouse_comedian_21 21 mouse female:comedian
 mouse_parent_36 36 mouse male:parent
 COMBOS
-	python3 "$ROOT/scripts/py_trace.py" --mute achievements,funfacts --seeds 0-4 --policy hunter --steps 3000 --out-dir "$R/hunter_traces" >/dev/null || { echo "FAIL: py_trace.py --policy hunter"; return 1; }
+	python3 "$ROOT/scripts/py_trace.py" --mute funfacts --seeds 0-4 --policy hunter --steps 3000 --out-dir "$R/hunter_traces" >/dev/null || { echo "FAIL: py_trace.py --policy hunter"; return 1; }
 	# pet and hero combos (HUNTER_COMBOS): <name>.jsonl, mirrored in tests/test_s8_parity.gd
 	mkdir -p "$R/hunter_combos"
 	while read -r name seed pet hero; do
-		python3 "$ROOT/scripts/py_trace.py" --mute achievements,funfacts --seed "$seed" --policy hunter --steps 3000 --pet "$pet" --hero "$hero" --out "$R/hunter_combos/$name.jsonl" >/dev/null || { echo "FAIL: py_trace.py hunter combo $name"; return 1; }
+		python3 "$ROOT/scripts/py_trace.py" --mute funfacts --seed "$seed" --policy hunter --steps 3000 --pet "$pet" --hero "$hero" --out "$R/hunter_combos/$name.jsonl" >/dev/null || { echo "FAIL: py_trace.py hunter combo $name"; return 1; }
 	done <<'COMBOS'
 cat_tradie_3 3 cat female:tradie
 dog_rideshare_8 8 dog male:rideshare
@@ -87,7 +87,7 @@ budgie_dog_walker_12 12 budgie male:dog_walker
 mouse_comedian_21 21 mouse female:comedian
 cat_none_30 30 cat :
 COMBOS
-	python3 "$ROOT/scripts/chaos_trace.py" --seeds 0-9 --steps 600 --mute achievements,funfacts --out-dir "$R/chaos_traces" || { echo "FAIL: chaos_trace.py"; return 1; }
+	python3 "$ROOT/scripts/chaos_trace.py" --seeds 0-9 --steps 600 --mute funfacts --out-dir "$R/chaos_traces" || { echo "FAIL: chaos_trace.py"; return 1; }
 }
 
 if [ ! -f "$REFDIR/.complete" ]; then

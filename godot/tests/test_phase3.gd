@@ -189,7 +189,7 @@ func test_dog_licks_wounds() -> void:
 
 
 func test_boss_kill_awards_box_achievement_and_viewers() -> void:
-		var w := World.new(13)
+	var w := World.new(13)
 	var boss := _headliner(w)
 	var viewers := w.viewers
 	var kills: Array = []

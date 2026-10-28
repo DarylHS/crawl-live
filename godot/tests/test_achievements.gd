@@ -117,15 +117,6 @@ func test_unlock_order_follows_table_order() -> void:
 	assert_eq(keys, ["blooper_reel", "cursed_dice"])
 
 
-func test_silenced_seam_skips_unlocks_but_keeps_counting() -> void:
-	var w := World.new(9)
-	w.achievements.silenced = true
-	_kill(w)
-	assert_true(w.achievements.unlocked.is_empty())
-	assert_true(w.boxes.is_empty())
-	assert_eq(w.achievements.tracker.kills, 1)
-
-
 func test_tracker_counters() -> void:
 	var w := World.new(10)
 	var t := w.achievements.tracker

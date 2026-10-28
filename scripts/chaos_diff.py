@@ -17,7 +17,7 @@ import sys
 NAMES = ("n tag ok turn depth state timer timer_max stairs_open px py hp max_hp xp level kills stat_points attrs ac attack "
          "dmg_n dmg_die dmg_bonus dr gold mon items pet combat riposte has_key exit_sealed inv equip boxes box_reasons "
          "box_log last_reveal last_reason race cls pending_choice skill_cd scout hype remote_shop contract pending_offer "
-         "death_cause on_hand bought missed shoplog prac_lv prac_xp prac_steps floor_stats rng loot shop deal explored evs msgs").split()
+         "death_cause on_hand bought missed shoplog prac_lv prac_xp prac_steps floor_stats rng loot shop deal viewers peak show explored evs msgs").split()
 
 
 
@@ -31,6 +31,8 @@ def compare(a, b, nomsg=False, mute=True):
             if not mute:
                 break
             r[fi] = [{k: v for k, v in f.items() if not k.startswith("viewers")} for f in r[fi]]
+            for name in ("viewers", "peak", "show"):
+                r[NAMES.index(name)] = None
         if nomsg:
             x = x[:-1]; y = y[:-1]
         if x != y:

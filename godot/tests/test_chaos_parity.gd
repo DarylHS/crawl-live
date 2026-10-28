@@ -10,7 +10,7 @@ extends TestCase
 
 const SEEDS := "0-9"
 const STEPS := 600
-const MUTE := "achievements,funfacts"
+const MUTE := "funfacts"
 
 
 func test_chaos_traces_match_python() -> void:

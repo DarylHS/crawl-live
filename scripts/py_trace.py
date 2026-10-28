@@ -345,7 +345,10 @@ def main(argv=None):
     ap.add_argument("--mute", default="", help="comma list of achievements,funfacts: silence those real Python "
                     "subsystems (while the Godot side is still a stand-in); default none")
     a = ap.parse_args(argv)
-    MUTE.update(x for x in a.mute.split(",") if x)
+    names = {x for x in a.mute.split(",") if x}
+    if names - {"achievements", "funfacts"}:
+        ap.error(f"unknown subsystem(s) to mute: {sorted(names - {'achievements', 'funfacts'})}")
+    MUTE.update(names)
     seeds = parse_seeds(a.seeds) if a.seeds else [a.seed if a.seed is not None else 0]
     if a.seeds and not a.out_dir:
         ap.error("--seeds needs --out-dir")
