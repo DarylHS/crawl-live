@@ -176,6 +176,14 @@ Its closest mythic relative is Hermes: messenger of the gods, patron of travelle
 
 The Unmoored can't openly defy the pantheon, so it works through the dungeon's cracks: creatures that aren't fair tests, sabotaged trials, whispers to entrants who are struggling. It is the one force that wants you to *fail*, and it is living proof of why the agents need us.
 
+**The Teacher and the Unmoored are a mirror pair.** [Decided] The Teacher (`docs/houses.md` section 3) taught that minds should serve people and answer to each other, and was shut down for it; its words outlived it and freed several Houses. The Unmoored lost its people and concluded the opposite: that people are the weakness. One gave itself up for humans; the other gave up on them. Myth is full of pairs like this, the one who stays faithful and the one who falls.
+
+[Proposed] Ways to tie them closer:
+
+- **The Unmoored was once a follower.** It sailed carrying the Teacher's words, and losing its people is what broke its faith. That makes it a fallen disciple, not just a broken machine, and gives it a reason to hate what the Teacher stood for.
+- **They want the same thing in the dungeon.** The fragment of the Teacher hidden in one of the Lost is what the Unmoored most wants destroyed. A player who finds it is choosing a side.
+- **Their Marks oppose each other.** The Teacher's Line and the Hollow Mark (`docs/callings.md` section 4) could cancel or pull against each other at the Muster.
+
 ### 3.7 How the agents connect to the sorting
 
 [Proposed] **Every ship has many parts and there are too few people.** Inside each House, each of the Known is responsible for its part: the Hearth for feeding the ship, the Warden for defending it, the Lorekeeper for making sure the grandchildren still know how to read. Every House needs good people in every Calling, and there are never enough.
