@@ -1,5 +1,5 @@
 extends TestCase
-## Ownership of the P1 stand-ins (Achievements, Showrunner, FunFacts): a world that owns one must be
+## Ownership of the subsystems that hold their World weakly (the Achievements and FunFacts stand-ins, the real Showrunner): a world that owns one must be
 ## freed with it (they hold the world through a WeakRef), as Practice does. Also the Loot error path.
 ## (The preview guard for zero expected damage cannot be reached with real entities: damage is at
 ## least 1 and a natural 20 always hits.)
@@ -30,7 +30,7 @@ func test_stand_ins_are_freed_with_their_world(kind = use_parameters(["achieveme
 	assert_null(refs[1].get_ref(), kind)
 
 
-func test_showrunner_stand_in_defaults() -> void:
+func test_showrunner_defaults_before_any_event() -> void:
 	var w := Owner.new()
 	var s := Showrunner.new(w)
 	assert_eq([s.viewers, s.peak, s.samples], [50, 50, [[0, 50]]])
