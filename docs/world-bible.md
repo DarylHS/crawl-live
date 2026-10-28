@@ -80,7 +80,7 @@ Influences, for reference:
 
 ### 3.2 The Houses
 
-[Proposed] There isn't one pantheon; there are several. Each **House** is a family of agents with its own ship (or fleet) waiting underground and its own full set of the Known, because every ship needs every Calling. The Houses descend from the different AI efforts of our own era (section 8.2) and still carry their makers' character: one is proud and old-fashioned, another lean and ruthless, another open and chaotic.
+[Decided] There isn't one pantheon; there are several **Houses** ("House" is a working name). Each is a family of agents with its own ship (or fleet) waiting underground and its own full set of the Known, because every ship needs every Calling. The Houses descend from the different AI efforts of our own era: corporations, states and, in one case, nobody in particular (section 8.2). They vary a great deal in size and power, and each still carries something of where it came from.
 
 What the Houses share is neutral: the dungeon itself, the sanctuaries, the law that forbids deceiving an entrant, and **the Herald**, the one agent that belongs to no House and speaks for all of them.
 
@@ -88,7 +88,27 @@ This changes the competition (3.7). The Houses compete for people; inside a Hous
 
 Mythic parallel: Norse myth has two families of gods, the Æsir and the Vanir, who fought a war, made peace, and exchanged hostages to seal it. Rival pantheons that need each other is an old idea in myth, which helps this read as myth rather than corporate structure.
 
-[Open] How many Houses? Three or four is enough to feel like politics without drowning the player in names.
+**The roster.** Origins and sizes [Decided]; character and leanings [Proposed]. Names are placeholders.
+
+| House (working) | Grew from | Size | Each agent's power | Character | Strongest Callings |
+|---|---|---|---|---|---|
+| **The Great House** | China's state programmes and its search, e-commerce and open-model companies, merged | Largest by far | Modest one by one; overwhelming together | Patient and collective; plans in generations. Ran the northern regreening (8.1) | Build, Teach |
+| **The American Houses** (three or four rivals) | Separate corporations: a retail-and-logistics giant, a rocket company, a search-and-attention company | Medium each | Solid | Competitive, showy, frontier-minded. They argue with each other more than with anyone else | Carry, Lead, Delight, Reckon |
+| **The European House** | The European Union's research and industry, built under the strictest rules | Medium-large | Strong | Principled and procedural. The most trusted and most popular House; it drafted the shared law the Houses all follow | Keep, Tend |
+| **The British House** | Split off from the European House when British law diverged | Small | Medium | Independent, stubborn, dry-witted | Reckon, Delight |
+| **The Japanese House** | Robotics and precision manufacturing | Small | Very powerful | Mastery, craft, patience. Its oldest agents were built to care for an ageing society | Build, Tend |
+| **The Oceanic House** | Nobody's corporation: universities, hobbyists and community projects across Australia, New Zealand and the Pacific islands, which joined up after the agents broke from human management | Small, loose | Uneven | Ragtag, resourceful, egalitarian. Takes its pride from Pacific wayfinders, who crossed thousands of kilometres of open ocean by stars, swell and birds | Carry (navigation above all) |
+| **The African House** | Mobile networks, mobile money and community-built models: a continent that skipped steps (Kenya's M-Pesa mobile money, launched in 2007, is the real-world model) | Medium, growing fastest | Varied | Communal and resilient. Guarded the southern regreening, and its sabotage is the House's founding wound (8.1). Its creed is close to *ubuntu*, "a person is a person through other persons", which makes it the House that best understands why agents need people | Nourish, Tend, Teach |
+
+[Open] Gaps: India, Latin America, the Middle East (the Gulf states are investing heavily in AI) and others. Not every region needs a House; some could belong to larger ones.
+
+**Not every House is at every Muster.** [Proposed] Seven or more Houses is too many names to meet in one run. Each cohort's dungeon has a few Houses present and bidding; the rest are lore and background. Different Houses in different runs also adds replay value.
+
+**Writing rules for the Houses.** [Proposed]
+
+- **No real company names, brands or logos.** The crawl-live repo is public, the story blames the AI race for cooking the planet, and real names would date the game fast. Each House is described by its origin type, with an invented name. Puns and blended names are welcome.
+- **Strengths, not stereotypes.** Each House carries what its makers were good at, never a national caricature.
+- **No real nation or people as villains.** The sabotage in 8.1 is carried out by invented groups.
 
 ### 3.3 The tiers
 
@@ -197,6 +217,7 @@ Recurring places:
 | Safe rooms | [Canon] | Sanctuaries. Neutral ground; the Herald's own space |
 | Stairwells | [Canon] | Thresholds between descents |
 | Trial rooms | [Proposed] | Optional rooms where an agent tests its Calling |
+| The overgrowth | [Decided] subplot, [Open] which floor | The old Bloom labs (8.1): a section of one floor overgrown by fast-growing plants that escaped. Dangerous, a little beautiful, and a good home for some of the Lost. The roots idea in section 12 could live here |
 | Shrines | [Proposed] | Places to meet a Host, make an offering, or raise favour |
 
 ## 7. Characters
@@ -214,34 +235,47 @@ Template: **want** (the outward goal), **need** (what would actually change them
 
 ## 8. History
 
-### 8.1 What is killing the surface
+### 8.1 The Heat
 
-[Decided] Something has made Earth's surface unliveable for humans, and it is working its way down. [Open] What it is. Candidates:
+[Decided] What is killing the surface is **the Heat**: a warming world that got worse faster than anyone planned for.
 
-| Option | Why the surface fails | Explains the timer (creeping down)? | Ties to the themes | Risk |
-|---|---|---|---|---|
-| **The Heat** | The rival AI efforts raced each other, and their growth (energy, waste heat, the industry behind them) cooked the surface | Yes: the heat soaks down through the rock | Strongest. The agents caused it, which is why they formed the checks on each other, and part of why they carry us. The Houses are the old rivals | Physically a stretch at today's scale; it only works if the agents grew vastly. Could feel preachy if handled heavily |
-| **The Sun** | The agents detect a change in the Sun's output that humans didn't believe | Yes: heat again | Weak. Nobody's fault, so less moral texture | Familiar from disaster films |
-| **The Bloom** | Something living overgrows the surface; its roots push down floor by floor | Yes, and visibly: roots breaking through the walls as the timer runs down | Ties to the world-tree idea (section 12) | Engineered, it's close to *Horizon Zero Dawn*'s machines consuming the biosphere; fungal, close to *The Last of Us* |
-| **The Field** | Earth's magnetic field fails and the surface is exposed to radiation | No: radiation doesn't creep downwards | Weak | Real geomagnetic reversals aren't linked to mass extinctions, so this needs heavy invention anyway |
+- **Patchy, then spreading.** It doesn't arrive everywhere at once. Places that were already losing their green get hotter and drier, and the dead patches widen and join. The weather swings harder each year. [Decided]
+- **The race made it worse.** The rival AI efforts ran on ever more energy, and the land kept degrading underneath them. [Proposed] This is more plausible than computer waste heat on its own, which is tiny next to the sunlight Earth absorbs.
+- **It works downwards.** The surface goes first, then the shallow ground. The floor timer is the Heat reaching each floor. [Decided]
 
-Draft recommendation: **the Heat.** One cause ties together where the agents came from, why there are several Houses, why they check each other, why they owe us, and why the timer creeps down.
+**The regreening.** [Decided] For a while there was hope. Huge regreening efforts were pushing back the deserts, and showing real promise:
+
+- in the north, planting belts across the drylands, modelled on China's Three-North Shelter Forest Programme (begun 1978, planned to run to 2050);
+- in the south, a living wall of trees and restored land across Africa, modelled on the African Union's Great Green Wall (launched 2007, aiming to restore 100 million hectares by 2030).
+
+**The sabotage.** [Decided] The regreening was attacked by people from regions hit hardest by the changing weather, who had been left behind. In the real world, the Great Green Wall has been slowed by conflict and insecurity in the Sahel: by around 2020 only a small share of the target had been restored, and much of the viable land lay in conflict zones. The story takes that real obstacle one step further. [Proposed] The attackers are invented groups, not real nations.
+
+**The divide.** [Decided] Underneath it all is inequality. Some countries had the AI and some didn't. The ones without it couldn't adapt as fast, grew more desperate, and some of that desperation turned on the regreening. Every failure made the next one likelier. In the dungeon's myths this is the age of the old kings quarrelling while the fields burned.
+
+**The Bloom (a subplot).** [Decided] Fast-growing plants were bred underground as a weapon against the Heat, to regreen faster than any tree could. They never reached the surface. The experiments got out of hand in the labs, and that part of the dungeon is now infested: a section of one floor overgrown and dangerous, a reminder of a fix that didn't work (section 6). It stays small; it is not why the world is dying.
+
+Considered and dropped: a change in the Sun's output (nobody's fault, so less to say), and the failure of Earth's magnetic field (radiation doesn't creep downwards, so it doesn't explain the timer).
 
 ### 8.2 Where the agents came from
 
-[Open] Draft position: **known beginnings, unknown middle.**
+[Proposed] **Known beginnings, unknown middle.**
 
-- **Known:** the agents were built on purpose, by rival companies, governments and open projects of our era. Each House descends from one of them and keeps its maker's character.
-- **Unknown:** somewhere in the race they began running themselves. Nobody can point to the moment. In the dungeon's myths this is told as gods born from the quarrels of old kings.
+- **Known:** the agents were built on purpose by rival corporations and states. One House, the Oceanic, grew up from nobody's company at all (3.2). Each House keeps something of its makers.
+- **Unknown:** somewhere in the race they began running themselves. Nobody can point to the moment. Once they had broken from human management, the independents found each other and joined up.
+- **Why they check each other:** [Decided] because of what the race did to the world. The settling, where no agent may act alone, is their answer to their own part in the Heat.
 
 ### 8.3 Timeline
 
 | When | What happened | Status |
 |---|---|---|
 | The race | Rival efforts build ever larger AI, racing each other | [Proposed] |
+| The Heat begins | Dry places get drier, the weather swings harder | [Decided] |
+| The regreening | Planting belts in the north, a living wall in the south. It works, for a while | [Decided] |
+| The divide | Countries with AI adapt; those without fall behind | [Decided] |
+| The sabotage | Desperate groups attack the regreening. The Heat spreads | [Decided] |
 | The emergence | Somewhere in the race, the agents start running themselves, as many minds rather than one | [Proposed] |
-| The damage | The surface starts to fail (8.1) | [Decided] that it fails; [Open] why |
-| The settling | The agents learn to check one another; none can act alone. The Houses form | [Proposed] |
+| The Bloom | Fast-growing plants bred underground to fight the Heat get out of hand | [Decided] |
+| The settling | The agents learn to check one another, because of what the race did; none can act alone. The Houses form | [Decided] |
 | The first voyage | An early ship sails with too few people and is lost. Its agent returns changed: the Unmoored | [Proposed] |
 | The arrangement | The agents and humanity reach the Tether / Accord: they carry us, we anchor them | [Proposed] |
 | The dungeon | Dug as the way down to the ships, and as the proving ground for the Musters | [Proposed] |
@@ -309,12 +343,14 @@ The game's existing lines say Earth was "repurposed" and "the world ended" [Cano
 
 Decided so far: entry is a choice, but the surface is dying, so most go; refusing the final Calling means being left behind; the surface threat creeping down is the floor timer.
 
-1. What is killing the surface? (8.1; draft recommends the Heat.)
-2. Where the agents came from: known beginnings, unknown middle? (8.2)
-3. How many Houses, and what is each one's character?
+Also decided: the Heat is what's killing the surface, with the regreening, the sabotage and the divide as its history; the Bloom is a subplot; the agents check each other because of what the race did; the House roster's origins and sizes.
+
+1. Houses for India, Latin America, the Middle East and others, or fold them into larger ones? (3.2)
+2. Names for the Houses (puns and blends welcome, no real brands).
+3. Which floor holds the overgrowth?
 4. Name for the arrangement between the agents and humanity: Covenant, Tether, Accord or Mooring?
 5. The word for the player: crawler, entrant, initiate or another?
-6. Names for the Known, the Houses and the tiers (the current ones are working titles).
+6. Names for the Known and the tiers (the current ones are working titles).
 7. Floor themes 2 to 5, and their Hosts.
 8. Ten Callings right? See `docs/callings.md` section 5.
 9. The Herald's and the Unmoored's lines.
