@@ -1438,4 +1438,513 @@ func _begin_round() -> void:
 
 
 # --- S8 (move, wait, descend, rest, safe room, craft, shop, pet, class skills, items, bombs, boxes) ----
-# Append world.py lines 468-1080 here (minus add_box, choose_class and equip, above).
+# world.py lines 468-1080 (add_box, choose_class, equip, move_player, wait and the pet methods sit above).
+
+## Take the stairs down (or win on the last floor). Needs open stairs and a free action.
+func descend() -> bool:
+	if state != "playing":
+		return false
+	if not on_stairs:
+		messages.add("There are no stairs here.", GameConfig.TEXT_DIM)
+		return false
+	if exit_sealed:
+		messages.add("The exit is sealed. Defeat %s first." % Content.boss(depth)["name"], GameConfig.DANGER)
+		return false
+	if stairs_locked:
+		messages.add("The stairwell is locked for another %s. The Headliner has a key." % timer_text(stairs_wait),
+				GameConfig.DANGER)
+		return false
+	if not _can_spend("action"):
+		return false
+	events.emit("descend", {"depth": depth, "turn": turn, "timer_left": timer, "timer_max": timer_max,
+			"early": depth < GameConfig.NUM_FLOORS and stairs_wait > 0})
+	_close_floor_stats()
+	if depth >= GameConfig.NUM_FLOORS:
+		state = "victory"
+		_end_combat("victory")
+		_close_floor_stats()
+		messages.add("You escaped the final floor!", GameConfig.GOOD)
+		events.emit("victory", {"depth": depth, "turn": turn})
+	else:
+		new_floor(depth + 1)
+	return true
+
+
+## Heal to full in a safe room, spending floor time to do it.
+func rest() -> bool:
+	if state != "playing":
+		return false
+	if not in_safe_room:
+		messages.add("You can only rest in a safe room.", GameConfig.TEXT_DIM)
+		return false
+	var p := player
+	if p.hp >= p.max_hp:
+		messages.add("You're already at full health.", GameConfig.TEXT_DIM)
+		return false
+	if combat != null:                          # can't happen (safe rooms end fights), but be sure
+		messages.add("Not while you're fighting.", GameConfig.DANGER)
+		return false
+	if timer <= GameConfig.REST_MIN_TIMER:
+		messages.add("No time to rest. The floor is coming down!", GameConfig.DANGER)
+		return false
+	var start_hp := p.hp
+	var start_turn := turn
+	var per_turn: float = (float(Contracts.effect(self, "rest_mult")) * float(get_trait("rest_mult", 1))
+			* (1 + 0.1 * practice("power_napping")))
+	var owed := 0.0
+	while p.hp < p.max_hp and timer > GameConfig.REST_MIN_TIMER and state == "playing":
+		owed += per_turn
+		p.heal(int(owed))
+		owed -= int(owed)
+		_tick_clock()
+	var spent := turn - start_turn
+	if active_pet != null:
+		pet.hp = pet.max_hp
+	messages.add("You rest for %s and recover %d HP." % [timer_text(spent), p.hp - start_hp], GameConfig.GOOD)
+	events.emit("rest", {"turns": spent, "healed": p.hp - start_hp})
+	update_fov()
+	return true
+
+
+## Pass time without monsters acting (safe-room activities).
+func _spend_turns(n: int) -> void:
+	if combat != null:                          # safe rooms end fights; never tick past one
+		return
+	for _i in range(n):
+		if state != "playing":
+			return
+		_tick_clock()
+
+
+func _safe_room_activity_ok(turns: int) -> bool:
+	if state != "playing":
+		return false
+	if combat != null:
+		messages.add("Not while you're fighting.", GameConfig.DANGER)
+		return false
+	if not in_safe_room:
+		messages.add("You can only do that in a safe room.", GameConfig.TEXT_DIM)
+		return false
+	if timer <= turns + GameConfig.REST_MIN_TIMER:
+		messages.add("No time for that. The floor is coming down!", GameConfig.DANGER)
+		return false
+	return true
+
+
+## Craft recipe Crafting.recipes()[index] at the safe-room bench.
+func craft(index: int) -> bool:
+	var recipe: Dictionary = Crafting.recipes()[index]
+	var turns := maxi(1, PyMath.round_half_even(Crafting.CRAFT_TURNS * float(get_trait("craft_mult", 1))
+			* (1 - 0.08 * practice("tinkering"))))
+	if not _safe_room_activity_ok(turns):
+		return false
+	if not Crafting.can_craft(recipe, inventory):
+		messages.add("You're missing parts for %s." % recipe["name"], GameConfig.TEXT_DIM)
+		return false
+	for key in recipe["needs"]:
+		inventory.erase(key)
+	inventory.append(recipe["makes"])
+	if (loot_rng.random() < 0.04 * practice("tinkering")
+			and inventory.size() < GameConfig.INVENTORY_SIZE):
+		inventory.append(recipe["makes"])
+		messages.add("Tinkering pays off: you get a spare.", GameConfig.GOOD)
+	_spend_turns(turns)
+	messages.add("You craft %s: %s." % [recipe["name"], Items.items()[recipe["makes"]]["name"]], GameConfig.GOOD)
+	events.emit("craft", {"recipe": recipe["key"], "item": recipe["makes"]})
+	return true
+
+
+# --- Shop ---
+
+## Buy one of `key` from the shop (safe room, or the Supply Drop crate).
+func shop_buy(key: String) -> bool:
+	if not _in_safe_room_msg():
+		return false
+	var price := buy_price(key)
+	if gold < price:
+		messages.add("You need %d gold for that." % price, GameConfig.TEXT_DIM)
+		return false
+	if inventory.size() >= GameConfig.INVENTORY_SIZE:
+		messages.add("Your pack is full.", GameConfig.DANGER)
+		return false
+	if shop.buy(key) == "":
+		messages.add("Sold out of %s." % Items.items()[key]["name"], GameConfig.DANGER)
+		events.emit("shop_sold_out", {"item": key, "depth": depth})
+		return false
+	gold -= price
+	inventory.append(key)
+	if not in_safe_room:
+		remote_shop = false                     # Supply Drop is good for one purchase
+	messages.add("You buy a %s for %d gold." % [Items.items()[key]["name"], price], GameConfig.GOOD)
+	events.emit("shop_buy", {"item": key, "price": price, "depth": depth})
+	return true
+
+
+## Sell inventory item `index` to the shop (safe rooms only).
+func shop_sell(index: int) -> bool:
+	if not in_safe_room or not _in_safe_room_msg() or not (0 <= index and index < inventory.size()):
+		return false
+	var key: String = inventory.pop_at(index)
+	var price := sell_price(key)
+	gold += price
+	shop.take_back(key)
+	messages.add("You sell the %s for %d gold." % [Items.items()[key]["name"], price], GameConfig.TEXT_DIM)
+	events.emit("shop_sell", {"item": key, "price": price, "depth": depth,
+			"item_kind": Items.items()[key]["kind"]})
+	return true
+
+
+func _in_safe_room_msg() -> bool:
+	if state != "playing":
+		return false
+	if not in_safe_room and not remote_shop:
+		messages.add("The shop is only open in safe rooms.", GameConfig.TEXT_DIM)
+		return false
+	return true
+
+
+# --- Companion ---
+
+## Cycle the pet's mode. Free action.
+func command_pet() -> bool:
+	var pt := pet
+	if pt == null:
+		return false
+	pt.mode = PET_MODES[PyMath.mod(PET_MODES.find(pt.mode) + 1, PET_MODES.size())]
+	var what: String = {"follow": "will follow you and defend itself",
+			"attack": "will hunt anything you can see",
+			"stay": "will hold its position"}[pt.mode]
+	messages.add("%s %s." % [pt.name, what], GameConfig.INFO)
+	return true
+
+
+## Bring a downed pet back on its feet in a safe room.
+func revive_pet() -> bool:
+	var pt := pet
+	if pt == null or not pt.downed:
+		return false
+	if not _safe_room_activity_ok(GameConfig.PET_REVIVE_TURNS):
+		return false
+	_spend_turns(GameConfig.PET_REVIVE_TURNS)
+	pt.downed = false
+	pt.hp = pt.max_hp
+	pt.cooldown = 0
+	pt.mode = "follow"
+	_place_pet()
+	messages.add("%s is back on its feet and annoyed about it." % pt.name, GameConfig.GOOD)
+	events.emit("pet_revived", {"pet": pt.name})
+	return true
+
+
+# --- Class and skills ---
+
+## Use the class skill (key 1). Returns true when a turn was used.
+func use_skill() -> bool:
+	if state != "playing":
+		return false
+	if not PyMath.truthy(cls):
+		messages.add("You get a class on floor %d." % CHOICE_FLOOR, GameConfig.TEXT_DIM)
+		return false
+	var key: String = skill
+	var spec: Dictionary = Content.skill(key)
+	if skill_cooldown != 0:
+		messages.add("%s is recharging (%d turns)." % [spec["name"], skill_cooldown], GameConfig.TEXT_DIM)
+		return false
+	if not _can_spend("action"):
+		return false
+	if key in ["haymaker", "arc_bolt", "pocket_popper", "riposte"] and in_safe_room:
+		messages.add("The System forbids violence in safe rooms.", GameConfig.TEXT_DIM)
+		return false
+	var p := player
+	if key == "haymaker":
+		var adjacent: Array = []
+		for m in monsters:
+			if Ai.cheb(m, p) == 1:
+				adjacent.append(m)
+		if adjacent.is_empty():
+			messages.add("Nobody close enough to punch.", GameConfig.TEXT_DIM)
+			return false
+		var target: Monster = PyMath.min_by(adjacent, func(m: Monster) -> int: return m.hp)
+		var res := Combat.attack(p, target, rng, 2, true)
+		messages.add("HAYMAKER! %s takes %d (%s, doubled)." % [target.The, res.damage,
+				Dice.fmt(p.dmg_n, p.dmg_die, p.dmg_bonus)], GameConfig.ACCENT)
+		_after_hit(target, "skill")
+		_engage([target])
+	elif key == "arc_bolt":
+		var seen: Array = []
+		for m in monsters:
+			if visible.has(Vector2i(m.x, m.y)) and Ai.cheb(m, p) <= spec["range"]:
+				seen.append(m)
+		if seen.is_empty():
+			messages.add("No target in range.", GameConfig.TEXT_DIM)
+			return false
+		var target: Monster = PyMath.min_by(seen, func(m: Monster) -> int: return Ai.cheb(m, p))
+		var dmg := target.take_damage(maxi(1, 6 + 2 * p.level + mod("int")))
+		messages.add("Arc Bolt crackles into %s for %d." % [target.the, dmg], GameConfig.INFO)
+		_after_hit(target, "skill")
+		_engage([target])
+	elif key == "scout_report":
+		scout_turns = spec["duration"]
+		messages.add("Scout Report: odds are on the panel for the next 20 turns.", GameConfig.INFO)
+	elif key == "field_brew":
+		var junk: Array = []
+		for i in range(inventory.size()):
+			if Items.items()[inventory[i]]["kind"] == "junk":
+				junk.append(i)
+		if junk.is_empty():
+			messages.add("No junk to brew with. Even you have standards.", GameConfig.TEXT_DIM)
+			return false
+		var old: String = inventory.pop_at(junk[0])
+		var made: String = loot_rng.choices(["tonic", "brew", "elixir"], [6, 3, 1])[0]
+		inventory.append(made)
+		messages.add("You brew the %s into a %s. Don't think about it."
+				% [Items.items()[old]["name"], Items.items()[made]["name"]], GameConfig.GOOD)
+	elif key == "rile_up":
+		var pt := active_pet
+		if pt == null:
+			messages.add("You have nobody to rile up.", GameConfig.TEXT_DIM)
+			return false
+		pt.enraged = spec["duration"]
+		messages.add("%s is FURIOUS. Double damage for %d turns." % [pt.name, spec["duration"]], pt.colour)
+	elif key == "crowd_work":
+		hype_turns = spec["duration"]
+		messages.add("You work the crowd. Kills earn triple viewers for 10 turns.", GameConfig.ACCENT)
+	elif key == "pocket_popper":
+		var target: Variant = _bomb_target(spec["range"])
+		if target == null:
+			return false
+		_explode("popper", target)
+	elif key == "supply_drop":
+		remote_shop = true
+		if inventory.size() < GameConfig.INVENTORY_SIZE:
+			inventory.append("tonic")
+		messages.add("A sponsor drone lowers a shop crate, with a free Fizzy Tonic taped to the lid. One purchase, then it leaves.",
+				GameConfig.ACCENT)
+	elif key == "riposte":
+		riposte = spec["charges"]
+		messages.add("En garde. You'll parry the next %d attacks." % spec["charges"], GameConfig.INFO)
+	skill_cooldown = maxi(PyMath.floordiv(spec["cooldown"], 2), spec["cooldown"] - mod("int"))
+	events.emit("skill", {"skill": key})
+	_spend("action")
+	return true
+
+
+# --- Items ---
+
+## Pick up everything on the player's tile that fits in the pack.
+func pickup() -> bool:
+	if state != "playing":
+		return false
+	var where := Vector2i(player.x, player.y)
+	var here: Variant = floor_items.get(where)
+	if here == null or (here as Array).is_empty():
+		messages.add("Nothing here to pick up.", GameConfig.TEXT_DIM)
+		return false
+	if not _can_spend("action"):
+		return false
+	var took := false
+	while not (here as Array).is_empty() and inventory.size() < GameConfig.INVENTORY_SIZE:
+		var key: String = (here as Array).pop_front()
+		inventory.append(key)
+		took = true
+		messages.add("You pick up the %s." % Items.items()[key]["name"])
+		events.emit("item_pickup", {"item": key})
+	if (here as Array).is_empty():
+		floor_items.erase(where)
+	if not took:
+		messages.add("Your pack is full.", GameConfig.DANGER)
+		return false
+	_spend("action")
+	return true
+
+
+## Drop inventory item `index` on the player's tile. Free action.
+func drop(index: int) -> bool:
+	if state != "playing" or not (0 <= index and index < inventory.size()):
+		return false
+	var key: String = inventory.pop_at(index)
+	var where := Vector2i(player.x, player.y)
+	if not floor_items.has(where):
+		floor_items[where] = []
+	floor_items[where].append(key)
+	messages.add("You drop the %s." % Items.items()[key]["name"], GameConfig.TEXT_DIM)
+	events.emit("item_drop", {"item": key})
+	return true
+
+
+## Take off whatever is in `slot` and put it in the pack.
+func unequip(slot: String) -> bool:
+	var key: Variant = equipment.get(slot)
+	if state != "playing" or not PyMath.truthy(key) or inventory.size() >= GameConfig.INVENTORY_SIZE:
+		return false
+	equipment[slot] = null
+	inventory.append(key)
+	refresh_stats()
+	events.emit("unequip", {"slot": slot, "item": key})
+	return true
+
+
+## Equip, drink or throw an item. Returns true if it took a turn.
+func use_item(index: int) -> bool:
+	if state != "playing" or not (0 <= index and index < inventory.size()):
+		return false
+	var key: String = inventory[index]
+	var item: Dictionary = Items.items()[key]
+	var kind: String = item["kind"]
+	if equipment.has(kind):
+		equip(index)
+		return false
+	if kind == "junk":
+		messages.add("The %s is junk. Drop it." % item["name"], GameConfig.TEXT_DIM)
+		return false
+	var part := "bonus" if kind == "potion" else "action"
+	if kind == "potion":
+		var p := player
+		if p.hp >= p.max_hp:
+			messages.add("You're already at full health.", GameConfig.TEXT_DIM)
+			return false
+		if not _can_spend(part):
+			return false
+		inventory.pop_at(index)
+		var healed := p.heal(PyMath.round_half_even(item["heal"] * float(get_trait("potion_mult", 1))
+				* float(get_trait("class_potion_mult", 1))
+				* (1 + 0.08 * practice("first_aid"))
+				* (1 + 0.05 * mod("int"))))
+		messages.add("You drink the %s and recover %d HP." % [item["name"], healed], GameConfig.GOOD)
+		events.emit("item_use", {"item": key, "healed": healed})
+	else:
+		if not _can_spend(part) or not _throw_bomb(index):
+			return false
+	_spend(part)
+	return true
+
+
+func _throw_bomb(index: int) -> bool:
+	if in_safe_room:
+		messages.add("The System forbids explosions in safe rooms.", GameConfig.TEXT_DIM)
+		return false
+	var target: Variant = _bomb_target(GameConfig.BOMB_RANGE)
+	if target == null:
+		return false
+	_explode(inventory.pop_at(index), target)
+	return true
+
+
+## The nearest visible monster within `reach` (first on ties), or null with a log line.
+func _bomb_target(reach: int) -> Variant:
+	var p := player
+	var seen: Array = []
+	for m in monsters:
+		if visible.has(Vector2i(m.x, m.y)) and Ai.cheb(m, p) <= reach:
+			seen.append(m)
+	if seen.is_empty():
+		messages.add("No target in range.", GameConfig.TEXT_DIM)
+		return null
+	return PyMath.min_by(seen, func(m: Monster) -> int: return Ai.cheb(m, p))
+
+
+func _explode(key: String, target: Monster) -> void:
+	var item: Dictionary = Items.items()[key]
+	var dice: Array = item["dice"]
+	var damage := PyMath.round_half_even(Dice.roll(rng, dice[0], dice[1]) * float(get_trait("bomb_mult", 1))
+			* (1 + 0.08 * practice("lobbing")))
+	var dc := save_dc()
+	messages.add("You throw the %s. BOOM: %d damage (%s). Dexterity save DC %d for half."
+			% [item["name"], damage, Dice.fmt(dice[0], dice[1]), dc], GameConfig.ACCENT)
+	var killed := 0
+	var hit: Array = []
+	_hold_combat = true         # a blast that kills the last fighter but catches a
+	for m in monsters.duplicate():  # bystander carries on the same fight
+		if Ai.cheb(m, target) <= item["radius"]:
+			var st := Combat.saving_throw(rng, m.save, dc)
+			var saved: bool = st[0]
+			var face: int = st[1]
+			var dealt: int = m.take_damage(maxi(1, PyMath.floordiv(damage, 2)) if saved else damage)
+			if saved:
+				messages.add("%s dives aside (d20 %d%s vs DC %d) and takes %d."
+						% [m.The, face, PyFmt.signed_int(m.save), dc, dealt], GameConfig.TEXT_DIM)
+			m.alerted = true
+			killed += int(not m.alive)
+			hit.append(m)
+			_after_hit(m, "bomb")
+	events.emit("bomb", {"item": key, "kills": killed})
+	_engage(hit)
+	_hold_combat = false
+	_check_combat_over("cleared")
+
+
+# --- Loot boxes ---
+
+func _take_reason(tier: String) -> String:
+	var reasons: Variant = box_reasons.get(tier)
+	if reasons != null and not (reasons as Array).is_empty():
+		return (reasons as Array).pop_front()
+	return "A gift from the System. It won't say why."
+
+
+## Open one box of this tier. Safe rooms only; needs a free pack slot.
+func open_box(tier: String) -> bool:
+	if state != "playing" or not boxes.has(tier):
+		return false
+	if not in_safe_room:
+		messages.add("Loot boxes can only be opened in a safe room.", GameConfig.TEXT_DIM)
+		return false
+	if inventory.size() >= GameConfig.INVENTORY_SIZE:
+		messages.add("Your pack is full. Drop something first.", GameConfig.DANGER)
+		return false
+	boxes.erase(tier)
+	last_reason = _take_reason(tier)
+	_reveal(tier)
+	return true
+
+
+func _reveal(tier: String, rerolled: bool = false) -> void:
+	var key := Loot.roll_box(tier, loot_rng)
+	inventory.append(key)
+	last_reveal = [tier, key]
+	box_log.append({"tier": tier, "item": key, "value": Items.items()[key]["value"],
+			"ev": PyMath.round_n(Loot.box_stats(tier)[0], 2), "rerolled": rerolled,
+			"turn": turn, "reason": last_reason if PyMath.truthy(last_reason) else ""})
+	messages.add("The %s box contains: %s!" % [Content.box(tier)["name"], Items.items()[key]["name"]],
+			Content.box(tier)["colour"])
+	events.emit("box_opened", {"tier": tier, "item": key, "rerolled": rerolled})
+
+
+## Hand back the item from the last box and roll that box again, for a fee.
+func reroll() -> bool:
+	if state != "playing" or not PyMath.truthy(last_reveal) or not in_safe_room:
+		return false
+	var tier: String = last_reveal[0]
+	var key: String = last_reveal[1]
+	var fee := reroll_fee(tier)
+	if not inventory.has(key):
+		return false
+	if gold < fee:
+		messages.add("A reroll costs %d gold." % fee, GameConfig.TEXT_DIM)
+		return false
+	gold -= fee
+	inventory.erase(key)
+	events.emit("box_reroll", {"tier": tier, "item": key, "fee": fee})
+	_reveal(tier, true)
+	return true
+
+
+## Swap TRADE_UP_COST boxes of a tier for one of the next tier. Free action.
+func trade_up(tier: String) -> bool:
+	var up := Loot.next_tier(tier)
+	if state != "playing" or up == "" or boxes.count(tier) < Loot.TRADE_UP_COST:
+		return false
+	if not in_safe_room:
+		messages.add("Trades happen in safe rooms.", GameConfig.TEXT_DIM)
+		return false
+	for _i in range(Loot.TRADE_UP_COST):
+		boxes.erase(tier)
+		_take_reason(tier)
+	boxes.append(up)
+	if not box_reasons.has(up):
+		box_reasons[up] = []
+	box_reasons[up].append("Traded up from %d %s boxes." % [Loot.TRADE_UP_COST, Content.box(tier)["name"]])
+	messages.add("Traded %d %s boxes for a %s box." % [Loot.TRADE_UP_COST, Content.box(tier)["name"],
+			Content.box(up)["name"]], Content.box(up)["colour"])
+	events.emit("box_trade", {"tier": tier, "to": up})
+	return true
