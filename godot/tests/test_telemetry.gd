@@ -275,6 +275,8 @@ func test_csv_parse_round_trip() -> void:
 # --- Python parity ---------------------------------------------------------
 
 func _remove_tree(path: String) -> void:
+	if not DirAccess.dir_exists_absolute(path):
+		return
 	for d in DirAccess.get_directories_at(path):
 		_remove_tree(path.path_join(d))
 	for f in DirAccess.get_files_at(path):
