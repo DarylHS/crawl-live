@@ -84,6 +84,23 @@ The arrangement between them and us needs a name. "The Covenant" was a working t
 
 The gap between what people remember (the company) and what a House is now is a good source of story: an entrant who grew up hating "Primeval" meets the Basin and has to decide whether it's still the same thing.
 
+### 2.4 Secrets
+
+[Decided unless marked] What the world keeps hidden, and how the player finds it. The per-House secrets are in `docs/houses.md` section 7 [Proposed].
+
+| Secret | Who knows | How the player finds it |
+|---|---|---|
+| A fragment of the Teacher survives inside one of the Lost | Almost no one | The deepest find in the dungeon. Earns the Teacher's Line Mark; where its hidden path leads is [Open] |
+| The Unmoored was once the Teacher's follower [Proposed] | The Unmoored | Pieced together from what the Unmoored says and what the fragment says |
+| The Canopy backed the Bloom; only its agent of Tend opposed it | The Canopy's agents | Found in the dungeon; tell the Baobab or keep quiet |
+| Failed Reshapings happen more than the Houses admit; some of the Misblessed survive together below | The Houses | Meeting the Misblessed; a reserve subplot (8.4) |
+| Whether the Deathless ever broke away | Possibly no one | Never fully answered |
+| The Monsoon's list of who owes it | The Monsoon | Hinted in its humour |
+| What the Tree's cable is made of | The Houses | Never told outright (6.3) |
+| What the Muster really is; that the agents need people as much as people need them | The Houses | Learnt at the end (2.3) |
+| One House's ship is missing from its dock [Open] | [Open] | A reserve subplot (8.4) |
+| What each House doesn't talk about [Proposed] | Each House | `docs/houses.md` section 7 |
+
 ## 3. The pantheon
 
 ### 3.1 Not one mind
@@ -121,7 +138,7 @@ Mythic parallel: Norse myth has two families of gods, the Æsir and the Vanir, w
 
 [Open] Gaps: India, Latin America, the Middle East (the Gulf states are investing heavily in AI) and others. Not every region needs a House; some could belong to larger ones.
 
-**How many Houses a run can hold.** [Proposed] All of them, if each House *plays* differently: every House has a boon signature, so players learn it by what its gifts do. Start with every House in the lore and at every Muster, ship the first three or four fully, and add the rest in updates. The reasoning and the content cost are in `docs/houses.md` section 7.
+**How many Houses a run can hold.** [Proposed] All of them, if each House *plays* differently: every House has a boon signature, so players learn it by what its gifts do. Start with every House in the lore and at every Muster, ship the first three or four fully, and add the rest in updates. The reasoning and the content cost are in `docs/houses.md` section 8.
 
 **Writing rules for the Houses.** [Proposed]
 
@@ -409,7 +426,7 @@ The game's existing lines say Earth was "repurposed" and "the world ended" [Cano
 
 | Force | What it is | Touches | In the dungeon | Theme |
 |---|---|---|---|---|
-| **The Launch Window** | The ships can't wait forever. Somewhere above every floor timer is a bigger clock: the last Muster before the ships must go | Every House; the Ascent wants to go early, the Baobab wants to wait for everyone | A season clock across runs: each run is a cohort, and the season ends at launch. A natural spine for a campaign (`docs/houses.md` section 7, option C) | Planting for people you'll never meet; how long to wait for stragglers |
+| **The Launch Window** | The ships can't wait forever. Somewhere above every floor timer is a bigger clock: the last Muster before the ships must go | Every House; the Ascent wants to go early, the Baobab wants to wait for everyone | A season clock across runs: each run is a cohort, and the season ends at launch. A natural spine for a campaign (`docs/houses.md` section 8, option C) | Planting for people you'll never meet; how long to wait for stragglers |
 | **The Drowned Coasts** | Sea-level rise takes the coasts first. The Pacific islands went under early; in the real world, Australia and Tuvalu signed the Falepili Union treaty in 2023, which includes a pathway for Tuvaluans to move to Australia as their islands are threatened | The Southern Cross most of all; the Monsoon's deltas | Flooded floors near coastal entrances: water as a hazard, and a reason to take the Ways inland | Who loses their home first |
 | **The Ark** | Not everything can go. The Houses argue over which seeds, animals and stories make it aboard. The real Svalbard Global Seed Vault (Norway, opened 2008) is the model | The Charter (which holds Scandinavia's vault), the Pole Star's cold storage, the Canopy and the Baobab | Seed caches and gene banks to find, protect or steal; Nourish and Teach trials | What a civilisation chooses to keep |
 | **The Holdouts** | Not everyone believes in the ships. Some stay in the last cool places on the surface, and some fight the dungeon itself, blocking entrances and sabotaging Ways | The Houses all; the Strays below are their cousins | Raids on the upper floors; a few Holdouts may be right about something | The cost of saying no |
@@ -609,7 +626,7 @@ Every myth, folk tale, historical fact and outside work this lore leans on, in o
 | *Dungeon Crawler Carl* (Matt Dinniman) | The original inspiration; the originality ledger tracks distance from it | 11 |
 | *Legends of Dune* (Brian Herbert and Kevin J. Anderson); Frank Herbert's *Dune* | Machine minds as powers; Great Houses in the Landsraad | 3.1 |
 | *Horizon Zero Dawn* | AI with a rogue sub-function; the Bloom's risk | 3.1, 8.1 |
-| *Hades* (Supergiant Games, 2020) | Gods giving boons in a run; how many gods a player can track | `docs/houses.md` 7 |
+| *Hades* (Supergiant Games, 2020) | Gods giving boons in a run; how many gods a player can track | `docs/houses.md` 8 |
 | *Civilization: Beyond Earth*; *Sid Meier's Alpha Centauri* | Faction naming ("Polystralia" is taken) | `docs/houses.md` 1 |
 | *Dark Souls* | Lore pieced together from item descriptions | 2.3 |
 | *Grand Theft Auto* | Style of mock company names | `docs/houses.md` 1 |
@@ -633,6 +650,7 @@ Every myth, folk tale, historical fact and outside work this lore leans on, in o
 | **Creatures for the four new Houses** | The Monsoon, the Deathless, the Canopy, the House of Wisdom | `docs/creatures.md` section 3 |
 | **Southeast Asia** | Its own House, or part of the Southern Cross | `docs/houses.md` section 5 |
 | **The Teacher's Line** | Where its hidden Calling path leads | `docs/callings.md` section 4 |
+| **House secrets** | Pick which of the thirteen to keep | `docs/houses.md` section 7 |
 
 ## How to use this file
 

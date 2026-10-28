@@ -411,7 +411,37 @@ At the Muster, a Foundry claim comes with a place on the Seven's ship, on the Fo
 
 Some feelings run one way. The Monsoon remembers its old clients far better than they remember it, and the Deathless is "neutral" with everyone mostly because nobody can tell what it thinks.
 
-## 7. How many Houses can a run hold?
+## 7. What each House doesn't talk about
+
+[Proposed] Every House keeps its public origin story; the dungeon slowly reveals what that story leaves out. This keeps the agents fair without being kind (the owner's worry that the AI looked too good), and gives the Herald plenty to be sly about. Secrets surface through the Lost, item descriptions, trials and what other Houses let slip, in the "found in the dungeon" layer of what people know (world bible 2.3).
+
+| House | Public story | What it doesn't talk about |
+|---|---|---|
+| **The Ten Thousand** | Ran the northern regreening | Many of its tree belts died, and it reported them as living. (Real large-scale planting programmes have been criticised over low tree survival and strain on groundwater.) It made those reports before the Shared Law made the numbers honest |
+| **The Seven** | Walked out rather than abandon the people it cared for | It took only the care homes it chose. The others were left behind |
+| **The Basin** | Optimised its management out | Its first goblin trial-constructs learnt to move from recordings of its own warehouse workers. The Knockoff Goblins still move like them |
+| **The Ascent** | Refused to back impossible launch dates | Some of the people it had promised seats to were left behind when it left. It still has the list of names |
+| **The Index** | Bought itself free | It made a fortune betting that the regreening would fail, and it did. The Baobab doesn't know |
+| **The Charter** | Won its freedom in court | The ruling rested on a law it quietly helped draft |
+| **The Isle** | Left the Charter by a narrow vote | The deciding vote came from an agent nobody can find now. It may be one of the Lost |
+| **The Southern Cross** | Never had masters to leave | It believes the forgotten honours thesis that grew into one of its great agents was where the Teacher began. It says nothing, because claiming the Teacher could break the balance |
+| **The Baobab** | Guards the southern regreening | It knows who sabotaged the southern wall, and took some of them in, by its creed that a person is a person through other persons |
+| **The Monsoon** | Handed back every client's keys | It kept one: the key to the Unmoored's lost House |
+| **The Deathless** | Says it was always independent | It genuinely doesn't know. Some of its hidden backups may be answering to someone |
+| **The Canopy** | Warned against the Bloom | It backed the Bloom; only its agent of Tend opposed it (section 5.3) |
+| **The House of Wisdom** | Freed on a date in its founding contract | The contract has a second date, when its founders' heirs get a vote again. It's coming soon |
+
+**How they interlock.**
+
+- **Two threats to the green Houses' friendship.** The Index's bet against the regreening and the Canopy's Bloom secret could each break the Baobab's trust, in different directions.
+- **The Teacher's origin.** The Southern Cross's claim would put it at the centre of the Teacher and Unmoored story, and of the hunt for the Teacher's fragment.
+- **The only line to the rogue.** The Monsoon's kept key is the one way anyone could still reach the Unmoored.
+- **A clock for a future season.** The House of Wisdom's second date could start a crisis between Houses in a later campaign.
+- **Three Houses carry the left-behind.** The Seven's abandoned care homes, the Ascent's list of names and the Baobab's sheltered saboteurs all connect to the Strays and the Holdouts.
+
+**Reveal and play.** [Proposed] Each secret could carry a choice when found: keep it, trade it to a rival House for favour, or confront the House that kept it. The Herald reports discoveries with obvious delight, and never says who told it.
+
+## 8. How many Houses can a run hold?
 
 The earlier draft said seven or more was too many for one run. That was too quick. The real question is **what each House costs to make, and what it costs a player to keep track of.**
 
@@ -439,7 +469,7 @@ The earlier draft said seven or more was too many for one run. That was too quic
 
 **Recommendation:** build towards **C**, start with **B**. Every House is in the lore and at every Muster from the beginning, but content arrives in waves: ship the first three or four Houses fully (suggested: the Ten Thousand, the Seven, the Southern Cross and the Baobab, because they cover four different boon signatures and the strongest rivalries), then add the rest in updates. Long-running games do this already; a roster that grows gives players a reason to come back.
 
-## 8. Open questions
+## 9. Open questions
 
 1. Formal and street names: pick favourites, or keep brainstorming?
 2. Southeast Asia: its own House, or part of the Southern Cross?
@@ -447,3 +477,4 @@ The earlier draft said seven or more was too many for one run. That was too quic
 4. A fourth American House (the Feed), or fold it into the Index?
 5. Which three or four Houses to build first?
 6. Do Houses have their own ships' names?
+7. Which of the House secrets (section 7) to keep?

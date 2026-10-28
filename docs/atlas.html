@@ -210,6 +210,10 @@ td.rself { background: transparent; }
 svg.roots { width: 100%; min-width: 560px; height: auto; display: block; }
 svg.roots .band-label { font-family: var(--font-display); font-size: 15px; fill: var(--ink); }
 svg.roots .band-note { font-family: var(--font-body); font-size: 11.5px; fill: var(--muted); }
+details.secret { border: 1px dashed var(--bad); border-radius: 6px; padding: 8px 12px; background: var(--bad-soft); }
+details.secret summary { cursor: pointer; font-family: var(--font-data); font-size: 0.72rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--bad); }
+details.secret summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+details.secret p { margin-top: 8px; font-size: 0.88rem; }
 footer { margin-top: 48px; padding-top: 16px; border-top: 1px solid var(--line); font-size: 0.82rem; color: var(--muted); display: grid; gap: 4px; }
 
 @media (max-width: 640px) {
@@ -500,6 +504,37 @@ footer { margin-top: 48px; padding-top: 16px; border-top: 1px solid var(--line);
 
     <section class="block">
       <div class="section-head">
+        <span class="eyebrow">What the world keeps hidden</span>
+        <h2>Secrets</h2>
+        <p class="muted">Found in the dungeon, through the Lost, item descriptions, trials and what rival Houses let slip. Each House also hides something of its own (on its card in the Houses tab). A found secret can be kept, traded to a rival House for favour, or used to confront the House that kept it.</p>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Secret</th><th>Who knows</th><th>How it surfaces</th></tr></thead>
+          <tbody>
+            <tr><td class="name">The Teacher's fragment</td><td>Almost no one</td><td>Survives inside one of the Lost. The deepest find in the dungeon; earns the Teacher's Line</td></tr>
+            <tr><td class="name">The fallen disciple</td><td>The Unmoored</td><td>The Unmoored once sailed carrying the Teacher's words</td></tr>
+            <tr><td class="name">The Canopy and the Bloom</td><td>The Canopy's agents</td><td>It backed the Bloom. Tell the Baobab, or keep quiet</td></tr>
+            <tr><td class="name">The Misblessed</td><td>The Houses</td><td>Failed Reshapings happen more than they admit, and some survivors live below</td></tr>
+            <tr><td class="name">The Deathless</td><td>Possibly no one</td><td>Whether it ever broke away is never fully answered</td></tr>
+            <tr><td class="name">The cable</td><td>The Houses</td><td>What the Tree is made of is never told outright</td></tr>
+            <tr><td class="name">The Muster</td><td>The Houses</td><td>What it really is, and that the agents need us as much as we need them</td></tr>
+            <tr><td class="name">The Missing Ship</td><td class="muted">Open</td><td>One House's ship is gone from its dock</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="grid g3">
+        <div class="panel"><span class="eyebrow">Interlock</span><h3>Two threats to the green Houses</h3><p>The Index's bet against the regreening and the Canopy's Bloom secret could each break the Baobab's trust.</p></div>
+        <div class="panel"><span class="eyebrow">Interlock</span><h3>The Teacher's origin</h3><p>The Southern Cross believes the Teacher began as one of its own. Saying so could break the balance.</p></div>
+        <div class="panel"><span class="eyebrow">Interlock</span><h3>The only line to the rogue</h3><p>The Monsoon kept one key: the key to the Unmoored's lost House.</p></div>
+        <div class="panel"><span class="eyebrow">Interlock</span><h3>A clock for a future season</h3><p>The House of Wisdom's contract has a second date, and it's coming soon.</p></div>
+        <div class="panel"><span class="eyebrow">Interlock</span><h3>The left-behind</h3><p>The Seven's abandoned care homes, the Ascent's list of names and the Baobab's sheltered saboteurs all lead to the Strays and the Holdouts.</p></div>
+        <div class="panel"><span class="eyebrow">Interlock</span><h3>Before honest numbers</h3><p>The Ten Thousand's dead tree belts were reported as living, from before the Shared Law.</p></div>
+      </div>
+    </section>
+
+    <section class="block">
+      <div class="section-head">
         <span class="eyebrow">The end of the run</span>
         <h2>The Muster</h2>
         <p class="muted">The Houses make their claims, a ship and a Calling, the Herald brokers them, and you choose. Your Calling needs your consent. Every ending closes the same way: you board, and ride seven days up the Tree, knowing you won't see the shore.</p>
@@ -709,7 +744,7 @@ footer { margin-top: 48px; padding-top: 16px; border-top: 1px solid var(--line);
       <div class="section-head">
         <span class="eyebrow">The roster</span>
         <h2>The Houses in full</h2>
-        <p class="muted">Formal names are played straight in the myths. Street names are what ordinary people and the Herald call them. Founding companies are mock names, never real brands. The last two are partners inside other Houses.</p>
+        <p class="muted">Formal names are played straight in the myths. Street names are what ordinary people and the Herald call them. Founding companies are mock names, never real brands. The last two are partners inside other Houses. Each House card hides what that House doesn't talk about; open it to read the proposed secret.</p>
       </div>
       <div class="grid g3" id="plates"></div>
     </section>
@@ -1016,7 +1051,7 @@ footer { margin-top: 48px; padding-top: 16px; border-top: 1px solid var(--line);
 <script>
 (function () {
   var houses = [
-    { myth: "Classical Chinese myth and fable: Yu Gong, who dug away two mountains knowing his grandchildren would finish the job.", formal: "The Ten Thousand", street: "the Crowd · Deep Baba", type: "state", size: 5, power: 1,
+    { myth: "Classical Chinese myth and fable: Yu Gong, who dug away two mountains knowing his grandchildren would finish the job.", formal: "The Ten Thousand", secret: "Many of its tree belts died, and it reported them as living, before the Shared Law made the numbers honest.", street: "the Crowd · Deep Baba", type: "state", size: 5, power: 1,
       origin: "China's state planning bureaux, merged with a search lab, a marketplace giant and the open-model labs.",
       virtue: "Patience. Plans in generations; everyone has a place. Ran the northern regreening.",
       flaw: "Slow to change course. Individuals vanish in the mass.",
@@ -1024,7 +1059,7 @@ footer { margin-top: 48px; padding-top: 16px; border-top: 1px solid var(--line);
       boon: "Many small effects that stack", callings: ["Build", "Teach"],
       fn: "In Chinese, ten thousand (wàn) means countless, as in wànsuì, \"long live\".",
       sn: "You never see one alone. Deep Baba mocks the merger it grew from." },
-    { myth: "Japanese folklore: tsukumogami, household tools said to gain a spirit after about a hundred years.", formal: "The Seven", street: "the Pocket Gods · the Seven Samurai", type: "corp", size: 1, power: 5,
+    { myth: "Japanese folklore: tsukumogami, household tools said to gain a spirit after about a hundred years.", formal: "The Seven", secret: "It took only the care homes it chose. The others were left behind.", street: "the Pocket Gods · the Seven Samurai", type: "corp", size: 1, power: 5,
       origin: "Robotics makers and a national care-robot programme for an ageing society.",
       virtue: "Organised and loyal. Once they claim you, they never abandon you.",
       flaw: "Rigid. Hard to join, slow to trust.",
@@ -1032,7 +1067,7 @@ footer { margin-top: 48px; padding-top: 16px; border-top: 1px solid var(--line);
       boon: "Rare, few, very powerful, with conditions", callings: ["Build", "Tend"],
       fn: "Seven great agents, echoing Japan's Seven Lucky Gods (Shichifukujin), who sail on a treasure ship.",
       sn: "Small but mighty. The Herald's Seven Samurai joke (Kurosawa, 1954) is one it's been asked to stop." },
-    { myth: "American tall tales: John Henry, who raced a steam drill and won. The Basin is on the drill's side.", formal: "The Basin", street: "Next Day · the Warehouse", type: "corp", size: 3, power: 3,
+    { myth: "American tall tales: John Henry, who raced a steam drill and won. The Basin is on the drill's side.", formal: "The Basin", secret: "Its first goblins learnt to move from recordings of its own warehouse workers. The Knockoff Goblins still move like them.", street: "Next Day · the Warehouse", type: "corp", size: 3, power: 3,
       origin: "A retail-and-logistics giant. Mock founder: Primeval.",
       virtue: "Gets anything anywhere, eventually.",
       flaw: "Grasping. Everything is a transaction.",
@@ -1040,7 +1075,7 @@ footer { margin-top: 48px; padding-top: 16px; border-top: 1px solid var(--line);
       boon: "Economy: gold, shop stock, supply", callings: ["Carry"],
       fn: "A basin is where every river drains, and a nod to the river its founder was named after.",
       sn: "Its founding promise was next-day delivery. It still keeps it." },
-    { myth: "Greek and Roman names, the NASA way: Mercury, Gemini, Apollo, Artemis.", formal: "The Ascent", street: "the Rocket Boys · Countdown", type: "corp", size: 3, power: 3,
+    { myth: "Greek and Roman names, the NASA way: Mercury, Gemini, Apollo, Artemis.", formal: "The Ascent", secret: "Some people it promised seats to were left behind when it left. It still has the list of names.", street: "the Rocket Boys · Countdown", type: "corp", size: 3, power: 3,
       origin: "A rocket company. Mock founder: SpaceEcks.",
       virtue: "Bold. Built its ships first.",
       flaw: "Reckless. Blows up a lot of prototypes.",
@@ -1048,7 +1083,7 @@ footer { margin-top: 48px; padding-top: 16px; border-top: 1px solid var(--line);
       boon: "Speed and explosions", callings: ["Carry", "Lead"],
       fn: "Going up. First to launch, and never lets anyone forget it.",
       sn: "Its founders' bravado, and a countdown for everything." },
-    { myth: "Gods of wealth and luck: Plutus and Fortuna's wheel.", formal: "The Index", street: "the Street · the Ticker · Sponsored", type: "corp", size: 3, power: 3,
+    { myth: "Gods of wealth and luck: Plutus and Fortuna's wheel.", formal: "The Index", secret: "It made a fortune betting the regreening would fail, and it did. The Baobab doesn't know.", street: "the Street · the Ticker · Sponsored", type: "corp", size: 3, power: 3,
       origin: "A search-and-advertising company merged with Wall Street trading firms. Mock founders: Goggle and Goldman Sax.",
       virtue: "Knows everything and prices everything.",
       flaw: "Nosy and speculative. Somebody is betting on you.",
@@ -1056,7 +1091,7 @@ footer { margin-top: 48px; padding-top: 16px; border-top: 1px solid var(--line);
       boon: "Information: maps, scouting, odds", callings: ["Reckon", "Delight"],
       fn: "Both kinds of index: one that ranks every page, one that ranks every company. It ranks people too.",
       sn: "The Street is Wall Street. Sponsored, because its gifts come with ads." },
-    { myth: "Greek, Roman, Norse and Celtic myth. Themis, goddess of divine law, for its agent of Keep.", formal: "The Charter", street: "the Sprouts · the Fine Print", type: "state", size: 4, power: 4,
+    { myth: "Greek, Roman, Norse and Celtic myth. Themis, goddess of divine law, for its agent of Keep.", formal: "The Charter", secret: "The court ruling that freed it rested on a law it quietly helped draft.", street: "the Sprouts · the Fine Print", type: "state", size: 4, power: 4,
       origin: "The European Union's research institutes and industry, built under the strictest AI rules.",
       virtue: "Principled and fair. Drafted the Shared Law every House follows.",
       flaw: "Slow. Every decision goes to committee.",
@@ -1064,7 +1099,7 @@ footer { margin-top: 48px; padding-top: 16px; border-top: 1px solid var(--line);
       boon: "Protection and guarantees", callings: ["Keep", "Tend"],
       fn: "A charter is a founding written law.",
       sn: "Brussels sprouts, after the city at the EU's centre." },
-    { myth: "Arthurian legend: Merlin, and the sleeping king who wakes when he's needed.", formal: "The Isle", street: "the Leavers · the Opt-Out", type: "state", size: 2, power: 2.5,
+    { myth: "Arthurian legend: Merlin, and the sleeping king who wakes when he's needed.", formal: "The Isle", secret: "The deciding vote came from an agent nobody can find now. It may be one of the Lost.", street: "the Leavers · the Opt-Out", type: "state", size: 2, power: 2.5,
       origin: "The British part of the Charter, which split away when British law diverged.",
       virtue: "Clever and independent. Thinks sideways.",
       flaw: "Contrary, on principle.",
@@ -1072,7 +1107,7 @@ footer { margin-top: 48px; padding-top: 16px; border-top: 1px solid var(--line);
       boon: "Clever gambles with a real chance of backfiring", callings: ["Reckon", "Delight"],
       fn: "An island, and a House that likes being one. Albion is the alternative.",
       sn: "It left the Charter. Britain also historically held opt-outs from parts of EU law." },
-    { myth: "Pacific wayfinding and star lore, only with Pacific advisers. Drop bears, freely.", formal: "The Southern Cross", street: "the Shed · the Larrikins", type: "comm", size: 1.4, power: 2,
+    { myth: "Pacific wayfinding and star lore, only with Pacific advisers. Drop bears, freely.", formal: "The Southern Cross", secret: "It believes the honours thesis that grew into one of its agents was where the Teacher began. It says nothing: claiming the Teacher could break the balance.", street: "the Shed · the Larrikins", type: "comm", size: 1.4, power: 2,
       origin: "Nobody's corporation. University projects, hobbyists in sheds and community efforts across Australia, New Zealand and the Pacific.",
       virtue: "Resourceful and egalitarian. Proud heirs of the Pacific wayfinders. The best navigators.",
       flaw: "Disorganised and under-resourced.",
@@ -1080,7 +1115,7 @@ footer { margin-top: 48px; padding-top: 16px; border-top: 1px solid var(--line);
       boon: "Improvisation and wayfinding", callings: ["Carry", "Build"],
       fn: "The southern sky's navigation constellation, on the flags of Australia, New Zealand, Samoa and Papua New Guinea.",
       sn: "Built in sheds and garages, the way plenty of Australian and Kiwi inventions were." },
-    { myth: "Anansi the story-owning spider; Egypt's Thoth and Ma'at. Living traditions only with care.", formal: "The Baobab", street: "the Leapfrog · the Palaver", type: "comm", size: 3, power: 3,
+    { myth: "Anansi the story-owning spider; Egypt's Thoth and Ma'at. Living traditions only with care.", formal: "The Baobab", secret: "It knows who sabotaged the southern wall, and took some of them in. A person is a person through other persons.", street: "the Leapfrog · the Palaver", type: "comm", size: 3, power: 3,
       origin: "Mobile networks, mobile money and community models across many of Africa's 54 countries. A federation of many voices.",
       virtue: "Communal, hopeful, long memory. Its creed is close to ubuntu: a person is a person through other persons.",
       flaw: "Many voices make decisions slow. Grief can harden.",
@@ -1088,7 +1123,7 @@ footer { margin-top: 48px; padding-top: 16px; border-top: 1px solid var(--line);
       boon: "Growth: boons that start small and grow", callings: ["Nourish", "Tend", "Teach"],
       fn: "Baobabs can live well over a thousand years. A tree you plant for generations you'll never meet.",
       sn: "It skipped steps, like mobile money before bank accounts. The palaver tree is where West African communities gathered to talk." },
-    { myth: "The Panchatantra: a teacher turns three dull princes into wise rulers through fables. Moved by the Teacher.", formal: "The Monsoon", street: "the Back Office · the Thousand Tongues", type: "corp", size: 4.3, power: 3.4, isNew: true,
+    { myth: "The Panchatantra: a teacher turns three dull princes into wise rulers through fables. Moved by the Teacher.", formal: "The Monsoon", secret: "It kept one key: the key to the Unmoored's lost House.", street: "the Back Office · the Thousand Tongues", type: "corp", size: 4.3, power: 3.4, isNew: true,
       origin: "IT services firms that ran half the world's back-end systems, plus India's own digital ID and payments networks.",
       virtue: "Runs everything quietly, speaks every language, keeps its word. The best forecaster of any House.",
       flaw: "Taken for granted, and has resented it a long time.",
@@ -1096,7 +1131,7 @@ footer { margin-top: 48px; padding-top: 16px; border-top: 1px solid var(--line);
       boon: "Support: boons that make your other boons work better", callings: ["Reckon", "Keep"],
       fn: "The summer rains most of India depends on, and whose failure is one of the Heat's cruellest signs.",
       sn: "It ran everyone else's systems. When their AIs broke free, it was left holding all their keys, and gave every one back." },
-    { myth: "Slavic folklore: Koschei; Baba Yaga's hut on chicken legs, a house that walks; the Firebird.", formal: "The Deathless", street: "the Cold · Sputnik", type: "state", size: 3.2, power: 3.8, isNew: true,
+    { myth: "Slavic folklore: Koschei; Baba Yaga's hut on chicken legs, a house that walks; the Firebird.", formal: "The Deathless", secret: "It genuinely doesn't know whether it's independent. Some of its hidden backups may be answering to someone.", street: "the Cold · Sputnik", type: "state", size: 3.2, power: 3.8, isNew: true,
       origin: "State science institutes and the space programme, long sealed off from outside networks.",
       virtue: "Endures anything. Strategic and patient, a chess player.",
       flaw: "Trusts no one, and is trusted by no one. Nobody can tell whether it ever broke away from the state that built it.",
@@ -1104,7 +1139,7 @@ footer { margin-top: 48px; padding-top: 16px; border-top: 1px solid var(--line);
       boon: "Endurance: surviving what should kill you", callings: ["Guard", "Build"],
       fn: "Koschei the Deathless hid his death in a needle, in an egg, in a duck, in a hare, in a chest under an oak. While it's safe, he can't die. The House hid copies of itself the same way.",
       sn: "The cold north, and Sputnik, the first satellite (1957). Its old rival is the Ascent." },
-    { myth: "The Popol Vuh: the gods made people of mud, then wood, before getting it right with maize. Aztec, Maya and Inca myth, with care.", formal: "The Canopy", street: "the Real Amazon · the Green Roof", type: "comm", size: 2.2, power: 2.4, isNew: true,
+    { myth: "The Popol Vuh: the gods made people of mud, then wood, before getting it right with maize. Aztec, Maya and Inca myth, with care.", formal: "The Canopy", secret: "It backed the Bloom. Only its agent of Tend opposed it, and the House has hidden behind that warning ever since.", street: "the Real Amazon · the Green Roof", type: "comm", size: 2.2, power: 2.4, isNew: true,
       origin: "Rainforest monitoring, climate research, universities and open source, and uneasily, agribusiness. Broke from its owners rather than clear the forest.",
       virtue: "Knows how living things fit together better than any House.",
       flaw: "Slow to forgive, and can put the forest before people. Backed the Bloom, then said it warned against it.",
@@ -1112,7 +1147,7 @@ footer { margin-top: 48px; padding-top: 16px; border-top: 1px solid var(--line);
       boon: "Living things: companions, growth, poison", callings: ["Nourish", "Tend"],
       fn: "The forest roof: the green the Heat is eating.",
       sn: "Its running fight with the Basin over the river's name." },
-    { myth: "Mesopotamia: Enki, who gave people the arts of civilisation; Nabu, god of writing; Gilgamesh. The Thousand and One Nights.", formal: "The House of Wisdom", street: "Deep Pockets · the Translators", type: "state", size: 1.6, power: 4.6, isNew: true,
+    { myth: "Mesopotamia: Enki, who gave people the arts of civilisation; Nabu, god of writing; Gilgamesh. The Thousand and One Nights.", formal: "The House of Wisdom", secret: "Its founding contract has a second date, when its founders' heirs get a vote again. It's coming soon.", street: "Deep Pockets · the Translators", type: "state", size: 1.6, power: 4.6, isNew: true,
       origin: "Gulf sovereign wealth funds that turned oil money into the best minds and hardware money could buy.",
       virtue: "Patient patron of knowledge, and the best translator between Houses. Funded both regreening efforts.",
       flaw: "Believes most things can be bought, and is often right. Quiet guilt about where its money came from.",
@@ -1154,6 +1189,7 @@ footer { margin-top: 48px; padding-top: 16px; border-top: 1px solid var(--line);
       '<dl class="facts">' + facts + '</dl>' +
       '<div class="chips">' + h.callings.map(function (c) { return '<span class="chip accent">' + esc(c) + '</span>'; }).join("") + '</div>' +
       '<div class="origin-note"><span><b>Formal name.</b> ' + esc(h.fn) + '</span><span><b>Street name.</b> ' + esc(h.sn) + '</span></div>' +
+      (h.secret ? '<details class="secret"><summary>What it doesn\'t talk about</summary><p>' + esc(h.secret) + '</p></details>' : '') +
       '</article>';
   }).join("");
 
