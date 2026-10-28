@@ -7,6 +7,7 @@ extends TestCase
 ##
 ## Compared at core scope, as parity_diff.py does: msg records, the `i` counter of ev records, the
 ## events of the stand-in systems (achievement, box_gained, viewers_gained, sponsor_gift, fun_fact),
+## showmanship practice_level events and the many_at_3 field of the others,
 ## viewers in turn records and the show stream (index 4 of r, rs and words) are dropped from both
 ## sides. T1 to T3 replace the stand-ins and this test then compares everything.
 ## A missing reference directory fails the test (run through scripts/gd_test.sh).
@@ -41,6 +42,10 @@ static func _core(rec: Dictionary) -> Dictionary:
 		return {}
 	if k == "ev" and SKIP_EVENTS.has(rec["e"]):
 		return {}
+	if k == "ev" and rec["e"] == "practice_level":
+		if rec["p"]["skill"] == "showmanship":
+			return {}
+		rec["p"].erase("many_at_3")
 	if k == "ev":
 		rec.erase("i")
 	if k == "turn":

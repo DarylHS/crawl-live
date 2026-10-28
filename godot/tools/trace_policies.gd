@@ -14,6 +14,9 @@ extends RefCounted
 ## its parity is unchecked; `bot` needs the T6 BotPolicy.
 
 const POLICY_NAMES := ["walk", "hunter", "bot"]
+## World methods each policy can call (trace.gd refuses a policy whose methods are missing).
+const POLICY_METHODS := {"walk": ["move_player", "wait"],
+		"hunter": ["move_player", "wait", "descend", "pickup", "use_item"], "bot": []}
 const POTIONS := ["tonic", "brew", "elixir"]
 
 

@@ -268,3 +268,26 @@ func test_no_fighting_in_safe_room() -> void:
 		w.wait()
 	assert_gte(w.player.hp, hp)
 	assert_eq(m.hp, m.max_hp)
+
+
+## Builds a world, starts a fight (combat, initiative, chase cache and toasts all live) and returns weak
+## references to the world, its encounter and the tracer when `traced` (taps attached).
+func _build_mid_combat(traced: bool) -> Array:
+	var tracer := TraceRun.Tracer.new()
+	var w: World
+	if traced:
+		w = World.new(3, ["dog", "Rex"], null, Callable(tracer, "on_event"), Callable(tracer, "on_message"), tracer)
+	else:
+		w = World.new(3, ["dog", "Rex"])
+	var g := Entities.spawn_monster("goblin", w.player.x + 2, w.player.y)
+	w.monsters.append(g)
+	w.join_combat(g)
+	w.wait()
+	assert_not_null(w.combat)
+	return [weakref(w), weakref(w.combat), weakref(tracer), weakref(w.training)]
+
+
+func test_world_dropped_mid_combat_is_freed(traced = use_parameters([false, true])) -> void:
+	var refs := _build_mid_combat(traced)
+	for i in refs.size():
+		assert_null(refs[i].get_ref(), "ref %d traced=%s" % [i, traced])

@@ -145,6 +145,21 @@ def test_core_scope_ignores_messages_and_show_stream(tmp_path):
     assert not PD.compare_files(a, b, scope="full").ok
 
 
+def test_core_scope_ignores_showmanship_training(tmp_path):
+    def ev(skill, many):
+        return {"k": "ev", "i": 1, "t": 3, "d": 1, "e": "practice_level",
+                "p": {"skill": skill, "level": 1, "title": "X", "many_at_3": many}, "r": [1, 0, 0, 0, 0]}
+    other = {"k": "ev", "i": 2, "t": 3, "d": 1, "e": "step", "p": {"sneaky": False}, "r": [1, 0, 0, 0, 0]}
+    a, b = tmp_path / "a.jsonl", tmp_path / "b.jsonl"
+    a.write_text("\n".join(json.dumps(r) for r in [ev("showmanship", 0), ev("sneaking", 1), other]) + "\n")
+    b.write_text("\n".join(json.dumps(r) for r in [ev("sneaking", 2), other]) + "\n")
+    assert PD.compare_files(a, b, scope="core").ok          # showmanship dropped, many_at_3 ignored
+    assert not PD.compare_files(a, b, scope="full").ok
+    c = tmp_path / "c.jsonl"
+    c.write_text("\n".join(json.dumps(r) for r in [ev("dodging", 1), other]) + "\n")
+    assert not PD.compare_files(b, c, scope="core").ok      # a different skill still differs
+
+
 def test_dirs_mode(tmp_path):
     da, db = tmp_path / "A", tmp_path / "B"
     for d in (da, db):

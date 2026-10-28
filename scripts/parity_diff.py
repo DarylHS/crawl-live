@@ -15,7 +15,10 @@ The header's "impl" is never compared.
 --scope core ignores: msg records, the "i" counter of ev records, the show counter
 (index 4 of "r", "rs" and the floor records' "words"), "viewers" in turn
 records, and events of systems that are still stubbed (achievement, box_gained,
-viewers_gained, sponsor_gift, fun_fact).  --scope full compares everything.
+viewers_gained, sponsor_gift, fun_fact).  Because the stubbed Showrunner never emits
+viewers_gained, Python also trains Showmanship (it only affects viewer gains), so core also drops
+practice_level events whose skill is "showmanship" and ignores the many_at_3 field of the other
+practice_level events.  --scope full compares everything (strict).
 
 On a difference it prints the record index, the turn and depth, the field path, both
 values, the RNG word-counter delta when "r" is involved, and the last --context records
@@ -104,6 +107,13 @@ def normalise(rec, scope):
         return None
     if k == "ev" and rec.get("e") in CORE_SKIP_EVENTS:
         return None
+    if k == "ev" and rec.get("e") == "practice_level":
+        p = rec.get("p")
+        if isinstance(p, dict):
+            if p.get("skill") == "showmanship":
+                return None
+            rec = dict(rec)
+            rec["p"] = {a: b for a, b in p.items() if a != "many_at_3"}
     rec = dict(rec)
     if k == "ev":
         rec.pop("i", None)

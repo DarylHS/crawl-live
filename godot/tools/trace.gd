@@ -82,6 +82,18 @@ func _initialize() -> void:
 		_fail("--policy needs one of %s, got '%s'" % [", ".join(TracePolicies.POLICY_NAMES), policy])
 		return
 	var steps := int(opts.get("--steps", "500"))
+	if opts.has("--pet") and opts["--pet"] != "none" and not Content.table("pets").has(opts["--pet"]):
+		_fail("--pet needs one of %s or none, got '%s'" % [", ".join(PackedStringArray(Content.table("pets").keys())), opts["--pet"]])
+		return
+	if not opts.has("--floor-only"):
+		var have := {}
+		for m in (World as GDScript).get_script_method_list():
+			have[m["name"]] = true
+		var needs: Array = TracePolicies.POLICY_METHODS.get(policy, [])
+		for method in needs:
+			if not have.has(method):
+				_fail("policy '%s' needs World.%s, which is not ported yet" % [policy, method])
+				return
 	var out_dir := ""
 	if opts.has("--out-dir"):
 		out_dir = _resolve(opts["--out-dir"])
