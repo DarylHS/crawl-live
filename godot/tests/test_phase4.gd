@@ -1,6 +1,6 @@
 extends TestCase
 ## tests/test_phase4.py: item values, box stats against simulation, the shop policy tests (S4) and the
-## shop turnover and contract tests on a World (S6). The rest (kills, trade-up, reroll, buying and
+## shop turnover and contract tests on a World (S6) and kills paying gold (S7). The rest (trade-up, reroll, buying and
 ## selling in World, fun facts, run report, save) is listed in docs/port-plan.md B.1.
 
 
@@ -133,3 +133,33 @@ func test_every_contract_previews() -> void:
 	for m in w.monsters:
 		if not m.boss:
 			assert_eq(m.dmg_bonus, Entities.spawn_monster(m.key, 0, 0).dmg_bonus)
+
+
+func _adjacent_monster(w: World, key: String = "gnawer", hp: int = -1) -> Array:
+	var p := w.player
+	for n in DungeonFloor.NEIGHBOURS_8:
+		var x := p.x + n.x
+		var y := p.y + n.y
+		if w.floor.walkable(x, y) and not w.floor.is_safe(x, y):
+			var m := Entities.spawn_monster(key, x, y)
+			if hp >= 0:
+				m.hp = hp
+			w.monsters.append(m)
+			return [m, n]
+	fail_test("no free tile")
+	return []
+
+
+func test_kills_pay_gold() -> void:
+	var w := World.new(1)
+	w.monsters.clear()
+	var found := _adjacent_monster(w, "gnawer", 1)
+	var m: Monster = found[0]
+	var d: Vector2i = found[1]
+	w.player.attack = 100
+	for _i in range(5):
+		if not w.monsters.has(m):
+			break
+		w.move_player(d.x, d.y)
+	assert_gt(w.gold, 0)
+	assert_eq(w.floor_stats[-1]["gold"], w.gold)

@@ -1,6 +1,7 @@
 extends TestCase
-## World (slice S6: init, traits, refresh_stats, floors and spawns, queries, timer). Most of
-## tests/test_world.py needs attacks and turn flow and arrives with slices S7 and S8 (port plan B.1);
+## World (slice S6: init, traits, refresh_stats, floors and spawns, queries, timer). Slice S7 added the
+## kill and collapse tests; the rest of tests/test_world.py (descend, rest, the random-play smoke test)
+## arrives with slice S8 (port plan B.1);
 ## the S6 parts of the other pytest files live in test_attributes, test_practice, test_items,
 ## test_phase3 and test_phase4. This file holds World-specific checks and the ownership test.
 
@@ -192,3 +193,78 @@ func test_stairs_reachable_on_every_floor() -> void:
 		for s in w.floor.stairs:
 			assert_eq(w.floor.tiles[s.y][s.x], DungeonFloor.STAIRS)
 			assert_gt(dist[s.y * w.floor.width + s.x], 0)
+
+
+# --- S7 (attacks, kills, the clock), plus bump and safe-room tests that need only move_player ---
+
+func _free_neighbour(w: World) -> Vector2i:
+	var p := w.player
+	for n in DungeonFloor.NEIGHBOURS_8:
+		if w.floor.walkable(p.x + n.x, p.y + n.y) and not w.floor.is_safe(p.x + n.x, p.y + n.y):
+			return n
+	fail_test("player boxed in")
+	return Vector2i()
+
+
+## (S8 range, pulled forward with move_player.)
+func test_bump_attack_damages_monster() -> void:
+	var w := World.new(3)
+	w.monsters.clear()
+	var d := _free_neighbour(w)
+	var m := Entities.spawn_monster("golem", w.player.x + d.x, w.player.y + d.y)
+	w.monsters.append(m)
+	w.player.attack = 100
+	assert_true(w.move_player(d.x, d.y))
+	assert_lt(m.hp, m.max_hp)
+	assert_ne(Vector2i(w.player.x, w.player.y), Vector2i(m.x, m.y))
+
+
+func test_kill_awards_xp_and_emits_event() -> void:
+	var w := World.new(4)
+	w.monsters.clear()
+	var kills: Array = []
+	w.events.subscribe("kill", func(_n: String, d: Dictionary) -> void: kills.append(d))
+	var d := _free_neighbour(w)
+	var m := Entities.spawn_monster("gnawer", w.player.x + d.x, w.player.y + d.y)
+	m.hp = 1
+	w.monsters.append(m)
+	w.player.attack = 100
+	w.move_player(d.x, d.y)
+	assert_false(kills.is_empty())
+	assert_eq(kills[0]["monster"], "gnawer")
+	assert_eq(w.player.kills, 1)
+	assert_eq(w.player.xp, m.xp_value)
+	assert_false(w.monsters.has(m))
+
+
+func test_timer_collapse_kills_player() -> void:
+	var w := World.new(5)
+	w.monsters.clear()
+	w.timer = 2
+	w.wait()
+	assert_eq(w.state, "playing")
+	w.wait()
+	assert_eq(w.state, "dead")
+	assert_true((w.death_cause as String).contains("collapsed"))
+
+
+## (S8 range, pulled forward with move_player and wait.)
+func test_no_fighting_in_safe_room() -> void:
+	var w := World.new(10)
+	w.monsters.clear()
+	var sr := w.floor.safe_room
+	w.player.x = sr.x
+	w.player.y = sr.y                      # corner of safe room
+	# Put a monster just outside the room, adjacent diagonally.
+	var mx := sr.x - 1
+	var my := sr.y - 1
+	w.floor.tiles[my][mx] = 1
+	var m := Entities.spawn_monster("goblin", mx, my)
+	m.alerted = true
+	w.monsters.append(m)
+	var hp := w.player.hp
+	assert_false(w.move_player(-1, -1))
+	for _i in range(20):
+		w.wait()
+	assert_gte(w.player.hp, hp)
+	assert_eq(m.hp, m.max_hp)
