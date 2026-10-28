@@ -1,6 +1,12 @@
 extends SceneTree
-## Godot side of the parity traces (port plan 6.2). Floor-only modes so far (pure generate_floor, and
-## World mode with --spawns); the run mode follows with the World's turn flow.
+## Godot side of the parity traces (port plan 6.2): floor-only modes (pure generate_floor, and World mode
+## with --spawns) and run mode (a policy plays the World; slice S7 has --policy walk).
+##
+##   godot --headless --path godot -s res://tools/trace.gd -- --seed 5 --policy walk --steps 500 --out /tmp/gd.jsonl
+##       [--pet cat|dog|budgie|mouse|none] [--hero GENDER:BACKSTORY] [--no-msg]
+##   godot --headless --path godot -s res://tools/trace.gd -- --seeds 0-49 --policy walk --steps 500 --out-dir /tmp/gd_walk
+##       (writes <policy>_<seed>.jsonl per seed, like scripts/py_trace.py; default --policy hunter,
+##       default --steps 500, which needs slice S8 for hunter)
 ##
 ##   godot --headless --path godot -s res://tools/trace.gd -- --seed 5 --floor-only --floors 6 --out /tmp/gd.jsonl
 ##   godot --headless --path godot -s res://tools/trace.gd -- --seeds 0-199 --floor-only --out-dir /tmp/gd_floors
@@ -11,8 +17,8 @@ extends SceneTree
 ## Default --floors is 6; default output without --out is ./trace_<seed>.jsonl.
 
 
-const _VALUE_OPTS := ["--seed", "--seeds", "--floors", "--out", "--out-dir", "--pet", "--hero"]
-const _FLAG_OPTS := ["--floor-only", "--spawns"]
+const _VALUE_OPTS := ["--seed", "--seeds", "--floors", "--out", "--out-dir", "--pet", "--hero", "--policy", "--steps"]
+const _FLAG_OPTS := ["--floor-only", "--spawns", "--no-msg"]
 
 
 func _fail(msg: String) -> void:
@@ -46,10 +52,7 @@ func _initialize() -> void:
 			_fail("unknown option or argument: " + a)
 			return
 		i += 1
-	if not opts.has("--floor-only"):
-		_fail("only --floor-only is implemented so far")
-		return
-	for k in ["--seed", "--floors"]:
+	for k in ["--seed", "--floors", "--steps"]:
 		if opts.has(k) and not String(opts[k]).is_valid_int():
 			_fail("%s needs an integer, got '%s'" % [k, opts[k]])
 			return
@@ -74,6 +77,11 @@ func _initialize() -> void:
 	else:
 		seeds.append(int(opts.get("--seed", "0")))
 	var floors := int(opts.get("--floors", "6"))
+	var policy: String = opts.get("--policy", "hunter")
+	if not opts.has("--floor-only") and not (policy in TracePolicies.POLICY_NAMES):
+		_fail("--policy needs one of %s, got '%s'" % [", ".join(TracePolicies.POLICY_NAMES), policy])
+		return
+	var steps := int(opts.get("--steps", "500"))
 	var out_dir := ""
 	if opts.has("--out-dir"):
 		out_dir = _resolve(opts["--out-dir"])
@@ -81,27 +89,32 @@ func _initialize() -> void:
 	for seed_value in seeds:
 		var path: String
 		if out_dir != "":
-			path = "%s/floors_%d.jsonl" % [out_dir, seed_value]
+			path = "%s/%s_%d.jsonl" % [out_dir, "floors" if opts.has("--floor-only") else policy, seed_value]
 		else:
 			path = _resolve(opts.get("--out", "trace_%d.jsonl" % seed_value))
+		var records: Array
+		var pet: String = opts.get("--pet", "")
+		if pet == "none":
+			pet = ""
+		var hero: Variant = null
+		if opts.has("--hero"):
+			var parts := String(opts["--hero"]).split(":")
+			var story := parts[1] if parts.size() > 1 else ""
+			hero = {"name": "Bot", "gender": null if parts[0] == "" else parts[0],
+					"backstory": null if story == "" else story}
+		if not opts.has("--floor-only"):
+			records = TraceRun.run_trace(seed_value, policy, steps, pet, hero, not opts.has("--no-msg"))
+			if records.is_empty():
+				_fail("policy '%s' is not available yet" % policy)
+				return
+		elif opts.has("--spawns"):
+			records = TraceFloors.run_floors_world(seed_value, floors, pet, hero)
+		else:
+			records = TraceFloors.run_floors(seed_value, floors)
 		var f := FileAccess.open(path, FileAccess.WRITE)
 		if f == null:
 			_fail("cannot write " + path)
 			return
-		var records: Array
-		if opts.has("--spawns"):
-			var pet: String = opts.get("--pet", "")
-			if pet == "none":
-				pet = ""
-			var hero: Variant = null
-			if opts.has("--hero"):
-				var parts := String(opts["--hero"]).split(":")
-				var story := parts[1] if parts.size() > 1 else ""
-				hero = {"name": "Bot", "gender": null if parts[0] == "" else parts[0],
-						"backstory": null if story == "" else story}
-			records = TraceFloors.run_floors_world(seed_value, floors, pet, hero)
-		else:
-			records = TraceFloors.run_floors(seed_value, floors)
 		f.store_string(TraceFloors.to_lines(records))
 		f.close()
 		print("wrote ", path)
