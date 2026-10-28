@@ -1,7 +1,6 @@
 extends TestCase
 ## World (slice S6: init, traits, refresh_stats, floors and spawns, queries, timer). Slice S7 added the
-## kill and collapse tests; the rest of tests/test_world.py (descend, rest, the random-play smoke test)
-## arrives with slice S8 (port plan B.1);
+## kill and collapse tests and slice S8 the descend, rest and random-play smoke tests;
 ## the S6 parts of the other pytest files live in test_attributes, test_practice, test_items,
 ## test_phase3 and test_phase4. This file holds World-specific checks and the ownership test.
 
@@ -291,3 +290,87 @@ func test_world_dropped_mid_combat_is_freed(traced = use_parameters([false, true
 	var refs := _build_mid_combat(traced)
 	for i in refs.size():
 		assert_null(refs[i].get_ref(), "ref %d traced=%s" % [i, traced])
+
+
+# --- S8: descend, rest, random play ---------------------------------------------------------
+
+func test_descend_moves_to_next_floor_and_resets_timer() -> void:
+	var w := World.new(6)
+	var s0: Vector2i = w.floor.stairs[0]
+	w.player.x = s0.x
+	w.player.y = s0.y
+	w.timer -= 100
+	assert_true(w.stairs_locked)
+	assert_false(w.descend())                        # locked until half the time passes
+	w.turn = w.stairs_open_turn
+	assert_true(w.descend())
+	assert_eq(w.depth, 2)
+	assert_eq(w.timer, GameConfig.floor_turns(2))
+
+
+func test_final_floor_needs_the_boss_dead() -> void:
+	var w := World.new(7)
+	w.new_floor(GameConfig.NUM_FLOORS)
+	var s0: Vector2i = w.floor.stairs[0]
+	w.player.x = s0.x
+	w.player.y = s0.y
+	assert_true(w.exit_sealed)
+	assert_false(w.descend())
+	var boss: Monster = null
+	for m in w.monsters:
+		if m.tier == "headliner":
+			boss = m
+			break
+	boss.hp = 0
+	w._after_hit(boss, "melee")
+	assert_false(w.exit_sealed)
+	w.descend()
+	assert_eq(w.state, "victory")
+
+
+func test_descend_without_stairs_does_nothing() -> void:
+	var w := World.new(8)
+	assert_false(w.descend())
+	assert_eq(w.depth, 1)
+
+
+func test_rest_only_in_safe_room_and_costs_time() -> void:
+	var w := World.new(9)
+	w.monsters.clear()
+	w.floor_items.clear()
+	w.player.hp = 5
+	assert_false(w.rest())
+	var c := w.floor.safe_room.centre()
+	w.player.x = c.x
+	w.player.y = c.y
+	var before := w.timer
+	assert_true(w.rest())
+	assert_eq(w.player.hp, w.player.max_hp)
+	assert_lt(w.timer, before)
+
+
+## A random bot plays many turns: no crashes, monsters never enter safe rooms. Python's
+## `random.Random(seed)` driver is a PyRandom with the same seed.
+func test_random_play_smoke(seed_value = use_parameters(range(12))) -> void:
+	var rng := PyRandom.new(seed_value)
+	var w := World.new(seed_value)
+	w.player.max_hp = 10000
+	w.player.hp = 10000                              # keep it alive to cover more floors
+	for _i in range(4000):
+		if w.state != "playing":
+			break
+		if w.on_stairs and rng.random() < 0.5:
+			w.descend()
+		elif w.in_safe_room and rng.random() < 0.05:
+			w.rest()
+		else:
+			var d: Vector2i = rng.choice(DungeonFloor.NEIGHBOURS_8)
+			w.move_player(d.x, d.y)
+		var positions := {}
+		for m in w.monsters:
+			assert_false(w.floor.is_safe(m.x, m.y))
+			assert_true(w.floor.walkable(m.x, m.y))
+			positions[Vector2i(m.x, m.y)] = true
+		assert_eq(positions.size(), w.monsters.size())
+		assert_false(positions.has(Vector2i(w.player.x, w.player.y)))
+	assert_gt(w.turn, 0)

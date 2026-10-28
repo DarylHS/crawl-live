@@ -1,12 +1,31 @@
 extends TestCase
-## tests/test_floors.py: the parts that need only World A (S6) and the Headliner's key, Act rewards and
-## wandering monsters (S7). The timed-stairs test and the `descend` asserts are in docs/port-plan.md B.1 (S8).
+## tests/test_floors.py: World A (S6), the Headliner's key, Act rewards and wandering monsters (S7),
+## and the timed stairs and `descend` (S8).
 
 
 func test_floors_are_big_with_three_stairwells() -> void:
 	var w := World.new(1)
 	assert_eq([w.floor.width, w.floor.height], [GameConfig.MAP_W, GameConfig.MAP_H])
 	assert_eq(w.floor.stairs.size(), GameConfig.STAIRS_PER_FLOOR)
+
+
+func test_stairs_open_at_half_time_from_arrival() -> void:
+	var w := World.new(2)
+	w.new_floor(2)
+	var s0: Vector2i = w.floor.stairs[0]
+	w.player.x = s0.x
+	w.player.y = s0.y
+	assert_true(w.stairs_locked)
+	assert_false(w.descend())
+	assert_eq(w.stairs_wait, PyMath.floordiv(GameConfig.floor_turns(2), 2))
+	var opened: Array = []
+	w.events.subscribe("stairs_open", func(_n: String, d: Dictionary) -> void: opened.append(d))
+	for _i in range(w.stairs_wait):
+		w._tick_clock()
+	assert_false(w.stairs_locked)
+	assert_false(opened.is_empty())
+	assert_true(w.descend())
+	assert_eq(w.depth, 3)
 
 
 func test_timer_bonus_does_not_delay_the_stairs() -> void:
@@ -47,9 +66,7 @@ func _headliner(w: World) -> Monster:
 	return null
 
 
-## First half of test_headliner_drops_a_key_that_opens_the_stairs (S7: the kill and the key). The
-## `descend` asserts at the end of the pytest test wait for slice S8 (B.1).
-func test_headliner_drops_a_key() -> void:
+func test_headliner_drops_a_key_that_opens_the_stairs() -> void:
 	var w := World.new(4)
 	var boss := _headliner(w)
 	boss.hp = 0
@@ -57,6 +74,11 @@ func test_headliner_drops_a_key() -> void:
 	assert_true(w.has_key)
 	assert_false(w.stairs_locked)
 	assert_false(w.floor_items.get(Vector2i(boss.x, boss.y), []).is_empty())     # and a top-shelf item
+	var s0: Vector2i = w.floor.stairs[0]
+	w.player.x = s0.x
+	w.player.y = s0.y
+	assert_true(w.descend())
+	assert_false(w.has_key)                                                      # one floor only
 
 
 ## Second half of test_acts_per_floor_and_rewards: the Opening Act's map and the Featured Act's haul.
