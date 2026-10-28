@@ -51,7 +51,7 @@ The game is being ported to Godot 4 (GDScript) in `godot/`. The Python version s
 
 - [x] **P0 Plan and proof** (stop for review): `docs/port-plan.md`; `py_random.gd` matching Python for many seeds; JSON content generated; a bare Godot project that loads the data and runs headless tests; report on whether seed-for-seed parity is achievable and the risks.
 - [x] **P1 Rules core:** dice, attributes, dungeon generation, FOV, entities, combat, encounter/initiative, AI. Same seed gives identical floors and identical traces for scripted actions.
-- [ ] **P2 Rules systems:** items, loot, achievements, showrunner, practice skills, classes, bosses, pet, shop, contracts, crafting, fun facts, save/load, telemetry. Parity traces over full bot runs.
+- [x] **P2 Rules systems:** items, loot, achievements, showrunner, practice skills, classes, bosses, pet, shop, contracts, crafting, fun facts, save/load, telemetry. Parity traces over full bot runs.
 - [ ] **P3 Bot and data** (stop for review): GDScript bot, 2,000 runs, comparison with Phase 7 data, notebooks re-run.
 - [ ] **P4 First-person 3D:** floor meshes or GridMap, per-floor tints and textures, distance fog, torchlight, free look and smooth walking, grid-locked combat camera matching Phase 7.
 - [ ] **P5 Entities and top-down:** Sprite3D billboards (placeholders first, art bible sizes, boss-tier outlines), minimap, top-down view (TileMapLayer), Tab switching, settings file.
@@ -221,3 +221,11 @@ The game is being ported to Godot 4 (GDScript) in `godot/`. The Python version s
 - Project rules that came out of P1: subsystems hold the World through a WeakRef and the World owns them for life (Godot frees by reference count, so a back-reference cycle leaks); Python `sum()`, half-even `round`, `//`, `%` and float printing go through `PyMath`/`PyFmt`; every pytest test is ported or listed in plan Appendix B.1 with its slice.
 - Speed: Godot is about 1.7x slower than Python per turn; a 2,000-run bot batch is estimated at 15-25 minutes across 4 processes. Hot spots are FOV and distance maps (ideas in plan notes).
 - Two verifier failures were caught and fixed before merge (S4 stand-ins leaked the World; S6 missed some floor tests). A container restart cost one verifier run, no code.
+
+### Port P2: rules systems
+
+- Slices T1-T6 (docs/port-plan.md 9.1): Achievements (rules as data), Showrunner, FunFacts and the run report data, Telemetry with a Python-exact CSV writer, SaveGame (v7) and UserSettings with an exact JSON reader, and the bot (`godot/tools/bot.gd`, run in parallel by `scripts/gd_bot.py`). Items, loot, shop, contracts, crafting, pets, classes, bosses and practice came in P1. Every slice passed the verifier before merging.
+- Acceptance met with nothing muted: `scripts/parity_all.sh` is ALL IDENTICAL at full scope (floors, spawns, walk, hunter with 8 pet/hero combos, bot traces 0-99, chaos 0-215, telemetry CSVs, save round trips and cross-loads both ways). Godot bot CSVs are byte-identical to the committed `runs/bot_*.csv` for seeds 0-299 plus a sample to 1999. Save files are byte-identical between Python and Godot, and either side loads the other's saves and plays on identically.
+- Python-side bug found (owner decision, not fixed because Python is frozen): the v7 save keeps only three of the eight achievement-tracker counters (it drops unarmed kills, pet kills, maps, junk sold and natural 1s), so after a load those achievements unlock later. Godot copies this exactly. Fixing it means a v8 save in both versions.
+- Speed: the Godot bot is about 1.5-1.7x slower than Python per core. The 2,000-run batch is estimated at 55-70 minutes on 4 idle cores. Optimisation was deferred to keep parity safe (memo idea in plan R7 notes).
+- Open items for later: `PyFmt.repr_float` last-digit edge cases outside the game's ranges (plan 11.2a); save parsing takes about 0.1 s on a big save, so P7 should load with a loading state.
