@@ -290,9 +290,18 @@ def cells_equal(a, b):
     return na is not None and nb is not None and na == nb
 
 
+class CsvFileError(Exception):
+    pass
+
+
 def _read_csv(path):
-    with open(path, encoding="utf-8", newline="") as fh:
-        return list(csv.reader(fh))
+    try:
+        with open(path, encoding="utf-8", newline="") as fh:
+            return list(csv.reader(fh))
+    except UnicodeDecodeError as e:
+        raise CsvFileError(f"{path}: malformed (not UTF-8: {e.reason} at byte {e.start})") from None
+    except csv.Error as e:
+        raise CsvFileError(f"{path}: malformed CSV ({e})") from None
 
 
 def compare_csv_files(path_a, path_b, max_diffs=10):
@@ -335,6 +344,9 @@ def compare_csv_files(path_a, path_b, max_diffs=10):
 
 def compare_csv_dirs(dir_a, dir_b, cells_only=False, max_diffs=10):
     """Compare every *.csv under both directories; returns (ok, report text)."""
+    for label, d in (("A", dir_a), ("B", dir_b)):
+        if not Path(d).is_dir():
+            return False, f"CSV FAIL: directory {label} ({d}) does not exist or is not a directory"
     rel_a = {str(p.relative_to(dir_a)) for p in Path(dir_a).rglob("*.csv")}
     rel_b = {str(p.relative_to(dir_b)) for p in Path(dir_b).rglob("*.csv")}
     names = sorted(rel_a | rel_b)
@@ -344,7 +356,12 @@ def compare_csv_dirs(dir_a, dir_b, cells_only=False, max_diffs=10):
             failures += 1
             lines.append(f"{name}: MISSING in {'A' if name not in rel_a else 'B'}")
             continue
-        status, n, detail = compare_csv_files(Path(dir_a) / name, Path(dir_b) / name, max_diffs)
+        try:
+            status, n, detail = compare_csv_files(Path(dir_a) / name, Path(dir_b) / name, max_diffs)
+        except CsvFileError as e:
+            failures += 1
+            lines.append(f"{name}: MALFORMED\n  {e}")
+            continue
         rows += n
         if status == "identical":
             continue

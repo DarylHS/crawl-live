@@ -380,3 +380,13 @@ def test_chaos_telemetry_mode_is_deterministic_and_covers_every_outcome(tmp_path
     events = (tmp_path / "a" / "seed_4" / "chaos_events.csv").read_bytes()
     assert b'"He said ""hi"", then\nleft"\r\n' in events and b",1e-05,0.30000000000000004\r\n" in events
     assert b",6,turn,1,\r\n" not in events and b",turn,1," not in events      # SKIP: the "turn" event is never logged
+
+
+def test_csv_mode_non_utf8_and_missing_directory_fail_cleanly(tmp_path, capsys):
+    da, db = _csv_pair(tmp_path, "a\r\n1\r\n", "a\r\n2\r\n")
+    (db / "t_runs.csv").write_bytes(b"a\r\n\xff\xfe\r\n")
+    ok, text = PD.compare_csv_dirs(da, db)
+    assert not ok and "t_runs.csv: MALFORMED" in text and "not UTF-8" in text and "Traceback" not in text
+    ok, text = PD.compare_csv_dirs(da, tmp_path / "nowhere")
+    assert not ok and "directory B" in text and "does not exist" in text
+    assert PD.main(["--csv", str(da), str(tmp_path / "nowhere")]) == 1

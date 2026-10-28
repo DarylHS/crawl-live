@@ -158,6 +158,8 @@ func tables() -> Dictionary:
 	run["practice_levels"] = levels_total
 	run["death_cause"] = cause
 	for k in meta:
+		if run.has(k):
+			push_error("Telemetry: meta key '%s' collides with a runs column (Python raises TypeError)" % k)
 		run[k] = meta[k]
 	var floors: Array = []
 	var by_depth := {}
