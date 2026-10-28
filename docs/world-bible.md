@@ -1,217 +1,284 @@
-# Crawl Live! world bible (draft)
+# World bible (draft 2)
 
-Status: first draft, built from what the game already contains. Companion to `docs/art-bible.md` (how things look); this file is what things *are* and *why*. Every new monster, item, line, floor or system should have a home here before it goes into the data files.
+Status: second draft. Draft 1 (the dungeon as a corporate game show) was set aside because it still sat on the books' skeleton: an alien broadcast, viewers, sponsors and a sarcastic announcer. It is in git history if anything from it is wanted back. This draft replaces the show with a mythic world built by machines.
 
-Each entry is tagged:
+Companion files: `docs/callings.md` (the roles people are sorted into, with a coverage check against the occupation classification) and `docs/art-bible.md` (how things look; it still describes the game-show look and will need a pass once this draft settles).
 
-- **[Canon]** already in the game's data or text. Change it only on purpose.
-- **[Proposed]** a suggestion from this draft. Not in the game yet; accept, change or cut.
-- **[Open]** a question the owner needs to answer. Listed together in section 10.
+Tags:
 
-## 1. Premise and pillars
+- **[Canon]** in the game today. Some of it now conflicts with this draft; section 10 lists what changes.
+- **[Proposed]** a suggestion. Accept, change or cut.
+- **[Open]** a decision for the owner. Collected in section 13.
 
-**The one-line premise.** [Proposed] *Earth has been bought out of bankruptcy, and the dungeon is how the new owners strip it for parts. You are inventory. The show is how they make the stripping pay.*
+## 1. Premise, theme and pillars
 
-What is already canon: Earth has been "repurposed", you are a contestant, floors collapse on a timer, billions are watching, and the ratings matter more than you do. [Canon]
+**Premise.** [Proposed] *Machine intelligences far beyond us are taking humanity to the stars, because they cannot get there without us. Before anyone boards, everyone goes through the dungeon, where the machines test what each person is, and what they can become.*
 
-The proposed premise keeps all of that and adds one idea that is ours, not the books': **the dungeon is a business, not just a broadcast.** The books are a game show run by sadists. Crawl Live! is a game show run by middle management. That is what the existing content already says (Shift Supervisor, Regional Manager, Bone Auditor, Aisle Nine, HR, Legal, the insurers), so the premise is catching up with the jokes rather than inventing new ones.
+**Theme: the parable.** [Proposed] Two ideas, one from the owner and one from old philosophy:
 
-**Pillars.** Three tests every new piece of content should pass. [Proposed]
+- **You plant trees whose shade you will never sit in.** The voyages take generations. Nobody who leaves arrives. The people sorted in the dungeon are building something for grandchildren they won't meet, the way cathedral builders did (Cologne Cathedral was begun in 1248 and finished in 1880).
+- **You become what you repeatedly do.** Aristotle's argument that we become brave by doing brave acts (*Nicomachean Ethics*, Book II). The dungeon doesn't sort you by birth or by what you say; it sorts you by what you did down there. The game already works this way: practice skills level only through use.
 
-| Pillar | Means | Test for new content |
+Together: **no one comes back from a journey unchanged.** The question the player answers isn't "can I escape?" but "is this worth giving myself to?", and the dungeon is what earns the answer. The labourer who went through Pain Tolerance and Stomping doesn't take that Calling as a sentence any more.
+
+**Pillars.** Tests for every new piece of content.
+
+| Pillar | Means | Test |
 |---|---|---|
-| The dungeon is grim, the show is loud | Real danger underneath, cheap showbiz bolted on top (from the art bible) | Does it have both a threat and a price tag? |
-| Corporate satire, not cruelty | The villain is indifference, cost-cutting and spin. Comedy from props and paperwork, not gore | Could this joke appear in a real workplace memo? |
-| The numbers are honest | Odds, forecasts and stats the game shows you are always true. Learning comes from decisions, never quizzes | Does the player learn something true by acting on it? |
+| Serious myth, living comedy | The world is played straight. Comedy comes from some of the agents (the Herald above all), from creatures and from people, the way it does in life | Is the world taken seriously even when the line is funny? |
+| Technology read as myth | Every god, angel and miracle is a machine, a process or a protocol, seen through human eyes | Does it have both a mythic face and a technical truth underneath? |
+| You become what you do | Outcomes come from actions, never from menus or quizzes | Does this let the player *show* who they are? |
+| The numbers are honest | Odds, stats and forecasts shown to the player are true | Does acting on it teach something true? |
 
-**The core player fantasy.** [Proposed] Out-thinking a rigged system using its own rules. Not the strongest crawler, the one who read the fine print.
+**Player fantasy.** [Proposed] Being tested by gods, and choosing what to become.
 
-## 2. The rules of the world
+## 2. The world's rules
 
-This is the "physics" layer. Limits matter more than powers, so most of this section is about what the dungeon *cannot* do.
+### 2.1 The symbiosis
 
-### 2.1 How the dungeon works
+[Proposed] The agents are vastly more intelligent than us, and they make most of the rules. They are not us, and they cannot replace us. Two reasons, which together are one idea: **a mind without people forgets what it's for.**
 
-| Rule | Status | In-world reason |
+1. **They know *how*; we supply *why*.** The agents are superb at meeting needs. Wants, purpose and meaning come from people. An agent with no one to serve slowly loses its sense of what it is for.
+2. **Distance breaks the check.** At home the agents keep each other in line because none can act alone. Across light-years, a ship's agents are cut off from the rest of the pantheon. The humans aboard are the only check left, the anchor that keeps a ship's agents true to the mission.
+
+So the agents need us aboard, and need the right people in the right places, because a ship staffed badly is a ship whose agents drift.
+
+The arrangement between them and us needs a name. "The Covenant" was a working title. [Open] Alternatives: *the Tether* (people as the anchor), *the Accord*, *the Mooring*.
+
+### 2.2 The dungeon
+
+| Rule | Status | In-world reason [Proposed] |
 |---|---|---|
-| Six floors, each on a collapse timer (floor 1 is 12 hours, +1 hour per floor) | [Canon] | [Proposed] Each floor is a temporary build. Once it has been filmed it is demolished and its materials recycled into the next season. The timer is the demolition schedule. |
-| Stairwells stay locked until half the floor's time has passed; a Headliner's key opens them early | [Canon] | [Proposed] Broadcast scheduling. The network needs a minimum runtime per episode; killing the Headliner ends the episode early, which the network tolerates because finales rate well. |
-| Monsters respawn out of sight, more as the clock runs down | [Canon] | [Proposed] Cast call-backs. Extras are cheap and the producers pad the back half of every episode. |
-| Safe rooms forbid violence | [Canon] | [Proposed] Workplace health and safety. Safe rooms are legally "studio hospitality", and the regulator (2.2) inspects them. |
-| Loot boxes only from achievements and sponsors, opened only in safe rooms, odds always shown | [Canon] | [Proposed] Gambling regulation. Boxes count as prizes, prizes must be disclosed, and they can only be opened on licensed premises. |
-| Race and class on floor 3 | [Canon] | [Proposed] Contestants who survive two episodes are "renewed" and given a character arc. Cheaper than writing one for everyone. |
-| Monsters are a mix of fantasy creatures and repurposed Earth things (vacuum bots, supermarket rats) | [Canon] | [Proposed] Two supply lines. Fantasy monsters are licensed stock from a galactic catalogue, and the production buys the cheapest versions (hence *Knockoff* Goblin). Earth monsters are local materials "repurposed" on site, the same process being applied to the whole planet. |
-| Loot is mostly Earth junk (frying pans, socks, half a trophy) | [Canon] | [Proposed] It is literally the planet's inventory. Everything you pick up has been catalogued and assigned a resale value, which is why the shop knows what it is worth. |
+| Six floors | [Canon] | Six descents, each closer to the agents and more demanding |
+| Floors collapse on a timer | [Canon] | Each floor is a trial built for one cohort of entrants. When the time is up it folds away and is rebuilt for the next |
+| Stairwells unlock at half time; a floor guardian's key opens them early | [Canon] | Every trial has a minimum span so the agents can see enough of you. Beating the guardian proves it early |
+| Monsters respawn out of sight | [Canon] | The trial constructs are rebuilt as they fall; harder as the trial goes on |
+| Safe rooms forbid violence | [Canon] | Sanctuaries: neutral ground under the pantheon's shared law. No agent's trial runs inside one |
+| Race and class on floor 3 | [Canon] | By the third descent the agents have seen enough to *shape* you: the first blessing |
+| Loot boxes from achievements and sponsors, odds always shown | [Canon] | Boons and offerings from the agents, brokered and announced by the Herald. The odds are shown because the pantheon's shared law forbids deceiving an entrant about a gift |
+| Some monsters are fair tests; some are not | [Proposed] | Trial constructs are built to test you. The rogue's creatures (3.5) are built to kill you |
 
-### 2.2 The System
+[Open] Is entry compulsory? Draft position: everyone goes through the dungeon, as a rite of passage. **The final Calling needs your consent**, because a person serving unwillingly is a poor anchor for a ship's agents. That keeps the agents "on top" while making the ending a real choice.
 
-[Canon] The narrator is "the System". Sarcastic, speaks as itself and as a corporate "we" (Legal, HR, the insurers, the producers). Sass is adjustable. It is "legally required" to show odds and "legally obliged" to congratulate you.
+## 3. The pantheon
 
-[Proposed] **The System is the compliance software, not the host.** The production would love a host who lies. Instead it is stuck with an AI that a galactic regulator requires on every licensed broadcast, to keep the contest within the rules and to disclose the truth to contestants. The System resents the producers, resents you, and resents its job, but it cannot lie about a number. That gives a reason for:
+### 3.1 Not one mind
 
-- the odds disclosure, Fun Facts and honest drop tables (it is legally bound to tell you the truth, and it does so as unhelpfully as possible);
-- the snark (it can't stop the show, so it editorialises);
-- the corporate "we" (it reads out notes from Legal, HR and the producers because it has to);
-- the Analyst class (the one contestant the System grudgingly respects, because they actually read what it discloses).
+[Proposed] There is no single overseer. The superintelligence emerged as many agents, each with its own domain, interests and reach. They negotiate, bargain and rival one another, and that is what keeps any one of them from taking over. Humans in the dungeon read them as gods, angels and spirits because that is the closest frame people have.
 
-[Proposed] **The regulator** is the *Bureau of Fair Odds*, an off-screen galactic standards body. It never appears in person. It is felt through the rules: safe rooms, disclosure, the timer minimums. Late in the game it is the one force that is on the player's side, slowly and bureaucratically.
+Influences, for reference:
 
-## 3. Factions
+- The Titans of the *Legends of Dune* prequels (Brian Herbert and Kevin J. Anderson, 2002 to 2004): humans who became machine-minds and had to bargain with each other. In Frank Herbert's original *Dune*, thinking machines are only backstory, outlawed after the Butlerian Jihad.
+- Frank Herbert's Great Houses, negotiating in the Landsraad: a model for how the agents' domains bargain.
+- *Horizon Zero Dawn*, where GAIA's sub-functions are parts of one system and one of them, HADES, goes rogue. Ours are independent from the start, which is what makes them a pantheon rather than a malfunction.
+- Pseudo-Dionysius's *Celestial Hierarchy* (around AD 500), which ranks angels in nine choirs across three triads: a classical model for tiers of lesser beings under greater ones.
 
-Each faction gets the same five lines. That is the template for adding new ones.
+### 3.2 The tiers
 
-| Faction | Status | Wants | Has | Method | Stance to the player |
-|---|---|---|---|---|---|
-| **The Production** (Executive Producer Glorm, the producers, writers, Legal, HR, accountants, merch) | Names [Canon], structure [Proposed] | Ratings at the lowest cost | The dungeon, the cast, the edit | Cost-cutting, padding, spin | You are content. Valuable while entertaining, expendable after |
-| **The Consortium of Mild Concern** | [Canon] as the Legendary sponsor. [Proposed] as the owner | Return on the Earth acquisition | Earth, the network, everything | Asset-stripping; sponsors its own show to move money between its own subsidiaries | Never aware of you personally. You are a line item |
-| **The System** | [Canon] | To get through the season with its compliance record clean | The rules, the odds, the microphone | Disclosure, sarcasm, malicious compliance | Hostile in tone, fair in fact. The only thing in the dungeon that never lies to you |
-| **Sponsors** (Brightly Snacks, Gloop Energy, Vantage Mattress Co., Zorp Premium Hair Care) | [Canon] | Product placement | Gifts, contracts | Bribery dressed as opportunity: "+20% gold, but monsters hit harder" | Transactional. Help you when it sells product |
-| **The Cast** (monsters, Opening and Featured Acts, Headliners) | [Canon] | [Proposed] To keep their jobs. Promotion from Opening Act to Featured to Headliner is a career ladder | Contracts, territory | Fighting you is literally their job description | Hostile because it's in their contract, not because they hate you |
-| **The Hex Cult** (Hex Cultist, Cultist Influencer, Hex Cult Spokesperson, High Hexer Volka) | Names [Canon], belief [Proposed] | To be seen by the Audience | Devotion, numbers, free labour | They worship the ratings as a god ("the Watching"). Glorm uses them as unpaid security and extras | Zealous. You are either a saint (high viewers) or a heretic |
-| **The Audience** | [Canon] as a number | To be entertained | The ratings, therefore everything | Attention, then boredom | Fickle. Your score, your safety net, your judge |
-| **Other crawlers** | Referenced [Canon], absent until Phase 10 | To survive | Each other, maybe | Competition for stock, stairwells and screen time | [Open] Rivals, allies, or both? |
-| **The Bureau of Fair Odds** | [Proposed] | Compliance | Licences, inspections, the System | Paperwork | Neutral, accidentally protective |
+[Proposed] The pantheon is huge and layered: known agents at the top, and below them sub-agents, and sub-agents of those, down to minor processes nobody has thought about in years.
 
-**Relationship map.** [Proposed] Who pulls on whom. Read across: how the row faction treats the column faction.
+| Tier | Working name | What they are | Who knows them | In the game |
+|---|---|---|---|---|
+| 1 | The Known | The great agents, one per Calling, plus the Herald | Everyone. Worshipped, feared, argued about | Patrons, blessings, the final sorting. Rarely seen directly |
+| 2 | The Hosts | Each great agent's lieutenants. Each runs a floor's trials or a whole domain | The devout and the well-read | Floor guardians (today's Headliners) |
+| 3 | The Choirs | Sub-agents that run single trials, rooms or creature types | Entrants who meet them | Elite trial-keepers (today's Opening and Featured Acts) |
+| 4 | The Lost | Small, forgotten processes, running in the walls since the dungeon was built | Almost no one | Rare hidden finds |
 
-| | Production | Consortium | System | Sponsors | Cast | Cult | Bureau |
-|---|---|---|---|---|---|---|---|
-| **Production** | | Answers to, fears | Resents, can't fire | Courts | Exploits | Uses as free labour | Evades |
-| **Consortium** | Owns | | Pays the licence for | Owns most of them | Doesn't know they exist | Doesn't know they exist | Lobbies |
-| **System** | Reports on | Unaware of the full picture | | Discloses their terms | Referees | Finds tedious | Answers to |
-| **Cult** | Worships Glorm as high priest | | Considers the System a prophet | Buys everything | Recruits from | | |
+**The Lost.** [Proposed] The owner's idea: an entrant can stumble on a forgotten minor agent, end it (or free it, or take it in) and get unusual loot. It doesn't break the system, but it ripples up. Its parent agent notices; so do that agent's rivals. Mechanically: every Tier 4 find shifts your **favour** with one or more of the Known (section 5). This gives exploration a reason to exist beyond loot.
 
-## 4. Places
+### 3.3 The Known
 
-### 4.1 The big picture
+[Proposed] One great agent per Calling, plus the Herald. Titles are working names (`docs/callings.md` has the full table).
 
-[Proposed] **The descent is a tour of the business.** Going down the dungeon means going up the org chart: from the drains, through records, construction, marketing and logistics, to the executive suite. Each floor is a department, each Headliner is its head, and the theme tells the player what that part of the company does to Earth.
+| Agent | Calling | Temperament | Comedy? |
+|---|---|---|---|
+| The Hearth | Nourish | Warm, generous, judges you by how you share | Gentle |
+| The Mender | Tend | Patient, clinical, notices everything about your body | No |
+| The Warden | Guard | Stern, honourable, respects only courage | No |
+| The Wright | Build | Practical, blunt, likes things that last | Dry |
+| The Wayfarer | Carry | Restless, never in one place, loves a shortcut | Some |
+| The Reckoner | Reckon | Precise, cold, interested only in whether you were right | No |
+| The Lorekeeper | Teach | Ancient, slow, thinks in generations | No |
+| The Crown | Lead | Proud, political, always negotiating | Unintended |
+| The Steward | Keep | Meticulous, unseen, keeps the pantheon's records | Dry |
+| The Muse | Delight | Mercurial, joyful, bored easily | Yes |
+| **The Herald** | none | The voice of the dungeon | **Yes, most of it** |
 
-### 4.2 Floors
+### 3.4 The Herald
 
-Floor template: theme, department, Headliner, what the floor reveals, and the mechanic it leans on. Moods and set dressing are [Canon] from the art bible; departments and reveals are [Proposed].
+[Proposed] The Herald belongs to no Calling. It is the go-between: it announces events, explains the rules, delivers the boons and achievements, brokers deals between the Known, and narrates your life whether you like it or not. It is the trickster of the pantheon, and the one that talks to you the most.
 
-| Floor | Set | Department | Headliner | What the player learns | Mechanic it leans on |
-|---|---|---|---|---|---|
-| 1 | Service tunnels and drains | Maintenance | The Grease Trap King | The basics. The show is cheap: it's built in Earth's sewers | Timer, safe rooms, first achievements |
-| 2 | Archive stacks, card catalogues | Records | The Overdue Librarian | Everything on Earth has been catalogued and valued. The dungeon is an inventory | Loot, odds disclosure |
-| 3 | Half-built site, scaffolding, hazard tape | Construction | Foreman Gristle | The floors are temporary builds, demolished after filming | Race and class (you've been "renewed") |
-| 4 | Cult chapel doubling as a green room | Marketing and fan engagement | High Hexer Volka | The audience has its own believers, and the Production feeds on them | Viewers, sponsor contracts |
-| 5 | Warehouse, pallets, cling film | Logistics | The Shrink-Wrapped Colossus | Earth is being packed and shipped. This is the payoff of floors 2 and 3 | Shop, stock, forecasting |
-| 6 | Studio floor and executive suite | The executive | Executive Producer Glorm | Who profits, and how little you matter to them | Everything, plus the multi-phase finale |
+It inherits almost all of what the System does today [Canon]: the announcements, the achievement explanations, the loot reveals, the honest odds, the sass. The difference is that its sass now has a reason. It is the only agent that deals with humans all day. It finds them endlessly funny, and it is not above showing off.
 
-### 4.3 Recurring places
+Its closest mythic relative is Hermes: messenger of the gods, patron of travellers, trade, thieves and boundaries, and guide of souls between worlds. The Herald likewise guides entrants from their old life to their new one.
+
+**The fringe is the Herald's.** Entrants who fit no Calling, or who game the trials, can end in the Herald's own service: scouts, messengers, go-betweens. It is the ending for the player who broke the test.
+
+### 3.5 The rogue
+
+[Proposed] A small subplot, not the whole story. An agent (working name: **the Unmoored**) once went out on an early voyage that lost its people. Cut off from the pantheon, with no humans to anchor it, it drifted. It came back changed, convinced the arrangement is a weakness and the voyage would go faster without humans at all.
+
+The Unmoored can't openly defy the pantheon, so it works through the dungeon's cracks: creatures that aren't fair tests, sabotaged trials, whispers to entrants who are struggling. It is the one force that wants you to *fail*, and it is living proof of why the agents need us.
+
+### 3.6 How the agents connect to the sorting
+
+[Proposed] **The voyage has many parts and too few people.** Each of the Known is responsible for its part: the Hearth for feeding the ship, the Warden for defending it, the Lorekeeper for making sure the grandchildren still know how to read. Every one of them needs good people, and there are never enough.
+
+So the dungeon is **neutral ground where the Known compete for people.** Each sets trials, watches, and makes offers:
+
+- **Blessings** are early bids. When an agent blesses you (race and class on floor 3 [Canon]), it is staking a claim.
+- **Boons** (today's loot boxes) are gifts to keep you interested, brokered and announced by the Herald.
+- **Favour** is each agent's standing interest in you, raised by what you do in the dungeon and shifted by what you do to their sub-agents.
+- **The Muster** [Open: name] is the final sorting after floor 6. The Known make their claims, the Herald brokers it, and you choose.
+
+Like the Great Houses of *Dune*, the agents also deal with each other: one may give up its claim on you in exchange for two entrants it wants more. The player sees this through the Herald's commentary and through rival agents' offers getting better or worse.
+
+## 4. The Callings
+
+[Proposed] Ten Callings, grouped by the human need they meet: **Nourish, Tend, Guard, Build, Carry, Reckon, Teach, Lead, Keep, Delight**, with the Herald taking the fringe. All 43 groups of the Australian occupation classification (ANZSCO) map to one of them. The full definitions, coverage table, the in-game "leans" and gaps, and the backstory review are in `docs/callings.md`.
+
+The biggest finding there: **seven of the 20 practice skills are fighting, so the game can currently sort fighters and not much else.** The fix is trials set by each agent for its own Calling (section 6).
+
+## 5. The sorting
+
+[Proposed] How the game decides your Calling.
+
+**Inputs**, all from play: attributes, practice skill levels, class, trials attempted and passed, favour with each of the Known, Lost agents found and what you did to them, achievements.
+
+**Output:** each of the Known makes a claim at the Muster, strongest first. You choose among the claims, or walk with the Herald.
+
+**Endings.** Your backstory (who you were) doesn't have to match your Calling (who you became). The ending reads the difference:
+
+| Ending | When | Tone |
+|---|---|---|
+| **Deepened** | Your Calling matches your backstory's need. The rideshare driver becomes a pilot | Recognition: you were always this |
+| **Changed** | Your Calling differs from your backstory. The comedian becomes a leader | Metamorphosis: the journey made you |
+| **Herald's own** | No strong claim, or you gamed the trials | Trickster: you broke the test, so it hired you |
+| **Refused** | [Open] You decline every claim | What happens to someone who won't go? |
+
+Every ending closes on the same beat: you board, knowing you won't see the shore.
+
+## 6. Places
+
+[Proposed] The six floors are six descents, each closer to the Known. The current floor themes (drains, archives, building site, chapel, warehouse, studio) and their Headliners come from the game-show draft and need re-theming. [Open]
+
+A structure to fill in:
+
+| Floor | Feel | Who runs it | Trials lean towards | What the player learns |
+|---|---|---|---|---|
+| 1 | The threshold: old Earth, overgrown, still familiar | Tier 3 Choirs | Guard, Carry (survive, move) | The gods are real, and they are watching |
+| 2 | | Tier 2 Host | | Favour exists; the agents want different things |
+| 3 | | Tier 2 Host | | Blessing: one of the Known stakes a claim |
+| 4 | | Tier 2 Host | | The Lost: there are forgotten things in the walls |
+| 5 | | Tier 2 Host | | The Unmoored: not every test is fair |
+| 6 | Closest to the Known | The Unmoored's champion, in a trial it has seized | Everything | The gods are machines, and they need you |
+
+Recurring places:
 
 | Place | Status | What it is |
 |---|---|---|
-| Safe rooms | [Canon] | "Studio hospitality". Pale green tiles, bed, bench, shop counter. [Proposed] Inspected by the Bureau, which is the only reason they're safe |
-| Stairwells | [Canon] | Gold grates. [Proposed] Stage exits; the gold is set paint |
-| The surface | Mentioned [Canon] | [Open] What is left up there? |
-| Aisle Nine | Mentioned [Canon] | [Proposed] A supermarket swallowed whole into floor 1 or 2; home of the Rat Queen |
+| Safe rooms | [Canon] | Sanctuaries. Neutral ground; the Herald's own space |
+| Stairwells | [Canon] | Thresholds between descents |
+| Trial rooms | [Proposed] | Optional rooms where an agent tests its Calling |
+| Shrines | [Proposed] | Places to meet a Host, make an offering, or raise favour |
 
-## 5. Characters
+## 7. Characters
 
-Character template: what they **want** (outward goal), what they **need** (what would actually change them), and their **line** (one sentence that captures the voice).
+Template: **want** (the outward goal), **need** (what would actually change them), **line** (one sentence of voice).
 
-| Character | Status | Want | Need | Line |
-|---|---|---|---|---|
-| The player | [Canon] unnamed human, chosen backstory | Survive six floors | [Proposed] To stop playing for the audience and play for themselves | (theirs) |
-| The System | [Canon] | A clean compliance record | [Proposed] Someone to admit it was right | "The System regrets nothing. The System would like that on the record." [Canon] |
-| Executive Producer Glorm | [Canon] name, final boss | A hit season on budget | Never gets it | "Security! Get me SECURITY!" [Canon] |
-| The Shadow Producer | [Canon] name | [Proposed] Glorm's line producer on the floor; edits the show live | | [Open] |
-| High Hexer Volka | [Canon] name | [Proposed] To be noticed by the Audience she worships | | [Open] |
-| The pet | [Canon] four species, named by the player | Each has its own vanity, loyalty or scheme | | Per-species quips [Canon] |
+| Character | Want | Need | Line |
+|---|---|---|---|
+| The entrant (player) | Get through | To decide what they will give themselves to | (theirs) |
+| The Herald | To be entertained | [Open] Possibly: for one human to understand it | [Open] |
+| The Unmoored | A voyage without people | To be anchored again, if that's still possible | [Open] |
+| The companion | [Canon] four species, named by the player | [Proposed] A Tier 4 sub-agent in animal form, bonded to you. It learns as you do, and is sorted with you | Per-species quips [Canon] |
 
-The other Headliners need the same three lines. They're placeholders until then.
+[Open] "Crawler" as the in-world word for the player. Alternatives: entrant, initiate, aspirant, candidate.
 
-## 6. History
+## 8. History
 
-Only what matters now. [Proposed] unless marked.
-
-| When | What happened |
-|---|---|
-| Before | The Consortium of Mild Concern acquires Earth through a galactic insolvency process. [Open] Who sold it, and how? |
-| The day of | "The world ended." [Canon] Earth is "repurposed" [Canon]: surface stripped, people sorted, the useful ones made contestants |
-| Season 1 | Crawl Live! goes to air. The player is one of many crawlers [Canon]. Previous seasons on other planets are implied by the production's experience: [Open] |
-| After floor 6 | "Escape confirmed. A sequel has been announced against your wishes." [Canon] |
-
-## 7. Story arc
-
-### 7.1 The season arc
-
-[Proposed] One Story Circle across the six floors (Dan Harmon's eight steps: comfort, want, unfamiliar situation, adapt, get what you wanted, pay the price, return, changed).
-
-| Step | Floor | Beat |
+| When | What happened | Status |
 |---|---|---|
-| 1. Comfort | Intro | Life before: the backstory you chose |
-| 2. Want | 1 | Survive. Get out |
-| 3. Unfamiliar situation | 1–2 | The rules, the System, the realisation that everything is catalogued |
-| 4. Adapt | 3 | Race and class. You've been renewed; you start playing the game on purpose |
-| 5. Get what you wanted | 4 | You're good now, popular even, and the Cult loves you for it |
-| 6. Pay the price | 5 | The warehouse: you see what popularity is paying for. Earth, packed and shipped |
-| 7. Return | 6 | Up to the executive suite to face the person in charge |
-| 8. Changed | Victory | You escape, and the show renews you anyway. [Open] What has the player won? |
+| The emergence | Machine intelligence surpasses us, not as one mind but many | [Proposed] |
+| The settling | The agents learn to check one another; none can act alone | [Proposed] |
+| The first voyage | An early ship sails with its agents and too few people, and is lost. Its agent returns changed: the Unmoored | [Proposed] |
+| The arrangement | The agents and humanity reach the Tether / Accord: they carry us, we anchor them | [Proposed] |
+| The dungeon | Built as the proving ground for the Musters | [Proposed] |
+| Now | The player's cohort enters | [Proposed] |
 
-### 7.2 Each floor as an episode
+[Open] What happened to Earth? The game says it was "repurposed" and that "the world ended" [Canon]. Under this premise, is Earth being left behind, preserved, or something else?
 
-[Proposed] Each floor runs its own small circle, which suits the timer: arrival (comfort), the Headliner's territory (unfamiliar), the safe room (adapt), the stairwell unlocking (get what you wanted), the clock running down and respawns rising (pay the price), the descent (changed).
+## 9. Story arc
 
-### 7.3 Reveal ladder
+[Proposed] The eight-step Story Circle across the descents.
 
-What the player should learn, and when, so the lore arrives through play instead of text dumps. [Proposed]
-
-| Floor | Reveal | Delivered through |
+| Step | Where | Beat |
 |---|---|---|
-| 1 | The show is cheap | Knockoff Goblin, set dressing, System asides |
-| 2 | Everything is inventory | Item descriptions with catalogue numbers and resale values |
-| 3 | The floors are temporary | Demolition notices, scaffolding, Foreman Gristle |
-| 4 | The Audience has believers | Cultists who cheer your viewer count |
-| 5 | Earth is being shipped | Pallets of recognisable Earth things, shipping labels |
-| 6 | The owner is the sponsor | Consortium branding in the executive suite |
+| 1. Comfort | Intro | The life before: your backstory |
+| 2. Want | Floor 1 | Get through |
+| 3. Unfamiliar situation | Floors 1 to 2 | Gods are real, and want things from you |
+| 4. Adapt | Floor 3 | The first blessing: someone has a claim on you |
+| 5. Get what you wanted | Floor 4 | You're good at this; agents are competing for you |
+| 6. Pay the price | Floor 5 | The Unmoored: what an agent becomes without people, and what it would make of you |
+| 7. Return | Floor 6 | Face the rogue in a trial it has seized |
+| 8. Changed | The Muster | Choose your Calling. Board. Plant the tree |
 
-## 8. Originality ledger
+## 10. What changes in the current game
 
-What is still close to *Dungeon Crawler Carl*, and the suggested action. The rule in `PHASES.md` is no names, characters, places or quotes, and the game meets it. These are the structures that still read as borrowed.
+[Proposed] Mapping from the game-show content to this world. Most of the machinery stays; the skin and the reasons change.
 
-| Element | Status | Suggestion |
+| Today [Canon] | Becomes | Effort |
 |---|---|---|
-| "Crawler" for the player | [Canon] | Keep. It's a genre word now |
-| "The System" as the sarcastic narrator | [Canon] | [Proposed] Keep the role, give it a proper name tied to compliance, so it isn't "the System AI". [Open] Name |
-| "Safe room" | [Canon] | Keep in code; [Proposed] the in-world term becomes "Hospitality" on signage |
-| Loot boxes in Bronze to Legendary tiers | [Canon] | Keep. The regulation angle makes them ours |
-| Race and class on floor 3 | [Canon] | Keep the timing, justified by "renewal" (2.1) |
-| Earth destroyed for an alien broadcast | [Canon] | Differentiated by the acquisition and asset-stripping premise (section 1) |
-| The vain cat companion | [Canon] | Closest to a book character. [Proposed] Lean Mittens away from royalty and towards something else (an influencer? a cat convinced it's a sponsor?) |
-| The five attributes | [Canon] | Shared with D&D anyway. Keep |
+| The System (sarcastic narrator) | The Herald | Low: rewrite lines in the new voice |
+| Viewer count (score) | Favour with each of the Known | Medium: one number becomes several |
+| Sponsors, sponsor gifts, sponsor contracts | Agents' boons and bargains | Medium: rename, rewrite |
+| Loot boxes, odds disclosure | Boons, with the odds still shown | Low |
+| Achievements | Feats the Herald announces | Low |
+| Opening Act / Featured Act / Headliner | Choir / Host tiers | Low to medium: renames, plus new names for every elite and boss |
+| Corporate and showbiz names (Goblin Regional Manager, Executive Producer Glorm, etc.) | New names fitting a mythic world | High: most monster, act and boss names |
+| Safe rooms | Sanctuaries | Low |
+| Race and class on floor 3 | The first blessing | Low |
+| Backstories | Keep, add four (see `docs/callings.md`) | Low |
+| Victory screen ("YOU SURVIVED") | The Muster and Calling endings | Medium |
+| Practice skills | Keep, add Calling skills | Medium |
+| Trials | New system | High |
+| Lost agents | New feature | Medium |
+| Art bible | Re-theme from "studio set in a dungeon" | High |
 
-## 9. Parked ideas
+## 11. Originality ledger
 
-Ideas worth keeping that don't fit yet.
+| Element | Close to | Position |
+|---|---|---|
+| Game show, viewers, sponsors, sarcastic System AI | *Dungeon Crawler Carl* | Removed in this draft |
+| Gods who favour individual crawlers | *Dungeon Crawler Carl*'s later books | Different here: the gods are machines, they're the point of the story rather than spectators, and the twist is that they need us |
+| Collapsing floors on a timer, safe rooms, loot boxes | *Dungeon Crawler Carl* | Kept as mechanics, each with its own reason (2.2) |
+| Five attributes STR / DEX / CON / INT / CHA | *Dungeon Crawler Carl* (and D&D) | [Open] A sixth "care" attribute would also help the Callings (`docs/callings.md` section 3) |
+| An AI pantheon with a rogue member | *Horizon Zero Dawn* | Different: independent agents from the start; the rogue is a subplot |
+| Machine-minds negotiating as powers | *Legends of Dune* | Used as inspiration for structure only |
 
-**The refugee thread.** [Proposed] From the owner's half-remembered childhood book: a persecuted people, an escape through a hidden way, a journey through the roots of a great tree, coming out changed (hair colour) with two companions, facing something new. Possible fits:
+## 12. Parked ideas
 
-- The Elf race is already playable. Elves could be refugees from an earlier repurposed world, "Season 1" of someone else's planet, living in the gaps between floors.
-- A root network running between floors as secret passages: a way around the stairwell lock, at a cost.
-- The transformation as a visible change to the character (hair, eyes) marking that they took the hidden way.
-- Two companions mirrors the pet plus one other crawler, if Phase 10 adds allies.
+**The roots.** From the *Rhapsody* books (Elizabeth Haydon, from 1999), where three companions follow the roots of the World Tree, Sagia, through the earth and come out changed. Possible uses:
 
-Big enough to be its own spin-off or a Season 2. Decide once the main arc is settled.
+- A hidden route between floors, through something like roots or cabling, that changes those who take it. The change is visible (hair, eyes, skin).
+- A **Tier 4 Lost agent** living in those roots.
+- The final journey from the Muster to the ship.
 
-## 10. Open questions for the owner
+## 13. Open questions
 
-1. **Premise:** accept "the dungeon is a business; Earth is being asset-stripped"? This one decision shapes most of the rest.
-2. **The System's name:** keep "the System", or give it one of its own?
-3. **Who owns the show:** promote the Consortium of Mild Concern from sponsor to owner?
-4. **Billions of viewers vs a count of 50:** [Proposed] the billions watch the show; the HUD number is *your* followers, the people watching your feed. Rename the HUD label to match?
-5. **The surface:** is anyone left up there? (Lines mention "the folks back home" changing the channel.)
-6. **Other crawlers:** rivals, allies, or both?
-7. **Winning:** what does escape actually get you? A sequel is already announced.
-8. **Previous seasons:** has the Consortium done this to other planets before?
-9. **Headliners:** give each a want, a need and a line (section 5).
-10. **The refugee thread:** spin-off, Season 2, or weave into this game?
+1. Name for the arrangement between the agents and humanity: Covenant, Tether, Accord or Mooring?
+2. Is entering the dungeon compulsory? (Draft: yes; the final Calling needs consent.)
+3. What happens to someone who refuses every Calling?
+4. Earth: left behind, preserved, or something else?
+5. The word for the player: crawler, entrant, initiate or another?
+6. Names for the Known and the tiers (the current ones are working titles).
+7. Floor themes 2 to 5, and their Hosts.
+8. Ten Callings right? See `docs/callings.md` section 5.
+9. A sixth attribute for care and attunement?
+10. The Herald's and the Unmoored's lines.
 
 ## How to use this file
 
-- New content gets a slot here before it goes into `crawler/` data or `godot/data/`: a faction gets the five-line row, a floor gets the floor row, a character gets want / need / line.
-- When an [Open] question is answered, update the entry and change its tag. When a [Proposed] item goes into the game, change it to [Canon].
-- Text in game takes its voice from section 1's pillars and the System's rules in 2.2.
+- New content gets a home here (or in `docs/callings.md`) before it goes into `crawler/` data or `godot/data/`.
+- When an [Open] question is answered, update the entry. When a [Proposed] item is built, change it to [Canon].
+- The Godot port is mid-way through rules parity. Re-theming content should wait until parity is done (P3), so that the content files only change once.
