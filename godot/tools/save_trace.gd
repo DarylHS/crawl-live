@@ -4,6 +4,7 @@ extends SceneTree
 ##
 ##   godot --headless --path godot -s res://tools/save_trace.gd -- --seeds 0-9 --steps 300 --out-dir DIR
 ##       [--load-dir OTHER_DIR]     # also continue OTHER_DIR/save_<seed>.json (written by Python) as xload_<seed>.jsonl
+##       [--load-only]              # with --load-dir: play nothing, only write the xload files
 ##
 ## Relative paths are taken against the shell's working directory, as Python does.
 
@@ -20,6 +21,7 @@ func _initialize() -> void:
 	var steps := 300
 	var out_dir := ""
 	var load_dir := ""
+	var load_only := false
 	var a := OS.get_cmdline_user_args()
 	var i := 0
 	while i < a.size():
@@ -36,6 +38,8 @@ func _initialize() -> void:
 			"--out-dir":
 				out_dir = _resolve(a[i + 1])
 				i += 1
+			"--load-only":
+				load_only = true
 			"--load-dir":
 				load_dir = _resolve(a[i + 1])
 				i += 1
@@ -50,6 +54,11 @@ func _initialize() -> void:
 		return
 	DirAccess.make_dir_recursive_absolute(out_dir)
 	for sd in seeds:
+		if load_only:
+			var other_save := "%s/save_%d.json" % [load_dir, sd]
+			if FileAccess.file_exists(other_save):
+				SaveTraceRun.continue_run(SaveGame.load(other_save), sd, steps, "%s/xload_%d.jsonl" % [out_dir, sd])
+			continue
 		var c := SaveTraceRun.play_to_save_point(sd)
 		var w := c.w
 		if w.state != "playing" or w.combat != null:
@@ -61,6 +70,7 @@ func _initialize() -> void:
 		SaveGame.save(w, path)
 		var v := SaveGame.load(path)
 		SaveTraceRun.continue_run(v, sd, steps, "%s/loaded_%d.jsonl" % [out_dir, sd])
+		SaveTraceRun.drop_unsaved(w)
 		SaveTraceRun.continue_run(w, sd, steps, "%s/direct_%d.jsonl" % [out_dir, sd])
 		if load_dir != "":
 			var other := "%s/save_%d.json" % [load_dir, sd]

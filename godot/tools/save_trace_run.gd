@@ -274,6 +274,16 @@ func step(n: int) -> Array:
 	return [tag, ok]
 
 
+## What a load loses (see scripts/save_trace.py drop_unsaved): the Tracker counts the v7 save does not keep.
+static func drop_unsaved(world: World) -> void:
+	var t := world.achievements.tracker
+	t.unarmed_kills = 0
+	t.pet_kills = 0
+	t.maps = 0
+	t.junk_sold = 0
+	t.nat1s = 0
+
+
 ## The Chaos player and World at the save point (playing, out of combat; odd seeds in the safe room), or a
 ## run whose World is over / still in a fight (check `w`).
 static func play_to_save_point(seed_v: int) -> SaveTraceRun:

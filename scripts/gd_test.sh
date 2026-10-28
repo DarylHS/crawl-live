@@ -18,6 +18,7 @@
 #      world (S8): chaos traces, seeds 0-9, 600 steps (CHAOS_TRACES; scripts/chaos_trace.py),
 #      telemetry (T4): chaos CSV files, seeds 0-15 (CHAOS_CSV; chaos_trace.py --telemetry-dir),
 #      bot (T6): `bot` run traces, 3000 steps, seeds 0-3 (BOT_TRACES); the bot CSVs are compared with the committed runs/,
+#      saves (T5): Python saves and continuations, seeds 0-7, 150 steps (SAVE_TRACES; scripts/save_trace.py),
 # 3. runs GUT (addons/gut, settings in godot/.gutconfig.json),
 # 4. passes only if the exit status is 0, GUT reports 'All tests passed!' and no SCRIPT ERROR /
 #    parse error / failed-to-load line appears.
@@ -93,6 +94,8 @@ COMBOS
 	python3 "$ROOT/scripts/chaos_trace.py" --seeds 0-9 --steps 600 --out-dir "$R/chaos_traces" || { echo "FAIL: chaos_trace.py"; return 1; }
 	#   telemetry (T4): CSV files of chaos seeds 0-15 (every outcome), compared byte for byte (CHAOS_CSV)
 	python3 "$ROOT/scripts/chaos_trace.py" --seeds 0-15 --steps 200 --out-dir "$R/chaos_csv_traces" --telemetry-dir "$R/chaos_csv" || { echo "FAIL: chaos_trace.py --telemetry-dir"; return 1; }
+	#   saves (T5): Python saves, and the traces of continuing with and without saving, seeds 0-7 (SAVE_TRACES; test_save_game)
+	python3 "$ROOT/scripts/save_trace.py" --seeds 0-7 --steps 150 --out-dir "$R/save_traces" || { echo "FAIL: save_trace.py"; return 1; }
 }
 
 if [ ! -f "$REFDIR/.complete" ]; then
@@ -106,7 +109,7 @@ if [ ! -f "$REFDIR/.complete" ]; then
 		rm -rf "$REFDIR"; mv "$BUILD" "$REFDIR"
 	fi
 fi
-export PY_RANDOM_REF="$REFDIR/py_random_ref.json" CONTENT_REF="$REFDIR/content_ref.json" FIXTURES="$REFDIR/fixtures.json" FIXTURES_S2="$REFDIR/fixtures_s2.json" PRACTICE_REF="$REFDIR/practice_ref.json" FIXTURES_S4="$REFDIR/fixtures_s4.json" DUNGEON_FIXTURES="$REFDIR/dungeon_fixtures.json" FLOOR_TRACES="$REFDIR/floor_traces" SPAWN_TRACES="$REFDIR/spawn_traces" SPAWN_COMBOS="$REFDIR/spawn_combos" WALK_TRACES="$REFDIR/walk_traces" WALK_COMBOS="$REFDIR/walk_combos" HUNTER_TRACES="$REFDIR/hunter_traces" HUNTER_COMBOS="$REFDIR/hunter_combos" CHAOS_TRACES="$REFDIR/chaos_traces" CHAOS_CSV="$REFDIR/chaos_csv" BOT_TRACES="$REFDIR/bot_traces" CRAWL_ROOT="$ROOT"
+export PY_RANDOM_REF="$REFDIR/py_random_ref.json" CONTENT_REF="$REFDIR/content_ref.json" FIXTURES="$REFDIR/fixtures.json" FIXTURES_S2="$REFDIR/fixtures_s2.json" PRACTICE_REF="$REFDIR/practice_ref.json" FIXTURES_S4="$REFDIR/fixtures_s4.json" DUNGEON_FIXTURES="$REFDIR/dungeon_fixtures.json" FLOOR_TRACES="$REFDIR/floor_traces" SPAWN_TRACES="$REFDIR/spawn_traces" SPAWN_COMBOS="$REFDIR/spawn_combos" WALK_TRACES="$REFDIR/walk_traces" WALK_COMBOS="$REFDIR/walk_combos" HUNTER_TRACES="$REFDIR/hunter_traces" HUNTER_COMBOS="$REFDIR/hunter_combos" CHAOS_TRACES="$REFDIR/chaos_traces" CHAOS_CSV="$REFDIR/chaos_csv" SAVE_TRACES="$REFDIR/save_traces" BOT_TRACES="$REFDIR/bot_traces" CRAWL_ROOT="$ROOT"
 
 ARGS=()
 for a in "$@"; do

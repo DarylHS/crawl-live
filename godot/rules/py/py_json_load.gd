@@ -7,15 +7,20 @@ extends RefCounted
 ## floats for ratios, and the rules compare them strictly, so SaveGame reads with this instead of
 ## coercing field by field. Numbers with no `.`, `e` or `E` become int; the rest become float.
 ##
-## Floats written by Python's repr (what PyJson.dumps writes) are read back exactly: the parse uses
-## String.to_float, which is correctly rounded up to 15 significant digits but can be one unit in the
-## last place out for 16 to 17 digits, so a result whose PyFmt.repr_float differs from the text is
-## nudged by up to 2 ulp until the repr matches. This removes the 1-ulp caveat of port plan risk R5
-## for any text produced by repr. Text that is not a repr (hand written, 0.10) keeps to_float.
+## Floats written by Python's repr (what PyJson.dumps writes) are read back exactly: String.to_float is
+## correctly rounded only for short plain decimals (it was 3 ulp out at 0.009999999999999995), so the digits are
+## read here and scaled by an exact power of ten, and unless that is Clinger's exact fast path the result is
+## nudged by up to MAX_ULP ulp (nearest first) until its PyFmt.repr_float equals the text. This removes the 1-ulp
+## caveat of port plan risk R5 for any text produced by repr. Text that is not a repr (hand written, 0.10) keeps
+## the scaled reading.
 ##
 ## Errors do not raise: parse() returns null and leaves the message in `error` (empty when fine), so
 ## a literal `null` is told apart by checking `error`. NaN, Infinity and -Infinity are accepted as
 ## Python's json accepts them. Objects keep insertion order; duplicate keys keep the last value.
+
+## How far the scaled mantissa can be off that the repr search covers (String.to_float was out by 3 ulp at 0.01 and
+## by more further down, which is why _float reads the digits itself).
+const MAX_ULP: int = 16
 
 ## "" after a successful parse, else "message at offset N".
 static var error: String = ""
@@ -230,13 +235,9 @@ static func _string() -> String:
 static func _number() -> Variant:
 	var start := _i
 	var is_float := false
-	var digits := 0
-	var in_exp := false
 	while _i < _b.size():
 		var c := _b[_i]
 		if c >= 48 and c <= 57:
-			if not in_exp:
-				digits += 1
 			_i += 1
 		elif c == 45 or c == 43:
 			_i += 1
@@ -245,7 +246,6 @@ static func _number() -> Variant:
 			_i += 1
 		elif c == 101 or c == 69:
 			is_float = true
-			in_exp = true
 			_i += 1
 		else:
 			break
@@ -258,13 +258,53 @@ static func _number() -> Variant:
 	if not tok.is_valid_float():
 		_err("bad number")
 		return null
-	var x := tok.to_float()
-	if digits > 15 and not is_inf(x):
+	return _float(tok)
+
+
+## Powers of ten that are exact doubles (10**0 .. 10**22).
+const _P10: Array[float] = [1e0, 1e1, 1e2, 1e3, 1e4, 1e5, 1e6, 1e7, 1e8, 1e9, 1e10, 1e11, 1e12, 1e13, 1e14, 1e15,
+		1e16, 1e17, 1e18, 1e19, 1e20, 1e21, 1e22]
+
+
+## The float of a JSON float token. Mantissa digits M (at most 18) and a decimal exponent are read here, not by
+## String.to_float, whose error grows with small exponents (3 ulp at 0.01, more below). Clinger's fast path
+## (M below 2**53, exponent within 22) is one correctly rounded multiply or divide, so exact. Otherwise the
+## result is within an ulp or two and the repr search finds the double whose Python repr is the token.
+static func _float(tok: String) -> float:
+	var text := tok
+	var neg := text.begins_with("-")
+	if neg:
+		text = text.substr(1)
+	var e10 := 0
+	var epos := maxi(text.find("e"), text.find("E"))
+	if epos >= 0:
+		e10 = text.substr(epos + 1).to_int()
+		text = text.substr(0, epos)
+	var dot := text.find(".")
+	var digs := text
+	if dot >= 0:
+		digs = text.substr(0, dot) + text.substr(dot + 1)
+		e10 -= text.length() - dot - 1
+	digs = digs.lstrip("0")
+	if digs.length() > 18:
+		return tok.to_float()      # too long for an int: only hand-written text, keep Godot's reading
+	var m := digs.to_int() if digs != "" else 0
+	var x := float(m)
+	var exact := m < 9007199254740992 and absi(e10) <= 22
+	if e10 > 0:
+		x = x * _P10[e10] if e10 <= 22 else x * pow(10.0, float(e10))
+	elif e10 < 0:
+		x = x / _P10[-e10] if -e10 <= 22 else x / pow(10.0, float(-e10))
+	if neg:
+		x = -x
+	if m != 0 and (x == 0.0 or is_inf(x)):
+		return tok.to_float()      # beyond the scaling (subnormal or near the top of the range)
+	if not exact and m != 0:
 		x = _exact(x, tok)
 	return x
 
 
-## The double whose Python repr is `tok`, if one is within 2 ulp of x; else x.
+## The double whose Python repr is `tok`, if one is within MAX_ULP ulp of x (nearest first); else x.
 static func _exact(x: float, tok: String) -> float:
 	if PyFmt.repr_float(x) == tok:
 		return x
@@ -272,9 +312,10 @@ static func _exact(x: float, tok: String) -> float:
 	buf.resize(8)
 	buf.encode_double(0, x)
 	var bits := buf.decode_s64(0)
-	for delta in [1, -1, 2, -2]:
-		buf.encode_s64(0, bits + delta)
-		var y := buf.decode_double(0)
-		if PyFmt.repr_float(y) == tok:
-			return y
+	for k in range(1, MAX_ULP + 1):
+		for delta in [k, -k]:
+			buf.encode_s64(0, bits + delta)
+			var y := buf.decode_double(0)
+			if PyFmt.repr_float(y) == tok:
+				return y
 	return x

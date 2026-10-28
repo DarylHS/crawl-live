@@ -1,7 +1,7 @@
 extends TestCase
 ## tests/test_phase3.py: the data tests (S4), the World init and floor tests (S6) and the pet, boss and
 ## ranged-monster tests that need attacks and Ai (S7), then skills, crafting at the bench and the pet
-## command and revive (S8). Saves are listed in docs/port-plan.md B.1.
+## command and revive (S8). The save tests (T5) are at the end.
 
 
 ## Chebyshev distance between two entities (crawler/ai.py cheb).
@@ -471,3 +471,33 @@ func test_crafting_in_safe_room_only_and_costs_time() -> void:
 	assert_eq(w.inventory, [recipe["makes"]])
 	assert_eq(before - w.timer, Crafting.CRAFT_TURNS)
 	assert_false(w.craft(0))                         # parts used up
+
+
+# --- Save / load (slice T5) ------------------------------------------------------
+
+func test_save_round_trip_and_identical_future() -> void:
+	var w := World.new(17, ["cat", "Tom"])
+	w.player.max_hp = 1000
+	w.player.hp = 1000
+	TestHelpers.play(w, PyRandom.new(1), 150)
+	w.inventory = ["tonic", "sock"]
+	w.boxes = ["gold"]
+	w.choose_class("elf", "brawler")
+	var path := TestHelpers.tmp_dir("save_phase3") + "slot.json"
+	assert_true(SaveGame.save(w, path))
+	var v := SaveGame.load(path)
+	assert_not_null(v)
+	assert_eq(SaveGame.to_dict(v), SaveGame.to_dict(w))
+
+	# Same inputs after loading give the same game.
+	TestHelpers.play(w, PyRandom.new(2), 200)
+	TestHelpers.play(v, PyRandom.new(2), 200)
+	assert_eq(SaveGame.to_dict(v), SaveGame.to_dict(w))
+
+
+func test_load_rejects_wrong_version() -> void:
+	var w := World.new(18)
+	var d := SaveGame.to_dict(w)
+	d["version"] = 99
+	assert_null(SaveGame.from_dict(d))
+	assert_push_error("Unsupported save version")

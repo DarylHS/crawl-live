@@ -1,8 +1,8 @@
 extends TestCase
 ## tests/test_phase4.py: item values, box stats against simulation, the shop policy tests (S4) and the
 ## shop turnover and contract tests on a World (S6), kills paying gold (S7) and trade-up, reroll and
-## buying and selling in World (S8), the fun facts and the run report data (T3). The save test is
-## listed in docs/port-plan.md B.1.
+## buying and selling in World (S8), the fun facts and the run report data (T3). The save test (T5) is at the
+## end.
 
 
 func _safe(w: World) -> void:
@@ -273,3 +273,27 @@ func test_run_report_data() -> void:
 	assert_almost_eq(float(rep["box_expected"][-1]), Loot.box_stats("silver")[0] + Loot.box_stats("gold")[0], 0.02)
 	assert_eq(rep["damage_by_floor"][0][0], 1)
 	assert_eq(rep["viewers"][-1][0], w.turn)
+
+
+# --- Save (slice T5) ----------------------------------------------------------------
+
+func test_save_round_trip_keeps_phase4_state() -> void:
+	var w := World.new(14, ["dog", "Rex"])
+	w.player.max_hp = 1000
+	w.player.hp = 1000
+	w.gold = 77
+	w.new_floor(2)
+	w.pending_offer = "gloop_blitz"
+	w.accept_contract()
+	_safe(w)
+	w.boxes = ["silver"]
+	w.open_box("silver")
+	var path := TestHelpers.tmp_dir("save_phase4") + "slot.json"
+	assert_true(SaveGame.save(w, path))
+	var v := SaveGame.load(path)
+	assert_not_null(v)
+	assert_eq(SaveGame.to_dict(v), SaveGame.to_dict(w))
+	for world in [w, v]:                                 # identical future, shop included
+		world.new_floor(3)
+		world.new_floor(4)
+	assert_eq(SaveGame.to_dict(v), SaveGame.to_dict(w))

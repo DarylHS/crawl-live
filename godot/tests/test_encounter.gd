@@ -1,8 +1,7 @@
 extends TestCase
 ## tests/test_encounter.py: initiative ordering with ties (S4) and the combat-mode tests on a World
 ## (S7: starting, initiative, the turn budget, ending, attacks of opportunity) and the bomb, item, skill,
-## pickup, descend and rest tests (S8) and the bot tests (T6). The tests that need saves are listed in
-## docs/port-plan.md B.1 (slice T5).
+## pickup, descend and rest tests (S8) and the bot tests (T6). The save tests (T5) are at the end.
 
 
 func after_each() -> void:
@@ -885,3 +884,52 @@ func test_bot_flees_through_a_provoke_only_when_hurt() -> void:
 	assert_eq(r[0], "move")
 	assert_ne(Vector2i(x, y) + (r[1] as Vector2i), Vector2i(g.x, g.y))     # hurt, no potion: run
 	assert_true(aoo.is_empty())
+
+
+# --- Save (slice T5) ------------------------------------------------------------------
+
+func test_never_saves_mid_combat() -> void:
+	var w := _world()
+	_fight(w, 3, {"stunned": 9})
+	var path := TestHelpers.tmp_dir("save_mid_combat") + "slot.json"
+	assert_false(SaveGame.save(w, path))
+	assert_push_error("mid-combat")
+	assert_false(FileAccess.file_exists(path))
+	assert_false(SaveGame.has_save(path))
+
+
+## Python drives the bot here; the bot is slice T6 (B.1), so the chaos player of the save-parity harness
+## (tools/save_trace_run.gd) plays: the first seed whose run is in a safe room on floor 2 or deeper is saved,
+## reloaded and played on next to the original, with later fights happening identically.
+func test_save_and_load_in_a_safe_room_gives_the_same_future() -> void:
+	var c: SaveTraceRun = null
+	var seed_used := 0
+	for sd in range(1, 40):
+		c = SaveTraceRun.play_to_save_point(sd)
+		var w0 := c.w
+		if w0.state == "playing" and w0.combat == null and w0.in_safe_room and w0.depth >= 2:
+			seed_used = sd
+			break
+	assert_gt(seed_used, 0, "no seed reached a safe room on floor 2")
+	var w := c.w
+	assert_true(w.state == "playing" and w.in_safe_room)
+	var b := SaveGame.from_text(PyJson.dumps(SaveGame.to_dict(w)))
+	assert_not_null(b)
+	var fights := [_record(w, "combat_start"), _record(b, "combat_start")]
+	var players := [SaveTraceRun.new(seed_used, w), SaveTraceRun.new(seed_used, b)]
+	for p in players:
+		p.rng = PyRandom.new(seed_used ^ 0xC0117)
+	for n in range(600):
+		for p in players:
+			if p.w.state == "playing":
+				p.step(n)
+	assert_true(fights[0].size() > 0 and fights[0].size() == fights[1].size(), "later fights happen, identically")
+	assert_eq(_sig(w), _sig(b))
+
+
+func _sig(w: World) -> Array:
+	var mons: Array = []
+	for m in w.monsters:
+		mons.append([m.key, m.x, m.y, m.hp])
+	mons.sort()
+	return [w.turn, w.state, w.depth, w.player.hp, [w.player.x, w.player.y], w.rng.random(), mons]

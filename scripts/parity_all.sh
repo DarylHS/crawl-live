@@ -13,6 +13,9 @@
 #   hunter   hunter policy, seeds 0-49, 3000 steps, with no pet and with 8 pet/hero combinations (full)
 #   s4       S4 fixtures (loot, shop, items, bosses), seeds 0-199, via the GUT test test_s4_parity
 #   chaos    chaos harness, seeds 0-215, 2500 steps (scripts/chaos_diff.py)
+#   saves    save/load (T5): seeds 0-99 played by the chaos player to a save point, saved, reloaded, continued 300 steps in
+#            Python and Godot, with each side loading the other's saves; save files byte for byte, traces line for line
+#            (scripts/save_trace.py, godot/tools/save_trace.gd, scripts/save_diff.py)
 #   csv      telemetry CSV files of the same chaos runs (T4: chaos_trace.py / chaos.gd --telemetry-dir, compared
 #            byte for byte with parity_diff.py --csv; every outcome, boxes, shop, practice, events)
 #   bot      bot policy (T6), seeds 0-99, 3000 steps (full scope; pet, hero, race, class from run_config)
@@ -67,6 +70,13 @@ for c in $(chunks 0 215 27); do
 	echo "$GODOT --headless --path $ROOT/godot -s res://tools/chaos.gd -- --seeds $c --steps 2500 --out-dir $WORK/gd_chaos --telemetry-dir $WORK/gd_csv >/dev/null 2>&1" >> "$JOBS"
 done
 echo "python3 $ROOT/scripts/make_fixtures_s4.py $WORK/fixtures_s4.json 200" >> "$JOBS"
+# saves (T5): each side plays the seed to a save point, saves, reloads and continues 300 steps; the cross-loads
+# (each side continuing the other's save) are a second pass below, after the main jobs.
+mkdir -p "$WORK/py_saves" "$WORK/gd_saves"
+for c in $(chunks 0 99 13); do
+	echo "python3 $ROOT/scripts/save_trace.py --seeds $c --steps 300 --out-dir $WORK/py_saves" >> "$JOBS"
+	echo "$GODOT --headless --path $ROOT/godot -s res://tools/save_trace.gd -- --seeds $c --steps 300 --out-dir $WORK/gd_saves >/dev/null 2>&1" >> "$JOBS"
+done
 
 echo "parity_all: generating traces ($(wc -l < "$JOBS") jobs on $N workers)..."
 xargs -d '\n' -P "$N" -I CMD bash -c CMD < "$JOBS"
@@ -97,6 +107,21 @@ echo "chaos: $(echo "$out" | tail -1)"
 out="$(python3 "$ROOT/scripts/parity_diff.py" --csv "$WORK/py_csv" "$WORK/gd_csv" 2>&1)"
 rc=$?
 echo "csv: $(echo "$out" | tail -1)"
+[ "$rc" -eq 0 ] || { echo "$out" | head -40; fail=1; }
+
+# saves (T5), pass 2: Godot loads Python's saves and Python loads Godot's, each continuing 300 steps (--load-only
+# adds the xload files to the same directories), then compare everything: byte-identical save files and identical
+# traces (direct, reloaded in each language, cross-loaded)
+: > "$WORK/jobs2.txt"
+for c in $(chunks 0 99 13); do
+	echo "python3 $ROOT/scripts/save_trace.py --seeds $c --steps 300 --out-dir $WORK/py_saves --load-dir $WORK/gd_saves --load-only" >> "$WORK/jobs2.txt"
+	echo "$GODOT --headless --path $ROOT/godot -s res://tools/save_trace.gd -- --seeds $c --steps 300 --out-dir $WORK/gd_saves --load-dir $WORK/py_saves --load-only >/dev/null 2>&1" >> "$WORK/jobs2.txt"
+done
+echo "parity_all: save cross-loads..."
+xargs -d '\n' -P "$N" -I CMD bash -c CMD < "$WORK/jobs2.txt"
+out="$(python3 "$ROOT/scripts/save_diff.py" "$WORK/py_saves" "$WORK/gd_saves" --seeds 0-99 2>&1)"
+rc=$?
+echo "saves: $(echo "$out" | tail -1)"
 [ "$rc" -eq 0 ] || { echo "$out" | head -40; fail=1; }
 
 log="$WORK/s4.log"

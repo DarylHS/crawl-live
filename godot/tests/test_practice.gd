@@ -453,3 +453,22 @@ func test_ref_load_and_to_dict() -> void:
 				bad += 1
 				gut.p(d)
 	assert_eq(bad, 0)
+
+
+# --- Save (slice T5) ------------------------------------------------------------------
+
+func test_save_round_trip_keeps_practice() -> void:
+	var w := World.new(9)
+	w.training.gain("scavenging", 30)
+	w.training.gain("first_aid", 3)
+	var path := TestHelpers.tmp_dir("save_practice") + "slot.json"
+	assert_true(SaveGame.save(w, path))
+	var v := SaveGame.load(path)
+	assert_not_null(v)
+	assert_eq(v.training.levels, w.training.levels)
+	assert_eq(v.training.xp, w.training.xp)
+	var used_v: Array = v.training.used.keys()
+	var used_w: Array = w.training.used.keys()
+	used_v.sort()
+	used_w.sort()
+	assert_eq(used_v, used_w)       # Python's `used` is a set: order does not count

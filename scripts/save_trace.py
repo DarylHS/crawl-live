@@ -4,7 +4,7 @@ scripts/save_diff.py compares the two.
 A seeded chaos player (the action mix of scripts/chaos_trace.py, without its tracing) plays a World to a
 save point, the run is saved to DIR/save_<seed>.json with crawler.save, and play continues two ways:
 
-    direct   the same World keeps going
+    direct   the same World keeps going (after drop_unsaved(): what Python's save format does not keep)
     loaded   the saved file is read back (crawler.save.load) and that World keeps going
 
 Both continuations use a fresh policy stream (random.Random(seed ^ 0xC0117)) and write one JSON line per
@@ -16,6 +16,7 @@ round-trip.
 
     python scripts/save_trace.py --seeds 0-9 --steps 300 --out-dir DIR
     python scripts/save_trace.py --seeds 0-9 --steps 300 --out-dir DIR --load-dir OTHER_DIR
+    python scripts/save_trace.py --seeds 0-9 --steps 300 --out-dir DIR --load-dir OTHER_DIR --load-only
 
 --load-dir (cross-load): also load OTHER_DIR/save_<seed>.json (written by the other implementation),
 continue it and write DIR/xload_<seed>.jsonl. Its header hash is that of the re-dumped loaded World, so it
@@ -262,6 +263,15 @@ class Chaos:
         return tag, ok
 
 
+def drop_unsaved(w):
+    """What a load loses: Python's v7 save keeps the Tracker's kills, pickups and equipped slots but not its
+    unarmed_kills, pet_kills, maps, junk_sold and nat1s, so a loaded run counts those from zero and unlocks the
+    achievements that depend on them later than the run that never saved. The direct continuation drops them too,
+    so `direct` and `loaded` are comparable (the unmodified comparison fails for about 40% of seeds)."""
+    t = w.achievements.tracker
+    t.unarmed_kills = t.pet_kills = t.maps = t.junk_sold = t.nat1s = 0
+
+
 def play_to_save_point(seed):
     """The World at the save point (playing, out of combat; odd seeds in the safe room)."""
     c = Chaos(seed)
@@ -319,10 +329,18 @@ def main():
     ap.add_argument("--steps", type=int, default=300)
     ap.add_argument("--out-dir", required=True)
     ap.add_argument("--load-dir", help="also continue the saves found here (written by the other implementation)")
+    ap.add_argument("--load-only", action="store_true",
+                    help="with --load-dir: play nothing, only write xload_<seed>.jsonl (into --out-dir, which may be "
+                    "the directory of an earlier run)")
     a = ap.parse_args()
     out = Path(a.out_dir)
     out.mkdir(parents=True, exist_ok=True)
     for seed in seeds_arg(a.seeds):
+        if a.load_only:
+            other = Path(a.load_dir) / f"save_{seed}.json"
+            if other.exists():
+                continue_run(save.load(other), seed, a.steps, out / f"xload_{seed}.jsonl")
+            continue
         _, w = play_to_save_point(seed)
         if w.state != "playing" or w.combat is not None:
             (out / f"skip_{seed}").write_text("no save point\n")
@@ -331,6 +349,7 @@ def main():
         save.save(w, path)
         v = save.load(path)
         continue_run(v, seed, a.steps, out / f"loaded_{seed}.jsonl")
+        drop_unsaved(w)
         continue_run(w, seed, a.steps, out / f"direct_{seed}.jsonl")
         if a.load_dir:
             other = Path(a.load_dir) / f"save_{seed}.json"
