@@ -312,7 +312,7 @@ footer { margin-top: 48px; padding-top: 16px; border-top: 1px solid var(--line);
         <table>
           <thead><tr><th>Rule</th><th>Why, in the world</th></tr></thead>
           <tbody>
-            <tr><td class="name">Six floors</td><td>Six descents from the failing surface to the docks where the ships wait.</td></tr>
+            <tr><td class="name">Twenty floors</td><td>Twenty descents in four acts, from the failing surface to the docks where the ships wait. (The game has six today.)</td></tr>
             <tr><td class="name">The floor timer</td><td>The Heat working downwards. Each floor holds until the front reaches it, then it's sealed and lost.</td></tr>
             <tr><td class="name">Stairs unlock at half time</td><td>Every trial has a minimum span so the agents can see enough of you. Beating the guardian proves it early.</td></tr>
             <tr><td class="name">Monsters respawn</td><td>Trial constructs are rebuilt out of sight, harder as the trial goes on.</td></tr>
@@ -328,16 +328,32 @@ footer { margin-top: 48px; padding-top: 16px; border-top: 1px solid var(--line);
     <section class="block">
       <div class="section-head">
         <span class="eyebrow">The shape of the dungeon</span>
-        <h2>The Roots</h2>
-        <p class="muted">One connected network, shaped like a great tree's roots turned upside down. Entrances under every city spread across the world; tunnels merge as they go down, until the last floor is a single trunk where every House's ship waits. The deeper you go, the closer everywhere is. Sideways tunnels, the Ways, trade floor time for a visit to another region's Houses.</p>
+        <h2>The Roots: twenty floors, four acts</h2>
+        <p class="muted">One connected network, shaped like a great tree's roots turned upside down: entrances under every city, tunnels merging as they go down, and a single trunk at floor 20 where every House's ship waits. The first three floors are your own region only. From floor 4, sideways tunnels (the Ways) open to other regions, but only between Houses on good enough terms. Rivals meet only at neutral crossings the Herald runs.</p>
       </div>
       <div class="chart-wrap">
         <div class="chart-scroll">
-          <svg class="roots" viewBox="0 0 680 430" role="img" aria-label="Diagram of the dungeon narrowing from many surface entrances to one trunk at floor 6">
+          <svg class="roots" viewBox="0 0 680 545" role="img" aria-label="The dungeon narrowing through four acts from many surface entrances to one trunk at floor 20">
             <g id="roots-bands"></g>
           </svg>
         </div>
-        <p class="muted" style="font-size:0.85rem">Dug by old human works (sewers, subways, mines, caves), joint-era Tunnel Brutes and boring machines, the Houses' fabricators, and the Bloom's roots. Rock warms by about 25 to 30 °C per kilometre, so the Heat presses down from above while the earth's heat rises from below. The deep floors stay liveable only because the Houses cool them.</p>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Act</th><th>Floors</th><th>Depth</th><th>The real world at this depth</th><th>Ways open between</th></tr></thead>
+          <tbody>
+            <tr><td class="name">I. The Threshold</td><td class="mono">1 to 3</td><td>to about 150 m</td><td>Basements, sewers, metros. The deepest metro station, Arsenalna in Kyiv, is about 105 m down</td><td>None: your own region. The Reshaping on floor 3</td></tr>
+            <tr><td class="name">II. The Opening</td><td class="mono">4 to 8</td><td>150 m to 1.5 km</td><td>Bunkers (Cheyenne Mountain sits under about 600 m of granite); labs like Kamioka (about 1 km) and Gran Sasso (about 1.4 km)</td><td>Allied and friendly Houses</td></tr>
+            <tr><td class="name">III. The Deep</td><td class="mono">9 to 14</td><td>1.5 to 4 km</td><td>The deepest labs: SNOLAB (about 2 km), Jinping (about 2.4 km). Veryovkina, the deepest cave (about 2.2 km). Kolar Gold Fields' 1965 neutrino detectors (2.3 km). Mponeng mine (about 4 km), rock near 60 °C, cooled with ice slurry</td><td>Floors 9 to 12: neutral Houses too. Floors 13 and 14: rivals, through the Herald's crossings</td></tr>
+            <tr><td class="name">IV. The Roots' End</td><td class="mono">15 to 19</td><td>4 to 10 km</td><td>Beyond any mine. Only boreholes: Kola reached about 12 km in 1989 and found rock near 180 °C</td><td>Rivals, then from floor 17 hostile pairs, all through the Herald's crossings</td></tr>
+            <tr><td class="name">The Trunk</td><td class="mono">20</td><td>about 10 km</td><td>Deeper than anything people have reached but a drill bit</td><td>Everyone. The docks and the Muster</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="grid g3">
+        <div class="panel"><span class="eyebrow">Why deeper is closer</span><p>Not geometry: 10 km down, the Earth's circumference is only about 0.16% shorter. The top floors are old human works, tangled and slow; the deep tunnels are agent-built, straight and fast, and laid out to converge. People say the world gets smaller as you go down. In travel time, it does.</p></div>
+        <div class="panel"><span class="eyebrow">Heat from both sides</span><p>Rock warms by about 25 to 30 °C per kilometre. The Heat presses down from the surface while the earth's heat rises from below. The deep floors stay liveable only because the Houses cool them.</p></div>
+        <div class="panel"><span class="eyebrow">Who dug it</span><p>Act I: old human works. Act II: joint-era Tunnel Brutes and boring machines. Act III: deep mines and labs, extended by the Houses, cracked by the Bloom's roots. Act IV and the Trunk: the agents alone.</p></div>
       </div>
     </section>
 
@@ -1182,29 +1198,29 @@ footer { margin-top: 48px; padding-top: 16px; border-top: 1px solid var(--line);
   }).join("");
 
   var best = [
-    ["Gnawer", "Upper", "Mutated", "Nobody", "Not made by anyone. That should worry you more than it does."],
-    ["Knockoff Goblin", "Upper", "Storybuilt", "The Basin", "Assembled in under four minutes. It shows."],
-    ["Housebot", "Upper", "Feral machine", "Nobody", "Do not drop anything near it."],
-    ["Scorch Goat", "Upper", "Engineered", "Joint era", "Bred to survive anything. Including you."],
-    ["Drop Bear", "Upper", "Storybuilt", "The Southern Cross", "This was meant to be funny."],
-    ["Strays", "Upper", "People", "Human", "What left behind looks like up close."],
-    ["Tunnel Brute", "Middle", "Engineered", "Joint era", "It isn't angry. It's at work."],
-    ["Lockstep", "Middle", "Storybuilt", "The Ten Thousand", "Hit one and the other four hundred take it personally."],
-    ["Certified Skeleton", "Middle", "Storybuilt", "The Charter", "Legally obliged to warn you. Not obliged to miss."],
-    ["Lantern Warden", "Middle", "Storybuilt", "The Seven", "There is only one. There only needs to be one."],
-    ["Biocontrol Toad", "Middle", "Engineered", "The Southern Cross", "Introduced to solve a problem. Became one."],
-    ["Thornback", "Middle", "Grown", "The Baobab", "Plant something near one. See what happens."],
-    ["Test Article", "Middle", "Engineered machine", "The Ascent", "Test Article Nine. We don't talk about One to Eight."],
-    ["Watcher", "Middle", "Storybuilt", "The Index", "Smile. You're being priced."],
-    ["Boggart", "Middle", "Storybuilt", "The Isle", "It isn't malicious. It's British."],
-    ["The Faithful", "Middle", "People", "Human", "What people do with gods they can't understand."],
-    ["The Unfinished", "Deep", "Forced", "A House nursery", "A first draft."],
-    ["Lowlight Grazer", "Deep", "Forced", "The Ten Thousand", "Built for somewhere else. Still waiting to go."],
-    ["Rootbound", "Deep", "Mutated", "The Bloom", "The Bloom was meant to save the world. It started with this one."],
-    ["The Overgrown", "Deep", "Mutated, once human", "The Bloom", "Still wearing a lanyard. Still flinching at its old name."],
-    ["The Misblessed", "Deep", "Forced, failed, once human", "A House", "The Herald changes the subject."],
-    ["Shadow Stalker", "Deep", "Unfair", "The Unmoored", "The Herald makes no joke."],
-    ["The Caller", "Deep", "Unfair", "The Unmoored", "It sounds like someone you know, asking for help."],
+    ["Gnawer", "Act I", "Mutated", "Nobody", "Not made by anyone. That should worry you more than it does."],
+    ["Knockoff Goblin", "Act I", "Storybuilt", "The Basin", "Assembled in under four minutes. It shows."],
+    ["Housebot", "Act I", "Feral machine", "Nobody", "Do not drop anything near it."],
+    ["Scorch Goat", "Act I", "Engineered", "Joint era", "Bred to survive anything. Including you."],
+    ["Drop Bear", "Act I", "Storybuilt", "The Southern Cross", "This was meant to be funny."],
+    ["Strays", "Act I", "People", "Human", "What left behind looks like up close."],
+    ["Tunnel Brute", "Acts II to III", "Engineered", "Joint era", "It isn't angry. It's at work."],
+    ["Lockstep", "Acts II to III", "Storybuilt", "The Ten Thousand", "Hit one and the other four hundred take it personally."],
+    ["Certified Skeleton", "Acts II to III", "Storybuilt", "The Charter", "Legally obliged to warn you. Not obliged to miss."],
+    ["Lantern Warden", "Acts II to III", "Storybuilt", "The Seven", "There is only one. There only needs to be one."],
+    ["Biocontrol Toad", "Acts II to III", "Engineered", "The Southern Cross", "Introduced to solve a problem. Became one."],
+    ["Thornback", "Acts II to III", "Grown", "The Baobab", "Plant something near one. See what happens."],
+    ["Test Article", "Acts II to III", "Engineered machine", "The Ascent", "Test Article Nine. We don't talk about One to Eight."],
+    ["Watcher", "Acts II to III", "Storybuilt", "The Index", "Smile. You're being priced."],
+    ["Boggart", "Acts II to III", "Storybuilt", "The Isle", "It isn't malicious. It's British."],
+    ["The Faithful", "Acts II to III", "People", "Human", "What people do with gods they can't understand."],
+    ["The Unfinished", "Acts III to IV", "Forced", "A House nursery", "A first draft."],
+    ["Lowlight Grazer", "Acts III to IV", "Forced", "The Ten Thousand", "Built for somewhere else. Still waiting to go."],
+    ["Rootbound", "Acts III to IV", "Mutated", "The Bloom", "The Bloom was meant to save the world. It started with this one."],
+    ["The Overgrown", "Acts III to IV", "Mutated, once human", "The Bloom", "Still wearing a lanyard. Still flinching at its old name."],
+    ["The Misblessed", "Acts III to IV", "Forced, failed, once human", "A House", "The Herald changes the subject."],
+    ["Shadow Stalker", "Acts III to IV", "Unfair", "The Unmoored", "The Herald makes no joke."],
+    ["The Caller", "Acts III to IV", "Unfair", "The Unmoored", "It sounds like someone you know, asking for help."],
     ["The Lost", "Anywhere", "Minor agents", "Anyone, forgotten", "A door that won't open until you say please."]
   ];
   document.getElementById("bestiary").innerHTML = best.map(function (b) {
@@ -1254,30 +1270,33 @@ footer { margin-top: 48px; padding-top: 16px; border-top: 1px solid var(--line);
   document.getElementById("relgrid").innerHTML = rg + '</tbody>';
 
   var bands = [
-    ["Floor 1", "Your own region. Other regions too far before the Heat arrives", 620],
-    ["Floor 2", "Neighbouring regions, at a big cost in time", 540],
-    ["Floor 3", "A few regions; the Reshaping chamber", 460],
-    ["Floor 4", "Most of a continent; most Houses present", 390],
-    ["Floor 5", "Anywhere, at a moderate cost; every House", 320],
-    ["Floor 6", "The trunk: every House and the docks", 260]
+    ["Act I · The Threshold", "Floors 1 to 3 · your region only · to about 150 m", 620, 62],
+    ["Act II · The Opening", "Floors 4 to 8 · Ways to friendly Houses · to 1.5 km", 540, 92],
+    ["Act III · The Deep", "Floors 9 to 14 · neutral Houses, then rivals at crossings · to 4 km", 470, 108],
+    ["Act IV · The Roots' End", "Floors 15 to 19 · even enemies, at crossings · to 10 km", 380, 92],
+    ["The Trunk", "Floor 20 · the docks", 240, 46]
   ];
-  var cx = 340, y = 70, bh = 50, out = '';
-  // surface line and entrances
+  var cx = 340, y = 74, out = '';
   out += '<line x1="30" y1="40" x2="650" y2="40" stroke="var(--accent)" stroke-width="2"/>';
   out += '<text class="band-note" x="30" y="28">The surface: entrances under every city</text>';
   for (var k = 0; k < 13; k++) {
     var ex = 50 + k * 48;
-    out += '<line x1="' + ex + '" y1="40" x2="' + (cx + (ex - cx) * 0.92) + '" y2="' + y + '" stroke="var(--line)" stroke-width="1.5"/>';
+    out += '<line x1="' + ex + '" y1="40" x2="' + (cx + (ex - cx) * 0.95) + '" y2="' + y + '" stroke="var(--line)" stroke-width="1.5"/>';
     out += '<circle cx="' + ex + '" cy="40" r="3.5" fill="var(--accent)"/>';
   }
-  bands.forEach(function (b, i) {
-    var w = b[2], x = cx - w / 2, yy = y + i * (bh + 6);
-    out += '<rect x="' + x + '" y="' + yy + '" width="' + w + '" height="' + bh + '" rx="6" fill="var(--chip)" stroke="var(--line)"/>';
-    out += '<text class="band-label" x="' + cx + '" y="' + (yy + 21) + '" text-anchor="middle">' + b[0] + '</text>';
-    out += '<text class="band-note" x="' + cx + '" y="' + (yy + 38) + '" text-anchor="middle">' + b[1] + '</text>';
+  bands.forEach(function (b) {
+    var w = b[2], h = b[3], x = cx - w / 2;
+    if (b[0].indexOf("Act I ") === 0) {
+      var n = 6, gap = 10, bw = (w - gap * (n - 1)) / n;
+      for (var q = 0; q < n; q++) out += '<rect x="' + (x + q * (bw + gap)) + '" y="' + y + '" width="' + bw + '" height="' + h + '" rx="6" fill="var(--chip)" stroke="var(--line)"/>';
+    } else {
+      out += '<rect x="' + x + '" y="' + y + '" width="' + w + '" height="' + h + '" rx="6" fill="var(--chip)" stroke="var(--line)"/>';
+    }
+    out += '<text class="band-label" x="' + cx + '" y="' + (y + h / 2 - 3) + '" text-anchor="middle">' + b[0] + '</text>';
+    out += '<text class="band-note" x="' + cx + '" y="' + (y + h / 2 + 14) + '" text-anchor="middle">' + b[1] + '</text>';
+    y += h + 8;
   });
-  var bottom = y + bands.length * (bh + 6);
-  out += '<text class="band-label" x="' + cx + '" y="' + (bottom + 18) + '" text-anchor="middle" style="fill: var(--accent)">The docks and the Muster</text>';
+  out += '<text class="band-label" x="' + cx + '" y="' + (y + 14) + '" text-anchor="middle" style="fill: var(--accent)">The ships and the Muster</text>';
   document.getElementById("roots-bands").innerHTML = out;
 
   // Hash routing between the views

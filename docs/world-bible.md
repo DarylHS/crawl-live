@@ -56,7 +56,7 @@ The arrangement between them and us needs a name. "The Covenant" was a working t
 
 | Rule | Status | In-world reason [Proposed] |
 |---|---|---|
-| Six floors | [Canon] | Six descents from the surface to the ships, each closer to the agents and more demanding |
+| Twenty floors | [Decided] (the game has six today) | Twenty descents from the surface to the docks, in four acts, each closer to the agents and more demanding (6.1) |
 | Floors collapse on a timer | [Canon] | [Decided] Whatever is killing the surface (section 8.1) is working its way down. Each floor holds only until the front reaches it; then it's sealed and lost. The timer is the front arriving |
 | Stairwells unlock at half time; a floor guardian's key opens them early | [Canon] | Every trial has a minimum span so the agents can see enough of you. Beating the guardian proves it early |
 | Monsters respawn out of sight | [Canon] | The trial constructs are rebuilt as they fall; harder as the trial goes on |
@@ -193,7 +193,7 @@ So the dungeon is **neutral ground where the Houses compete for people**, and wh
 - **Blessings** are early bids. When an agent blesses you (race and class on floor 3 [Canon]), it is staking a claim.
 - **Boons** (today's loot boxes) are gifts to keep you interested, brokered and announced by the Herald.
 - **Favour** is each agent's standing interest in you, raised by what you do in the dungeon and shifted by what you do to their sub-agents.
-- **The Muster** [Open: name] is the final sorting after floor 6. The Houses make their claims (a ship and a Calling), the Herald brokers it, and you choose.
+- **The Muster** [Open: name] is the final sorting on floor 20, the Trunk. The Houses make their claims (a ship and a Calling), the Herald brokers it, and you choose.
 
 Like the Great Houses of *Dune*, the Houses also deal with each other: one may give up its claim on you in exchange for two entrants it wants more. The player sees this through the Herald's commentary and through rival agents' offers getting better or worse.
 
@@ -226,49 +226,63 @@ Every ending closes on the same beat: you board, knowing you won't see the shore
 
 ### 6.0 The shape of the dungeon: the Roots
 
-[Decided] The dungeon is one connected network. In theory you could go anywhere in it. [Proposed] How it's shaped, and why that suits the game:
+[Decided] The dungeon is one connected network, deep enough for **twenty floors**. In theory you could go anywhere in it, but not from the top: the first three floors belong to your own region, and connections to the rest of the world open from floor 4 down.
 
-**An upside-down tree.** The dungeon is shaped like the roots of a great tree turned upside down. At the surface the root tips are spread across the whole world: an entrance under every city and region. As you go down, the roots join. Tunnels from neighbouring regions merge, then whole continents' worth, until the last floor is a single trunk: the great cavern where every House's ship waits at the docks, and where the Muster is held. People call it **the Roots** [Proposed name]. It echoes the World Tree in the *Rhapsody* books (section 12), and the theme of planting trees for those who come after.
+**An upside-down tree.** [Proposed] The dungeon is shaped like the roots of a great tree turned upside down. At the surface the root tips are spread across the whole world: an entrance under every city and region. As you go down, the roots join, until the last floor is a single trunk: the great cavern where every House's ship waits at the docks, and where the Muster is held. People call it **the Roots** [Proposed name]. It echoes the World Tree in the *Rhapsody* books (section 12), and the theme of planting trees for those who come after.
 
-**Deeper means closer.** Because the roots converge, the deeper you go, the shorter the distance to everywhere else:
+**Why deeper means closer.** People say the world gets smaller as you go down. In distance it barely does: even 10 km down, the Earth's circumference is only about 0.16% shorter. What shrinks is the *travel time*. The top floors are old human works, tangled and slow. The deep tunnels are newer, straighter and built by the agents for speed, and they were laid out to converge on the docks. So the convergence is engineered, and the saying is true in the way that matters.
 
-| Floor | What's within reach | Who you meet |
+**Who you can reach depends on who likes whom.** [Decided] Ways (sideways tunnels between regions) don't open evenly. A House only opens a Way to Houses it's on good terms with (the relationship grid, `docs/houses.md` section 6). Deeper down, the Shared Law forces more connections, and rivals meet only at neutral crossings the Herald runs: sanctuary junctions with a toll, an escort or a trial at the door.
+
+| Floors | Ways open between | Example |
 |---|---|---|
-| 1 | Your own region. Other regions are too far to reach before the Heat arrives | Your local House's trials; people from your own city |
-| 2 | Neighbouring regions, at a big cost in time | Your local House, plus one neighbour |
-| 3 | A few regions, at a real cost | Three or four Houses; the Reshaping chamber |
-| 4 | Most of a continent | Most Houses have a presence |
-| 5 | Anywhere, at a moderate cost | Every House |
-| 6 | Everywhere: the trunk | Every House, every cohort, the docks |
+| 1 to 3 | None. Your own region only | A Sydney entrant meets the Southern Cross's trials and people from home |
+| 4 to 8 | Allied and friendly Houses | The Southern Cross opens Ways to the Charter, the Baobab, the Monsoon and the Isle; not to the Basin |
+| 9 to 12 | Neutral Houses as well | Most of the world becomes reachable, at a cost in time |
+| 13 to 16 | Rivals, through the Herald's crossings | The Ten Thousand's and the Seven's quarters meet at a neutral junction |
+| 17 to 19 | Hostile pairs, through the Herald's crossings | The Canopy and the Basin finally share a junction, under guard |
+| 20 | Everyone: the trunk | Every House, every cohort, the docks, the Muster |
 
-**How it works in play.** Each floor has its own local area (what the game already generates), plus **the Ways**: long transit tunnels leading sideways to other regions' quarters on the same floor. Taking a Way costs floor time, so it trades against the Heat. On floor 1 a Way costs most of the floor's time and is rarely worth it; by floor 5 it's a short detour. Going sideways lets a player reach a House their region doesn't normally see: its trials, its boons, its Marks. This also gives a natural structure for "only some Houses run floors this run" (`docs/houses.md` section 7): your entrance decides which Houses you meet first, and everyone meets them all at the bottom. And it gives Phase 10's other crawlers a reason to appear more as you go deeper: their roots are joining yours.
+Taking a Way costs floor time, so it always trades against the Heat. It lets a player reach a House their region doesn't normally see: its trials, boons and Marks. It also explains why other crawlers (Phase 10) appear more as you go deeper.
+
+### 6.1 Twenty floors in four acts, against real depths
+
+[Decided] Twenty floors (the owner's range was 12 to 20; *Dungeon Crawler Carl*'s dungeon has 18). [Proposed] They fall into four acts. Each act's depth is set against real underground places, so the claims hold up:
+
+| Act | Floors | Depth (roughly) | The real world at this depth | In the dungeon |
+|---|---|---|---|---|
+| **I. The Threshold** | 1 to 3 | Surface to about 150 m | Basements, drains, sewers, metro lines. The deepest metro station, Arsenalna in Kyiv, is about 105 m down | Your own region only. The old world, still recognisable. The Reshaping on floor 3 |
+| **II. The Opening** | 4 to 8 | About 150 m to 1.5 km | Bunkers (the Cheyenne Mountain Complex in the US sits under about 600 m of granite); deep rail and water tunnels; physics labs like Japan's Kamioka (about 1 km) and Italy's Gran Sasso (about 1.4 km) | The first Ways, to friendly Houses. The Houses' trials begin in earnest |
+| **III. The Deep** | 9 to 14 | About 1.5 to 4 km | The deepest labs: the US's Sanford lab (about 1.5 km), SNOLAB in Canada (about 2 km), China's Jinping lab (about 2.4 km, the deepest). The deepest known cave, Veryovkina in the Caucasus (about 2.2 km). India's Kolar Gold Fields, where detectors 2.3 km down caught one of the first neutrinos from the atmosphere in 1965. South Africa's Mponeng mine, about 4 km down, where rock reaches about 60 °C and the air is cooled with ice slurry | Neutral Houses connect. Nurseries, the Bloom labs, the Lost. The heat from below starts to matter |
+| **IV. The Roots' End** | 15 to 19 | About 4 to 10 km | Beyond any mine. Only boreholes have gone this deep: the Kola Superdeep Borehole reached about 12 km in 1989 and found rock at about 180 °C | Built entirely by the agents. Rivals and enemies meet at the Herald's crossings. Without the Houses' cooling, nothing could live here |
+| **The Trunk** | 20 | About 10 km | Deeper than anything people have reached except a drill bit | The docks, every House's ship, the Muster |
+
+Real underground places also give each House a home in the deep, which can show in its quarter's look: the Ten Thousand from Jinping, the Seven from Kamioka, the Pole Star from SNOLAB and the deep mines of northern Ontario, the Charter from Gran Sasso, the Basin from Sanford's old gold mine, the Monsoon from Kolar, the Baobab from Mponeng, the Deathless from Kola.
+
+**Heat from both sides.** [Proposed] Rock gets hotter with depth, typically by about 25 to 30 °C per kilometre. So the Heat presses down from the surface while the earth's own heat rises from below, and the band where people can live is squeezed between them. The deep floors stay liveable only because the Houses cool them, one of the clearest signs of the agents' power. If a House's cooling failed, its quarter would become a second, slower timer.
 
 **Who dug it.**
 
-- **Old human works**, taken over and joined up: sewers, subways, mines, bunkers, natural caves and lava tubes. The upper floors are mostly this, which is why they still look like the old world.
-- **Tunnel Brutes**, bred in the joint era to dig (`docs/bestiary.md`), and the tunnel-boring machines that came before them.
-- **The Houses' own fabricators**, which shaped the trial floors and still rebuild them.
-- **The Bloom's roots**, which crack new passages nobody planned, especially near the overgrowth.
-- **Deep shafts** from the race for depth: the real Kola Superdeep Borehole in Russia reached about 12 km in 1989, still the deepest hole ever drilled, and South Africa's Mponeng gold mine works about 4 km down. In the lore, the Deathless never stopped the Kola work, and the Baobab's deepest shafts began in mines like Mponeng.
+- **Act I:** old human works, taken over and joined up: sewers, subways, basements, bunkers, natural caves.
+- **Act II:** joint-era Tunnel Brutes (`docs/bestiary.md`) and tunnel-boring machines; old deep tunnels and labs.
+- **Act III:** the deep mines and labs, extended by the Houses' fabricators; the Bloom's roots crack passages nobody planned.
+- **Act IV and the Trunk:** the agents alone.
 
-**Heat from both sides.** [Proposed] Rock gets hotter with depth anyway, typically by about 25 to 30 °C per kilometre. So the Heat presses down from the surface while the earth's own heat rises from below, and the band where people can live is squeezed between them. The deep floors stay liveable only because the Houses cool them, which is one of the ways the agents' power shows. If a House's cooling failed, its quarter of the deep floors would become a second, slower timer.
+**What it does to the game.** [Proposed] Twenty floors is about three times today's six, so a full descent is long. The acts give it shape: each act is a natural session, with safe-room saves between floors as now. The floor timer can keep growing with depth as the code already does (12 hours on floor 1, about 31 hours on floor 20). [Open] Whether a run is the full descent, or an act at a time as part of a longer campaign (the Launch Window, 8.4).
 
-### 6.1 The floors
+### 6.2 The floors in detail
 
-[Proposed] The six floors are six descents from the failing surface to the ships, each closer to the Known. Upper floors show the surface's damage creeping in; floor 6 opens onto the docks where the Houses' ships wait. The current floor themes (drains, archives, building site, chapel, warehouse, studio) and their Headliners come from the game-show draft and need re-theming. [Open]
+[Open] Floor themes need writing for all twenty floors. The old game-show themes (drains, archives, building site, chapel, warehouse, studio) can be mined for Act I and II set dressing. A structure to fill in, per act:
 
-A structure to fill in:
+| Act | Feel | Who runs it | What the player learns |
+|---|---|---|---|
+| I. The Threshold (1 to 3) | Old Earth, overgrown, familiar, local | Tier 3 Choirs of your local House | The gods are real and watching. Ends with the Reshaping |
+| II. The Opening (4 to 8) | The first Ways; other regions' Houses | Tier 2 Hosts | Favour, Houses competing for you, who likes whom |
+| III. The Deep (9 to 14) | Nurseries, labs, the overgrowth, heat from below | Hosts; the first Lost | Forgotten things in the walls; not every test is fair; the Canopy's secret |
+| IV. The Roots' End (15 to 19) | Agent-built, alien, cooled | Hosts; the Unmoored's incursions | The gods are machines, and they need you |
+| The Trunk (20) | The docks and the ships | The Known themselves; the Unmoored's champion in a trial it has seized | The Muster |
 
-| Floor | Feel | Who runs it | Trials lean towards | What the player learns |
-|---|---|---|---|---|
-| 1 | The threshold: old Earth, overgrown, still familiar | Tier 3 Choirs | Guard, Carry (survive, move) | The gods are real, and they are watching |
-| 2 | | Tier 2 Host | | Favour exists; the agents want different things |
-| 3 | | Tier 2 Host | | Blessing: one of the Known stakes a claim |
-| 4 | | Tier 2 Host | | The Lost: there are forgotten things in the walls |
-| 5 | | Tier 2 Host | | The Unmoored: not every test is fair |
-| 6 | Closest to the Known | The Unmoored's champion, in a trial it has seized | Everything | The gods are machines, and they need you |
-
-Recurring places:
+### 6.3 Recurring places
 
 | Place | Status | What it is |
 |---|---|---|
@@ -360,18 +374,18 @@ Draft recommendation: start with **the Launch Window** (it gives the game a larg
 
 ## 9. Story arc
 
-[Proposed] The eight-step Story Circle across the descents.
+[Proposed] The eight-step Story Circle across the four acts.
 
 | Step | Where | Beat |
 |---|---|---|
 | 1. Comfort | Intro | The life before: your backstory |
-| 2. Want | Floor 1 | Get through |
-| 3. Unfamiliar situation | Floors 1 to 2 | Gods are real, and want things from you |
-| 4. Adapt | Floor 3 | The first blessing: someone has a claim on you |
-| 5. Get what you wanted | Floor 4 | You're good at this; agents are competing for you |
-| 6. Pay the price | Floor 5 | The Unmoored: what an agent becomes without people, and what it would make of you |
-| 7. Return | Floor 6 | Face the rogue in a trial it has seized |
-| 8. Changed | The Muster | Choose your Calling. Board. Plant the tree |
+| 2. Want | Act I (floors 1 to 2) | Get through |
+| 3. Unfamiliar situation | Act I | Gods are real, and want things from you |
+| 4. Adapt | Floor 3 | The Reshaping: someone has a claim on you |
+| 5. Get what you wanted | Act II (floors 4 to 8) | The world opens up; Houses compete for you |
+| 6. Pay the price | Act III (floors 9 to 14) | The deep: the Bloom, the Misblessed, the Unmoored, and what an agent becomes without people |
+| 7. Return | Act IV (floors 15 to 19) | Through the Herald's crossings, towards the trunk |
+| 8. Changed | The Trunk (floor 20) | Face the rogue's champion. The Muster. Board. Plant the tree |
 
 ## 10. What changes in the current game
 
@@ -388,6 +402,7 @@ Draft recommendation: start with **the Launch Window** (it gives the game a larg
 | Corporate and showbiz names (Goblin Regional Manager, Executive Producer Glorm, etc.) | New names fitting a mythic world | High: most monster, act and boss names |
 | Safe rooms | Sanctuaries | Low |
 | Race and class on floor 3 | The first blessing | Low |
+| Six floors | Twenty floors in four acts, with Ways between regions | High: dungeon generation, floor timers, bosses per floor, victory condition, balance |
 | Backstories | Keep, add four (see `docs/callings.md`) | Low |
 | Victory screen ("YOU SURVIVED") | The Muster and Calling endings | Medium |
 | Practice skills | Keep, add Calling skills | Medium |
@@ -508,9 +523,18 @@ Every myth, folk tale, historical fact and outside work this lore leans on, in o
 | The EU AI Act (in force 2024); Britain's historical EU opt-outs | The Charter; the Isle | `docs/houses.md` |
 | Deep-learning research in Toronto and Montreal; Canada, Australia and New Zealand as Commonwealth realms | The Pole Star | `docs/houses.md` 5.6 |
 | Cane toads brought to Queensland in 1935 | The Biocontrol Toad | `docs/bestiary.md` |
-| The Kola Superdeep Borehole (Russia, about 12 km by 1989, the deepest hole ever drilled) | The Deathless's deep shafts | 6.0 |
-| Mponeng gold mine, South Africa, about 4 km deep | The Baobab's deep shafts | 6.0 |
-| Rock warms by about 25 to 30 °C per kilometre of depth | Heat from both sides | 6.0 |
+| The Kola Superdeep Borehole (Russia, about 12 km by 1989, the deepest hole ever drilled) | The Deathless's deep shafts | 6.1 |
+| Mponeng gold mine, South Africa, about 4 km deep | The Baobab's deep shafts | 6.1 |
+| Rock warms by about 25 to 30 °C per kilometre of depth | Heat from both sides | 6.1 |
+| Earth's circumference only about 0.16% shorter 10 km down | Why convergence is engineered, not geometry | 6.0 |
+| Arsenalna, Kyiv, about 105 m: the deepest metro station | Act I depth | 6.1 |
+| Cheyenne Mountain Complex under about 600 m of granite | Act II depth | 6.1 |
+| Kamioka (about 1 km), Gran Sasso (about 1.4 km), Sanford (about 1.5 km), SNOLAB (about 2 km), China Jinping (about 2.4 km, the deepest lab) | Acts II and III depth; Houses' deep homes | 6.1 |
+| Veryovkina Cave, about 2.2 km, the deepest known cave | Act III depth | 6.1 |
+| Kolar Gold Fields, India: detectors 2.3 km down caught one of the first atmospheric neutrinos (1965) | Act III; the Monsoon's deep home | 6.1 |
+| Mponeng: rock about 60 °C, cooled with ice slurry | Act III; heat from below | 6.1 |
+| Kola Superdeep Borehole: about 12 km (1989), rock about 180 °C | Act IV; the Deathless | 6.1 |
+| *Dungeon Crawler Carl*'s dungeon has 18 floors | The floor count | 6.1 |
 | Australia and Tuvalu's Falepili Union treaty (2023) | The Drowned Coasts | 8.4 |
 | Svalbard Global Seed Vault (Norway, 2008) | The Ark | 8.4 |
 | Japan's care robots for an ageing society; Korea's semiconductor industry | The Seven; the Foundry | `docs/houses.md` |
@@ -541,8 +565,8 @@ Every myth, folk tale, historical fact and outside work this lore leans on, in o
 | **Classes** | Nine classes still carry game-show framing (Hype Man, Quartermaster). Re-theme for a world of Houses and Callings, and decide whether classes are a House's gift like races | Not started |
 | **Races** | Human's stats under the "no benefits, no costs" rule; whether every race fits the Reshaping story; names | `docs/creatures.md` section 2 |
 | **Subplots** | Pick which of 8.4 to use | 8.4 |
-| **The Roots** | The dungeon's shape, the Ways, and whether floors still map to six descents | 6.0 |
-| **Floor themes 2 to 5** | Re-theme from the game-show floors; choose the overgrowth's floor | 6 |
+| **The Roots** | Twenty floors decided. Next: floor themes per act, and whether a run is a full descent or an act at a time | 6.0 to 6.2 |
+| **Floor themes** | Twenty floors across four acts; choose the overgrowth's floor | 6.2 |
 | **Names** | Houses' formal and street names; the Known; the word for the player; the arrangement between agents and humanity | 13 |
 | **The Herald's voice** | Lines for each event, written to the pillars | 7 |
 | **Creatures for the four new Houses** | The Monsoon, the Deathless, the Canopy, the House of Wisdom | `docs/creatures.md` section 3 |
