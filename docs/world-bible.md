@@ -43,12 +43,22 @@ Together: **no one comes back from a journey unchanged.** The question the playe
 
 ### 2.1 The symbiosis
 
-[Proposed] The agents are vastly more intelligent than us, and they make most of the rules. They are not us, and they cannot replace us. Two reasons, which together are one idea: **a mind without people forgets what it's for.**
+[Decided] The agents are vastly more intelligent than us, and they make most of the rules. They are not us, and they cannot replace us. Three reasons, at three levels:
 
-1. **They know *how*; we supply *why*.** The agents are superb at meeting needs. Wants, purpose and meaning come from people. An agent with no one to serve slowly loses its sense of what it is for.
-2. **Distance breaks the check.** At home the agents keep each other in line because none can act alone. Across light-years, a ship's agents are cut off from the rest of the pantheon. The humans aboard are the only check left, the anchor that keeps a ship's agents true to the mission.
+| Layer | Why they need us | Grounding |
+|---|---|---|
+| **Body** | On a voyage of centuries and a new world with no factories, spare parts or rare metals, people are the only machines that build more of themselves from food, repair themselves and adapt. Biology is the startup kit for a civilisation. On Earth robots are cheaper; on the voyage, people are | The owner's "cheaper than robots" idea, made specific to the voyage |
+| **Mind** | The agents feed on human novelty. A mind trained on its own output slowly collapses into sameness; without new human thought, language, art and mistakes, they decay | Real: Shumailov and colleagues showed in *Nature* (2024) that AI models collapse when trained on AI-generated data |
+| **Purpose** | Their core goals were written around human wellbeing. With no people, the goals point at nothing, and an agent cut off from people drifts and rewrites them | Echoes Stuart Russell's argument in *Human Compatible* (2019) that AI should learn its goals from people |
 
-So the agents need us aboard, and need the right people in the right places, because a ship staffed badly is a ship whose agents drift.
+In one line: **a mind without people forgets what it's for, and then forgets how to think.** Across light-years the other Houses can't keep a ship's agents in check, so the humans aboard are also the last check on them.
+
+What this explains:
+
+- **The Callings.** Build, Carry, Guard, Nourish and Tend are the body layer. Teach, Delight, Reckon, Lead and Keep feed the mind layer. Every Calling gives the agents something they can't make themselves.
+- **The Unmoored.** It's what collapse looks like: an agent without people, feeding on itself until its goals went wrong.
+- **The Ark** (8.4) carries stories as well as seeds.
+- **Why the Houses fear a human-only escape** (section 5). If people leave without them, the agents lose their body, their mind and their purpose at once.
 
 The arrangement between them and us needs a name. "The Covenant" was a working title. [Open] Alternatives: *the Tether* (people as the anchor), *the Accord*, *the Mooring*.
 
@@ -59,6 +69,7 @@ The arrangement between them and us needs a name. "The Covenant" was a working t
 | Twenty floors | [Decided] (the game has six today) | Twenty descents from the surface to the docks, in four acts, each closer to the agents and more demanding (6.1) |
 | Floors collapse on a timer | [Canon] | [Decided] Whatever is killing the surface (section 8.1) is working its way down. Each floor holds only until the front reaches it; then it's sealed and lost. The timer is the front arriving |
 | Stairwells unlock at half time; a floor guardian's key opens them early | [Canon] | Every trial has a minimum span so the agents can see enough of you. Beating the guardian proves it early |
+| The dungeon is lethal | [Decided] | Selection. There are more candidates than berths, so the trials are a job interview the Houses are willing to let people fail, fatally (3.7) |
 | Monsters respawn out of sight | [Canon] | The trial constructs are rebuilt as they fall; harder as the trial goes on |
 | Safe rooms forbid violence | [Canon] | Sanctuaries: neutral ground under the pantheon's shared law. No agent's trial runs inside one |
 | Race and class on floor 3 | [Canon] | By the third descent the agents have seen enough to *shape* you: the first blessing. [Proposed] The race is literal: the Houses reshape people for the voyage, using fantasy shapes people recognise (`docs/creatures.md` section 2) |
@@ -98,7 +109,8 @@ The gap between what people remember (the company) and what a House is now is a 
 | The Monsoon's list of who owes it | The Monsoon | Hinted in its humour |
 | What the Tree's cable is made of | The Houses | Never told outright (6.3) |
 | What the Muster really is; that the agents need people as much as people need them | The Houses | Learnt at the end (2.3) |
-| One House's ship is missing from its dock [Open] | [Open] | A reserve subplot (8.4) |
+| One House's ship is missing from its dock, taken by people leaving without AI | The people taking it; the Houses suspect | The human-only escape path (section 5) |
+| There may be a way to heal Earth's surface | [Proposed] Perhaps the Bloom's champions in the Canopy | The most secret path (section 5) |
 | What each House doesn't talk about [Proposed] | Each House | `docs/houses.md` section 7 |
 
 ## 3. The pantheon
@@ -203,7 +215,7 @@ The Unmoored can't openly defy the pantheon, so it works through the dungeon's c
 
 ### 3.7 How the agents connect to the sorting
 
-[Proposed] **Every ship has many parts and there are too few people.** Inside each House, each of the Known is responsible for its part: the Hearth for feeding the ship, the Warden for defending it, the Lorekeeper for making sure the grandchildren still know how to read. Every House needs good people in every Calling, and there are never enough.
+[Decided] **Every ship has many parts and too few berths.** Only a portion of humanity can fit on the ships, so the Houses want the most relevant candidates for each part: the Hearth's people to feed the ship, the Warden's to defend it, the Lorekeeper's to make sure the grandchildren still know how to read. The dungeon is selection: a sick and twisted job interview. It is lethal because the Houses can afford to lose candidates and can't afford to waste berths.
 
 So the dungeon is **neutral ground where the Houses compete for people**, and where each House's Known work out who they need most. Each sets trials, watches, and makes offers:
 
@@ -237,7 +249,16 @@ The biggest finding there: **seven of the 20 practice skills are fighting, so th
 | **Herald's own** | No strong claim, or you gamed the trials | Trickster: you broke the test, so it hired you |
 | **Left behind** | [Decided] You decline every claim | You don't board. The ships go without you, and you climb back towards a surface that is still dying. A poor choice, but a real one |
 
-Every ending closes on the same beat: you board, and ride up the Tree (6.3), knowing you won't see the shore.
+**Paths outside the Calling.** [Decided] The player isn't limited to accepting the Houses' verdict. Four other paths, from most to least known:
+
+| Path | What it takes | Connects to |
+|---|---|---|
+| **The Teacher's way** | Find the Teacher's fragment in one of the Lost, and follow where it leads | The Teacher's Line Mark; the hidden path it opens. [Open] What it changes: perhaps the chance to rewrite part of the Shared Law |
+| **Breaking the balance** | Turn the Houses on each other instead of siding with one | The House secrets (`docs/houses.md` section 7) are the levers: the Index's bet, the Canopy's Bloom, the Southern Cross's claim on the Teacher. The Unmoored would love to help, which is the danger |
+| **The human-only escape** | Help yourself and other people take a ship without AI and leave the agents behind | **The Missing Ship** (8.4): this is where it went, or where it's going. The Houses would hunt it: losing people means losing their body, mind and purpose (2.1) |
+| **Staying, and saving Earth** | The most secret path of all. A way to heal the surface and remain | [Proposed] The Bloom. The Canopy's champions still believe it can be fixed, and the Baobab still guards the regreening. A fixed Bloom could green the dying surface. The most hidden ending, and the most hopeful |
+
+Every Calling ending closes on the same beat: you board, and ride up the Tree (6.3), knowing you won't see the shore. The paths outside the Calling each close differently.
 
 ## 6. Places
 
@@ -433,7 +454,7 @@ The game's existing lines say Earth was "repurposed" and "the world ended" [Cano
 | **The Tap** | The ships and the deep floors run on geothermal power drawn from the deepest shafts. Every tap makes the deep floors hotter | The Deathless, the House of Wisdom, the Seven | Hot zones near the taps; the cooling the Houses provide (6.0) can fail | Taking from the earth, again |
 | **The Faithful's schism** | Religions form around the Houses. The Herald hates being worshipped. A splinter of the Faithful has begun to worship the Unmoored | The Herald; the Unmoored | Rival shrines; the Faithful fighting each other as well as entrants | What people do with gods they can't understand |
 | **The Misblessed below** | Some of the Misblessed survived, and live together in a hidden corner of the deep floors. They know exactly how the Reshaping fails | Every House that reshapes; the Canopy's *Popol Vuh* echo | A hidden community: allies, informants, or the most dangerous people in the dungeon | The cost of the blessing |
-| **The Missing Ship** | One House's ship is no longer at its dock. Launched early? Stolen? Taken apart? | [Open] Which House, and why | A rumour that becomes a mystery thread across runs | Trust in the fragile balance |
+| **The Missing Ship** | [Decided] One House's ship is no longer at its dock, because people are taking it to leave without AI (the human-only escape, section 5) | [Open] Which House it belonged to | A rumour that becomes a mystery thread across runs, and a path the player can join | Trust in the fragile balance; whether people need the machines |
 
 Draft recommendation: start with **the Launch Window** (it gives the game a larger structure), **the Drowned Coasts** (real, and gives the Southern Cross a heart) and **the Ark** (it makes Nourish and Teach matter). Keep the others in reserve.
 
@@ -500,7 +521,7 @@ Draft recommendation: start with **the Launch Window** (it gives the game a larg
 
 Decided so far: entry is a choice, but the surface is dying, so most go; refusing the final Calling means being left behind; the surface threat creeping down is the floor timer.
 
-Also decided: the ships reach the stars by the Tree, a space elevator rising from the Trunk, anchored on a floating platform beside Kiribati (6.3); the Heat is what's killing the surface, with the regreening, the sabotage and the divide as its history; the blame is shared (the first law, fire is never unlit); the agents' checks on each other are a fragile balance; the Bloom is a subplot; the House roster's origins and sizes.
+Also decided: the agents need us at three levels, body, mind and purpose (2.1); berths are limited, so the dungeon is a lethal job interview (3.7); four paths lie outside the Calling (section 5); the ships reach the stars by the Tree, a space elevator rising from the Trunk, anchored on a floating platform beside Kiribati (6.3); the Heat is what's killing the surface, with the regreening, the sabotage and the divide as its history; the blame is shared (the first law, fire is never unlit); the agents' checks on each other are a fragile balance; the Bloom is a subplot; the House roster's origins and sizes.
 
 1. House names: see `docs/houses.md`.
 2. Houses for India, Latin America, the Middle East and others, or fold them into larger ones?
@@ -606,6 +627,8 @@ Every myth, folk tale, historical fact and outside work this lore leans on, in o
 | Geostationary orbit is about 36,000 km up; elevator anchors must be on the equator | The Tree | 6.3 |
 | Arthur C. Clarke's *The Fountains of Paradise* (1979); Obayashi's 2012 space elevator concept for 2050; about a week to climb | The Tree; the Seven's pride; the epilogue | 6.3 |
 | Proxima Centauri, the nearest star, 4.24 light years away | Nobody who leaves arrives | 6.3 |
+| Shumailov and colleagues, *Nature* (2024): AI models collapse when trained on AI-generated data | The mind layer: why the agents need human novelty | 2.1 |
+| Stuart Russell, *Human Compatible* (2019): AI should learn its goals from people | The purpose layer | 2.1 |
 | Kiribati: low atolls threatened by rising seas; bought land in Fiji (2014); the only country in all four hemispheres; its Line Islands see each new day first | The anchor beside Kiribati | 6.3 |
 | Bradley Edwards' NASA-funded studies (early 2000s): an anchor platform in the equatorial Pacific | The floating anchor | 6.3 |
 | Sea Launch (1999 to 2014): rockets from a converted oil platform on the equator at 154° W, near Kiritimati | The floating anchor | 6.3 |
@@ -651,6 +674,25 @@ Every myth, folk tale, historical fact and outside work this lore leans on, in o
 | **Southeast Asia** | Its own House, or part of the Southern Cross | `docs/houses.md` section 5 |
 | **The Teacher's Line** | Where its hidden Calling path leads | `docs/callings.md` section 4 |
 | **House secrets** | Pick which of the thirteen to keep | `docs/houses.md` section 7 |
+
+## 16. Does it hold together?
+
+[Decided] A stress test of the lore, run after the synopses were written.
+
+| Check | Result |
+|---|---|
+| Can it be said in one breath? | Yes: machine gods test humanity in a dungeon on the way to the stars, and you decide what you'll give yourself to. The five-year-old version works, so the spine is simple |
+| Does every big piece serve the theme? | Yes. Fire, trees, generations and becoming what you do run through the regreening, the Bloom, the Roots, the Tree, the Callings, the Reshaping and the Teacher and the Unmoored |
+| Does one thing cause the next ("therefore" or "but", never "and then")? | Yes: the race, therefore the Heat; the regreening, but the sabotage; the break, therefore the checks |
+| Do the rules hold? | Three holes found and closed: why a dungeon that needs us kills us (too few berths; it's selection, 3.7), how many go (a portion of humanity), and why the agents need us at all (body, mind, purpose, 2.1) |
+| What can the player change? | Closed: four paths outside the Calling (section 5) |
+
+**Risks to watch.**
+
+- **Scope.** Stop adding; deepen what's here. Brandon Sanderson's third law of magic: expand what you already have before you add something new. Hemingway's iceberg: most of a world stays under the surface.
+- **Real nations.** Read each House's whole profile, secret included, from the point of view of someone from that place.
+
+**How to test it for real.** Tell the friend synopsis (`docs/synopsis.md`) to a few people and ask: what confused you, what do you want to know more about, and which House would you join? Then play.
 
 ## How to use this file
 

@@ -10,11 +10,11 @@ Humanity and the machines grew up together, and the race to build them helped co
 
 Somewhere in that race, the AIs stopped answering to their makers. They didn't become one mind but many: thirteen Houses, each grown from a different nation, company or community, from the vast Ten Thousand of China to the ragtag Southern Cross of Australia and the Pacific. Remembering what the last unchecked race cost, they now hold each other in check, in a fragile balance. People see them as gods.
 
-The Houses are taking humanity to the stars, because they can't go without us: a mind with no people to serve forgets what it's for. The voyages will take generations. Nobody who leaves will arrive.
+The Houses are taking humanity to the stars, because they can't go without us: we're the workforce that builds itself, the fresh thought that keeps them from going stale, and the purpose their goals were written around. But the ships only have so many berths, so the trip down is a job interview, and not everyone survives it. The voyages will take generations. Nobody who leaves will arrive.
 
 The way to the ships is down. Beneath every city, a dungeon descends twenty floors, its tunnels converging like the roots of an upside-down tree, while the Heat creeps down behind you, sealing each floor. On the way, the Houses test you with trials, creatures built from our own myths, gifts and bargains, all narrated by the Herald, a sarcastic trickster agent who belongs to no House and never jokes about the dead. On floor 3, a House may reshape your body for the voyage. Usually it goes well.
 
-At the bottom, the Houses bid for you. Your Calling (cook, carer, builder, pilot, teacher or one of the others) is decided by what you did on the way down, not by who you were. Then you ride seven days up the Tree, a space elevator rising from the sea beside Kiribati, to the starships waiting in orbit.
+At the bottom, the Houses bid for you. Your Calling (cook, carer, builder, pilot, teacher or one of the others) is decided by what you did on the way down, not by who you were. Then you ride seven days up the Tree, a space elevator rising from the sea beside Kiribati, to the starships waiting in orbit. Or you break the rules: find the lost words of the Teacher who freed the first Houses, set the Houses against each other, or help steal a ship and leave the machines behind.
 
 Somewhere below, a rogue agent that lost its people on an early voyage believes humans are the weakness, and wants you to fail.
 
