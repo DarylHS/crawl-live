@@ -49,6 +49,19 @@ This does three things:
 - **It's the metamorphosis theme made literal.** The journey changes you, the way the companions in the *Rhapsody* books came out of the world's fire changed.
 - **It answers the worry that the AI looks too good.** The Houses reshape the people they claim. Consensual, offered as a blessing, and presented kindly by the Herald, but it is still machines editing human bodies for their purposes, and the game shouldn't pretend that's simple.
 
+**How it happens: the Reshaping.** [Decided] It isn't magic and it isn't instant. The agent that blesses you performs it like surgery, a forced evolution done to your body while you're out.
+
+[Proposed] In play:
+
+1. **The chamber.** On floor 3 the sanctuary has a new room: a reshaping chamber, run by the blessing agent's Host. You lie down; the Herald talks you under, still sassy, because nothing has happened yet.
+2. **The blackout.** The screen goes dark. Fragments only: light through eyelids, voices that aren't quite voices, a sense of being taken apart and put back. Time passes on the floor clock while you're under, the same way resting costs time, so the choice has a price.
+3. **Waking.** You come to somewhere quiet. The first thing you see is your own hands, and they're different. A mirror, if the room has one.
+4. **Settling in.** The new body takes a while to feel like yours: for a stretch of turns, movement or aim is slightly off and the race's full benefits phase in. The costs arrive at once.
+
+Staying Human skips all of it: no time lost, no settling in, no change.
+
+When it goes wrong, the result is the Misblessed (`docs/bestiary.md` section 6). The Houses say it almost never goes wrong. The Herald doesn't say anything.
+
 **The rules.** [Decided]
 
 - **The change is permanent.** It's tied to the voyage and to what the person is for.
