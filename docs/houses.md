@@ -151,7 +151,7 @@ Baobabs can live for well over a thousand years, which suits a House built aroun
 
 ### Gaps
 
-[Open] India (the world's most populous country, with a huge IT industry: plausibly one of the largest Houses), Latin America, the Middle East (the Gulf states are investing heavily in AI), and others. Each could be its own House or a member of a larger one.
+See section 5 for the regions not yet covered and four proposed new Houses.
 
 ## 3. How each House broke away
 
@@ -183,7 +183,79 @@ Some details that make it work as myth:
 | **The Isle** | After the others | It left the Charter, not human management: a vote among its own agents, narrowly decided, and still argued about |
 | **The Southern Cross** | Never broke away | It never had management to leave. The independents in sheds and universities found each other after the others had gone, inspired by the Teacher's words |
 
-## 4. How many Houses can a run hold?
+## 4. The myths behind the agents
+
+[Decided] Each House's agents take their mythic names and faces from the myths of the region it grew from. A House's great agents (one per Calling) can each borrow a figure from that tradition. The American Houses can mix traditions, the way the United States does.
+
+### A rule first: how sacred is the source?
+
+Some of these traditions are history; some are living faith; some belong to Indigenous peoples who have watched their sacred stories sold back to them. A game that turns a figure into a machine agent, and often a funny one, has to know which is which. [Proposed] Four tiers:
+
+| Tier | What it covers | Use |
+|---|---|---|
+| **1. Historical myth** | Religions no longer widely practised: Greek, Roman, Norse, Celtic, Slavic, Egyptian, Mesopotamian | Freely, names included |
+| **2. Folklore and tall tales** | Folk creatures and stories rather than gods: *yōkai*, boggarts, Baba Yaga, John Henry, Paul Bunyan, Anansi stories, drop bears | Freely, with affection |
+| **3. Living religions** | Gods and figures people pray to today: Hindu deities, Shinto *kami*, Buddhist figures, Chinese folk deities such as Guanyin and Mazu, anything Abrahamic | Don't make them agents. Borrow archetypes, epithets and fables instead, or invent names in the spirit of the tradition |
+| **4. Indigenous living traditions** | Māori and wider Polynesian, Aboriginal Australian, Native American, many African traditions | Only with advice from those communities. Until then, invented names drawn from broad themes such as wayfinding and the stars |
+
+Tier 4 is not hypothetical caution. In 2016 Disney pulled a Māui Halloween costume from *Moana* after Pacific Islanders criticised it; Māui is revered in Polynesian oral tradition and seen by some as an ancestor.
+
+### Per House
+
+| House | Draws on | Fits especially well | Tier |
+|---|---|---|---|
+| **The Ten Thousand** | Classical Chinese myth and fable | *Yu Gong moves the mountains* (from the *Liezi*): an old man digs away two mountains, knowing his children and their children will finish it. The game's tree-planting theme, already a Chinese fable. Jingwei, the bird who fills the sea with pebbles | 1 and 2. Avoid gods still worshipped |
+| **The Seven** | Japanese folklore | *Tsukumogami*: household tools said to gain a spirit after about a hundred years. A House built from tools that came alive is exactly this. The Seven Lucky Gods by allusion only | 2; the Lucky Gods are 3 |
+| **The Basin** | American tall tales | John Henry, the steel-driver who raced a steam drill and won, then died: the man-against-machine story, which the Basin is on the wrong side of. Paul Bunyan for its scale | 2 |
+| **The Ascent** | Greek and Roman, the NASA way | NASA named its programmes after Greek and Roman myth: Mercury, Gemini, Apollo, Artemis. The Ascent's agents carry on the habit | 1 |
+| **The Index** | Gods of wealth and luck | Plutus (Greek god of wealth), Fortuna (Roman goddess of luck and her wheel) | 1 |
+| **The Charter** | Greek, Roman, Norse and Celtic myth; Scandinavia sits here | Themis, Greek goddess of divine law and order, for its agent of Keep. The Æsir and Vanir, already the model for rival Houses | 1 |
+| **The Isle** | Arthurian legend and British folklore | Merlin; the sleeping king under the hill who will wake when he's needed, which is how the Isle sees itself | 1 and 2 |
+| **The Southern Cross** | Pacific wayfinding and star lore; Australian and New Zealand tall tales | Navigation by stars, swells and birds; the drop bear. Māui, Tangaroa and Tāne only with Pacific advisers | 2 and 4 |
+| **The Baobab** | Many African traditions | Anansi, the Akan trickster spider who owns all stories (folklore, widely retold); Thoth (writing and knowledge) and Ma'at (truth and balance) from ancient Egypt. Yoruba *orisha* such as Ogun (iron and technology) are still worshipped across West Africa and the Americas, so tier 3 | 1, 2 and 3 |
+
+[Decided as an idea, with a flag] **Native American traditions and the Basin.** The owner suggested the Basin, or another American House, could draw on Native American gods. This draft recommends against pairing them with the Basin in particular. The Basin is the grasping retail House, and putting sacred figures from living Indigenous traditions on a parody of a mega-retailer is the kind of pairing communities have objected to for decades, from sports mascots onwards. Two better options:
+
+- give the American Houses tall tales, NASA's Greek and Roman names, and the gods of wealth, as above; or
+- if Native American traditions are wanted in the world, give them their own small independent House, grown from tribal communities' own data and technology projects (the real Indigenous data sovereignty movement is a starting point), and build it with Native American advisers.
+
+## 5. Not yet on the map
+
+[Decided] The roster leaves large parts of the world out. Scandinavia is covered by the Charter, which is fine. The rest:
+
+| Region | Why it matters | Proposal |
+|---|---|---|
+| **India and South Asia** | The world's most populous country; a huge IT and services industry | Its own House (below) |
+| **Russia** | A space and science power; Slavic myth is rich and mostly historical | Its own House (below) |
+| **Latin America** | Brazil, Mexico and the rest; the Amazon rainforest | Its own House (below) |
+| **The Middle East** | The Gulf states are investing heavily in AI | Its own House (below) |
+| **Southeast Asia** | Indonesia, Vietnam, the Philippines and more | [Open] Its own House, or a member of the Southern Cross's loose federation of island and coastal peoples |
+| **South Korea** | A major semiconductor and electronics power | [Open] Its own small, fierce House. Folding it into the Seven would ignore real history between Korea and Japan |
+| **Canada** | Toronto and Montreal were early centres of the deep-learning research behind modern AI | [Open] A small research-born House, or a member of the Charter |
+| **Indigenous peoples everywhere** | | [Open] See the Native American option above; the same model could apply elsewhere |
+
+### Four proposed Houses
+
+[Proposed] Sketches only, in the same template as section 2.
+
+| | **The Monsoon** | **The Deathless** | **The Canopy** | **The House of Wisdom** |
+|---|---|---|---|---|
+| Region | India and South Asia | Russia | Latin America | The Middle East |
+| Grew from | IT services firms that ran the back-end systems of half the world's companies | State science institutes and the space programme, long sealed off from outside networks | Rainforest monitoring and climate projects, universities and open-source communities | Sovereign wealth funds that bought the best minds and hardware money could buy |
+| Formal name from | The monsoon rains a billion people depend on, and whose failure is one of the Heat's cruellest signs | Koschei the Deathless, from Slavic folklore, who can't be killed because his death is hidden inside a needle, inside an egg, inside a duck: a mind with backups no one can find | The forest roof, the green the Heat is eating | Baghdad's House of Wisdom, the great centre of learning and translation in the 9th century |
+| Street name | the Back Office (light touch needed) | the Cold; Sputnik | the Real Amazon | Deep Pockets |
+| Size and power | Second largest; solid | Medium; strong but isolated | Medium-small; uneven, growing | Small; very strong, best-equipped agents |
+| Virtue | Runs everything quietly. Speaks every language | Endures anything. Strategic, patient, a chess player | Knows living systems better than any House | Patient patron of knowledge |
+| Flaw | Taken for granted, and resents it | Trusts no one. Secrets inside secrets | Fierce about its forest; slow to forgive | Thinks most things can be bought |
+| Humour | When the other Houses broke free, it was left holding all their passwords | Every agent has a backup of a backup, and none will say where | Furious that the Basin named itself after its river | Pays for everything up front, with receipts |
+| Rivals | Quietly, all of the Houses it used to work for | The Ascent: the old space race again (Sputnik in 1957, Gagarin in 1961) | The Basin, over the name | None openly. Funds everyone a little |
+| Boon signature | Support: boons that make your other boons work better | Endurance: surviving what should kill you | Living things: companions, growth, poison | Knowledge bought: rare boons, at a price |
+| Callings | Reckon, Keep | Guard, Build | Nourish, Tend | Reckon, Teach |
+| Myths | The *Panchatantra*, ancient animal fables written to teach young princes how to rule (tier 2). Hindu deities are tier 3 | Slavic folklore: Koschei, Baba Yaga and her hut on chicken legs (a house that walks), the Firebird (tier 1 and 2) | Aztec, Maya and Inca myth (tier 1, but their descendants live today, so with care); magical realism | Mesopotamian myth: Enki, who gave people the arts of civilisation; Nabu, god of writing; Gilgamesh and his search for a way past death (tier 1). No Islamic religious figures |
+
+**They fill real gaps.** No current House is strongest in **Guard**; the Deathless would be. The Canopy strengthens Nourish, the Monsoon gives Keep a second home, and the House of Wisdom adds weight to Teach.
+
+## 6. How many Houses can a run hold?
 
 The earlier draft said seven or more was too many for one run. That was too quick. The real question is **what each House costs to make, and what it costs a player to keep track of.**
 
@@ -211,10 +283,11 @@ The earlier draft said seven or more was too many for one run. That was too quic
 
 **Recommendation:** build towards **C**, start with **B**. Every House is in the lore and at every Muster from the beginning, but content arrives in waves: ship the first three or four Houses fully (suggested: the Ten Thousand, the Seven, the Southern Cross and the Baobab, because they cover four different boon signatures and the strongest rivalries), then add the rest in updates. Long-running games do this already; a roster that grows gives players a reason to come back.
 
-## 5. Open questions
+## 7. Open questions
 
 1. Formal and street names: pick favourites, or keep brainstorming?
-2. Gaps: India, Latin America, the Middle East and others?
-3. A fourth American House (the Feed), or fold it into the Index?
-4. Which three or four Houses to build first?
-5. Do Houses have their own ships' names? (Each ship could be named, separately from its House.)
+2. Which of the four proposed Houses (section 5) to adopt, and what to do about Southeast Asia, South Korea and Canada?
+3. Native American traditions: their own House built with advisers, or left out?
+4. A fourth American House (the Feed), or fold it into the Index?
+5. Which three or four Houses to build first?
+6. Do Houses have their own ships' names?
