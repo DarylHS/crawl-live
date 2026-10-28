@@ -274,6 +274,39 @@ func step(n: int) -> Array:
 	return [tag, ok]
 
 
+## One step of the bot (analysis/bot.py `play` loop body, deals declined, no Supply Drop shopping), for save tests
+## that want bot-played states. `st` is the run's BotPolicy.BotState (Python keeps it on the world).
+static func bot_step(w: World, st: BotPolicy.BotState, cfg: Dictionary) -> void:
+	if w.pending_choice:
+		w.choose_class(cfg["race"], cfg["cls"])
+	if w.pending_offer != null:
+		w.decline_contract()
+	BotPolicy.spend_points(w, cfg["cls"])
+	BotPolicy.manage_items(w)
+	var r := BotPolicy.choose(w, st)
+	var ok: bool
+	match r[0]:
+		"move":
+			ok = w.move_player(r[1].x, r[1].y)
+		"descend":
+			ok = w.descend()
+		"rest":
+			ok = w.rest()
+		"pickup":
+			ok = w.pickup()
+		"use":
+			ok = w.use_item(r[1])
+		"skill":
+			ok = w.use_skill()
+		"revive":
+			ok = w.revive_pet()
+		_:
+			ok = w.wait()
+	w.remote_shop = false
+	if not ok:
+		w.wait()
+
+
 ## What a load loses (see scripts/save_trace.py drop_unsaved): the Tracker counts the v7 save does not keep.
 static func drop_unsaved(world: World) -> void:
 	var t := world.achievements.tracker

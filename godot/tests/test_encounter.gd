@@ -898,31 +898,61 @@ func test_never_saves_mid_combat() -> void:
 	assert_false(SaveGame.has_save(path))
 
 
-## Python drives the bot here; the bot is slice T6 (B.1), so the chaos player of the save-parity harness
-## (tools/save_trace_run.gd) plays: the first seed whose run is in a safe room on floor 2 or deeper is saved,
-## reloaded and played on next to the original, with later fights happening identically.
+## One bot step as the Python test's `step` (tests/test_encounter.py), with its own BotState per world.
+func _bot_step(w: World, st: BotPolicy.BotState, cfg: Dictionary) -> void:
+	if w.pending_choice:
+		w.choose_class(cfg["race"], cfg["cls"])
+	if w.pending_offer != null:
+		w.decline_contract()
+	BotPolicy.spend_points(w, cfg["cls"])
+	BotPolicy.manage_items(w)
+	var r := BotPolicy.choose(w, st)
+	var ok: bool
+	match r[0]:
+		"move":
+			ok = w.move_player(r[1].x, r[1].y)
+		"descend":
+			ok = w.descend()
+		"rest":
+			ok = w.rest()
+		"pickup":
+			ok = w.pickup()
+		"use":
+			ok = w.use_item(r[1])
+		"skill":
+			ok = w.use_skill()
+		"revive":
+			ok = w.revive_pet()
+		_:
+			ok = w.wait()
+	w.remote_shop = false
+	if not ok:
+		w.wait()
+
+
 func test_save_and_load_in_a_safe_room_gives_the_same_future() -> void:
-	var c: SaveTraceRun = null
-	var seed_used := 0
-	for sd in range(1, 40):
-		c = SaveTraceRun.play_to_save_point(sd)
-		var w0 := c.w
-		if w0.state == "playing" and w0.combat == null and w0.in_safe_room and w0.depth >= 2:
-			seed_used = sd
+	var w: World = null
+	var cfg := {}
+	for sd in range(1, 10):                              # the first run that reaches floor 2
+		cfg = BotPolicy.run_config(sd)
+		w = World.new(sd, [cfg["pet"], ""])
+		var st := BotPolicy.BotState.new()
+		for _i in range(20000):
+			_bot_step(w, st, cfg)
+			if w.state != "playing" or (w.in_safe_room and w.combat == null and w.depth >= 2):
+				break
+		if w.state == "playing":
 			break
-	assert_gt(seed_used, 0, "no seed reached a safe room on floor 2")
-	var w := c.w
 	assert_true(w.state == "playing" and w.in_safe_room)
 	var b := SaveGame.from_text(PyJson.dumps(SaveGame.to_dict(w)))
 	assert_not_null(b)
 	var fights := [_record(w, "combat_start"), _record(b, "combat_start")]
-	var players := [SaveTraceRun.new(seed_used, w), SaveTraceRun.new(seed_used, b)]
-	for p in players:
-		p.rng = PyRandom.new(seed_used ^ 0xC0117)
-	for n in range(600):
-		for p in players:
-			if p.w.state == "playing":
-				p.step(n)
+	var states := [BotPolicy.BotState.new(), BotPolicy.BotState.new()]
+	var worlds := [w, b]
+	for _n in range(600):
+		for i in range(2):
+			if worlds[i].state == "playing":
+				_bot_step(worlds[i], states[i], cfg)
 	assert_true(fights[0].size() > 0 and fights[0].size() == fights[1].size(), "later fights happen, identically")
 	assert_eq(_sig(w), _sig(b))
 

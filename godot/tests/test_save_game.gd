@@ -136,6 +136,39 @@ func test_text_round_trip_is_exact_for_many_states() -> void:
 		assert_eq(SaveGame.to_dict(v), SaveGame.to_dict(c.w), "seed %d" % sd)
 
 
+# --- Bot-played states: save at a safe room, continue both worlds ------------------------
+
+func test_bot_runs_round_trip_and_continue_identically() -> void:
+	var done := 0
+	for sd in range(0, 12):
+		var cfg := BotPolicy.run_config(sd)
+		var w := World.new(sd, [cfg["pet"], ""], {"name": "Bot", "gender": cfg["gender"], "backstory": cfg["backstory"]})
+		var st := BotPolicy.BotState.new()
+		for _i in range(6000):
+			SaveTraceRun.bot_step(w, st, cfg)
+			if w.state != "playing" or (w.in_safe_room and w.combat == null and w.depth >= 2 and w.turn > 150 * sd):
+				break
+		if w.state != "playing" or w.combat != null:
+			continue
+		var text := SaveGame.dumps(w)
+		var v := SaveGame.from_text(text)
+		assert_not_null(v, "seed %d" % sd)
+		assert_eq(SaveGame.dumps(v), text, "seed %d re-dumps to the same text" % sd)
+		SaveTraceRun.drop_unsaved(w)             # what Python's v7 save does not keep
+		var sv := BotPolicy.BotState.new()
+		st = BotPolicy.BotState.new()
+		for n in range(700):
+			if n >= 250 and w.combat == null and v.combat == null:     # a save needs both out of a fight
+				break
+			if w.state == "playing":
+				SaveTraceRun.bot_step(w, st, cfg)
+			if v.state == "playing":
+				SaveTraceRun.bot_step(v, sv, cfg)
+		assert_eq(SaveGame.dumps(v), SaveGame.dumps(w), "seed %d continues identically" % sd)
+		done += 1
+	assert_gt(done, 5, "enough bot runs reached a save point")
+
+
 # --- Files -----------------------------------------------------------------------
 
 func test_slot_path_and_directory_parameter() -> void:
