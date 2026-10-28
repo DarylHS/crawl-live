@@ -31,6 +31,7 @@ sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(ROOT / "scripts"))
 from crawler.world import World  # noqa: E402
 from crawler.dungeon import NEIGHBOURS_8  # noqa: E402
+from crawler.telemetry import Telemetry, write_tables  # noqa: E402
 from py_trace import mon_string, state_digest  # noqa: E402
 
 RACES = ['human', 'elf', 'dwarf', 'hobgoblin', 'bog_troll', 'houseplant']
@@ -47,8 +48,10 @@ MUTED_FILES = {"showrunner": "showrunner.py", "funfacts": "funfacts.py"}
 
 
 
-def run(seed, steps, path, mute=frozenset(SUBSYSTEMS)):
-    """Play one chaos run and write its JSON Lines trace to `path`."""
+def run(seed, steps, path, mute=frozenset(SUBSYSTEMS), telemetry_dir=None):
+    """Play one chaos run and write its JSON Lines trace to `path`. With `telemetry_dir` a Telemetry is
+    attached from the start, the run is finished off by finale() (see below) after the last trace line and
+    its CSV tables are written to <telemetry_dir>/seed_<seed>/chaos_<table>.csv (the T4 byte-compare)."""
     out = open(path, "w")
     SKIP = set().union(*(MUTED_EVENTS[m] for m in mute))
     files = tuple(MUTED_FILES[m] for m in mute)
@@ -62,6 +65,7 @@ def run(seed, steps, path, mute=frozenset(SUBSYSTEMS)):
         w.showrunner._say = lambda *a, **k: None
     if "funfacts" in mute:
         w.funfacts._say = lambda *a, **k: None
+    tel = Telemetry(w, source="chaos", run_id=f"chaos{seed}", meta={"deals": "chaos"}) if telemetry_dir else None
     evs = []; msgs = []
     oemit = w.events.emit
     def emit(name, **d):
@@ -283,7 +287,56 @@ def run(seed, steps, path, mute=frozenset(SUBSYSTEMS)):
             act(n, "wait", w.wait())
     dump(steps, "end", None)
     out.close()
+    if tel is not None:
+        finale(w, seed, tel, telemetry_dir)
 
+
+def finale(w, seed, tel, telemetry_dir):
+    """Telemetry-only epilogue (after the trace is closed): end the run by (seed // 4) % 4 (0 leave it
+    unfinished, 1 killed, 2 floor collapse, 3 victory by walking down the stairs with the exit forced
+    open), emit a few odd events straight on the bus to exercise CSV quoting and float text, and write
+    the tables. godot/tools/chaos.gd mirrors this."""
+    kind = (seed // 4) % 4
+    p = w.player
+    if w.state == "playing" and kind == 1:
+        w._kill_player("Finale: the cameras cut out")
+    elif w.state == "playing" and kind == 2:
+        w.timer = 1
+        for _ in range(5):
+            if w.state == "playing":
+                w.wait()
+    elif w.state == "playing" and kind == 3:
+        for _ in range(40):
+            if w.state != "playing":
+                break
+            w.monsters.clear()
+            w._end_combat("cleared")
+            w.exit_sealed = False
+            w.has_key = True
+            s = w.floor.stairs[0]
+            p.x, p.y = s[0], s[1]
+            w.update_fov()
+            if not w.descend():
+                w.wait()
+    for name, d in PROBES:
+        w.events.emit(name, turn=w.turn, **d)
+    write_tables(tel.tables(), Path(telemetry_dir) / f"seed_{seed}", prefix="chaos_")
+
+
+
+# Events emitted straight on the bus by finale(): CSV quoting (comma, quote, newlines, unicode), float text
+# (repr), bools that are not values, None/empty details, and the skipped "turn" event.
+PROBES = [
+    ("csv_probe", {"item": 'He said "hi", then\nleft', "damage": 2.5}),
+    ("csv_probe", {"damage": True, "amount": 1e-05, "item": 0.1 + 0.2}),
+    ("csv_probe", {"damage": 3, "monster": "", "item": None, "tier": False}),
+    ("csv_probe", {"xp": 3.0, "monster": "Zo\u00eb, \u00fcn\u00ef\r"}),
+    ("csv_probe", {"phase": 1e16, "tier": "x"}),
+    ("csv_probe", {"healed": 1234567.891, "cause": 7}),
+    ("csv_probe", {"chance": 0.30000000000000004, "skill": "a\rb"}),
+    ("turn", {"damage": 1}),   # skipped by Telemetry
+    ("csv_probe", {}),
+]
 
 
 def seeds_arg(text):
@@ -300,16 +353,18 @@ def main():
     ap.add_argument("--out-dir", help="directory for chaos_<seed>.jsonl files")
     ap.add_argument("--mute", default="showrunner,funfacts",
                     help="comma list of showrunner,funfacts to neutralise (or all, none)")
+    ap.add_argument("--telemetry-dir", help="also attach Telemetry and write each seed's CSV tables to "
+                    "DIR/seed_<seed>/chaos_<table>.csv (after finishing the run, see finale())")
     ap.add_argument("--mute-standins", action=argparse.BooleanOptionalAction, default=None,
                     help="alias: --mute-standins is --mute all, --no-mute-standins is --mute none")
     a = ap.parse_args()
     mute = parse_mute(a.mute if a.mute_standins is None else ("all" if a.mute_standins else "none"))
     if a.seed is not None and a.out:
-        run(a.seed, a.steps, a.out, mute)
+        run(a.seed, a.steps, a.out, mute, a.telemetry_dir)
     elif a.seeds and a.out_dir:
         Path(a.out_dir).mkdir(parents=True, exist_ok=True)
         for s in seeds_arg(a.seeds):
-            run(s, a.steps, f"{a.out_dir}/chaos_{s}.jsonl", mute)
+            run(s, a.steps, f"{a.out_dir}/chaos_{s}.jsonl", mute, a.telemetry_dir)
     else:
         ap.error("give --seed N --out FILE, or --seeds A-B --out-dir DIR")
 

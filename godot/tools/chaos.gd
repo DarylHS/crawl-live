@@ -11,6 +11,11 @@ extends SceneTree
 ## _gain and _say with no-ops, which leaves no other effect on the compared state). FunFacts is a silent P1
 ## stand-in already; list it while the Python side is real. Achievements is real on both sides and cannot be
 ## muted. --mute-standins / --no-mute-standins are aliases for all and none.
+##
+## --telemetry-dir DIR (T4): also attach a Telemetry from the start, finish the run with _finale() after the
+## last trace line (kill, collapse or victory by seed; odd events on the bus; see scripts/chaos_trace.py
+## finale()) and write the CSV tables to DIR/seed_<seed>/chaos_<table>.csv with PyCsv. A relative DIR is
+## resolved against the current directory (PWD), as Python does.
 const RACES := ['human', 'elf', 'dwarf', 'hobgoblin', 'bog_troll', 'houseplant']
 const CLASSES := ['brawler', 'arcanist', 'analyst', 'alchemist', 'beastmaster', 'hype_man', 'demolitionist', 'quartermaster', 'duellist']
 const TIERS := ['bronze', 'silver', 'gold', 'platinum', 'legendary']
@@ -23,7 +28,22 @@ const SUBSYSTEMS := ["showrunner", "funfacts"]
 const MUTED_EVENTS := {"showrunner": ["viewers_gained", "sponsor_gift"],
 		"funfacts": ["fun_fact"]}
 
+## Events emitted straight on the bus by _finale(); the same list as chaos_trace.py PROBES.
+const PROBES := [
+	["csv_probe", {"item": "He said \"hi\", then\nleft", "damage": 2.5}],
+	["csv_probe", {"damage": true, "amount": 1e-05, "item": 0.1 + 0.2}],
+	["csv_probe", {"damage": 3, "monster": "", "item": null, "tier": false}],
+	["csv_probe", {"xp": 3.0, "monster": "Zo\u00eb, \u00fcn\u00ef\r"}],
+	["csv_probe", {"phase": 1e16, "tier": "x"}],
+	["csv_probe", {"healed": 1234567.891, "cause": 7}],
+	["csv_probe", {"chance": 0.30000000000000004, "skill": "a\rb"}],
+	["turn", {"damage": 1}],
+	["csv_probe", {}],
+]
+
 var mute: Array = SUBSYSTEMS.duplicate()
+var telemetry_dir := ""
+var tel: Telemetry
 
 var evs: Array = []
 var msgs: Array = []
@@ -215,6 +235,11 @@ func _initialize() -> void:
 						quit(2)
 						return
 				i += 1
+			"--telemetry-dir":
+				telemetry_dir = a[i + 1]
+				if not telemetry_dir.is_absolute_path():     # DirAccess would resolve it against res://
+					telemetry_dir = OS.get_environment("PWD").path_join(telemetry_dir)
+				i += 1
 			"--no-mute-standins":
 				mute = []
 			"--mute-standins":
@@ -243,6 +268,7 @@ func _run(seed_v: int, steps: int, path: String) -> void:
 	var c := seed_v % 54
 	var race: String = RACES[c % 6]; var cls: String = CLASSES[(c / 6) % 9]
 	w = World.new(seed_v, [pet, ""] if pet != "none" else null, hero, Callable(self, "_tap"), Callable(self, "_mtap"))
+	tel = Telemetry.new(w, "chaos", "chaos%d" % seed_v, {"deals": "chaos"}) if telemetry_dir != "" else null
 	evs.clear(); msgs.clear()
 	if mute.has("showrunner"):
 		_unsubscribe_showrunner()
@@ -378,7 +404,40 @@ func _run(seed_v: int, steps: int, path: String) -> void:
 			act(n, "wait", w.wait())
 	dump(steps, "end", null)
 	out.close()
+	if tel != null:
+		_finale(seed_v)
 	w.events.tap = Callable()
 	w.messages.tap = Callable()
+	tel = null
 	w = null
 	p = null
+
+
+## Telemetry-only epilogue, mirroring chaos_trace.py finale().
+func _finale(seed_v: int) -> void:
+	var kind := (seed_v / 4) % 4
+	if w.state == "playing" and kind == 1:
+		w._kill_player("Finale: the cameras cut out")
+	elif w.state == "playing" and kind == 2:
+		w.timer = 1
+		for _i in range(5):
+			if w.state == "playing":
+				w.wait()
+	elif w.state == "playing" and kind == 3:
+		for _i in range(40):
+			if w.state != "playing":
+				break
+			w.monsters.clear()
+			w._end_combat("cleared")
+			w.exit_sealed = false
+			w.has_key = true
+			var s: Vector2i = w.floor.stairs[0]
+			p.x = s.x; p.y = s.y
+			w.update_fov()
+			if not w.descend():
+				w.wait()
+	for probe in PROBES:
+		var d := {"turn": w.turn}
+		d.merge(probe[1])
+		w.events.emit(probe[0], d)
+	PyCsv.write_tables(tel.tables(), "%s/seed_%d" % [telemetry_dir, seed_v], "chaos_")
