@@ -189,10 +189,10 @@ func test_dog_licks_wounds() -> void:
 
 
 func test_boss_kill_awards_box_achievement_and_viewers() -> void:
-	# S7 part: the kill itself. The box, "headliner_1" unlock and +150 viewers asserts need the
-	# real Achievements and Showrunner (T1, T2; docs/port-plan.md B.1).
+	# The box and "headliner_1" unlock asserts need the real Achievements (T1; docs/port-plan.md B.1).
 	var w := World.new(13)
 	var boss := _headliner(w)
+	var viewers := w.viewers
 	var kills: Array = []
 	w.events.subscribe("boss_kill", func(_n: String, d: Dictionary) -> void: kills.append(d))
 	boss.hp = 0
@@ -202,6 +202,7 @@ func test_boss_kill_awards_box_achievement_and_viewers() -> void:
 	assert_eq(kills[0]["boss"], boss.name)
 	assert_true(w.has_key)
 	assert_eq(w.player.kills, 1)
+	assert_gte(w.viewers, viewers + 150)
 
 
 func test_final_boss_phase_two_calls_for_help() -> void:
@@ -283,7 +284,6 @@ func test_mouse_dirty_trick_on_wounded_monster() -> void:
 	assert_eq(pet.cooldown, Content.pet("mouse")["cooldown"])
 
 
-## The "Skritch:" quip assert of test_mouse_runs_away_when_hurt waits for the real Showrunner (T2).
 func test_mouse_runs_away_when_hurt() -> void:
 	var w := World.new(22, ["mouse", "Skritch"])
 	_clear(w)
@@ -309,6 +309,11 @@ func test_mouse_runs_away_when_hurt() -> void:
 	assert_lt(Ai.cheb(pet, p), before)
 	assert_eq(m.hp, m.max_hp)
 	assert_eq(flees.size(), 1)
+	var said := false
+	for line in w.messages.recent(5):
+		if "Skritch:" in line[0]:
+			said = true
+	assert_true(said)
 
 
 func test_boss_names_read_naturally() -> void:

@@ -3,17 +3,14 @@ extends TestCase
 ## sets WALK_TRACES to a directory with walk_<seed>.jsonl from
 ## `py_trace.py --seeds 0-9 --policy walk --steps 500` and WALK_COMBOS to one with <name>.jsonl for
 ## the pet and hero combinations below. The full acceptance run (seeds 0-49, four pets, heroes) is
-## tools/trace.gd + scripts/parity_diff.py --dirs --scope core.
+## tools/trace.gd + scripts/parity_diff.py --dirs --scope full.
 ##
-## Compared at core scope, as parity_diff.py does: msg records, the `i` counter of ev records, the
-## events of the stand-in systems (achievement, box_gained, viewers_gained, sponsor_gift, fun_fact),
-## showmanship practice_level events and the many_at_3 field of the others,
-## viewers in turn records and the show stream (index 4 of r, rs and words) are dropped from both
-## sides. T1 to T3 replace the stand-ins and this test then compares everything.
+## Compared in full (parity_diff.py --scope full), show stream and viewers included: the Showrunner is real
+## since T2. The Python references are made with `py_trace.py --mute achievements,funfacts` (scripts/gd_test.sh)
+## while Achievements (T1) and FunFacts (T3) are still stand-ins; they remove that mute and nothing else here.
 ## A missing reference directory fails the test (run through scripts/gd_test.sh).
 
 const STEPS := 500
-const SKIP_EVENTS := ["achievement", "box_gained", "viewers_gained", "sponsor_gift", "fun_fact"]
 
 ## [name, seed, pet, hero "GENDER:BACKSTORY"]; mirrors the combo list in scripts/gd_test.sh.
 const COMBOS := [
@@ -35,39 +32,14 @@ func _need(var_name: String) -> String:
 	return v
 
 
-## The record with the fields core scope ignores removed, or an empty Dictionary to skip it.
-static func _core(rec: Dictionary) -> Dictionary:
-	var k: String = rec["k"]
-	if k == "msg":
-		return {}
-	if k == "ev" and SKIP_EVENTS.has(rec["e"]):
-		return {}
-	if k == "ev" and rec["e"] == "practice_level":
-		if rec["p"]["skill"] == "showmanship":
-			return {}
-		rec["p"].erase("many_at_3")
-	if k == "ev":
-		rec.erase("i")
-	if k == "turn":
-		rec.erase("viewers")
-	for key in ["r", "rs", "words"]:
-		if rec.has(key) and (rec[key] as Array).size() >= 5:
-			var a: Array = rec[key]
-			rec[key] = a.slice(0, 4) + a.slice(5)
-	return rec
-
-
 static func _read(path: String) -> Array:
 	var out: Array = []
 	for line in FileAccess.get_file_as_string(path).split("\n", false):
-		var rec: Dictionary = JSON.parse_string(line)
-		var core := _core(rec)
-		if not core.is_empty():
-			out.append(core)
+		out.append(JSON.parse_string(line))
 	return out
 
 
-## Compares a Godot trace with the Python file; returns "" when identical at core scope.
+## Compares a Godot trace with the Python file; returns "" when identical in full.
 func _walk_diff(py_path: String, seed_value: int, pet: String, hero: Variant) -> String:
 	if not FileAccess.file_exists(py_path):
 		return "missing " + py_path
@@ -75,9 +47,7 @@ func _walk_diff(py_path: String, seed_value: int, pet: String, hero: Variant) ->
 	var mine: Array = []
 	for rec in TraceRun.run_trace(seed_value, "walk", STEPS, pet, hero):
 		# through JSON text so both sides carry the same number types as the Python file
-		var core := _core(JSON.parse_string(PyJson.dumps(rec, false)))
-		if not core.is_empty():
-			mine.append(core)
+		mine.append(JSON.parse_string(PyJson.dumps(rec, false)))
 	if mine.size() != py.size():
 		return "record count %d vs Python %d" % [mine.size(), py.size()]
 	for i in mine.size():

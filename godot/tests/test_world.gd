@@ -54,7 +54,6 @@ func test_init_state_after_floor_one() -> void:
 	assert_eq([w.player.x, w.player.y], [112, 13])
 	assert_false(w.in_safe_room)
 	assert_false(w.on_stairs)
-	assert_eq(w.messages.lines.size(), 2)
 	assert_eq(w.messages.lines[0][0], "Floor 1. It collapses in %s. Find the stairs." % w.timer_text())
 	assert_eq(w.weapon_style(), "unarmed")
 
@@ -64,13 +63,16 @@ func test_streams_are_seeded_in_python_order() -> void:
 	assert_eq(w.loot_rng.words_used, 0)
 	assert_eq(w.deal_rng.words_used, 0)
 	assert_eq(w.shop.rng.words_used, 0)
-	assert_eq(w.showrunner.rng.words_used, 0)
+	assert_gt(w.showrunner.rng.words_used, 0)         # floor_start already drew (the announcer)
 	assert_gt(w.rng.words_used, 0)
 	var fresh := PyRandom.new(77 ^ 0x100F)
 	assert_eq(w.loot_rng.get_state(), fresh.get_state())
 	assert_eq(w.deal_rng.get_state(), PyRandom.new(77 ^ 0xC0DE).get_state())
 	assert_eq(w.shop.rng.get_state(), PyRandom.new(77 ^ 0x5A0F).get_state())
-	assert_eq(w.showrunner.rng.get_state(), PyRandom.new(77 ^ 0x5EED).get_state())
+	var show := PyRandom.new(77 ^ 0x5EED)
+	for _i in range(w.showrunner.rng.words_used):
+		show.genrand_uint32()
+	assert_eq(w.showrunner.rng.get_state(), show.get_state())
 
 
 func test_unseeded_world_draws_a_seed() -> void:

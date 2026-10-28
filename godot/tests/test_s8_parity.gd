@@ -3,11 +3,10 @@ extends TestCase
 ## sets HUNTER_TRACES to a directory with hunter_<seed>.jsonl from
 ## `py_trace.py --seeds 0-4 --policy hunter --steps 3000` and HUNTER_COMBOS to one with <name>.jsonl for
 ## the pet and hero combinations below. The full acceptance run (seeds 0-49, no pet, each pet and heroes) is
-## tools/trace.gd + scripts/parity_diff.py --dirs --scope core.
+## tools/trace.gd + scripts/parity_diff.py --dirs --scope full.
 ##
-## Compared at core scope exactly as test_s7_parity.gd does (it shares its filter): msg records, the
-## stand-in systems' events, showmanship practice events, viewers and the show stream are dropped from both
-## sides. T1 to T3 replace the stand-ins and this test then compares everything.
+## Compared in full exactly as test_s7_parity.gd does (see its header): the Showrunner is real, the Python
+## references are made with --mute achievements,funfacts until T1 and T3 land.
 ## A missing reference directory fails the test (run through scripts/gd_test.sh).
 
 const S7 := preload("res://tests/test_s7_parity.gd")
@@ -30,16 +29,14 @@ func _need(var_name: String) -> String:
 	return v
 
 
-## "" when the Godot hunter trace equals the Python file at core scope.
+## "" when the Godot hunter trace equals the Python file in full.
 func _hunter_diff(py_path: String, seed_value: int, pet: String, hero: Variant) -> String:
 	if not FileAccess.file_exists(py_path):
 		return "missing " + py_path
 	var py := S7._read(py_path)
 	var mine: Array = []
 	for rec in TraceRun.run_trace(seed_value, "hunter", STEPS, pet, hero):
-		var core := S7._core(JSON.parse_string(PyJson.dumps(rec, false)))
-		if not core.is_empty():
-			mine.append(core)
+		mine.append(JSON.parse_string(PyJson.dumps(rec, false)))
 	if mine.size() != py.size():
 		return "record count %d vs Python %d" % [mine.size(), py.size()]
 	for i in mine.size():

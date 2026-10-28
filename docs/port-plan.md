@@ -775,11 +775,8 @@ Every pytest test not yet ported is named here, with the slice that must port it
 | T3 | `test_phase4.py`: `test_miss_streak_fun_fact`, `test_box_drought_fun_fact`, `test_fun_facts_are_rate_limited`, `test_run_report_data` | fun facts, report |
 | T5 | `test_phase4.py`: `test_save_round_trip_keeps_phase4_state` | saves |
 | T1 | `test_phase3.py`: `test_boss_kill_awards_box_achievement_and_viewers` (only the asserts that the box is in `w.boxes`, `headliner_1` is in `achievements.unlocked` and the reason is in `box_reasons`; the kill, key and event are ported under the same name) | needs the real `Achievements` |
-| T2 | `test_phase3.py`: `test_boss_kill_awards_box_achievement_and_viewers` (the `viewers >= viewers + 150` assert), `test_mouse_runs_away_when_hurt` (the "Skritch:" quip in `messages.recent(5)`; the flee itself is ported, with a `pet_flee` event check in its place) | need the real `Showrunner` |
 | T5 | `test_phase3.py`: `test_save_round_trip_and_identical_future`, `test_load_rejects_wrong_version` | saves |
-| T2 | `test_encounter.py`: `test_system_lines_only_when_you_are_caught` | needs the real `Showrunner` (`SPEAK_CHANCE`, SYSTEM lines) |
 | T1 | `test_achievement_loot.py`: `test_a_box_remembers_why_and_the_reveal_says_so`, `test_boxes_only_come_from_achievements_and_sponsors`, `test_achievement_event_tells_the_system_why_and_what` | the real `Achievements` |
-| T2 | `test_achievement_loot.py`: `test_sponsor_gift_says_who_sent_it` | the real `Showrunner` (`_gain`, sponsor gifts) |
 | T5 | `test_encounter.py`: `test_never_saves_mid_combat`, `test_save_and_load_in_a_safe_room_gives_the_same_future` | saves |
 | T6 | `test_encounter.py`: `test_bot_finishes_runs_in_combat_mode`, `test_bot_flees_through_a_provoke_only_when_hurt` | bot |
 

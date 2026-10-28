@@ -5,9 +5,12 @@ extends SceneTree
 ##   godot --headless --path godot -s res://tools/chaos.gd -- --seeds 0-9 --steps 600 --out-dir DIR
 ##   godot --headless --path godot -s res://tools/chaos.gd -- --seed 3 --steps 600 --out run.jsonl
 ##
-## --no-mute-standins: by default the events the P1 stand-in systems cannot produce (achievement,
-## viewers_gained, sponsor_gift, fun_fact, showmanship practice_level) are left out, matching
-## chaos_trace.py --mute-standins. T1/T2/T3 must pass --no-mute-standins to both sides.
+## --mute LIST (default achievements,showrunner,funfacts; also all, none): the subsystems to silence, as
+## chaos_trace.py. Muting a subsystem leaves out its events (achievement; viewers_gained, sponsor_gift,
+## showmanship practice_level; fun_fact) and, for the showrunner, unsubscribes it from the event bus (Python
+## replaces its _gain and _say with no-ops, which leaves no other effect on the compared state). The P1
+## stand-ins (Achievements, FunFacts) are silent already; list them while the Python side is real.
+## --mute-standins / --no-mute-standins are aliases for all and none.
 const RACES := ['human', 'elf', 'dwarf', 'hobgoblin', 'bog_troll', 'houseplant']
 const CLASSES := ['brawler', 'arcanist', 'analyst', 'alchemist', 'beastmaster', 'hype_man', 'demolitionist', 'quartermaster', 'duellist']
 const TIERS := ['bronze', 'silver', 'gold', 'platinum', 'legendary']
@@ -16,9 +19,11 @@ const ATTRS := ['str', 'dex', 'con', 'int', 'cha']
 const PETS := ['none', 'cat', 'dog', 'budgie', 'mouse']
 const GENDERS := ['female', 'male', 'nonbinary']
 const BACKS := ['veteran', 'mixologist', 'dog_walker', 'comedian', 'parent', 'tradie', 'category_mgr', 'rideshare']
-const MUTED_EVENTS := ["achievement", "viewers_gained", "sponsor_gift", "fun_fact"]
+const SUBSYSTEMS := ["achievements", "showrunner", "funfacts"]
+const MUTED_EVENTS := {"achievements": ["achievement"], "showrunner": ["viewers_gained", "sponsor_gift"],
+		"funfacts": ["fun_fact"]}
 
-var mute := true
+var mute: Array = SUBSYSTEMS.duplicate()
 
 var evs: Array = []
 var msgs: Array = []
@@ -29,8 +34,25 @@ var out: FileAccess
 
 
 func _tap(n: String, d: Dictionary) -> void:
-	if not (mute and (MUTED_EVENTS.has(n) or (n == "practice_level" and d.get("skill") == "showmanship"))):
+	if not (_muted_event(n) or (mute.has("showrunner") and n == "practice_level" and d.get("skill") == "showmanship")):
 		evs.append([n, JSON.parse_string(PyJson.dumps(d))])
+
+
+func _muted_event(n: String) -> bool:
+	for m in mute:
+		if MUTED_EVENTS[m].has(n):
+			return true
+	return false
+
+
+## Drop every handler the showrunner subscribed (a muted Python showrunner has no observable effect).
+func _unsubscribe_showrunner() -> void:
+	for k in w.events._subs:
+		var keep: Array = []
+		for c in w.events._subs[k]:
+			if c.get_object() != w.showrunner:
+				keep.append(c)
+		w.events._subs[k] = keep
 
 
 func _mtap(text: String, _c: Variant) -> void:
@@ -179,10 +201,19 @@ func _initialize() -> void:
 			"--out-dir":
 				out_dir = a[i + 1]
 				i += 1
+			"--mute":
+				var list := String(a[i + 1])
+				mute = [] if list in ["", "none"] else (SUBSYSTEMS.duplicate() if list == "all" else Array(list.split(",")))
+				for m in mute:
+					if not SUBSYSTEMS.has(m):
+						push_error("chaos.gd: unknown subsystem to mute " + m)
+						quit(2)
+						return
+				i += 1
 			"--no-mute-standins":
-				mute = false
+				mute = []
 			"--mute-standins":
-				mute = true
+				mute = SUBSYSTEMS.duplicate()
 			_:
 				push_error("chaos.gd: unknown argument " + a[i])
 				quit(2)
@@ -208,6 +239,8 @@ func _run(seed_v: int, steps: int, path: String) -> void:
 	var race: String = RACES[c % 6]; var cls: String = CLASSES[(c / 6) % 9]
 	w = World.new(seed_v, [pet, ""] if pet != "none" else null, hero, Callable(self, "_tap"), Callable(self, "_mtap"))
 	evs.clear(); msgs.clear()
+	if mute.has("showrunner"):
+		_unsubscribe_showrunner()
 	p = w.player
 	rng = PyRandom.new(seed_v ^ 0x5C8)
 	p.level = 6 + (seed_v % 7) * 2; w.refresh_stats(); p.hp = p.max_hp

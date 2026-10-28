@@ -1,7 +1,7 @@
 extends TestCase
 ## tests/test_achievement_loot.py: the tests that need only World (S8): box reasons stay in order,
 ## trade-up gives the new box its own reason, and monsters drop from their own pockets. The tests that
-## need the real Achievements or Showrunner are listed in docs/port-plan.md B.1 (T1, T2).
+## need the real Achievements are listed in docs/port-plan.md B.1 (T1).
 
 
 func _in_safe_room(w: World) -> void:
@@ -20,6 +20,13 @@ func test_reasons_stay_in_order_per_tier() -> void:
 	assert_eq(w.last_reason, "first")
 	w.open_box("bronze")
 	assert_eq(w.last_reason, "second")
+
+
+func test_sponsor_gift_says_who_sent_it() -> void:
+	var w := World.new(4)
+	w.showrunner._gain(1000)
+	var tier: String = w.boxes[0]
+	assert_true("gift from" in w.box_reasons[tier][0].to_lower())
 
 
 func test_trade_up_gives_the_new_box_its_own_reason() -> void:

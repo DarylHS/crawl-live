@@ -13,13 +13,13 @@ line; scripts/chaos_diff.py compares the two.
 
 Deterministic: the harness uses its own random.Random(seed ^ 0x5C8) and nothing else is random.
 
---mute-standins / --no-mute-standins (default ON): until slices T1 (Achievements), T2 (Showrunner) and
-T3 (FunFacts) land, the Godot World uses P1 stand-ins that never unlock achievements, gain viewers or
-speak. With muting on, this script neutralises the real Python Achievements._unlock, Showrunner._gain and
-_say and FunFacts._say, and leaves out the events and messages they would add (achievement,
-viewers_gained, sponsor_gift, fun_fact, showmanship practice_level), so both sides do the same thing.
-T1/T2/T3 MUST switch this off (pass --no-mute-standins here and to chaos.gd and chaos_diff.py) and
-then fix whatever differs. Muting is the only deviation from an unmodified Python World."""
+--mute LIST (default achievements,showrunner,funfacts): comma list of the subsystems to neutralise. While
+the Godot side still has a P1 stand-in for a subsystem (Achievements: T1, FunFacts: T3) that subsystem must
+be muted here and in chaos.gd; the real Showrunner (T2) is ported, so run with --mute achievements,funfacts.
+Muting replaces the real Python Achievements._unlock, Showrunner._gain and _say, or FunFacts._say with
+no-ops, and leaves out the events and messages they would add (achievement; viewers_gained, sponsor_gift and
+showmanship practice_level; fun_fact). --mute none compares everything.
+--mute-standins / --no-mute-standins are kept as aliases for the full list and none. Muting is the only deviation from an unmodified Python World."""
 import argparse
 import json
 import random
@@ -41,34 +41,50 @@ ATTRS = ['str', 'dex', 'con', 'int', 'cha']
 PETS = ['none', 'cat', 'dog', 'budgie', 'mouse']
 GENDERS = ['female', 'male', 'nonbinary']
 BACKS = ['veteran', 'mixologist', 'dog_walker', 'comedian', 'parent', 'tradie', 'category_mgr', 'rideshare']
-MUTED_EVENTS = {"achievement", "viewers_gained", "sponsor_gift", "fun_fact"}
+SUBSYSTEMS = ("achievements", "showrunner", "funfacts")
+MUTED_EVENTS = {"achievements": {"achievement"}, "showrunner": {"viewers_gained", "sponsor_gift"}, "funfacts": {"fun_fact"}}
+MUTED_FILES = {"achievements": "achievements.py", "showrunner": "showrunner.py", "funfacts": "funfacts.py"}
 
 
-def run(seed, steps, path, neutral=True):
+def parse_mute(text):
+    """'achievements,funfacts' -> {'achievements', 'funfacts'}; 'none' -> empty; 'all' -> everything."""
+    if text in ("", "none"):
+        return set()
+    names = set(SUBSYSTEMS) if text == "all" else set(text.split(","))
+    bad = names - set(SUBSYSTEMS)
+    if bad:
+        raise SystemExit(f"unknown subsystem(s) to mute: {sorted(bad)}")
+    return names
+
+
+def run(seed, steps, path, mute=frozenset(SUBSYSTEMS)):
     """Play one chaos run and write its JSON Lines trace to `path`."""
     out = open(path, "w")
-    SKIP = MUTED_EVENTS if neutral else set()
+    SKIP = set().union(*(MUTED_EVENTS[m] for m in mute))
+    files = tuple(MUTED_FILES[m] for m in mute)
     pet = PETS[seed % 5]
     hero = None if seed % 4 == 0 else {"name": "H", "gender": GENDERS[seed % 3], "backstory": BACKS[(seed // 3) % 8]}
     c = seed % 54
     race = RACES[c % 6]; cls = CLASSES[(c // 6) % 9]
     w = World(seed, pet=(pet, "") if pet != "none" else None, hero=hero)
-    if neutral:
+    if "achievements" in mute:
         w.achievements._unlock = lambda *a, **k: None
+    if "showrunner" in mute:
         w.showrunner._gain = lambda *a, **k: None
         w.showrunner._say = lambda *a, **k: None
+    if "funfacts" in mute:
         w.funfacts._say = lambda *a, **k: None
     evs = []; msgs = []
     oemit = w.events.emit
     def emit(name, **d):
-        if not (name in SKIP or (neutral and name == "practice_level" and d.get("skill") == "showmanship")):
+        if not (name in SKIP or ("showrunner" in mute and name == "practice_level" and d.get("skill") == "showmanship")):
             evs.append([name, json.loads(json.dumps(d))])
         oemit(name, **d)
     w.events.emit = emit
     oadd = w.messages.add
     def madd(text, colour=None):
         fn = sys._getframe(1).f_code.co_filename
-        if not (neutral and fn.endswith(("showrunner.py", "funfacts.py", "achievements.py"))):
+        if not fn.endswith(files):
             msgs.append(text)
         if colour is None:
             oadd(text)
@@ -293,15 +309,18 @@ def main():
     ap.add_argument("--steps", type=int, default=600)
     ap.add_argument("--out", help="output file for --seed")
     ap.add_argument("--out-dir", help="directory for chaos_<seed>.jsonl files")
-    ap.add_argument("--mute-standins", action=argparse.BooleanOptionalAction, default=True,
-                    help="neutralise the real Achievements/Showrunner/FunFacts to match the P1 stand-ins (default on)")
+    ap.add_argument("--mute", default="achievements,showrunner,funfacts",
+                    help="comma list of achievements,showrunner,funfacts to neutralise (or all, none)")
+    ap.add_argument("--mute-standins", action=argparse.BooleanOptionalAction, default=None,
+                    help="alias: --mute-standins is --mute all, --no-mute-standins is --mute none")
     a = ap.parse_args()
+    mute = parse_mute(a.mute if a.mute_standins is None else ("all" if a.mute_standins else "none"))
     if a.seed is not None and a.out:
-        run(a.seed, a.steps, a.out, a.mute_standins)
+        run(a.seed, a.steps, a.out, mute)
     elif a.seeds and a.out_dir:
         Path(a.out_dir).mkdir(parents=True, exist_ok=True)
         for s in seeds_arg(a.seeds):
-            run(s, a.steps, f"{a.out_dir}/chaos_{s}.jsonl", a.mute_standins)
+            run(s, a.steps, f"{a.out_dir}/chaos_{s}.jsonl", mute)
     else:
         ap.error("give --seed N --out FILE, or --seeds A-B --out-dir DIR")
 

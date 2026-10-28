@@ -1,8 +1,8 @@
 extends TestCase
 ## tests/test_encounter.py: initiative ordering with ties (S4) and the combat-mode tests on a World
 ## (S7: starting, initiative, the turn budget, ending, attacks of opportunity) and the bomb, item, skill,
-## pickup, descend and rest tests (S8). The tests that need saves, the bot or the real Showrunner are
-## listed in docs/port-plan.md B.1 (slices T2, T5, T6).
+## pickup, descend and rest tests (S8). The tests that need saves or the bot are listed in
+## docs/port-plan.md B.1 (slices T5, T6).
 
 
 func after_each() -> void:
@@ -521,6 +521,26 @@ func test_a_stunned_monster_cannot_react_and_a_reaction_lasts_until_its_turn() -
 	w2.combat.react(fight2[2])                             # already used this round
 	assert_true(w2.move_player(-1, 0))
 	assert_true(aoo2.is_empty())
+
+
+func test_system_lines_only_when_you_are_caught() -> void:
+	TestHelpers.patch_static(GameConfig, "SASS_LEVEL", 10)
+	TestHelpers.patch_item(Showrunner.SPEAK_CHANCE, "opportunity_attack", 5.0)
+	var w := _world()
+	w.messages.lines.clear()
+	w.events.emit("opportunity_attack", {"attacker": "goblin", "target": "pet", "hit": true})
+	w.events.emit("opportunity_attack", {"attacker": "pet", "target": "goblin", "hit": true})
+	w.events.emit("opportunity_attack", {"attacker": "goblin", "target": "player", "hit": false})   # a miss
+	assert_false(_any_system_line(w))
+	w.events.emit("opportunity_attack", {"attacker": "goblin", "target": "player", "hit": true})
+	assert_true(_any_system_line(w))
+
+
+func _any_system_line(w: World) -> bool:
+	for line in w.messages.lines:
+		if line[0].begins_with("SYSTEM:"):
+			return true
+	return false
 
 
 func test_a_monster_leaving_your_reach_gives_you_and_your_pet_a_free_attack() -> void:

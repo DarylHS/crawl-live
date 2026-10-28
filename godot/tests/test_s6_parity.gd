@@ -4,8 +4,8 @@ extends TestCase
 ## `py_trace.py --floor-only --spawns --floors 6` (seeds 0-19 in the suite). The full acceptance run (seeds 0-499)
 ## is tools/trace.gd + scripts/parity_diff.py --dirs.
 ##
-## The `show` stream (index 4 of rs and words) is dropped from both sides: Showrunner is still a
-## stand-in that never draws (slice T2 replaces it, and this test then compares all five).
+## Compared in full, show stream included (the Showrunner is real since T2); the Python references are made
+## with --mute achievements,funfacts while those two are still stand-ins (scripts/gd_test.sh).
 
 
 func _need(var_name: String) -> String:
@@ -13,14 +13,6 @@ func _need(var_name: String) -> String:
 	if v == "":
 		fail_test("%s is not set (run through scripts/gd_test.sh)" % var_name)
 	return v
-
-
-## Drop the show stream from a floor record's rs and words (core scope of parity_diff).
-static func _core(rec: Dictionary) -> Dictionary:
-	for key in ["rs", "words"]:
-		if rec.has(key) and (rec[key] as Array).size() >= 5:
-			rec[key] = (rec[key] as Array).slice(0, 4)
-	return rec
 
 
 ## [name, seed, pet, hero "GENDER:BACKSTORY"]; mirrors the combo list in scripts/gd_test.sh.
@@ -52,8 +44,8 @@ func test_pet_and_hero_world_traces_match_python(combo = use_parameters(COMBOS))
 	var mine := TraceFloors.run_floors_world(combo[1], 4, pet, hero)
 	assert_eq(mine.size(), py.size())
 	for i in mini(mine.size(), py.size()):
-		var got: Dictionary = _core(JSON.parse_string(PyJson.dumps(mine[i], false)))
-		var want: Dictionary = _core(py[i])
+		var got: Dictionary = JSON.parse_string(PyJson.dumps(mine[i], false))
+		var want: Dictionary = py[i]
 		if want["k"] == "header":
 			want["impl"] = got["impl"]
 		var diff := TestCase.strict_diff(got, want)
@@ -78,8 +70,8 @@ func test_world_floor_traces_match_python(seed_value = use_parameters(range(20))
 	assert_eq(mine.size(), py.size())
 	for i in mini(mine.size(), py.size()):
 		# through JSON text so both sides carry the same number types as the Python file
-		var got: Dictionary = _core(JSON.parse_string(PyJson.dumps(mine[i], false)))
-		var want: Dictionary = _core(py[i])
+		var got: Dictionary = JSON.parse_string(PyJson.dumps(mine[i], false))
+		var want: Dictionary = py[i]
 		if want["k"] == "header":
 			want["impl"] = got["impl"]
 		var diff := TestCase.strict_diff(got, want)
