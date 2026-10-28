@@ -54,7 +54,7 @@ add_set floors "--floor-only --floors 6" "--floor-only --floors 6" 199 25
 add_set spawns "--floor-only --spawns --floors 1" "--floor-only --spawns --floors 1" 499 50
 add_set walk "--policy walk --steps 500" "--policy walk --steps 500" 49 13
 add_set hunter "--policy hunter --steps 3000" "--policy hunter --steps 3000" 49 13
-add_set bot "--policy bot --steps 3000" "--policy bot --steps 3000" 49 5
+add_set bot "--policy bot --steps 3000" "--policy bot --steps 3000" 99 5
 COMBOS=("cat female:tradie" "dog male:rideshare" "budgie male:dog_walker" "mouse female:comedian"
 	"cat :" "dog female:veteran" "mouse male:parent" "budgie female:mixologist")
 for combo in "${COMBOS[@]}"; do
@@ -82,7 +82,7 @@ check() { # check LABEL PY_DIR GD_DIR SEEDS SCOPE
 check floors "$WORK/py_floors" "$WORK/gd_floors" 0-199 full
 check spawns "$WORK/py_spawns" "$WORK/gd_spawns" 0-499 full
 check walk "$WORK/py_walk" "$WORK/gd_walk" 0-49 full
-check bot "$WORK/py_bot" "$WORK/gd_bot" 0-49 full
+check bot "$WORK/py_bot" "$WORK/gd_bot" 0-99 full
 check hunter "$WORK/py_hunter" "$WORK/gd_hunter" 0-49 full
 for combo in "${COMBOS[@]}"; do
 	set -- $combo

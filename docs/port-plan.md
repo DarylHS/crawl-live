@@ -567,11 +567,11 @@ scripts/gd_test.sh --file=test_dungeon   # one file
 ### 8.4 Headless bot
 
 ```
-godot --headless --path godot -s res://tools/bot.gd -- --runs 100 --start 0 --out /abs/path/runs_gd --deals random [--pet cat] [--no-events] [--summary-only]
-python scripts/gd_bot.py --runs 2000 --workers 4 --out runs_gd     # shards seeds over worker processes, merges shard CSVs in seed order
+godot --headless --path godot -s res://tools/bot.gd -- --runs 100 --start 0 --runs-dir /abs/path/runs_gd --deals random [--pet cat] [--no-events] [--summary-only] [--summary-out FILE]
+python scripts/gd_bot.py --runs 2000 --workers 4 --no-events --out runs_gd     # shards seeds over worker processes, merges shard CSVs in seed order
 ```
 
-`tools/bot.gd` mirrors `analysis/bot.py main()`: deletes old `bot_*.csv` when `--start 0`, writes with prefix `bot_`, prints the same summary lines (formatted with `PyFmt`). Process sharding replaces `multiprocessing.Pool` (Godot threads would also work since rules share only read-only statics, but processes keep each run isolated and the merge order trivial). `--out` takes an absolute path; `user://` is the default for player runs only.
+`tools/bot.gd` mirrors `analysis/bot.py main()`: deletes old `bot_*.csv` when `--start 0`, writes with prefix `bot_`, prints the same summary lines (formatted with `PyFmt`). Process sharding replaces `multiprocessing.Pool` (Godot threads would also work since rules share only read-only statics, but processes keep each run isolated and the merge order trivial). `--runs-dir` (default `user://runs`, owner decision 5; `gd_bot.py` calls it `--out`, default `runs_gd`) takes an absolute path or one relative to the shell's directory.
 
 ### 8.5 Telemetry CSV writer
 
@@ -774,8 +774,6 @@ Every pytest test not yet ported is named here, with the slice that must port it
 | T5 | `test_phase4.py`: `test_save_round_trip_keeps_phase4_state` | saves |
 | T5 | `test_phase3.py`: `test_save_round_trip_and_identical_future`, `test_load_rejects_wrong_version` | saves |
 | T5 | `test_encounter.py`: `test_never_saves_mid_combat`, `test_save_and_load_in_a_safe_room_gives_the_same_future` | saves |
-| T6 | `test_encounter.py`: `test_bot_finishes_runs_in_combat_mode`, `test_bot_flees_through_a_provoke_only_when_hurt` | bot |
-| T6 | `test_telemetry.py`: `test_bot_run_produces_consistent_tables`, `test_bot_is_deterministic` | bot |
 | P5 | `test_telemetry.py`: `test_game_logs_finished_player_runs` | needs the App (the game writing player runs to its runs directory) |
 
 ### B.2 Notes carried forward to later slices
@@ -834,3 +832,7 @@ Every pytest test not yet ported is named here, with the slice that must port it
 - **T3 (Fun facts and report, done) notes for T4 to T6:**
   - `rules/fun_facts.gd` is the whole of `crawler/funfacts.py` (no RNG draws; `once` is `""` for Python `None`; constants are `static var`s from config.json). `rules/run_report.gd` has `RunReport.build(world)` (Python's `run_report`; pairs and samples are two-element Arrays) plus the pure helpers of `crawler/ui/report.py` the screen needs: `nice_max`, `plural`, `summary_line`, `box_caption`, `contract_lines`, `notes_line`. P7 only draws them.
   - Nothing is muted any more: `gd_test.sh`, `parity_all.sh`, `test_chaos_parity.gd` and the S6 to S8 parity tests pass no `--mute`, and `scripts/parity_all.sh` is identical at full scope with every system real. `--mute` stays as a debugging option on `py_trace.py` (funfacts only), `chaos_trace.py`, `chaos.gd` and `chaos_diff.py`, now defaulting to none (`scripts/mute.py` `DEFAULT = ""`); `chaos.gd` mutes FunFacts by unsubscribing it, as for the Showrunner.
+- **T6 (Bot, done) notes for P3 and later:**
+  - `tools/bot_policy.gd` (`BotPolicy`: `run_config`, `choose(w, state)`, `spend_points`, `manage_items`, `play`), `tools/bot.gd`, `scripts/gd_bot.py`, `scripts/bot_csv_check.py` (byte compare of a directory with the committed `runs/bot_*.csv` rows of a seed range) and the `bot` trace policy (`TracePolicies.BotTracePolicy`, `TracePolicies.default_setup`; `trace.gd` takes the pet and hero from `run_config` unless `--pet` / `--hero` override, as `py_trace.py`). Python's `w._bot_route` and `w._bot_fleeing` are a `BotPolicy.BotState` passed to `choose`; a move is a `Vector2i`.
+  - `bot.gd` writes each run's tables as soon as it ends (`--no-events` skips `bot_events.csv`; the committed files have none) and `--summary-out` writes one JSON summary per run for `gd_bot.py`, which cuts the seeds into chunks of `--chunk` (default 10), runs one Godot process per chunk on a thread pool, and merges shards in seed order with one header per file. `scripts/parity_all.sh` runs the bot traces (0-49) and the CSV set (0-99) and `tests/test_t6_parity.gd` a small set of both.
+  - Speed (T6 profile, measured; no optimisation done): one process plays about 10 runs a minute and 4 workers about 17 on this 4-core machine. `DungeonFloor.distance_map` is about 55% of bot time (the bot's route maps 23%, the pet's radius-40 maps 17%, the chase map 14%), FOV 10-12%. A safe option for later is a per-floor `distance_map` memo keyed `(start, max_dist, avoid_safe)` and cleared in `DungeonFloor.forget_paths()` (saves about 11-15%); bigger wins need native code. P3 should run on an idle machine with 4 workers (estimate 55-70 minutes for 2,000 runs; this slice's own measurement under load suggests up to about 2 hours).
