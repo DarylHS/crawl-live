@@ -2,7 +2,7 @@
 
 Status: second draft. Draft 1 (the dungeon as a corporate game show) was set aside because it still sat on the books' skeleton: an alien broadcast, viewers, sponsors and a sarcastic announcer. It is in git history if anything from it is wanted back. This draft replaces the show with a mythic world built by machines.
 
-Companion files: `docs/callings.md` (the roles people are sorted into, with a coverage check against the occupation classification), `docs/houses.md` (the Houses in full), `docs/opening.md` (the opening video script), `docs/creatures.md` (where the monsters come from) and `docs/art-bible.md` (how things look; it still describes the game-show look and will need a pass once this draft settles).
+Companion files: `docs/callings.md` (the roles people are sorted into, with a coverage check against the occupation classification), `docs/houses.md` (the Houses in full), `docs/opening.md` (the opening video script), `docs/creatures.md` (where the monsters come from), `docs/bestiary.md` (the creature roster) and `docs/art-bible.md` (how things look; it still describes the game-show look and will need a pass once this draft settles).
 
 Tags:
 

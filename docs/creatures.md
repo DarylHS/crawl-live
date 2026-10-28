@@ -14,6 +14,18 @@ Status: working draft, companion to `docs/world-bible.md`. Where the dungeon's c
 | **Mutated** | Nobody's plan. Things changed by the Heat working downwards, by the Bloom spreading, by leaks from damaged labs and from forgotten Lost agents | No | Wrong. Asymmetry, growths, plants in flesh. Unpredictable |
 | **Feral machines** [Canon] | Old-world machines that went wild: cleaning bots, delivery drones, security units, sometimes with one of the Lost living inside | Neither, they're just there | Household and industrial things with a grudge. The comedy creatures |
 
+**Who made it.** [Decided] How a creature was made is one question; who made it is another. Not every creature comes from a House. Five makers:
+
+| Maker | Meaning |
+|---|---|
+| **A House** | Made after independence, in that House's style (section 3) |
+| **The joint era** | Made by people and AI working together, *before* the agents broke away: company labs, university projects, government programmes. Much of the engineered life is from this time, and nobody now fully owns it |
+| **People alone** | Human work with no AI involved, mostly older, or desperate |
+| **Nobody** | Mutation and accident |
+| **The Unmoored** | The rogue, working through the cracks |
+
+So a creature can be, say, engineered in the joint era (the Tunnel Brute), storybuilt by a House (the Knockoff Goblin), or mutated by nobody (the Gnawer). The full roster is in `docs/bestiary.md`.
+
 **Fair and unfair.** [Proposed] The dungeon's existing rule (world bible 2.2) is that some creatures are fair tests and some aren't. Storybuilt constructs and House nursery creatures are fair: built or allowed by the Houses, and bound by the Shared Law. Mutated creatures and anything the Unmoored makes are not. The player should be able to learn to tell them apart, and the difference matters: a fair trial can be failed and learnt from; an unfair one can just kill you.
 
 ## 2. The races are forced evolution, applied to people
@@ -37,7 +49,24 @@ This does three things:
 - **It's the metamorphosis theme made literal.** The journey changes you, the way the companions in the *Rhapsody* books came out of the world's fire changed.
 - **It answers the worry that the AI looks too good.** The Houses reshape the people they claim. Consensual, offered as a blessing, and presented kindly by the Herald, but it is still machines editing human bodies for their purposes, and the game shouldn't pretend that's simple.
 
-[Open] Is the change permanent? Does every Calling require one? Can a player refuse it and stay Human?
+**The rules.** [Decided]
+
+- **The change is permanent.** It's tied to the voyage and to what the person is for.
+- **A person can stay Human.** No race change, so none of its benefits and none of its costs.
+- **Changing has real trade-offs**, good and bad, and how good depends on the Calling.
+
+[Proposed] How that plays: **the changed races are specialists; Human is the generalist.** Each race fits some Callings and worlds well and others badly. Staying Human fits every Calling moderately and closes none of them.
+
+| Race | Fits best | Fits worst |
+|---|---|---|
+| Elf | Carry (pilots), Reckon | Build, Guard |
+| Dwarf | Build, Guard | Carry |
+| Hobgoblin | Carry (scouts), Guard | Lead, Teach |
+| Bog Troll | Build, Guard on hostile worlds | Lead, Delight |
+| Sentient Houseplant | Nourish, Tend | Carry, Guard |
+| Human | Anything, moderately | Nothing |
+
+[Open] Rules change for later: today Human gets +1 to every attribute and +5 HP [Canon]. Under "no benefits, no costs", Human would have no attribute changes, and its advantage would be the open Muster instead. Revisit when the rules are next touched.
 
 ## 3. How each House makes creatures
 
@@ -60,7 +89,7 @@ On borrowing folklore: European and Japanese folklore are widely retold and broa
 
 ## 4. Today's monsters under this lore
 
-[Canon] names; [Proposed] origins. The names and some flavour will change with the re-theme (world bible section 10), but most of the roster already fits.
+[Canon] names; [Proposed] origins. [Decided] Today's monsters are placeholders and can be replaced. This table shows how they'd fit if kept; `docs/bestiary.md` is the fuller draft roster and takes precedence.
 
 | Monster | Origin | Who made it | Note |
 |---|---|---|---|
@@ -84,7 +113,8 @@ On borrowing folklore: European and Japanese folklore are widely retold and broa
 
 ## 6. Open questions
 
-1. Is the race change permanent, required, or refusable?
-2. How dark to go with human enemies (the Hex Cultists)?
-3. Which creatures to design first for the first Houses to be built (the Ten Thousand, the Seven, the Southern Cross and the Baobab)?
-4. Do players learn which House made a creature, for example through a field guide that fills in as they go?
+Decided: the race change is permanent; staying Human is allowed, with no benefits and no costs; not every creature is a House's; some come from the joint era before independence; current monsters are placeholders and can be replaced; characters are written out in words (`docs/bestiary.md`) before anything in the game changes.
+
+1. Human's stats under the new race rule (section 2).
+2. The darkness targets in `docs/bestiary.md` section 1.
+3. Do players learn which House made a creature, for example through a field guide that fills in as they go?
