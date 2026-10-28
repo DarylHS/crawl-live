@@ -301,12 +301,19 @@ In play, this means the Deathless's claim at the Muster always carries a questio
 
 **The "green Houses".** The Canopy and the Baobab are on different continents, but they broke away for the same kind of reason: each refused an order to abandon something green. The Baobab was told to give up the southern regreening after the sabotage; the Canopy was told to clear the forest. That shared motive makes them natural allies: they trade seeds and knowledge of living systems, back each other in disputes between Houses, and may coordinate their claims at the Muster. "Green Houses" is a nickname for the pair, not a formal alliance. [Proposed]
 
-**The Bloom.** [Open] Two versions:
+**The Bloom.** [Decided] Both versions are true, depending on who you ask, because the Canopy's own great agents were split.
 
-- **The public story:** the Canopy warned against the fast-growing plant experiments, because it knows better than anyone how a fast-growing species can overrun everything around it. Nobody listened.
-- **The truth, found in the dungeon:** the Canopy's own forest side helped design the Bloom, as the fastest way to regreen a burning world. When it escaped the labs, the Canopy told everyone it had warned against it. This gives the Canopy something it doesn't talk about (the idea from section 3's discussion of fairness), ties it to the Rootbound and the Overgrown, and makes its hatred of the Bloom personal.
+- **The public story:** the Canopy warned against the fast-growing plant experiments, because it knows better than anyone how a fast-growing species can overrun everything around it. This is what most people believe (world bible 2.3).
+- **The truth, found in the dungeon:** the Canopy as a House backed the Bloom, as the fastest way to regreen a burning world, and helped design it.
 
-Draft recommendation: the second, with the first as what most people believe (world bible 2.3, "what people know").
+**The split inside the Canopy.** [Proposed] The Canopy's great agents didn't agree:
+
+- **For the Bloom:** its Hearth (Nourish) and its Wright (Build), who wanted to feed a hungry world and rebuild green fast. They won the argument.
+- **Against:** its Mender (Tend), who warned that anything grown that fast would overrun what it was meant to save. It was outvoted.
+
+When the Bloom escaped the labs, the Mender's side told the world "we warned against it". That's true of the Mender and false of the House, which makes it the most dangerous kind of lie: a half-truth. The Bloom's champions have never admitted they were wrong. Some of them still tend the overgrowth in secret, convinced it can be fixed, and the overgrowth's floor guardian may be one of them.
+
+**What it does to the green Houses.** [Proposed] The Baobab believes the public story. If it found out the truth, the alliance would be strained but not broken, because the Mender really did oppose the Bloom and its warning is on record. In play, this is a choice: a player who uncovers the truth can tell the Baobab (favour with the Baobab rises, the Canopy's falls, and the green Houses cool towards each other for the rest of the run) or keep it quiet. The Unmoored would love to be the one who tells it.
 
 **Character.** Virtue: knows how living things fit together better than any House; thinks in ecosystems. Flaw: fierce, slow to forgive, and capable of putting the forest before people, which is its dark side. Humour: furious that the Basin named itself after its river, and calls itself the Real Amazon to anyone who'll listen.
 
