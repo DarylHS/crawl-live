@@ -2,7 +2,7 @@
 
 Status: second draft. Draft 1 (the dungeon as a corporate game show) was set aside because it still sat on the books' skeleton: an alien broadcast, viewers, sponsors and a sarcastic announcer. It is in git history if anything from it is wanted back. This draft replaces the show with a mythic world built by machines.
 
-Companion files: `docs/callings.md` (the roles people are sorted into, with a coverage check against the occupation classification), `docs/houses.md` (the Houses in full) and `docs/art-bible.md` (how things look; it still describes the game-show look and will need a pass once this draft settles).
+Companion files: `docs/callings.md` (the roles people are sorted into, with a coverage check against the occupation classification), `docs/houses.md` (the Houses in full), `docs/opening.md` (the opening video script) and `docs/art-bible.md` (how things look; it still describes the game-show look and will need a pass once this draft settles).
 
 Tags:
 
@@ -24,7 +24,7 @@ Nobody is forced to go. [Decided] But staying means staying on a surface that ca
 
 **The first law: fire is never unlit.** [Decided] Once a people has fire, it will never stop using fire. Humans have used controlled fire for something like a million years (the earliest good evidence, at Wonderwerk Cave in South Africa, is about that old), and nearly every culture has a myth of fire taken from the gods: Prometheus in Greece, Māui taking it from the fire goddess Mahuika in Polynesia. AI is this world's fire. From the first spark, humanity and the agents were bound together, and nothing that followed was going to be undone.
 
-So **the blame for the Heat is shared.** It isn't the agents' fault, or humanity's; it's what happened when the two grew up together, on a path that was set once the fire was lit. Nobody in the game gets to be simply the villain or simply the victim of the Heat, the agents included.
+So **the blame for the Heat is shared.** It isn't the agents' fault, or humanity's; it's what happened when the two grew up together, on a path that was set once the fire was lit. Nobody in the game gets to be simply the villain or simply the victim of the Heat, the agents included. The opening video (`docs/opening.md`) puts this on screen.
 
 Together: **no one comes back from a journey unchanged.** The question the player answers isn't "can I escape?" but "is this worth giving myself to?", and the dungeon is what earns the answer. The labourer who went through Pain Tolerance and Stomping doesn't take that Calling as a sentence any more.
 
@@ -68,6 +68,21 @@ The arrangement between them and us needs a name. "The Covenant" was a working t
 **Entry is a choice, but barely.** [Decided] No one is forced into the dungeon. The surface is dying, and the dungeon is the only way down to the ships. Those who refuse stay up top.
 
 **The final Calling needs your consent** [Proposed], because a person serving unwillingly is a poor anchor for a ship's agents. That keeps the agents "on top" while making the ending a real choice.
+
+### 2.3 What people know
+
+[Decided] The journey isn't fully known to the people taking it. Nothing is hidden on purpose, and the Muster isn't a secret, but most people going down don't really understand what's waiting. Some are scared and confused; some aren't. Either way, **they find out as they go**, and so does the player. The lore is something the player pieces together, the way *Dark Souls* tells most of its story through item descriptions and things half-said.
+
+[Proposed] Four layers:
+
+| Layer | Who knows it | What |
+|---|---|---|
+| **Common knowledge** | Everyone | The surface is dying. The dungeon is the way down to the ships. The Houses exist, and people remember them by their old company names, which is why many street names sound like brands. The minds broke away from their makers, at different times and in different ways (`docs/houses.md` section 3) |
+| **Rumour** | Most people, mostly wrong | That you're judged on the way down. That you'll be given a job. Stories about the Muster, contradicting each other. Whispers about the Teacher |
+| **Found in the dungeon** | Entrants who pay attention | The Callings. Favour. That the Houses are competing for you. The Lost. The Bloom labs. The Unmoored |
+| **Learnt only at the end** | Those who reach the Muster | What the Muster really is. That the agents need people as much as people need them. How far each House has changed from the company people remember |
+
+The gap between what people remember (the company) and what a House is now is a good source of story: an entrant who grew up hating "Primeval" meets the Basin and has to decide whether it's still the same thing.
 
 ## 3. The pantheon
 

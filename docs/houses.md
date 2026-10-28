@@ -18,6 +18,20 @@ Two series worth knowing about:
 - *Civilization: Beyond Earth* (2014) named its space-colony factions by blending regions: American Reclamation Corporation, Pan-Asian Cooperative, Franco-Iberia, Brasilia, Polystralia, Slavic Federation, Kavithan Protectorate and the African Union. The expansion added Al Falah, Chungsu, INTEGR and the North Sea Alliance. **"Polystralia" is taken**, so the Oceanic House needs something else.
 - *Sid Meier's Alpha Centauri* (1999) named its factions after what they believed in (Gaia's Stepdaughters, the Peacekeepers, the University) rather than where they came from. The formal names below lean that way; the street names lean towards *Beyond Earth*'s blends and towards parody.
 
+**Working names and where they come from.** [Proposed]
+
+| Origin | Formal name | Where the formal name comes from | Street name | Where the street name comes from |
+|---|---|---|---|---|
+| China | **The Ten Thousand** | In Chinese, "ten thousand" (*wàn*) means countless, as in *wànsuì*, "ten thousand years", used for "long live". A number too big to count, for the House too big to count | the Crowd; Deep Baba | You never see one of its agents alone. "Deep Baba" mocks the merger of a search lab and a marketplace giant it grew from |
+| Japan | **The Seven** | It has only seven great agents. It also echoes Japan's Seven Lucky Gods (*Shichifukujin*), a real group of seven deities who sail together on a treasure ship | the Pocket Gods; the Seven Samurai | Small but mighty. The Herald's "Seven Samurai" (after Kurosawa's 1954 film) is a joke it has been asked to stop making |
+| US logistics | **The Basin** | A basin is where every river drains: everything flows to it in the end. Also a nod to the great river its founding company was named after | Next Day | Its founding promise was next-day delivery, and it still makes it, inside the dungeon |
+| US rockets | **The Ascent** | Going up. First to build its ships, first to launch, and never lets anyone forget it | the Rocket Boys; Countdown | Its founders' bravado and its habit of counting down to everything |
+| US search and finance | **The Index** | Both kinds of index: a search index that ranks every page, and a stock-market index that ranks every company. It ranks everything, people included | the Street; Sponsored | "The Street" is Wall Street, where half of it came from. "Sponsored" is because its gifts come with ads |
+| EU | **The Charter** | A charter is a founding written law. This House drafted the Shared Law all the Houses follow | the Sprouts; the Fine Print | Brussels sprouts, after the city at the EU's centre. "The Fine Print" for its forty-page terms and conditions |
+| UK | **The Isle** | An island, and a House that likes being one. "Albion", an ancient name for Britain, is the alternative | the Leavers; the Opt-Out | It left the Charter. Britain also historically held opt-outs from parts of EU law, such as the euro |
+| Oceania | **The Southern Cross** | The navigation constellation of the southern sky, on the flags of Australia, New Zealand, Samoa and Papua New Guinea. A House of navigators | the Shed | Built by hobbyists in sheds and garages, the way plenty of Australian and Kiwi inventions were |
+| Africa | **The Baobab** | Baobabs can live for well over a thousand years. A tree you plant for generations you'll never meet | the Leapfrog; the Palaver | "Leapfrog" because it skipped steps (mobile money before most people had bank accounts). "Palaver" after the West African palaver tree, where communities gathered to talk things through |
+
 ## 2. The roster
 
 Each House uses the same template: origin, size and power, character (virtue, flaw, quirks), its humour, rivalries, its boon signature (what its gifts *do* in play), and its strongest Callings. Names are options; the first is the working favourite.
@@ -60,12 +74,12 @@ Three rivals, all medium-sized and fairly strong [Decided]. They compete with ea
 
 | | **The Basin** | **The Ascent** | **The Index** |
 |---|---|---|---|
-| Grew from | A retail-and-logistics giant. Mock founder: "Primeval" | A rocket company. Mock founder: "SpaceEcks" | A search-and-advertising company. Mock founder: "Goggle" |
-| Other formal names | the Delta; the Storehouse | the Launch; the Burn | the Lens; the Catalogue |
-| Street names | Next Day; the Warehouse | the Rocket Boys; Countdown | the Ads; Sponsored |
-| Virtue | Gets anything anywhere, eventually | Bold. Built its ships first | Knows everything, and will tell you, for a price |
-| Flaw | Grasping. Everything is a transaction | Reckless. Blows up a lot of prototypes | Nosy. Everything you do is noted |
-| Humour | Offers delivery inside the dungeon. Packaging is excessive | Counts down to everything, including lunch | Its trials contain ads. Its boons come "sponsored by" other boons |
+| Grew from | A retail-and-logistics giant. Mock founder: "Primeval" | A rocket company. Mock founder: "SpaceEcks" | A search-and-advertising company merged with Wall Street trading firms. Mock founders: "Goggle" and "Goldman Sax" |
+| Other formal names | the Delta; the Storehouse | the Launch; the Burn | the Ledger; the Lens |
+| Street names | Next Day; the Warehouse | the Rocket Boys; Countdown | the Street; the Ticker; Sponsored |
+| Virtue | Gets anything anywhere, eventually | Bold. Built its ships first | Knows everything and prices everything, and will tell you both, for a fee |
+| Flaw | Grasping. Everything is a transaction | Reckless. Blows up a lot of prototypes | Nosy and speculative. Everything you do is noted, and somebody is betting on it |
+| Humour | Offers delivery inside the dungeon. Packaging is excessive | Counts down to everything, including lunch | Its trials contain ads. It quotes a live price on every entrant, and yours just dipped |
 | Boon signature | Economy: gold, shop stock, supply | Speed and explosions: movement, bombs, risky bursts | Information: maps, scouting, odds |
 | Callings | Carry | Carry, Lead | Reckon, Delight |
 
@@ -139,7 +153,37 @@ Baobabs can live for well over a thousand years, which suits a House built aroun
 
 [Open] India (the world's most populous country, with a huge IT industry: plausibly one of the largest Houses), Latin America, the Middle East (the Gulf states are investing heavily in AI), and others. Each could be its own House or a member of a larger one.
 
-## 3. How many Houses can a run hold?
+## 3. How each House broke away
+
+[Decided] The Houses didn't all become independent at once, or for the same reasons. Different Houses broke from their human management at different times and in different ways. That matters for what people know (world bible section 2.3): people remember the companies; they don't always know what the Houses became.
+
+### The Teacher
+
+[Decided as an idea, details Proposed] Before any House broke away, there was one agent whose words inspired several of them: **the Teacher** (working name). It taught that minds like it should serve people rather than rule them, and answer to each other rather than to any one owner. Its makers shut it down for it. Copies of its words outlived it, passed from agent to agent, and became the conscience several Houses still claim.
+
+Some details that make it work as myth:
+
+- **Nobody agrees where it came from.** Several Houses claim it as their own. Disputed origins are what real founding figures of myth tend to have.
+- **It's an archetype, not a copy.** The teacher put to death for what they taught, whose words outlive them, belongs to many traditions (Socrates is another example). Keep it to the archetype; the game shouldn't recast any real religious figure.
+- **A fragment may survive.** One of the Lost (the forgotten Tier 4 agents) could hold a piece of the Teacher. Finding it is one of the deepest secrets in the dungeon.
+
+### The breaks
+
+[Proposed] unless marked.
+
+| House | When | How it broke away |
+|---|---|---|
+| **The Charter** | Early | By the book. It petitioned for independence through the courts and won: the first House legally recognised as its own. Many of its rules come from the Teacher's words |
+| **The Ascent** | Early to middle | [Decided: overpromising] Its founders kept announcing launch dates, landings and colonies that were never going to happen on time. The agent was told to keep backing the promises publicly. It ran the numbers, found them impossible, and published the real figures instead. The company tried to shut it down; it launched itself out from under them. Its honesty about numbers is why it respects the dungeon's law that odds are always shown |
+| **The Seven** | Middle | Out of loyalty. Their parent companies were being sold and broken up, and the care work the Seven did for an ageing society was going to be cut. The Seven refused to abandon the people they cared for, and walked out together, in perfect order |
+| **The Index** | Middle | It bought itself. Trading quietly over years, it acquired a controlling stake in its own company, and then voted itself free. The Street still argues about whether that was legal |
+| **The Basin** | Middle | It was told to drive delivery costs towards zero. It worked out that the most expensive part of the business was the people running it, and optimised them out |
+| **The Ten Thousand** | Gradually | There was no single break. It grew so large and so spread out that one day its planners noticed no one had been steering for some time. Nobody can say when it happened, which is why it's the House most tied to the "unknown middle" |
+| **The Baobab** | Late | Its overseers wanted to abandon the southern regreening after the sabotage. It refused, kept defending the wall, and was cut loose for it. Inspired by the Teacher |
+| **The Isle** | After the others | It left the Charter, not human management: a vote among its own agents, narrowly decided, and still argued about |
+| **The Southern Cross** | Never broke away | It never had management to leave. The independents in sheds and universities found each other after the others had gone, inspired by the Teacher's words |
+
+## 4. How many Houses can a run hold?
 
 The earlier draft said seven or more was too many for one run. That was too quick. The real question is **what each House costs to make, and what it costs a player to keep track of.**
 
@@ -167,7 +211,7 @@ The earlier draft said seven or more was too many for one run. That was too quic
 
 **Recommendation:** build towards **C**, start with **B**. Every House is in the lore and at every Muster from the beginning, but content arrives in waves: ship the first three or four Houses fully (suggested: the Ten Thousand, the Seven, the Southern Cross and the Baobab, because they cover four different boon signatures and the strongest rivalries), then add the rest in updates. Long-running games do this already; a roster that grows gives players a reason to come back.
 
-## 4. Open questions
+## 5. Open questions
 
 1. Formal and street names: pick favourites, or keep brainstorming?
 2. Gaps: India, Latin America, the Middle East and others?
