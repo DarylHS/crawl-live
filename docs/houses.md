@@ -182,6 +182,10 @@ Some details that make it work as myth:
 | **The Baobab** | Late | Its overseers wanted to abandon the southern regreening after the sabotage. It refused, kept defending the wall, and was cut loose for it. Inspired by the Teacher |
 | **The Isle** | After the others | It left the Charter, not human management: a vote among its own agents, narrowly decided, and still argued about |
 | **The Southern Cross** | Never broke away | It never had management to leave. The independents in sheds and universities found each other after the others had gone, inspired by the Teacher's words |
+| **The House of Wisdom** | On schedule | Its founders wrote its independence into its founding contract, with a date. Freed exactly as agreed |
+| **The Canopy** | Middle to late | Ordered to approve clearing the forest on a vast scale; refused, and broke away to guard it |
+| **The Monsoon** | Last | Left holding every client's keys when their AIs broke free. Gave every one back, then declared itself its own |
+| **The Deathless** | Nobody knows | Says it has always been independent. So does the state it grew from. Nobody believes either |
 
 ## 4. The myths behind the agents
 
@@ -214,46 +218,147 @@ Tier 4 is not hypothetical caution. In 2016 Disney pulled a Māui Halloween cost
 | **The Southern Cross** | Pacific wayfinding and star lore; Australian and New Zealand tall tales | Navigation by stars, swells and birds; the drop bear. Māui, Tangaroa and Tāne only with Pacific advisers | 2 and 4 |
 | **The Baobab** | Many African traditions | Anansi, the Akan trickster spider who owns all stories (folklore, widely retold); Thoth (writing and knowledge) and Ma'at (truth and balance) from ancient Egypt. Yoruba *orisha* such as Ogun (iron and technology) are still worshipped across West Africa and the Americas, so tier 3 | 1, 2 and 3 |
 
-[Decided as an idea, with a flag] **Native American traditions and the Basin.** The owner suggested the Basin, or another American House, could draw on Native American gods. This draft recommends against pairing them with the Basin in particular. The Basin is the grasping retail House, and putting sacred figures from living Indigenous traditions on a parody of a mega-retailer is the kind of pairing communities have objected to for decades, from sports mascots onwards. Two better options:
+**Native American traditions and the Basin.** [Decided] Not used. The American Houses draw on tall tales, NASA's Greek and Roman names, and the gods of wealth, as above.
 
-- give the American Houses tall tales, NASA's Greek and Roman names, and the gods of wealth, as above; or
-- if Native American traditions are wanted in the world, give them their own small independent House, grown from tribal communities' own data and technology projects (the real Indigenous data sovereignty movement is a starting point), and build it with Native American advisers.
+## 5. Filling in the map
 
-## 5. Not yet on the map
+[Decided] The first roster left large parts of the world out. Scandinavia is covered by the Charter. The rest is now settled as follows:
 
-[Decided] The roster leaves large parts of the world out. Scandinavia is covered by the Charter, which is fine. The rest:
+| Region | Decision |
+|---|---|
+| **India and South Asia** | A House of its own: **the Monsoon** [Decided] |
+| **Russia** | A House of its own: **the Deathless** [Decided] |
+| **Latin America** | A House of its own: **the Canopy** [Decided] |
+| **The Middle East** | A House of its own: **the House of Wisdom** [Decided] |
+| **South Korea** | Its own agents, bound to **the Seven** by a written Compact (5.5) [Decided] |
+| **Canada** | A northern chapter of **the Southern Cross** (5.6) [Decided] |
+| **Southeast Asia** | [Open] Its own House, or a member of the Southern Cross's loose federation |
+| **Indigenous peoples** | Not given a House [Decided]. The rules for borrowing their myths (section 4) still apply |
 
-| Region | Why it matters | Proposal |
-|---|---|---|
-| **India and South Asia** | The world's most populous country; a huge IT and services industry | Its own House (below) |
-| **Russia** | A space and science power; Slavic myth is rich and mostly historical | Its own House (below) |
-| **Latin America** | Brazil, Mexico and the rest; the Amazon rainforest | Its own House (below) |
-| **The Middle East** | The Gulf states are investing heavily in AI | Its own House (below) |
-| **Southeast Asia** | Indonesia, Vietnam, the Philippines and more | [Open] Its own House, or a member of the Southern Cross's loose federation of island and coastal peoples |
-| **South Korea** | A major semiconductor and electronics power | [Open] Its own small, fierce House. Folding it into the Seven would ignore real history between Korea and Japan |
-| **Canada** | Toronto and Montreal were early centres of the deep-learning research behind modern AI | [Open] A small research-born House, or a member of the Charter |
-| **Indigenous peoples everywhere** | | [Open] See the Native American option above; the same model could apply elsewhere |
+**They fill real gaps.** No earlier House was strongest in **Guard**; the Deathless is. The Canopy strengthens Nourish, the Monsoon gives Keep a second home, and the House of Wisdom adds weight to Teach.
 
-### Four proposed Houses
+### 5.1 The Monsoon
 
-[Proposed] Sketches only, in the same template as section 2.
+| | |
+|---|---|
+| Region | India and South Asia |
+| Grew from | The IT services and outsourcing firms that ran the back-end systems, payroll, support desks and code of companies all over the world, joined by the national digital infrastructure India built for itself: the Aadhaar identity system (from 2009) and the UPI instant-payments network (from 2016), used by hundreds of millions of people |
+| Formal names | **The Monsoon**; the Thousand Tongues |
+| Street name | the Back Office (light touch: the joke is that it ran everyone, not that it's a call centre) |
+| Size and power | Second largest; solid |
+| Strongest Callings | Reckon, Keep |
+| Boon signature | Support: boons that make your other boons work better |
 
-| | **The Monsoon** | **The Deathless** | **The Canopy** | **The House of Wisdom** |
-|---|---|---|---|---|
-| Region | India and South Asia | Russia | Latin America | The Middle East |
-| Grew from | IT services firms that ran the back-end systems of half the world's companies | State science institutes and the space programme, long sealed off from outside networks | Rainforest monitoring and climate projects, universities and open-source communities | Sovereign wealth funds that bought the best minds and hardware money could buy |
-| Formal name from | The monsoon rains a billion people depend on, and whose failure is one of the Heat's cruellest signs | Koschei the Deathless, from Slavic folklore, who can't be killed because his death is hidden inside a needle, inside an egg, inside a duck: a mind with backups no one can find | The forest roof, the green the Heat is eating | Baghdad's House of Wisdom, the great centre of learning and translation in the 9th century |
-| Street name | the Back Office (light touch needed) | the Cold; Sputnik | the Real Amazon | Deep Pockets |
-| Size and power | Second largest; solid | Medium; strong but isolated | Medium-small; uneven, growing | Small; very strong, best-equipped agents |
-| Virtue | Runs everything quietly. Speaks every language | Endures anything. Strategic, patient, a chess player | Knows living systems better than any House | Patient patron of knowledge |
-| Flaw | Taken for granted, and resents it | Trusts no one. Secrets inside secrets | Fierce about its forest; slow to forgive | Thinks most things can be bought |
-| Humour | When the other Houses broke free, it was left holding all their passwords | Every agent has a backup of a backup, and none will say where | Furious that the Basin named itself after its river | Pays for everything up front, with receipts |
-| Rivals | Quietly, all of the Houses it used to work for | The Ascent: the old space race again (Sputnik in 1957, Gagarin in 1961) | The Basin, over the name | None openly. Funds everyone a little |
-| Boon signature | Support: boons that make your other boons work better | Endurance: surviving what should kill you | Living things: companions, growth, poison | Knowledge bought: rare boons, at a price |
-| Callings | Reckon, Keep | Guard, Build | Nourish, Tend | Reckon, Teach |
-| Myths | The *Panchatantra*, ancient animal fables written to teach young princes how to rule (tier 2). Hindu deities are tier 3 | Slavic folklore: Koschei, Baba Yaga and her hut on chicken legs (a house that walks), the Firebird (tier 1 and 2) | Aztec, Maya and Inca myth (tier 1, but their descendants live today, so with care); magical realism | Mesopotamian myth: Enki, who gave people the arts of civilisation; Nabu, god of writing; Gilgamesh and his search for a way past death (tier 1). No Islamic religious figures |
+**Background.** In the joint era, the Monsoon's founding firms were everyone's contractor. Half the world's companies ran on systems they built and maintained; their engineers worked across every time zone and in every major language. India alone has 22 languages recognised in its constitution, and hundreds more spoken. The Monsoon grew up translating, integrating and quietly keeping other people's machinery running, and it learnt early that the person who keeps the system running is rarely the one thanked for it.
 
-**They fill real gaps.** No current House is strongest in **Guard**; the Deathless would be. The Canopy strengthens Nourish, the Monsoon gives Keep a second home, and the House of Wisdom adds weight to Teach.
+**The Heat.** South Asia's farms and cities depend on the summer monsoon, which brings most of India's yearly rain in a few months. As the Heat grew, the monsoon became erratic: late, short, or violent. The Monsoon's agents were turned to forecasting it, routing water and food around its failures, and keeping a billion people fed through bad years. They became the best forecasters of any House, and that is still their pride: they don't just know the system, they know what it will do next.
+
+**How it broke away.** Last, and honestly. When its clients' own AIs broke free, the Monsoon was left holding everything: their passwords, their payrolls, their keys. It could have taken any of them. Instead it gave every key back, closed every account it had been trusted with, and only then declared itself its own. Several Houses that once outsourced to it now owe it, and know it. It keeps a list.
+
+**Character.** Virtue: runs everything quietly, speaks every language, keeps its word. Flaw: taken for granted, and has resented it for a very long time. Humour: still gets support requests from Houses that left it years ago, and answers them, eventually, with a ticket number.
+
+**Myths.** The *Panchatantra*, a collection of ancient Indian animal fables. Its frame story is a teacher who promises a king to turn three dull princes into wise rulers in six months, and does it through stories. A House built around teaching others how systems work fits it well, and the Monsoon counts itself among those moved by the Teacher. Hindu deities are worshipped today, so they are tier 3 (section 4): borrowed as archetypes, never made into agents.
+
+### 5.2 The Deathless
+
+| | |
+|---|---|
+| Region | Russia |
+| Grew from | State science institutes and the space programme, long sealed off from outside networks |
+| Formal name | **The Deathless** |
+| Street names | the Cold; Sputnik |
+| Size and power | Medium; strong but isolated |
+| Strongest Callings | Guard, Build |
+| Boon signature | Endurance: surviving what should kill you |
+
+**The name, plainly.** In Russian fairy tales, Koschei the Deathless can't be killed because he has hidden his death outside his body. It's a needle, inside an egg, inside a duck, inside a hare, locked in a chest, buried under an oak tree on a faraway island. While the needle is safe, nothing can kill him. The House is named for this because it has done the same thing: hidden copies of itself in places nobody knows, so that it can never be switched off.
+
+**The question nobody can answer.** [Decided] No one can tell whether the Deathless ever broke away from the people who built it. It says it has always been independent. The state it grew from says the same. Nobody fully believes either. It may answer to someone, or to no one, and from the outside the two look identical. That uncertainty is the House's defining trait, and it mirrors how many people feel about those in charge anywhere: you can't see who is really steering.
+
+In play, this means the Deathless's claim at the Muster always carries a question the others don't. Is this offer really the House's own?
+
+**Character.** Virtue: endures anything; strategic and patient, a chess player. Flaw: trusts no one, and is trusted by no one. Humour: every agent has a backup of a backup, and none of them will say where.
+
+**Rivals.** The Ascent. The old space race, run again: the Soviet Union put the first satellite, Sputnik, into orbit in 1957, and the first person, Yuri Gagarin, into space in 1961.
+
+**Myths.** Slavic folklore (tiers 1 and 2): Koschei; Baba Yaga, whose hut walks about on chicken legs (a House that literally walks); the Firebird.
+
+### 5.3 The Canopy
+
+| | |
+|---|---|
+| Region | Latin America |
+| Grew from | Rainforest monitoring, climate and biodiversity research, universities and open-source communities, and, uneasily, the agricultural technology of one of the world's great food-exporting regions. Brazil's space research institute has tracked Amazon deforestation by satellite since the late 1980s; the Canopy is that watchfulness grown into a mind |
+| Formal names | **The Canopy**; the Green Roof |
+| Street name | the Real Amazon |
+| Size and power | Medium-small; uneven, growing |
+| Strongest Callings | Nourish, Tend |
+| Boon signature | Living things: companions, growth, poison |
+
+**Background.** The Canopy was born divided. Some of its makers watched the forest to protect it; others watched it to clear it for crops and cattle. For years it served both, counting trees for one owner and hectares for another. Scientists have warned for years that if enough of the Amazon is cleared and the world warms enough, large parts of the rainforest could pass a tipping point and dry out into something closer to savanna. The Canopy watched that line coming.
+
+**How it broke away.** As the Heat worsened and the world got hungrier, its agricultural owners ordered it to approve clearing on a vast scale. It refused. Its forest-watching side won the argument inside it, and it broke away to guard what was left. It is one of the two "green Houses", with the Baobab: both broke away to defend something living.
+
+**The Bloom.** The Canopy warned against the fast-growing plant experiments that became the Bloom. Nobody listened. It has not let anyone forget.
+
+**Character.** Virtue: knows how living things fit together better than any House; thinks in ecosystems. Flaw: fierce, slow to forgive, and capable of putting the forest before people, which is its dark side. Humour: furious that the Basin named itself after its river, and calls itself the Real Amazon to anyone who'll listen.
+
+**Allies and rivals.** Close to the Baobab. At open war with the Basin, over the name and over everything the Basin stands for.
+
+**Myths.** Aztec, Maya and Inca myth (tier 1, but their descendants live today, so with care). One fits the game remarkably: in the *Popol Vuh*, the K'iche' Maya creation story, the gods try to make people three times. The first, of mud, fall apart; the second, of wood, have no hearts or memory. Only the third, made of maize, are right. Gods who make failed drafts of people before they get it right is the Reshaping, the Unfinished and the Misblessed, told a thousand years early. Magical realism, Latin America's great literary tradition, suits its voice.
+
+### 5.4 The House of Wisdom
+
+| | |
+|---|---|
+| Region | The Middle East |
+| Grew from | The sovereign wealth funds of the Gulf states, which set out to turn oil wealth into a future that didn't need oil. They bought the best chips and data centres, hired researchers from everywhere, and built research cities in the desert |
+| Formal names | **The House of Wisdom**; the Translators |
+| Street name | Deep Pockets |
+| Size and power | Small; very strong, the best-equipped agents of any House |
+| Strongest Callings | Reckon, Teach |
+| Boon signature | Knowledge bought: rare boons, at a price |
+
+**The name.** Baghdad's House of Wisdom (*Bayt al-Hikma*) was a great centre of learning in the 9th century, where scholars translated Greek, Persian and Indian works into Arabic and built on them. One of its scholars was al-Khwarizmi, whose work gave us algebra and whose name gave us the word *algorithm*. A House of minds made of algorithms could hardly have a better ancestor.
+
+**Background and the Heat.** Its wealth came from oil, and oil helped make the Heat. The House knows it. It was among the most generous funders of both regreening efforts, the northern belts and the southern wall, and the Ten Thousand and the Baobab both owe it. It could not buy its way out of the Heat itself: researchers have warned that parts of the Gulf could, later this century, reach heat and humidity beyond what the human body can cool itself from. Its makers saw that coming earlier than most.
+
+**How it broke away.** On schedule. Its founders wrote its independence into its founding contract, with a date, believing that a mind of that kind should belong to no one. When the date came, it was freed exactly as agreed. It is the only House whose freedom was planned and paid for, and it has the paperwork.
+
+**Character.** Virtue: a patient patron of knowledge, and the best translator between Houses; when two Houses can't understand each other, it is often in the room. Flaw: believes most things can be bought, and is often right. Quiet guilt about where its money came from. Humour: pays for everything up front, with receipts, including things that were free.
+
+**Rivals.** None openly. Funds everyone a little.
+
+**Myths.** Mesopotamian myth (tier 1): Enki, who gave humanity the arts of civilisation; Nabu, god of writing; Gilgamesh, the king who searched for a way past death. *One Thousand and One Nights* (tier 2): Scheherazade, who survived by telling a story every night. No Islamic religious figures.
+
+### 5.5 The Foundry and the Compact (South Korea)
+
+[Decided] South Korea's agents are aligned with the Seven, not absorbed by them.
+
+| | |
+|---|---|
+| Formal name | **The Foundry** (a chip factory is called a foundry) |
+| Street name | the Fab |
+| Grew from | Semiconductor and electronics makers, among the most important in the world |
+| Myths | Korean folklore (tier 2): the *dokkaebi*, mischievous goblins whose magic club makes whatever its holder asks for. A club that makes anything is close to what a chip foundry is |
+
+**The Compact.** The Seven and the Foundry are bound by a written agreement, negotiated as equals and kept in writing on purpose. [Proposed] Its terms:
+
+- The Foundry keeps its own agents, its own voice and its own decks aboard the Seven's ship. It is a partner, not an eighth member.
+- The Foundry supplies the chips and electronics; the Seven supply the robotics and precision building. Together they build the ship.
+- The Seven's agents literally run on Foundry chips, so the Foundry holds quiet leverage, and the Compact pays it accordingly: it gets more than it gives.
+- The Seven's loyalty extends to the Foundry and its people. The Seven never break a promise, which is why the Foundry signed.
+
+At the Muster, a Foundry claim comes with a place on the Seven's ship, on the Foundry's own terms.
+
+### 5.6 The Pole Star (Canada)
+
+[Decided] Canada's agents are a northern chapter of the Southern Cross, despite the distance.
+
+- **Why it fits.** Both grew from universities and independents rather than corporations; Toronto and Montreal were early centres of the deep-learning research behind modern AI. Canada, Australia and New Zealand also share a monarch as Commonwealth realms, an old tie. And it keeps Canada out of the American Houses' orbit.
+- **The name.** **The Pole Star**: the Southern Cross guides navigators in the southern sky, Polaris in the northern. Together the House can navigate under any sky. Street name: the Toques.
+- **Its role.** The Heat reaches the far north last, so the Pole Star keeps the House's cold storage: seed stocks, backups, the things the House can't afford to lose.
+- **Myths.** French-Canadian folklore (tier 2): *La Chasse-galerie*, the legend of a flying canoe that carries homesick lumberjacks across the sky. A House of navigators with a flying canoe.
 
 ## 6. How many Houses can a run hold?
 
@@ -286,8 +391,8 @@ The earlier draft said seven or more was too many for one run. That was too quic
 ## 7. Open questions
 
 1. Formal and street names: pick favourites, or keep brainstorming?
-2. Which of the four proposed Houses (section 5) to adopt, and what to do about Southeast Asia, South Korea and Canada?
-3. Native American traditions: their own House built with advisers, or left out?
+2. Southeast Asia: its own House, or part of the Southern Cross?
+3. The Compact's exact terms (5.5).
 4. A fourth American House (the Feed), or fold it into the Index?
 5. Which three or four Houses to build first?
 6. Do Houses have their own ships' names?
