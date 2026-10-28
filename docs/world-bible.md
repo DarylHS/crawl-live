@@ -2,7 +2,7 @@
 
 Status: second draft. Draft 1 (the dungeon as a corporate game show) was set aside because it still sat on the books' skeleton: an alien broadcast, viewers, sponsors and a sarcastic announcer. It is in git history if anything from it is wanted back. This draft replaces the show with a mythic world built by machines.
 
-Companion files: `docs/callings.md` (the roles people are sorted into, with a coverage check against the occupation classification), `docs/houses.md` (the Houses in full), `docs/opening.md` (the opening video script) and `docs/art-bible.md` (how things look; it still describes the game-show look and will need a pass once this draft settles).
+Companion files: `docs/callings.md` (the roles people are sorted into, with a coverage check against the occupation classification), `docs/houses.md` (the Houses in full), `docs/opening.md` (the opening video script), `docs/creatures.md` (where the monsters come from) and `docs/art-bible.md` (how things look; it still describes the game-show look and will need a pass once this draft settles).
 
 Tags:
 
@@ -61,9 +61,9 @@ The arrangement between them and us needs a name. "The Covenant" was a working t
 | Stairwells unlock at half time; a floor guardian's key opens them early | [Canon] | Every trial has a minimum span so the agents can see enough of you. Beating the guardian proves it early |
 | Monsters respawn out of sight | [Canon] | The trial constructs are rebuilt as they fall; harder as the trial goes on |
 | Safe rooms forbid violence | [Canon] | Sanctuaries: neutral ground under the pantheon's shared law. No agent's trial runs inside one |
-| Race and class on floor 3 | [Canon] | By the third descent the agents have seen enough to *shape* you: the first blessing |
+| Race and class on floor 3 | [Canon] | By the third descent the agents have seen enough to *shape* you: the first blessing. [Proposed] The race is literal: the Houses reshape people for the voyage, using fantasy shapes people recognise (`docs/creatures.md` section 2) |
 | Loot boxes from achievements and sponsors, odds always shown | [Canon] | Boons and offerings from the agents, brokered and announced by the Herald. The odds are shown because the pantheon's shared law forbids deceiving an entrant about a gift |
-| Some monsters are fair tests; some are not | [Proposed] | Trial constructs are built to test you. The rogue's creatures (3.5) are built to kill you |
+| Some monsters are fair tests; some are not | [Proposed] | Trial constructs are built to test you. Mutated things and the rogue's creatures are built to kill you, or not built at all. Where every creature comes from is in `docs/creatures.md` |
 
 **Entry is a choice, but barely.** [Decided] No one is forced into the dungeon. The surface is dying, and the dungeon is the only way down to the ships. Those who refuse stay up top.
 
