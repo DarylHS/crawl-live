@@ -241,9 +241,8 @@ Not a creature type but something living *inside* creatures and machines: forgot
 | | Storybuilt | Engineered | Forced | Mutated | Machine | People |
 |---|---|---|---|---|---|---|
 | Upper | Knockoff Goblin, Drop Bear | Scorch Goat | | Gnawer | Housebot | Strays |
-| Middle | Lockstep, Certified Skeleton, Lantern Warden, Watcher, Boggart | Tunnel Brute, Biocontrol Toad, Test Article | | | | The Faithful |
+| Middle | Lockstep, Certified Skeleton, Lantern Warden, Watcher, Boggart | Tunnel Brute, Biocontrol Toad, Test Article, Thornback (grown) | | | | The Faithful |
 | Deep | | | The Unfinished, Lowlight Grazer | Rootbound | | |
-| Grown | Thornback | | | | | |
 | Unmoored | Shadow Stalker, The Caller | | | | | |
 
 Houses covered: the Basin, the Southern Cross (twice), the Ten Thousand (twice), the Charter, the Seven, the Baobab, the Ascent, the Index and the Isle. Joint era: the Scorch Goat and the Tunnel Brute.
