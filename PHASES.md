@@ -4,6 +4,7 @@ This file is the hand-off between build sessions. Each session does the next unc
 
 ## Ground rules (apply to every phase)
 - Original names and text only. The game is *inspired by* Dungeon Crawler Carl, so no character names, places or quotes from the books.
+- Lore lives in `docs/world-bible.md`. New monsters, items, lines and floors get a slot there first, and follow its pillars and tags.
 - Game rules belong in headless modules (`crawler/world.py` and friends, no pygame). pygame code stays in `crawler/game.py` and `crawler/ui/`.
 - Content is data (lists/dicts) so new items, achievements and lines can be added without code changes. Ship the starter set; don't over-build content.
 - Australian spelling in player-facing text (defence, colour, armour).
