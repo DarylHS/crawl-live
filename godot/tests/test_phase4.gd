@@ -1,8 +1,8 @@
 extends TestCase
 ## tests/test_phase4.py: item values, box stats against simulation, the shop policy tests (S4) and the
 ## shop turnover and contract tests on a World (S6), kills paying gold (S7) and trade-up, reroll and
-## buying and selling in World (S8). The rest (fun facts, run report, save) is listed in
-## docs/port-plan.md B.1.
+## buying and selling in World (S8), the fun facts and the run report data (T3). The save test is
+## listed in docs/port-plan.md B.1.
 
 
 func _safe(w: World) -> void:
@@ -216,3 +216,60 @@ func test_buying_and_selling_in_world() -> void:
 	assert_gt(w.gold, 50 - price)
 	w.gold = 0
 	assert_false(w.shop_buy("elixir"))                  # can't afford it
+
+
+# --- Fun facts ----------------------------------------------------------------
+
+func _fun_facts(w: World, n: int) -> Array:
+	var out: Array = []
+	for line in w.messages.recent(n):
+		if line[0].begins_with("FUN FACT"):
+			out.append(line[0])
+	return out
+
+
+func test_miss_streak_fun_fact() -> void:
+	var w := World.new(10)
+	for _i in range(6):
+		w.events.emit("player_attack", {"target": "goblin", "chance": 0.8, "hit": false, "crit": false})
+	var text := _fun_facts(w, 10)
+	assert_false(text.is_empty())
+	assert_true("no memory" in text[-1])
+
+
+func test_box_drought_fun_fact() -> void:
+	var w := World.new(11)
+	var rarest: String = PyMath.min_by(Loot.odds("bronze"), func(r: Array) -> float: return r[1])[0]
+	var common: String = PyMath.max_by(Loot.odds("bronze"), func(r: Array) -> float: return r[1])[0]
+	assert_ne(rarest, common)
+	for _i in range(3):
+		w.events.emit("box_opened", {"tier": "bronze", "item": common, "rerolled": false})
+	var found := false
+	for line in w.messages.recent(10):
+		if "isn't 'due'" in line[0]:
+			found = true
+	assert_true(found)
+
+
+func test_fun_facts_are_rate_limited() -> void:
+	var w := World.new(12)
+	w.events.emit("player_attack", {"target": "g", "chance": 0.5, "hit": true, "crit": true})
+	w.events.emit("contract_accepted", {"contract": "gloop_blitz", "depth": 2})
+	assert_eq(_fun_facts(w, 20).size(), 1)
+
+
+# --- Report -------------------------------------------------------------------
+
+func test_run_report_data() -> void:
+	var w := World.new(13)
+	_safe(w)
+	w.boxes = ["silver", "gold"]
+	w.open_box("silver")
+	w.open_box("gold")
+	for _i in range(25):
+		w.wait()
+	var rep := RunReport.build(w)
+	assert_eq(rep["box_expected"].size(), 2)
+	assert_almost_eq(float(rep["box_expected"][-1]), Loot.box_stats("silver")[0] + Loot.box_stats("gold")[0], 0.02)
+	assert_eq(rep["damage_by_floor"][0][0], 1)
+	assert_eq(rep["viewers"][-1][0], w.turn)

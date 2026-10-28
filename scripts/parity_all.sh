@@ -6,18 +6,17 @@
 #   PARITY_JOBS=8 scripts/parity_all.sh   # parallel jobs (default: nproc)
 #   PARITY_KEEP=1 scripts/parity_all.sh   # keep the work directory (traces) for inspection
 #
-# Sets (all at --scope full; the Python side runs with --mute funfacts while FunFacts (T3) is still a
-# stand-in in Godot; drop the mute when it lands):
+# Sets (all at --scope full, nothing muted on either side):
 #   floors   floor-only traces, seeds 0-199, 6 floors                  (full scope)
 #   spawns   World floors with spawns, seeds 0-499, 1 floor            (full)
 #   walk     walk policy, seeds 0-49, 500 steps                        (full)
 #   hunter   hunter policy, seeds 0-49, 3000 steps, with no pet and with 8 pet/hero combinations (full)
 #   s4       S4 fixtures (loot, shop, items, bosses), seeds 0-199, via the GUT test test_s4_parity
-#   chaos    chaos harness, seeds 0-215, 2500 steps (scripts/chaos_diff.py; showrunner and funfacts muted)
+#   chaos    chaos harness, seeds 0-215, 2500 steps (scripts/chaos_diff.py)
 #   csv      telemetry CSV files of the same chaos runs (T4: chaos_trace.py / chaos.gd --telemetry-dir, compared
 #            byte for byte with parity_diff.py --csv; every outcome, boxes, shop, practice, events)
-# The bot policy needs the T6 BotPolicy and is not included. The Showrunner (T2) is real and compared in
-# full. T3 removes funfacts from every "--mute" here and in gd_test.sh.
+# The bot policy needs the T6 BotPolicy and is not included. Every system is real on both sides and
+# compared in full; --mute (scripts/mute.py) stays a debugging option and nothing here uses it.
 set -u
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 GODOT="${GODOT:-godot}"
@@ -29,7 +28,7 @@ cd "$ROOT" || exit 1
 
 "$GODOT" --headless --path "$ROOT/godot" --import >/dev/null 2>&1
 
-PY="python3 $ROOT/scripts/py_trace.py --mute funfacts"
+PY="python3 $ROOT/scripts/py_trace.py"
 GD="$GODOT --headless --path $ROOT/godot -s res://tools/trace.gd --"
 JOBS="$WORK/jobs.txt"
 : > "$JOBS"
@@ -59,8 +58,8 @@ for combo in "${COMBOS[@]}"; do
 done
 mkdir -p "$WORK/py_chaos" "$WORK/gd_chaos" "$WORK/py_csv" "$WORK/gd_csv"
 for c in $(chunks 0 215 27); do
-	echo "python3 $ROOT/scripts/chaos_trace.py --seeds $c --steps 2500 --mute funfacts --out-dir $WORK/py_chaos --telemetry-dir $WORK/py_csv" >> "$JOBS"
-	echo "$GODOT --headless --path $ROOT/godot -s res://tools/chaos.gd -- --seeds $c --steps 2500 --mute funfacts --out-dir $WORK/gd_chaos --telemetry-dir $WORK/gd_csv >/dev/null 2>&1" >> "$JOBS"
+	echo "python3 $ROOT/scripts/chaos_trace.py --seeds $c --steps 2500 --out-dir $WORK/py_chaos --telemetry-dir $WORK/py_csv" >> "$JOBS"
+	echo "$GODOT --headless --path $ROOT/godot -s res://tools/chaos.gd -- --seeds $c --steps 2500 --out-dir $WORK/gd_chaos --telemetry-dir $WORK/gd_csv >/dev/null 2>&1" >> "$JOBS"
 done
 echo "python3 $ROOT/scripts/make_fixtures_s4.py $WORK/fixtures_s4.json 200" >> "$JOBS"
 
@@ -84,7 +83,7 @@ for combo in "${COMBOS[@]}"; do
 	check "hunter $1 $2" "$WORK/py_hunter_$1_${2//:/_}" "$WORK/gd_hunter_$1_${2//:/_}" 0-49 full
 done
 
-out="$(python3 "$ROOT/scripts/chaos_diff.py" --dirs "$WORK/py_chaos" "$WORK/gd_chaos" --seeds 0-215 --mute funfacts 2>&1)"
+out="$(python3 "$ROOT/scripts/chaos_diff.py" --dirs "$WORK/py_chaos" "$WORK/gd_chaos" --seeds 0-215 2>&1)"
 rc=$?
 echo "chaos: $(echo "$out" | tail -1)"
 [ "$rc" -eq 0 ] || { echo "$out" | grep -v ": SAME" | head -40; fail=1; }

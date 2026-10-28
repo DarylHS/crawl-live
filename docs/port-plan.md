@@ -771,7 +771,6 @@ Every pytest test not yet ported is named here, with the slice that must port it
 | Slice | pytest test | Why deferred |
 |---|---|---|
 | T5 | `test_practice.py`: `test_save_round_trip_keeps_practice` | saves |
-| T3 | `test_phase4.py`: `test_miss_streak_fun_fact`, `test_box_drought_fun_fact`, `test_fun_facts_are_rate_limited`, `test_run_report_data` | fun facts, report |
 | T5 | `test_phase4.py`: `test_save_round_trip_keeps_phase4_state` | saves |
 | T5 | `test_phase3.py`: `test_save_round_trip_and_identical_future`, `test_load_rejects_wrong_version` | saves |
 | T5 | `test_encounter.py`: `test_never_saves_mid_combat`, `test_save_and_load_in_a_safe_room_gives_the_same_future` | saves |
@@ -788,7 +787,7 @@ Every pytest test not yet ported is named here, with the slice that must port it
   - `Contracts.effect` / `preview` take a duck-typed `world` (`Variant`): `contract` (String, "" or null for none), `floor_stats`, `monsters`, `player`, `timer`, and `timer_text(turns := null)`. S6 passes the real `World`.
   - `Shop.buy` returns `""` for Python's `None`; `Loot.next_tier` returns `""`. Only `ShopStock.from_dict` coerces (`int`/`float`); `Shop.load` stores `log`, `bought` and `missed` raw, so T5 must coerce them (and the stock dictionaries) by schema before calling it.
   - `Encounter.total/before/after` for an entity that is not in the fight push_error and return 0 / [] (Python raises `StopIteration`).
-  - `FunFacts` is a P1 stand-in (no subscriptions, no draws); T3 replaces it whole. (`Achievements` was replaced by T1 and `Showrunner` by T2, see below.) They already follow the section 3 "Back-references to World" rule (`_world_ref: WeakRef`, `world` getter, `_init(world_value: Object)`) and each has an ownership test in `tests/test_s4_standins.gd`; the replacements and World (S6) must keep both.
+  - `FunFacts` was a P1 stand-in; T3 replaced it whole (as T1 did `Achievements` and T2 `Showrunner`, see below). They already follow the section 3 "Back-references to World" rule (`_world_ref: WeakRef`, `world` getter, `_init(world_value: Object)`) and each has an ownership test in `tests/test_s4_standins.gd`; the replacements and World (S6) must keep both.
   - `Bosses.acts_per_floor` returns a `Vector2i` (x opening, y featured); `Bosses.MAP_RADIUS` / `PHASE_TWO` are patchable static vars.
   - `Contracts.preview` with no monsters (Python: ZeroDivisionError) push_errors and returns the lines so far.
 - **S7 (World B and AI, done) notes for S8 and later:**
@@ -832,3 +831,6 @@ Every pytest test not yet ported is named here, with the slice that must port it
   - `achievements.gd`, `achievement_tracker.gd` and `achievement_rules.gd` are whole. The tracker holds the world through a WeakRef too (Python's holds it strongly; World -> Achievements -> Tracker -> World would leak). Subscription order: distinct `on` events in table order, then `unequip` (Python iterates a set, whose order varies per process; each event still gets exactly one handler, after Practice's and before the Showrunner's). `AchievementRules.test` reads `INVENTORY_SIZE` through the `GameConfig` class object at test time.
   - `tests/test_achievements.gd` holds the achievement tests of `test_showrunner.py` plus rule, flow, subscription and ownership checks. No T1 rows remain in B.1.
   - Python traces and chaos runs now mute only `funfacts` (`--mute funfacts` in `gd_test.sh`, `parity_all.sh`, `test_chaos_parity.gd`); walk and hunter compare at full scope. T3 removes the last name.
+- **T3 (Fun facts and report, done) notes for T4 to T6:**
+  - `rules/fun_facts.gd` is the whole of `crawler/funfacts.py` (no RNG draws; `once` is `""` for Python `None`; constants are `static var`s from config.json). `rules/run_report.gd` has `RunReport.build(world)` (Python's `run_report`; pairs and samples are two-element Arrays) plus the pure helpers of `crawler/ui/report.py` the screen needs: `nice_max`, `plural`, `summary_line`, `box_caption`, `contract_lines`, `notes_line`. P7 only draws them.
+  - Nothing is muted any more: `gd_test.sh`, `parity_all.sh`, `test_chaos_parity.gd` and the S6 to S8 parity tests pass no `--mute`, and `scripts/parity_all.sh` is identical at full scope with every system real. `--mute` stays as a debugging option on `py_trace.py` (funfacts only), `chaos_trace.py`, `chaos.gd` and `chaos_diff.py`, now defaulting to none (`scripts/mute.py` `DEFAULT = ""`); `chaos.gd` mutes FunFacts by unsubscribing it, as for the Showrunner.

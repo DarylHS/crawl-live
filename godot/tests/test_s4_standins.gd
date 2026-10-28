@@ -1,5 +1,5 @@
 extends TestCase
-## Ownership of the subsystems that hold their World weakly (Achievements, the real Showrunner, the FunFacts stand-in): a world that owns one must be
+## Ownership of the subsystems that hold their World weakly (Achievements, the real Showrunner and FunFacts): a world that owns one must be
 ## freed with it (they hold the world through a WeakRef), as Practice does. Also the Loot error path.
 ## (The preview guard for zero expected damage cannot be reached with real entities: damage is at
 ## least 1 and a natural 20 always hits.)
@@ -24,7 +24,7 @@ func _build(kind: String) -> Array:
 	return [weakref(w), weakref(w.sub)]   # both dropped when this function returns
 
 
-func test_stand_ins_are_freed_with_their_world(kind = use_parameters(["achievements", "showrunner", "fun_facts"])) -> void:
+func test_subsystems_are_freed_with_their_world(kind = use_parameters(["achievements", "showrunner", "fun_facts"])) -> void:
 	var refs := _build(kind)
 	assert_null(refs[0].get_ref(), kind)
 	assert_null(refs[1].get_ref(), kind)

@@ -5,8 +5,8 @@ extends TestCase
 ## the pet and hero combinations below. The full acceptance run (seeds 0-49, no pet, each pet and heroes) is
 ## tools/trace.gd + scripts/parity_diff.py --dirs --scope full.
 ##
-## Compared in full exactly as test_s7_parity.gd does (see its header): the Showrunner is real, the Python
-## references are made with --mute funfacts until T3 lands.
+## Compared in full exactly as test_s7_parity.gd does (see its header): every system is real, the Python
+## references are made with nothing muted.
 ## A missing reference directory fails the test (run through scripts/gd_test.sh).
 
 const S7 := preload("res://tests/test_s7_parity.gd")

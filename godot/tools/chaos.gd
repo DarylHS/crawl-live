@@ -5,11 +5,10 @@ extends SceneTree
 ##   godot --headless --path godot -s res://tools/chaos.gd -- --seeds 0-9 --steps 600 --out-dir DIR
 ##   godot --headless --path godot -s res://tools/chaos.gd -- --seed 3 --steps 600 --out run.jsonl
 ##
-## --mute LIST (default showrunner,funfacts; also all, none): the subsystems to silence, as chaos_trace.py
+## --mute LIST (default none; also all): the subsystems to silence, as chaos_trace.py
 ## (scripts/mute.py). Muting a subsystem leaves out its events (viewers_gained, sponsor_gift, showmanship
 ## practice_level; fun_fact) and, for the showrunner, unsubscribes it from the event bus (Python replaces its
-## _gain and _say with no-ops, which leaves no other effect on the compared state). FunFacts is a silent P1
-## stand-in already; list it while the Python side is real. Achievements is real on both sides and cannot be
+## _gain and _say with no-ops, which leaves no other effect on the compared state). FunFacts is unsubscribed the same way. Achievements is real on both sides and cannot be
 ## muted. --mute-standins / --no-mute-standins are aliases for all and none.
 ##
 ## --telemetry-dir DIR (T4): also attach a Telemetry from the start, finish the run with _finale() after the
@@ -41,7 +40,7 @@ const PROBES := [
 	["csv_probe", {}],
 ]
 
-var mute: Array = SUBSYSTEMS.duplicate()
+var mute: Array = []
 var telemetry_dir := ""
 var tel: Telemetry
 
@@ -65,12 +64,13 @@ func _muted_event(n: String) -> bool:
 	return false
 
 
-## Drop every handler the showrunner subscribed (a muted Python showrunner has no observable effect).
-func _unsubscribe_showrunner() -> void:
+## Drop every handler `owner` subscribed (a muted Python showrunner or FunFacts has no observable effect
+## on the compared state beyond the events and messages that are left out).
+func _unsubscribe(owner: Object) -> void:
 	for k in w.events._subs:
 		var keep: Array = []
 		for c in w.events._subs[k]:
-			if c.get_object() != w.showrunner:
+			if c.get_object() != owner:
 				keep.append(c)
 		w.events._subs[k] = keep
 
@@ -271,7 +271,9 @@ func _run(seed_v: int, steps: int, path: String) -> void:
 	tel = Telemetry.new(w, "chaos", "chaos%d" % seed_v, {"deals": "chaos"}) if telemetry_dir != "" else null
 	evs.clear(); msgs.clear()
 	if mute.has("showrunner"):
-		_unsubscribe_showrunner()
+		_unsubscribe(w.showrunner)
+	if mute.has("funfacts"):
+		_unsubscribe(w.funfacts)
 	p = w.player
 	rng = PyRandom.new(seed_v ^ 0x5C8)
 	p.level = 6 + (seed_v % 7) * 2; w.refresh_stats(); p.hp = p.max_hp

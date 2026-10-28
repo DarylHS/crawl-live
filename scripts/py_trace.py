@@ -249,7 +249,7 @@ def header(seed, policy, steps, pet, hero, mode):
             "content_sha": content_sha(), "mode": mode}
 
 
-MUTE = set()    # subsystems to silence (--mute): "funfacts" (the only one py_trace can mute); for runs against Godot stand-ins
+MUTE = set()    # subsystems to silence (--mute): "funfacts" (the only one py_trace can mute); debugging only
 
 
 def new_world(tracer, seed, pet, hero):
@@ -341,8 +341,8 @@ def main(argv=None):
     ap.add_argument("--floor-only", action="store_true")
     ap.add_argument("--floors", type=int, default=6)
     ap.add_argument("--spawns", action="store_true")
-    ap.add_argument("--mute", default="", help="funfacts: silence that real Python subsystem while the Godot side "
-                    "is still a stand-in (names validated by scripts/mute.py); default none")
+    ap.add_argument("--mute", default="", help="funfacts: silence that real Python subsystem for debugging "
+                    "(names validated by scripts/mute.py); default none, which is what the parity runs use")
     a = ap.parse_args(argv)
     names = parse_mute(a.mute)
     if names - {"funfacts"}:

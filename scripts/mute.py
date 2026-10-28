@@ -1,11 +1,11 @@
 """Shared --mute parsing for py_trace.py, chaos_trace.py and chaos_diff.py.
 
-A muted subsystem is a real Python system that is silenced because the Godot side is still a stand-in or
-(for chaos runs) to isolate it. Achievements (T1) and the Showrunner (T2) are real on both sides, so
+A muted subsystem is a real Python system that is silenced to isolate it while debugging. Since T3 every
+system is real on both sides and nothing is muted by default. Achievements (T1) and the Showrunner (T2) are real on both sides, so
 Achievements cannot be muted at all: only the names in SUBSYSTEMS are accepted, anything else is an error.
 """
 SUBSYSTEMS = ("showrunner", "funfacts")
-DEFAULT = ",".join(SUBSYSTEMS)
+DEFAULT = ""                  # nothing is muted by default
 
 
 def parse_mute(text):

@@ -14,7 +14,6 @@ extends TestCase
 
 const SEEDS := "0-15"
 const STEPS := 200
-const MUTE := "funfacts"
 
 const RUNS_COLS := ["run_id", "source", "seed", "pet", "race", "backstory", "gender", "cls", "outcome", "depth",
 		"turns", "kills", "level", "gold", "viewers", "peak_viewers", "boxes", "achievements",
@@ -298,7 +297,7 @@ func test_chaos_csv_files_are_byte_identical_to_python() -> void:
 	_remove_tree(gd_dir)       # the writer appends, so start from nothing
 	var log: Array = []
 	var code := OS.execute(OS.get_executable_path(), ["--headless", "--path", root + "/godot",
-			"-s", "res://tools/chaos.gd", "--", "--seeds", SEEDS, "--steps", str(STEPS), "--mute", MUTE,
+			"-s", "res://tools/chaos.gd", "--", "--seeds", SEEDS, "--steps", str(STEPS),
 			"--out-dir", out, "--telemetry-dir", gd_dir], log, true)
 	assert_eq(code, 0, "chaos.gd exit code: %s" % "".join(log).right(400))
 	log = []

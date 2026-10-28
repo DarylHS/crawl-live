@@ -13,10 +13,9 @@ line; scripts/chaos_diff.py compares the two.
 
 Deterministic: the harness uses its own random.Random(seed ^ 0x5C8) and nothing else is random.
 
---mute LIST (default showrunner,funfacts; see scripts/mute.py): comma list of the subsystems to neutralise.
-While the Godot side still has a P1 stand-in for a subsystem (FunFacts: T3) that subsystem must be muted
-here and in chaos.gd; the Showrunner (T2) is ported, so run with --mute funfacts. Achievements (T1) is real
-on both sides and cannot be muted. Muting replaces the real Showrunner._gain and _say, or FunFacts._say, with
+--mute LIST (default none; see scripts/mute.py): comma list of the subsystems to neutralise.
+Every system is real on both sides, so nothing needs muting; the option stays for debugging (mute the same
+list here and in chaos.gd). Achievements is real on both sides and cannot be muted. Muting replaces the real Showrunner._gain and _say, or FunFacts._say, with
 no-ops, and leaves out the events and messages they would add (viewers_gained, sponsor_gift and showmanship
 practice_level; fun_fact). --mute none compares everything.
 --mute-standins / --no-mute-standins are kept as aliases for all and none. Muting is the only deviation from an unmodified Python World."""
@@ -48,7 +47,7 @@ MUTED_FILES = {"showrunner": "showrunner.py", "funfacts": "funfacts.py"}
 
 
 
-def run(seed, steps, path, mute=frozenset(SUBSYSTEMS), telemetry_dir=None):
+def run(seed, steps, path, mute=frozenset(), telemetry_dir=None):
     """Play one chaos run and write its JSON Lines trace to `path`. With `telemetry_dir` a Telemetry is
     attached from the start, the run is finished off by finale() (see below) after the last trace line and
     its CSV tables are written to <telemetry_dir>/seed_<seed>/chaos_<table>.csv (the T4 byte-compare)."""
@@ -351,7 +350,7 @@ def main():
     ap.add_argument("--steps", type=int, default=600)
     ap.add_argument("--out", help="output file for --seed")
     ap.add_argument("--out-dir", help="directory for chaos_<seed>.jsonl files")
-    ap.add_argument("--mute", default="showrunner,funfacts",
+    ap.add_argument("--mute", default="",
                     help="comma list of showrunner,funfacts to neutralise (or all, none)")
     ap.add_argument("--telemetry-dir", help="also attach Telemetry and write each seed's CSV tables to "
                     "DIR/seed_<seed>/chaos_<table>.csv (after finishing the run, see finale())")

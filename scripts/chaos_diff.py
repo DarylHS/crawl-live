@@ -7,7 +7,7 @@ Compares every row field by value; on the first difference prints the row, the d
 events and messages the first differing entry) and the previous row's action. Exit 0 when every pair is
 identical, 1 otherwise (a missing or malformed file counts as a difference).
 
---mute LIST (default showrunner,funfacts, as chaos_trace.py; names checked by scripts/mute.py): when the showrunner is muted the
+--mute LIST (default none, as chaos_trace.py; names checked by scripts/mute.py): when the showrunner is muted the
 viewers fields of floor_stats are dropped, since the muted side does not track them. Pass the same list as
 to chaos_trace.py and chaos.gd. --mute none (or --no-mute-standins) compares everything."""
 import argparse
@@ -70,7 +70,7 @@ def main():
     ap.add_argument("--dirs", nargs=2, metavar=("PY_DIR", "GD_DIR"))
     ap.add_argument("--seeds", default="0-9")
     ap.add_argument("--no-msg", action="store_true", help="ignore the message lists")
-    ap.add_argument("--mute", default="showrunner,funfacts")
+    ap.add_argument("--mute", default="")
     ap.add_argument("--mute-standins", action=argparse.BooleanOptionalAction, default=None)
     a = ap.parse_args()
     muted = parse_mute(a.mute if a.mute_standins is None else ("all" if a.mute_standins else "none"))
