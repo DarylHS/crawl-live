@@ -7,7 +7,7 @@
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Marcellus&family=Libre+Franklin:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Marcellus&family=Kalam:wght@400;700&family=Libre+Franklin:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
 <style>
 /* Layout: a two-view field atlas. Inscribed headings over a stone ground; each House is a plate in a grid; data sits in mono. */
 :root {
@@ -214,6 +214,22 @@ details.secret { border: 1px dashed var(--bad); border-radius: 6px; padding: 8px
 details.secret summary { cursor: pointer; font-family: var(--font-data); font-size: 0.72rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--bad); }
 details.secret summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 details.secret p { margin-top: 8px; font-size: 0.88rem; }
+section.block > * { min-width: 0; }
+.board { background: #1e2823; border: 10px solid #5b4632; border-radius: 10px; padding: 8px; box-shadow: inset 0 0 40px rgba(0,0,0,0.45); }
+.board-scroll { overflow-x: auto; }
+svg.chalk { width: 100%; min-width: 780px; height: auto; display: block; }
+svg.chalk text { font-family: "Kalam", "Comic Sans MS", cursive; fill: #ecebe3; }
+svg.chalk .t-title { font-size: 26px; font-weight: 700; }
+svg.chalk .t-sub { font-size: 13.5px; fill: #c9c8bd; }
+svg.chalk .t-st { font-size: 15px; font-weight: 700; }
+svg.chalk .t-small { font-size: 12.5px; fill: #c9c8bd; }
+svg.chalk .t-br { font-size: 14px; font-weight: 700; fill: #9cc8ec; }
+svg.chalk .t-heat { font-size: 13px; font-weight: 700; fill: #ef8b78; letter-spacing: 0.06em; }
+svg.chalk .t-num { font-family: var(--font-data); font-size: 11px; font-weight: 600; fill: #1e2823; }
+ol.beats { margin: 0; padding-left: 22px; display: grid; gap: 10px; font-size: 0.92rem; }
+ol.beats li::marker { font-family: var(--font-data); font-weight: 600; color: var(--accent); }
+ol.branches { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; font-size: 0.92rem; }
+ol.branches b { font-family: var(--font-data); color: var(--corp); margin-right: 6px; }
 footer { margin-top: 48px; padding-top: 16px; border-top: 1px solid var(--line); font-size: 0.82rem; color: var(--muted); display: grid; gap: 4px; }
 
 @media (max-width: 640px) {
@@ -234,6 +250,7 @@ footer { margin-top: 48px; padding-top: 16px; border-top: 1px solid var(--line);
     <p class="lede">A dying surface, the machine gods who wait below with their ships, the people who go down to meet them, what they meet on the way, and who they become. Drawn from the world bible, the Houses, Callings, creatures, bestiary and opening docs, and the game's own stat data.</p>
     <nav class="tabs" aria-label="Atlas views">
       <a href="#world" data-view="world">The World</a>
+      <a href="#journey" data-view="journey">The Journey</a>
       <a href="#houses" data-view="houses">The Houses</a>
       <a href="#entrants" data-view="entrants">The Entrants</a>
       <a href="#callings" data-view="callings">The Callings</a>
@@ -588,6 +605,46 @@ footer { margin-top: 48px; padding-top: 16px; border-top: 1px solid var(--line);
         <div class="panel"><h3>Technology read as myth</h3><p>Every god and miracle is a machine or a protocol, seen through human eyes.</p></div>
         <div class="panel"><h3>You become what you do</h3><p>Outcomes come from actions, never menus or quizzes.</p></div>
         <div class="panel"><h3>The numbers are honest</h3><p>Odds, stats and forecasts shown to the player are always true.</p></div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ===================== JOURNEY ===================== -->
+  <main id="view-journey" data-view-panel="journey" hidden>
+    <section class="block">
+      <div class="section-head">
+        <span class="eyebrow">One character's run</span>
+        <h2>The Journey</h2>
+        <p class="muted">Drawn like Doc Brown's chalkboard in <em>Back to the Future Part II</em>: one timeline, and the alternate timelines it can skew into. Numbers are the main beats; letters are the branches.</p>
+      </div>
+      <div class="board"><div class="board-scroll"><svg class="chalk" viewBox="0 0 1000 640" role="img" aria-label="Chalkboard timeline of one entrant's descent: a main line through floors and acts to the Trunk and up the Tree to the stars, with six branches to other endings"><rect x="0" y="0" width="1000" height="640" fill="#1e2823"/><text class="t-title" x="30" y="44">One entrant, one descent</text><text class="t-sub" x="30" y="68">Sam, a rideshare driver from Sydney. The solid line is the Calling. The others are timelines it could skew into.</text><path d="M50 262 Q 200 252 400 262 T 760 262" fill="none" stroke="#ef8b78" stroke-width="3" stroke-dasharray="2 7" stroke-linecap="round"/><path d="M752 255 L 766 262 L 752 269" fill="none" stroke="#ef8b78" stroke-width="3" stroke-linecap="round"/><text class="t-heat" x="52" y="246">THE HEAT FOLLOWS YOU DOWN, A FLOOR BEHIND</text><path d="M420 330 Q 420 400 450 470" fill="none" stroke="#9cc8ec" stroke-width="3" stroke-dasharray="10 7" stroke-linecap="round"/><circle cx="450" cy="470" r="11" fill="#1e2823" stroke="#9cc8ec" stroke-width="2.5"/><text x="450" y="475" text-anchor="middle" style="font-family: var(--font-data); font-size: 12px; font-weight: 600; fill: #9cc8ec">A</text><text class="t-br" x="462" y="466" text-anchor="start">A. Misblessed</text><text class="t-small" x="462" y="483" text-anchor="start">“Oh.”</text><path d="M640 330 Q 640 250 650 170" fill="none" stroke="#9cc8ec" stroke-width="3" stroke-dasharray="10 7" stroke-linecap="round"/><circle cx="650" cy="170" r="11" fill="#1e2823" stroke="#9cc8ec" stroke-width="2.5"/><text x="650" y="175" text-anchor="middle" style="font-family: var(--font-data); font-size: 12px; font-weight: 600; fill: #9cc8ec">B</text><text class="t-br" x="638" y="166" text-anchor="end">B. The Teacher’s way</text><text class="t-small" x="638" y="183" text-anchor="end">the hidden fragment</text><path d="M660 330 Q 660 415 700 500" fill="none" stroke="#9cc8ec" stroke-width="3" stroke-dasharray="10 7" stroke-linecap="round"/><circle cx="700" cy="500" r="11" fill="#1e2823" stroke="#9cc8ec" stroke-width="2.5"/><text x="700" y="505" text-anchor="middle" style="font-family: var(--font-data); font-size: 12px; font-weight: 600; fill: #9cc8ec">C</text><text class="t-br" x="712" y="496" text-anchor="start">C. Breaking the balance</text><text class="t-small" x="712" y="513" text-anchor="start">Houses turned on each other</text><path d="M760 330 Q 760 225 800 120" fill="none" stroke="#9cc8ec" stroke-width="3" stroke-dasharray="10 7" stroke-linecap="round"/><circle cx="800" cy="120" r="11" fill="#1e2823" stroke="#9cc8ec" stroke-width="2.5"/><text x="800" y="125" text-anchor="middle" style="font-family: var(--font-data); font-size: 12px; font-weight: 600; fill: #9cc8ec">D</text><text class="t-br" x="788" y="116" text-anchor="end">D. The Missing Ship</text><text class="t-small" x="788" y="133" text-anchor="end">leave without AI</text><path d="M845 330 Q 845 445 900 560" fill="none" stroke="#9cc8ec" stroke-width="3" stroke-dasharray="10 7" stroke-linecap="round"/><circle cx="900" cy="560" r="11" fill="#1e2823" stroke="#9cc8ec" stroke-width="2.5"/><text x="900" y="565" text-anchor="middle" style="font-family: var(--font-data); font-size: 12px; font-weight: 600; fill: #9cc8ec">E</text><text class="t-br" x="888" y="556" text-anchor="end">E. Left behind</text><text class="t-small" x="888" y="573" text-anchor="end">back up towards the Heat</text><path d="M632 330 Q 632 450 580 570" fill="none" stroke="#c9c8bd" stroke-width="3" stroke-dasharray="2 9" stroke-linecap="round"/><circle cx="580" cy="570" r="11" fill="#1e2823" stroke="#c9c8bd" stroke-width="2.5"/><text x="580" y="575" text-anchor="middle" style="font-family: var(--font-data); font-size: 12px; font-weight: 600; fill: #c9c8bd">F</text><text class="t-br" x="592" y="566" text-anchor="start" style="fill:#c9c8bd">F. ???</text><text class="t-small" x="592" y="583" text-anchor="start">the most secret path</text><path d="M50 330 L 830 330 C 880 330, 905 300, 905 250 L 905 110" fill="none" stroke="#f2d36b" stroke-width="5" stroke-linecap="round"/><path d="M895 122 L 905 104 L 915 122" fill="none" stroke="#f2d36b" stroke-width="4" stroke-linecap="round"/><path d="M905 74 l 4 10 l 11 1 l -8 7 l 3 11 l -10 -6 l -10 6 l 3 -11 l -8 -7 l 11 -1 z" fill="#f2d36b"/><text class="t-st" x="905" y="62" text-anchor="middle">The stars</text><circle cx="905" cy="200" r="11" fill="#f2d36b"/><text class="t-num" x="905" y="204" text-anchor="middle">9</text><text class="t-st" x="889" y="198" text-anchor="end">Up the Tree</text><text class="t-small" x="889" y="215" text-anchor="end">seven days</text><circle cx="60" cy="330" r="11" fill="#f2d36b"/><text class="t-num" x="60" y="334" text-anchor="middle">1</text><text class="t-st" x="60" y="362" text-anchor="middle">Before</text><text class="t-small" x="60" y="378" text-anchor="middle">Sydney</text><circle cx="160" cy="330" r="11" fill="#f2d36b"/><text class="t-num" x="160" y="334" text-anchor="middle">2</text><text class="t-st" x="160" y="362" text-anchor="middle">Floor 1</text><text class="t-small" x="160" y="378" text-anchor="middle">the Herald</text><circle cx="260" cy="330" r="11" fill="#f2d36b"/><text class="t-num" x="260" y="334" text-anchor="middle">3</text><text class="t-st" x="260" y="362" text-anchor="middle">Floor 2</text><text class="t-small" x="260" y="378" text-anchor="middle">first skills</text><circle cx="360" cy="330" r="11" fill="#f2d36b"/><text class="t-num" x="360" y="334" text-anchor="middle">4</text><text class="t-st" x="360" y="362" text-anchor="middle">Floor 3</text><text class="t-small" x="360" y="378" text-anchor="middle">the Reshaping</text><circle cx="470" cy="330" r="11" fill="#f2d36b"/><text class="t-num" x="470" y="334" text-anchor="middle">5</text><text class="t-st" x="470" y="362" text-anchor="middle">Act II</text><text class="t-small" x="470" y="378" text-anchor="middle">floors 4 to 8</text><circle cx="590" cy="330" r="11" fill="#f2d36b"/><text class="t-num" x="590" y="334" text-anchor="middle">6</text><text class="t-st" x="590" y="362" text-anchor="middle">Act III</text><text class="t-small" x="590" y="378" text-anchor="middle">9 to 14</text><circle cx="710" cy="330" r="11" fill="#f2d36b"/><text class="t-num" x="710" y="334" text-anchor="middle">7</text><text class="t-st" x="710" y="362" text-anchor="middle">Act IV</text><text class="t-small" x="710" y="378" text-anchor="middle">15 to 19</text><circle cx="830" cy="330" r="11" fill="#f2d36b"/><text class="t-num" x="830" y="334" text-anchor="middle">8</text><text class="t-st" x="830" y="296" text-anchor="middle">The Trunk</text><text class="t-small" x="830" y="312" text-anchor="middle">the Muster</text><line x1="40" y1="520" x2="80" y2="520" stroke="#f2d36b" stroke-width="5" stroke-linecap="round"/><text class="t-small" x="90" y="525">the Calling</text><line x1="40" y1="545" x2="80" y2="545" stroke="#9cc8ec" stroke-width="3" stroke-dasharray="10 7" stroke-linecap="round"/><text class="t-small" x="90" y="550">other paths</text><line x1="40" y1="570" x2="80" y2="570" stroke="#c9c8bd" stroke-width="3" stroke-dasharray="2 9" stroke-linecap="round"/><text class="t-small" x="90" y="575">secret</text><text class="t-small" x="40" y="612">Death can come on any floor: a bell, a name, the Roll.</text></svg></div></div>
+      <div class="grid g2">
+        <div class="panel">
+          <span class="eyebrow">The main line: the Calling</span>
+          <ol class="beats">
+            <li><b>Before.</b> Sam drives rideshare in a Sydney too hot to live in. The surface is failing; the ships have only so many berths. Sam chooses the dungeon.</li>
+            <li><b>Floor 1.</b> An entrance under the city. The Herald introduces itself: "Mind the stairs." The Southern Cross's first trials.</li>
+            <li><b>Floor 2.</b> Drop bears on the ceilings, Strays who want Sam's pack. Cardio and pathfinding start to grow.</li>
+            <li><b>Floor 3.</b> The Reshaping. Sam chooses Elf, built for low gravity and a pilot's life, and wakes up with different hands.</li>
+            <li><b>Act II, floors 4 to 8.</b> The Ways open to friendly Houses: the Charter, the Baobab, the Monsoon. Sam finds every stairwell early and earns the Star Tattoo.</li>
+            <li><b>Act III, floors 9 to 14.</b> The nurseries, the Bloom's overgrowth, the Lost. Sam learns the Canopy backed the Bloom, and keeps it quiet.</li>
+            <li><b>Act IV, floors 15 to 19.</b> Rivals meet at the Herald's crossings. The Unmoored's creatures hunt; Sam survives, marked by them.</li>
+            <li><b>Floor 20, the Trunk.</b> Sam faces the Unmoored's champion. At the Muster, the Southern Cross claims a navigator. A driver becomes a pilot: the Deepened ending.</li>
+            <li><b>Up the Tree.</b> Seven days up the cable, the Earth falling away, a starship waiting. Sam won't see the shore. Their grandchildren will.</li>
+          </ol>
+        </div>
+        <div class="panel">
+          <span class="eyebrow">Where the timeline can skew</span>
+          <ol class="branches">
+            <li><b>A</b>The Reshaping goes wrong. The Herald says only "Oh." A harder road, and a Muster where only the Seven and the Baobab still bid.</li>
+            <li><b>B</b>Sam finds the Teacher's fragment in one of the Lost, and follows where it leads.</li>
+            <li><b>C</b>Sam tells the Baobab about the Canopy and trades the Index's secret to a rival. The Houses turn on each other.</li>
+            <li><b>D</b>Sam joins the people taking the Missing Ship to leave without AI. Every House hunts them.</li>
+            <li><b>E</b>Sam refuses every claim at the Muster and climbs back towards the Heat.</li>
+            <li><b>F</b>The most secret path: staying, and saving Earth.</li>
+          </ol>
+          <p class="muted" style="font-size:0.85rem">Two more endings sit on the main line itself. If Sam's Calling had differed from their backstory, it would be the Changed ending. If Sam had gamed the trials, the Herald would have hired them.</p>
+        </div>
       </div>
     </section>
   </main>
@@ -1452,7 +1509,7 @@ footer { margin-top: 48px; padding-top: 16px; border-top: 1px solid var(--line);
   document.getElementById("roots-bands").innerHTML = out;
 
   // Hash routing between the views
-  var views = ["world", "houses", "entrants", "callings", "creatures"];
+  var views = ["world", "journey", "houses", "entrants", "callings", "creatures"];
   function show() {
     var v = (location.hash || "").replace("#", "");
     if (views.indexOf(v) < 0) v = "world";

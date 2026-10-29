@@ -460,7 +460,7 @@ Draft recommendation: start with **the Launch Window** (it gives the game a larg
 
 ## 9. Story arc
 
-[Proposed] The eight-step Story Circle across the four acts.
+[Proposed] The eight-step Story Circle across the four acts. An example run, one character's journey with every branch it could take, is drawn as a chalkboard timeline in the atlas (`docs/atlas.html`, The Journey tab; image in `docs/journey-map.png`).
 
 | Step | Where | Beat |
 |---|---|---|
