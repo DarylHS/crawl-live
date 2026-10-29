@@ -23,7 +23,8 @@ func _ready() -> void:
 		_print_content_summary()
 		return
 	var args := _parse_args(OS.get_cmdline_user_args())
-	_seed = int(args["seed"]) if args.has("seed") else null
+	if args.has("seed"):
+		_seed = int(args["seed"])            # else keep a seed set before _ready (screenshots)
 	var species: String = args.get("pet", Content.table("pets").keys()[0])
 	_pet = null if species == "none" else [species, ""]
 	fp_view.new_run_requested.connect(_new_run)

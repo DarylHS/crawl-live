@@ -184,6 +184,43 @@ func test_markers_show_what_the_player_can_see() -> void:
 	assert_eq(v.markers.shown, want - monsters + 1)
 
 
+func _key(code: Key, pressed: bool, shift := false) -> InputEventKey:
+	var e := InputEventKey.new()
+	e.keycode = code
+	e.physical_keycode = code
+	e.shift_pressed = shift
+	e.pressed = pressed
+	if code == KEY_PERIOD:
+		e.unicode = 62 if shift else 46
+	return e
+
+
+func test_keys_reach_the_rules_through_the_input_map() -> void:
+	var v: FpView = SCENE.instantiate()
+	add_child_autofree(v)
+	var w := World.new(4)
+	w.monsters.clear()
+	v.start(w)
+	var a := v.logic.angle
+	Input.parse_input_event(_key(KEY_E, true))          # a tap turns 45 degrees, for free
+	Input.flush_buffered_events()
+	Input.parse_input_event(_key(KEY_E, false))
+	Input.flush_buffered_events()
+	assert_eq(v.logic.angle, PyMath.fmod_py(a + 45, 360))
+	assert_eq(w.turn, 0)
+	Input.parse_input_event(_key(KEY_PERIOD, true))     # "." waits a turn
+	Input.flush_buffered_events()
+	Input.parse_input_event(_key(KEY_PERIOD, false))
+	Input.flush_buffered_events()
+	assert_eq(w.turn, 1)
+	Input.parse_input_event(_key(KEY_PERIOD, true, true))   # ">" off the stairs: no turn passes
+	Input.flush_buffered_events()
+	Input.parse_input_event(_key(KEY_PERIOD, false, true))
+	Input.flush_buffered_events()
+	assert_eq(w.turn, 1)
+	assert_eq(w.messages.lines[-1][0], "There are no stairs here.")
+
+
 func test_hurt_flash_shows_and_menus_dim_the_view() -> void:
 	var v := _view()
 	var w := World.new(4)

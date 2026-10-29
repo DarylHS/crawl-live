@@ -331,14 +331,22 @@ func _timings() -> Dictionary:
 		build.append(snappedf(view.build_ms, 0.01))
 		textures.append(snappedf(view.materials_ms, 0.01))
 	var frames := 0
+	var vp_rid := view.viewport.get_viewport_rid()
+	RenderingServer.viewport_set_measure_render_time(vp_rid, true)
+	var cpu_ms := 0.0
+	var gpu_ms := 0.0
 	var t0 := Time.get_ticks_usec()
 	while frames < fps_frames:
 		view.logic.look(3.0)
 		view.controller.update(1.0 / 60.0, [])
 		view.refresh(1.0 / 60.0)
 		await RenderingServer.frame_post_draw
+		cpu_ms += RenderingServer.viewport_get_measured_render_time_cpu(vp_rid)
+		gpu_ms += RenderingServer.viewport_get_measured_render_time_gpu(vp_rid)
 		frames += 1
 	var secs := (Time.get_ticks_usec() - t0) / 1e6
+	print("screenshots: 3D viewport render time per frame: cpu %.2f ms, gpu %.2f ms" % [
+			cpu_ms / frames, gpu_ms / frames])
 	return {"build_ms": build, "textures_ms": textures, "frames": frames, "seconds": secs, "fps": frames / secs,
 			"ms_per_frame": secs * 1000.0 / frames,
 			"renderer": RenderingServer.get_current_rendering_driver_name(),
@@ -348,6 +356,7 @@ func _timings() -> Dictionary:
 ## The P4 main scene as a player sees it (placeholder panel and log included).
 func _window_shot() -> void:
 	var main: Control = (load("res://scenes/main.tscn") as PackedScene).instantiate()
+	main.set("_seed", seed_value)
 	root.add_child(main)
 	for _i in 4:
 		await RenderingServer.frame_post_draw
