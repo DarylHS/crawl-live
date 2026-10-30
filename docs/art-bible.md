@@ -197,3 +197,18 @@ Original pack downloads are kept outside the repo; only the edited PNGs are comm
 6. Credits: happy to credit DCSS artists and the source pages in-game and in `CREDITS.md` even where CC0 makes it optional?
 7. Budget for fill-in art: about 25 sprites and 18 to 24 textures. Hand-drawn by you or a commissioned artist, or generated procedurally as now and refined?
 8. Should Acts get their own sprites later, or are badge and sash overlays on the base monster enough?
+
+### Owner decisions (after Godot port P4)
+
+The owner accepted every recommendation:
+
+| # | Decision |
+|---|---|
+| 1 | Top-down uses 32 px tiles (32 x 20 tile viewport) with a zoom-out key to the 16 px glyph overview. |
+| 2 | Top-down player sprite: one per race (6). |
+| 3 | First-person weapon view model: yes, added later (P8). |
+| 4 | Comedy in props only, no cartoon restyle. |
+| 5 | Single frames for now; idle frames later for bosses only. |
+| 6 | Credit DCSS artists and source pages in-game and in `assets/CREDITS.md`. |
+| 7 | Fill-in art generated procedurally first; commission the ones that matter most (Headliners, vacuum bot) later. |
+| 8 | Acts use badge and sash overlays on the base monster; unique sprites for bosses only. |
