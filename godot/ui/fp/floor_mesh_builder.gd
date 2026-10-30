@@ -17,11 +17,17 @@ extends RefCounted
 ## Vertex colours carry Python's fixed shading: 0.78 on north and south wall faces (the
 ## raycaster's "side 1"), 0.8 on the ceiling. UVs map one 64 x 64 texture per tile face.
 ##
+## Why 0.875: Python's raycaster draws a wall 200 / d pixels tall in a 320 x 200 frame whose
+## horizontal half-width is PLANE = 0.7, so its pixels are not square (vertically it behaves like a
+## half-height of 0.5, horizontally 0.7 * 200 / 320 = 0.4375). With square pixels and the same 70
+## degree horizontal FOV, a wall 0.875 tiles high with the eye at half of it fills exactly the same
+## 200 / d pixels, so the proportions match the pygame view.
+##
 ## The arrays are filled directly (PackedVector3Array and friends) rather than through SurfaceTool:
 ## the same result, several times faster in GDScript. The face counts per slot are stored in the
 ## mesh's "faces" metadata for tests and the build report.
 
-const WALL_H := 1.0                    ## wall height in tiles (the eye is at half of it)
+const WALL_H := 0.875                  ## wall height in tiles (see the note above; the eye is at half of it)
 const SIDE_SHADE := 0.78               ## Python: walls hit on a y side are drawn at 0.78
 const CEILING_SHADE := 0.8             ## Python: the ceiling is drawn at 0.8
 

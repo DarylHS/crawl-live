@@ -145,7 +145,7 @@ func test_the_camera_looks_where_the_logic_looks() -> void:
 		var eye := v.rig.global_position
 		assert_almost_eq(eye.x, w.player.x + 0.5, 1e-5)
 		assert_almost_eq(eye.z, w.player.y + 0.5, 1e-5)
-		assert_almost_eq(eye.y, 0.5, 1e-6)
+		assert_almost_eq(eye.y, 0.4375, 1e-6)
 		var ahead := v.rig.ahead(1.0) - eye             # tile space: x east, z south
 		var want := Vector3(sin(deg_to_rad(a)), 0.0, -cos(deg_to_rad(a)))
 		assert_almost_eq(ahead.distance_to(want), 0.0, 1e-5, "angle %s" % a)

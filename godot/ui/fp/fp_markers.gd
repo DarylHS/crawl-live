@@ -8,7 +8,8 @@ extends Node3D
 ## furniture. Sizes follow the art bible (monsters 0.62-0.71 tiles by HP, Acts 0.85 / 0.95,
 ## Headliners 1.0, pets 0.5, furniture 0.75, items 0.32), feet on the floor, only what the player
 ## can see (world.visible), as the Python view draws them. Sprites are billboards that turn about
-## Y only, nearest-filtered, binary alpha.
+## Y only, nearest-filtered, binary alpha. Sizes are fractions of the wall height
+## (FloorMeshBuilder.WALL_H), as Python sizes sprites against its 200 / d wall.
 
 const OUTLINE := Color8(14, 12, 18)
 
@@ -63,10 +64,11 @@ func sync(world: World) -> void:
 			continue
 		var tile: Vector2i = specs[i][0]
 		var tex: Texture2D = specs[i][1]
-		var size_v: float = specs[i][2]
+		var size_v: float = float(specs[i][2]) * FloorMeshBuilder.WALL_H   # Python: scale x wall height
+		var lift: float = float(specs[i][3]) * FloorMeshBuilder.WALL_H
 		s.texture = tex
 		s.pixel_size = size_v / tex.get_height()
-		s.position = Vector3(tile.x + 0.5, size_v / 2.0 + float(specs[i][3]), tile.y + 0.5)
+		s.position = Vector3(tile.x + 0.5, size_v / 2.0 + lift, tile.y + 0.5)
 	shown = specs.size()
 
 

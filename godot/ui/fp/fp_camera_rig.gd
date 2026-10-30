@@ -7,10 +7,10 @@ extends Node3D
 ## (x, EYE_HEIGHT, y), and FpLogic's raycaster angle `a` (0 east, clockwise in tile space) becomes
 ## a yaw about the Y axis (Godot looks down -Z at yaw 0, which is north here).
 ##
-## Port plan 10.1: eye height 0.5 tiles, 70 degree horizontal field of view (2 atan(PLANE)), the
+## Port plan 10.1: eye at half the 0.875-tile wall, 70 degree horizontal field of view (2 atan(PLANE)), the
 ## torch reaching LIGHT = FOV_RADIUS + 0.5 tiles, where the WorldEnvironment fog turns to black.
 
-const EYE_HEIGHT := 0.5
+const EYE_HEIGHT := FloorMeshBuilder.WALL_H / 2.0   ## 0.4375 tiles: half the wall
 
 @onready var camera: Camera3D = $Camera
 @onready var torch: OmniLight3D = $Torch
