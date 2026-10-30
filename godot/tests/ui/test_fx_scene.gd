@@ -342,9 +342,11 @@ func test_the_reveal_hides_the_item_until_the_lid_opens_and_a_key_shows_it() -> 
 	assert_false(" ".join(h.menu_texts).contains(name_text), "hidden while the box rattles")
 	assert_false(" ".join(h.menu_texts).contains("Worth"), "the value would give it away too")
 	w.messages.add("The Gold box contains: %s!" % name_text, [255, 196, 64])
+	w.messages.add("SYSTEM: Oh, how lucky for you.", [110, 170, 240])             # the System's comment lands after it
 	var held := HudLog.wrapped(h.style, w.messages, 900, true)
 	assert_false(str(held).contains("box contains"), "the log line waits for the lid")
-	assert_true(str(HudLog.wrapped(h.style, w.messages, 900, false)).contains("box contains"))
+	assert_false(str(held).contains("how lucky"), "and so does everything said after it")
+	assert_true(str(HudLog.wrapped(h.style, w.messages, 900, false)).contains("how lucky"))
 	h.reveal.advance(FxReveal.SHAKE_END + 0.01)
 	h.sync()
 	assert_true(" ".join(h.menu_texts).contains(name_text), "shown once it opens")

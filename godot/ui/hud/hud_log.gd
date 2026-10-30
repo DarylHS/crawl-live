@@ -6,14 +6,17 @@ extends RefCounted
 
 
 ## [[text, colour Array]] wrapped to `max_w` pixels in the `font` face, the last LOG_LINES of them.
-## `hold_box` keeps the newest "The ... box contains: ..." line off the log (P8: the box is still rattling).
+## `hold_box` keeps the newest "The ... box contains: ..." line, and every line after it (the System's comment on the
+## prize), off the log (P8: the box is still rattling).
 static func wrapped(style: HudStyle, messages: MessageLog, max_w: int, hold_box: bool = false) -> Array:
 	var lines: Array = []
 	var entries: Array = messages.recent(HudPlace.LOG_LINES)
 	if hold_box:
-		var more: Array = messages.recent(HudPlace.LOG_LINES + 1)
-		if not more.is_empty() and " box contains: " in String(more[-1][0]):
-			entries = more.slice(0, more.size() - 1)
+		var more: Array = messages.recent(HudPlace.LOG_LINES + 8)
+		for i in range(more.size() - 1, -1, -1):          # the newest "box contains" line, and everything after it
+			if " box contains: " in String(more[i][0]):
+				entries = more.slice(maxi(0, i - HudPlace.LOG_LINES), i)
+				break
 	for entry: Array in entries:
 		var line := ""
 		for word in _words(entry[0]):
