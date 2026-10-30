@@ -22,6 +22,7 @@ extends RefCounted
 signal world_started(world: World)       ## a new or loaded run is ready (GameView shows it)
 signal view_changed(view: String)        ## Tab or `set_view` changed first-person / map
 signal render_scale_requested            ## F2 (GameView cycles the 3D resolution)
+signal setting_changed(note: String)     ## F3 or F4 changed the effects or sound setting: the note to show ("Effects: reduced")
 
 const TITLE := "title"
 const IDENTITY := "identity"
@@ -88,6 +89,26 @@ func covered() -> bool:
 ## Tab and F2 do nothing while this is true: a menu or help is open, or `blocked` is set.
 func is_blocked() -> bool:
 	return blocked or covered()
+
+
+# --- Effects and sound settings (P8) ----------------------------------------------------------------
+
+## F3: Effects on, reduced, off, on ... Remembered in the settings file. Works on any screen.
+func cycle_effects() -> String:
+	settings["effects"] = FxSettings.next_mode(String(settings.get("effects", "on")))
+	save_settings()
+	setting_changed.emit(FxSettings.describe_effects(settings["effects"]))
+	return settings["effects"]
+
+
+## F4: master volume 100, 70, 40, 10, muted, 100 ... Remembered in the settings file.
+func cycle_volume() -> Dictionary:
+	var nxt := FxSettings.next_volume(int(settings.get("volume", 70)), bool(settings.get("muted", false)))
+	settings["volume"] = nxt["volume"]
+	settings["muted"] = nxt["muted"]
+	save_settings()
+	setting_changed.emit(FxSettings.describe_sound(nxt["volume"], nxt["muted"]))
+	return nxt
 
 
 # --- Starting, loading, the view -------------------------------------------------------------------
@@ -196,6 +217,12 @@ func press(action: StringName) -> bool:
 	var used := false
 	if action == &"toggle_view":
 		used = toggle_view()
+	elif action == &"cycle_effects":
+		cycle_effects()
+		used = true
+	elif action == &"cycle_volume":
+		cycle_volume()
+		used = true
 	elif action == &"cycle_render_scale":
 		if not is_blocked():                                   # menus swallow F2 as they do Tab
 			render_scale_requested.emit()
@@ -237,6 +264,12 @@ func handle_key(ev: InputEventKey) -> void:
 	if ev.is_action(&"cycle_render_scale"):
 		if not is_blocked():
 			render_scale_requested.emit()
+		return
+	if ev.is_action(&"cycle_effects"):
+		cycle_effects()
+		return
+	if ev.is_action(&"cycle_volume"):
+		cycle_volume()
 		return
 	match scene:
 		TITLE:

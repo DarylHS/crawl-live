@@ -8,8 +8,12 @@ extends Control
 ##       Environment (WorldEnvironment: black background, dim ambient light, depth fog to LIGHT)
 ##       Level (Node3D: FloorMesh, rebuilt by FloorMeshBuilder when the floor changes)
 ##       Billboards (Billboards: sprites for monsters, pet, items, stairs, furniture)
+##       Torches (WallTorches: flickering wall torches and embers, P8)
+##       Particles (FxParticles: hit, kill, bomb and heal bursts, P8)
 ##       Rig (FpCameraRig: Camera3D and the OmniLight3D torch)
 ##     Screen (TextureRect showing the viewport; nearest filtering at Retro: hard pixels)
+##     ViewModel (ViewModel: your hands and the equipped weapon, P8)
+##     Fx (FxCanvas: floating damage numbers, P8)
 ##     Minimap (Minimap: the corner map and "Facing X", drawn at full resolution over the 3D)
 ##     Flash (ColorRect: the red hurt flash)
 ##
@@ -44,6 +48,10 @@ const FLASH_ALPHA := 110.0 / 255.0   ## Python: red at alpha 110 times the flash
 @onready var screen: TextureRect = $Screen
 @onready var flash_rect: ColorRect = $Flash
 @onready var minimap: Minimap = $Minimap
+@onready var torches: WallTorches = $Viewport/Torches
+@onready var particles: FxParticles = $Viewport/Particles
+@onready var view_model: ViewModel = $ViewModel
+@onready var fx_canvas: FxCanvas = $Fx
 
 var controller := FpController.new()
 var materials := FpMaterials.new()
@@ -54,6 +62,18 @@ var build_ms: float = 0.0          ## time the last floor mesh took to build
 var materials_ms: float = 0.0      ## time the last floor's textures took (0 when cached)
 var render_scale: String = "retro"   ## "retro" | "sharp" | "full" (UserSettings.RENDER_SCALES)
 var active: bool = true            ## false while the map view is showing (nothing renders or updates)
+## The effects state (P8) FxDirector fills and this view shows: shake, flicker, bob, flashes, numbers,
+## slides, the weapon swing. Null (standalone views and most tests) draws the plain P4 to P7 view.
+var fx: FxState = null:
+	set(v):
+		fx = v
+		billboards.fx = v
+		fx_canvas.fx = v
+		view_model.fx = v
+var show_view_model: bool = true   ## false hides the weapon (the pygame side-by-side tools: pygame has no view model)
+var walked: float = 0.0            ## tiles the camera has travelled (drives the walking bob)
+var moving: float = 0.0            ## 0 to 1: the camera is moving now
+var _prev_cam: Array = []
 var _stairs_slot: int = -1
 var _stairs_locked: bool = false
 
@@ -172,13 +192,58 @@ func refresh(dt: float) -> void:
 	if _stairs_slot >= 0 and locked != _stairs_locked:
 		_set_stairs_material(w, locked)
 	billboards.sync(w, logic.cam)
+	torches.sync(w, logic.cam, fx)
 	minimap.visible = hud
 	if hud:
 		minimap.update_from(w, logic.angle, logic.compass())
 	logic.note_hp(w, hud)
-	flash_rect.color.a = FLASH_ALPHA * logic.flash if logic.flash > 0.02 else 0.0
+	var flash_scale := float(fx.profile["flash"]) if fx != null else 1.0   # "off" and "reduced" soften the hurt flash
+	flash_rect.color.a = FLASH_ALPHA * logic.flash * flash_scale if logic.flash > 0.02 else 0.0
 	logic.fade_flash(dt)
 	screen.modulate = Color.WHITE if hud else Color(0.65, 0.65, 0.65)
+	_apply_fx(w, dt)
+
+
+## Show the effects state: the torch flicker, the camera shake and walking bob, and the weapon view model.
+## Nothing here reads or changes the rules beyond which weapon is equipped.
+func _apply_fx(w: World, dt: float) -> void:
+	var cam := logic.cam
+	if dt > 0.0 and not cam.is_empty():
+		var d := 0.0
+		if not _prev_cam.is_empty():
+			d = Vector2(cam[0] - _prev_cam[0], cam[1] - _prev_cam[1]).length()
+			if d < 1.5:
+				walked += d
+		moving = 1.0 if d > 0.0004 else maxf(0.0, moving - dt * 6.0)
+		_prev_cam = cam.duplicate()
+	var wkey: Variant = w.equipment["weapon"]
+	view_model.set_weapon(String(wkey) if PyMath.truthy(wkey) else "", w.weapon_style())
+	view_model.walked = walked
+	view_model.moving = moving
+	view_model.dim = not hud
+	view_model.visible = show_view_model and w.state == "playing"
+	if fx == null:
+		return
+	var prof := fx.profile
+	rig.set_flicker(fx.time, float(prof["flicker"]))
+	var bob := float(prof["bob"]) * moving
+	rig.set_camera_fx(fx.shake_offset(), 0.012 * sin(walked * TAU) * bob, 0.5 * sin(walked * PI) * bob)
+
+
+## A short orange flash of light at a world point (a bomb going off): an OmniLight3D whose energy a
+## Tween fades out. A Tween is Godot's built-in animator for a property: `tween_property(node, "x", to,
+## seconds)` runs it over time from the main loop, and `kill()` stops it. Visual only.
+func bomb_light(pos: Vector3) -> void:
+	var light := OmniLight3D.new()
+	light.light_color = Color(1.0, 0.7, 0.35)
+	light.light_energy = 3.0
+	light.omni_range = 4.0
+	light.shadow_enabled = false
+	viewport.add_child(light)
+	light.position = pos + Vector3(0.0, 0.3, 0.0)
+	var tween := create_tween()
+	tween.tween_property(light, "light_energy", 0.0, 0.35)
+	tween.tween_callback(light.queue_free)
 
 
 func _build_floor(w: World) -> void:

@@ -29,3 +29,11 @@ def test_none_path_disables_persistence():
     assert settings.load(None) == settings.DEFAULTS
     settings.save({"view": "top"}, None)                  # no error, nothing written
     assert settings.load(None)["view"] == "fp"
+
+
+def test_godot_front_end_keys_are_ignored(tmp_path):
+    """The Godot port adds render_scale, effects, volume and muted to the same file (P5, P8): Python skips them."""
+    path = tmp_path / "settings.json"
+    path.write_text(
+        '{"view": "top", "render_scale": "sharp", "effects": "reduced", "volume": 40, "muted": true}')
+    assert settings.load(path) == {"view": "top"}

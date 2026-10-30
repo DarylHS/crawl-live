@@ -9,6 +9,7 @@ extends Control
 ##   GameView (Control, this script)
 ##     FpView (scenes/fp_view.tscn)      the 3D view, minimap and "Facing X"
 ##     TopView (scenes/top_view.tscn)    the 16 px glyph map
+##     FxDirector (code)                 P8 effects and sound from the world's events (ui/fx/)
 ##
 ## Both views read the same World. The hidden one does no work (the 3D viewport stops rendering).
 ## `settings_path` "" turns off the settings file and `runs_dir` "" turns off run logging, as the
@@ -21,10 +22,14 @@ signal view_changed(view: String)
 @onready var fp_view: FpView = $FpView
 @onready var top_view: TopView = $TopView
 
+## Effects and sound (P8): shows the world's events as flashes, numbers, shake, particles and sounds.
+var fx_director := FxDirector.new()
+
 ## The scene state machine this view shows (crawler/game.py `App`): the two views share its
 ## controllers, view, settings and run logging. Made here so a GameView works on its own (tests, the
 ## screenshot tool); Main keys it by calling `app.handle_key`.
 var app := AppState.new({"settings_path": "", "runs_dir": ""})
+var _plain: bool = false
 var input_enabled: bool = true     ## read the keyboard itself (off for Main, tests and the screenshot tool)
 
 
@@ -68,6 +73,8 @@ var logged_runs: int:              ## runs written to runs_dir so far
 
 func _ready() -> void:
 	app.load_settings()
+	if _plain:
+		set_plain(true)
 	fp_view.controller = app.fp
 	top_view.controller = app.top
 	fp_view.set_render_scale(settings["render_scale"])
@@ -79,6 +86,8 @@ func _ready() -> void:
 	app.world_started.connect(_on_world_started)
 	app.view_changed.connect(_on_view_changed)
 	app.render_scale_requested.connect(cycle_render_scale)
+	add_child(fx_director)
+	fx_director.bind(app, fp_view)
 	_show_view()
 
 
@@ -114,6 +123,15 @@ func set_shown(on: bool) -> void:
 	else:
 		fp_view.set_active(false)
 		top_view.set_active(false)
+
+
+## The plain pygame look (P4 to P7): no effects and no weapon view model. The screenshot tools that pair shots
+## with pygame use it, since pygame draws neither; the player's settings are untouched when settings_path is "".
+func set_plain(on: bool) -> void:
+	_plain = on
+	app.settings["effects"] = "off" if on else "on"
+	if fp_view != null:
+		fp_view.show_view_model = not on
 
 
 ## Turn the keyboard on or off for both views.

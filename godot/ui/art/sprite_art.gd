@@ -6,6 +6,9 @@ extends RefCounted
 ##   mon:<monster>          mon:opening_<monster>, mon:featured_<monster>   (Acts)
 ##   boss:boss_<depth>      pet:<species>      item:<item>      furn:<kind>
 ##   fx:stairs_open         fx:stairs_locked
+##   fx:torch_0, fx:torch_1                 (P8: the two frames of a wall torch's flame)
+##   wpn:<item>  wpn:blade  wpn:blunt  wpn:unarmed   (P8: the first-person weapon view model, 80 x 80,
+##                           hands included; an item's own picture wins over its style's, then the placeholder)
 ##
 ## Today every key is answered by a placeholder drawn in code, ported from the pygame "body plan"
 ## sprites in crawler/ui/firstperson.py (creatures), with simple per-kind shapes for items. P9 drops
@@ -152,6 +155,27 @@ static func finish_creature(src: Image, outline: Color) -> Image:
 
 
 ## Image.get_used_rect for sprites: the bounding box of the opaque pixels.
+## One frame (0 or 1) of a wall torch's flame on its bracket (P8), 32 x 32; the views flicker between them.
+static func torch(frame: int) -> Image:
+	return _plain("fx:torch_%d" % (frame % 2), func(c: PixelCanvas) -> void: _torch_shape(c, frame % 2))
+
+
+## The first-person weapon view model for an equipped weapon (`item_key` "" for bare hands) of `style`
+## ("blade", "blunt" or "unarmed"): 80 x 80 with the hands holding it, the grip at the bottom centre,
+## drawn by WeaponArt until real art is registered as `wpn:<item>` or `wpn:<style>`.
+static func weapon_view(item_key: String, style: String) -> Image:
+	var key := "wpn:" + (item_key if item_key != "" else "unarmed")
+	if _cache.has(key):
+		return _cache[key]
+	var img := _supplied(key)
+	if img == null:
+		img = _supplied("wpn:" + style)
+	if img == null:
+		img = WeaponArt.paint(item_key, style)
+	_cache[key] = img
+	return img
+
+
 static func bounds(img: Image) -> Rect2i:
 	return img.get_used_rect()
 
@@ -388,6 +412,18 @@ static func _blob(c: PixelCanvas, col: Color, o: Dictionary = {}) -> void:
 
 
 # --- Items, furniture, stairs -------------------------------------------------------------------
+
+static func _torch_shape(c: PixelCanvas, frame: int) -> void:
+	var edge := Color8(30, 26, 36)
+	c.rect(13, 20, 6, 10, edge)                          # bracket
+	c.rect(14, 21, 4, 8, Color8(90, 84, 96))
+	c.rect(11, 18, 10, 4, edge)                          # cup
+	c.rect(12, 19, 8, 2, Color8(120, 110, 100))
+	var lean := 1 if frame == 1 else 0
+	c.polygon(_pts([[10 + lean, 18], [16, 4 + lean], [22 - lean, 18]]), Color8(200, 60, 20))
+	c.polygon(_pts([[12, 18], [16 + lean, 8], [20, 18]]), Color8(255, 150, 30))
+	c.polygon(_pts([[14, 18], [16, 12 + lean], [18, 18]]), Color8(255, 235, 140))
+
 
 static func _item_shape(c: PixelCanvas, key: String) -> void:
 	var row: Dictionary = Content.item(key)

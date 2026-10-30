@@ -50,6 +50,7 @@ func _new(seed_value: int, save_name: String = "slot.json") -> void:
 	gv.settings_path = ""
 	gv.runs_dir = ""
 	gv.input_enabled = false
+	gv.set_plain(true)                                            # pygame has no effects or weapon view model
 	gv.app.seed_value = seed_value
 	DirAccess.make_dir_recursive_absolute(tmp_dir)
 	gv.app.save_path = tmp_dir + save_name

@@ -57,6 +57,7 @@ func _run() -> void:
 	gv.settings_path = ""                    # shots never touch the player's settings or runs
 	gv.runs_dir = ""
 	gv.input_enabled = false
+	gv.set_plain(true)                       # pygame has no effects or weapon view model
 	root.add_child(gv)
 	gv.set_anchors_preset(Control.PRESET_TOP_LEFT)
 	gv.size = Vector2(OUT_W, OUT_H)
@@ -884,6 +885,7 @@ func _window_shot() -> void:
 	var game: GameView = main.get_node("GameView")
 	game.settings_path = ""                  # Tab here must not write the player's settings
 	game.runs_dir = ""
+	game.set_plain(true)
 	root.add_child(main)
 	main.app.seed_value = seed_value
 	for _i in 4:                             # Enter through the title and the creation screens

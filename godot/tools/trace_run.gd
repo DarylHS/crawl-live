@@ -75,6 +75,9 @@ static func run_trace(seed_value: int, policy_name: String, steps: int, pet: Str
 		return []
 	var w := World.new(seed_value, pet_arg, hero, Callable(tracer, "on_event"), Callable(tracer, "on_message"),
 			tracer)
+	var fx: FxDirector = null
+	if OS.get_environment("CRAWL_FX") == "1":
+		fx = FxDirector.attach_headless(w)       # P8 parity proof: the effects listen to every event and change nothing
 	var out: Array = [header(seed_value, policy_name, steps, pet if pet != "" else null, hero)]
 	out.append_array(tracer.records)
 	tracer.records = []
@@ -94,4 +97,6 @@ static func run_trace(seed_value: int, policy_name: String, steps: int, pet: Str
 			"rs": TraceFloors.stream_digests(w)})
 	w.events.tap = Callable()      # the taps hold the tracer; drop them so nothing outlives the call
 	w.messages.tap = Callable()
+	if fx != null:
+		fx.free()
 	return out

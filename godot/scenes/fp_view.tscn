@@ -1,9 +1,13 @@
-[gd_scene load_steps=6 format=3]
+[gd_scene load_steps=10 format=3]
 
 [ext_resource type="Script" path="res://ui/fp/fp_view.gd" id="1"]
 [ext_resource type="Script" path="res://ui/fp/fp_camera_rig.gd" id="2"]
 [ext_resource type="Script" path="res://ui/fp/billboards.gd" id="3"]
 [ext_resource type="Script" path="res://ui/fp/minimap.gd" id="4"]
+[ext_resource type="Script" path="res://ui/fx/wall_torches.gd" id="5"]
+[ext_resource type="Script" path="res://ui/fx/fx_particles.gd" id="6"]
+[ext_resource type="Script" path="res://ui/fx/view_model.gd" id="7"]
+[ext_resource type="Script" path="res://ui/fx/fx_canvas.gd" id="8"]
 
 [sub_resource type="Environment" id="Environment_fp"]
 background_mode = 1
@@ -48,6 +52,12 @@ environment = SubResource("Environment_fp")
 [node name="Billboards" type="Node3D" parent="Viewport"]
 script = ExtResource("3")
 
+[node name="Torches" type="Node3D" parent="Viewport"]
+script = ExtResource("5")
+
+[node name="Particles" type="Node3D" parent="Viewport"]
+script = ExtResource("6")
+
 [node name="Rig" type="Node3D" parent="Viewport"]
 script = ExtResource("2")
 
@@ -74,6 +84,16 @@ mouse_filter = 2
 expand_mode = 1
 stretch_mode = 0
 
+[node name="ViewModel" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("7")
+
 [node name="Flash" type="ColorRect" parent="."]
 layout_mode = 1
 anchors_preset = 15
@@ -83,6 +103,16 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 color = Color(0.784, 0.078, 0.078, 0)
+
+[node name="Fx" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("8")
 
 [node name="Minimap" type="Control" parent="."]
 layout_mode = 1

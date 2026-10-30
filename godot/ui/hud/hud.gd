@@ -34,6 +34,7 @@ extends Control
 @onready var menu: HudCanvas = $Menu
 @onready var tracker_over: HudCanvas = $TrackerOver
 @onready var help: HudCanvas = $Help
+@onready var reveal_canvas: RevealCanvas = $RevealCanvas
 
 var style := HudStyle.new()
 var game_view: GameView = null
@@ -45,6 +46,8 @@ var last_toasts: Array[Rect2i] = []   ## the toast rectangles drawn last
 var ahead_text: String = ""        ## the "ahead" label's text ("" when not shown)
 var ahead_rect := Rect2i()         ## the "ahead" label's text rectangle
 var _tracker_model := HudTracker.new()
+var reveal := FxReveal.new()       ## the loot box opening animation (P8); hides the item for the first moments
+var _reveal_id: int = -1           ## box_log size when the reveal started: a new box or a reroll starts it again
 
 
 ## Attach to the GameView this HUD draws for and draw once.
@@ -53,8 +56,14 @@ func bind(view: GameView) -> void:
 	sync()
 
 
-func _process(_delta: float) -> void:
+func _process(delta: float) -> void:
+	reveal.advance(delta)
 	sync()
+
+
+## A key is about to be handled: end the box animation at once (nobody waits for a box).
+func on_key() -> void:
+	reveal.skip()
 
 
 ## Bring every canvas up to date with the world and the view that is showing.
@@ -120,6 +129,7 @@ func sync() -> void:
 
 ## The menu and help canvases: the scene's screen (title, creation) or the open overlay over the game.
 func _sync_menus(app: AppState, w: World) -> void:
+	_sync_reveal(app, w)
 	var list: HudList = null
 	if app != null:
 		match app.scene:
@@ -139,6 +149,28 @@ func _sync_menus(app: AppState, w: World) -> void:
 	help.show_list(ScreenModels.build_help(style, game_view.view) if app != null and app.show_help else null)
 
 
+## Start the box animation when a reveal opens (or a reroll makes a new one), draw it while it runs.
+func _sync_reveal(app: AppState, w: World) -> void:
+	var on := app != null and w != null and app.overlay == "reveal" and w.last_reveal != null
+	if not on:
+		if reveal.running:
+			reveal.skip()
+		_reveal_id = -1
+	elif w.box_log.size() != _reveal_id:
+		_reveal_id = w.box_log.size()
+		if FxSettings.profile(String(app.settings.get("effects", "on")))["reveal"]:
+			reveal.start()
+		else:
+			reveal.skip()
+	if on:
+		var tier: String = w.last_reveal[0]
+		var prof := FxSettings.profile(String(app.settings.get("effects", "on")))
+		reveal_canvas.update_from(reveal, UiColours.of(Content.box(tier)["colour"]),
+				Vector2(MenuModels.X0 + MenuModels.WIDTH / 2.0, 312.0), float(prof["particles"]))
+	else:
+		reveal_canvas.update_from(null, Color.WHITE, Vector2.ZERO, 0.0)
+
+
 ## The open overlay menu's list, or null when none is open.
 func overlay_list(app: AppState, w: World) -> HudList:
 	match app.overlay:
@@ -147,7 +179,7 @@ func overlay_list(app: AppState, w: World) -> HudList:
 		"safe":
 			return MenuModels.build_safe_menu(style, w, app.cursor)
 		"reveal":
-			return MenuModels.build_reveal(style, w) if w.last_reveal != null else null
+			return MenuModels.build_reveal(style, w, reveal.item_hidden()) if w.last_reveal != null else null
 		"box":
 			return MenuModels.build_box_info(style, w, app.box_tier)
 		"shop":

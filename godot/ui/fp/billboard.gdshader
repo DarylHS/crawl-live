@@ -16,6 +16,7 @@ uniform sampler2D sprite_tex : filter_nearest, repeat_disable;
 uniform float light = 8.5;
 uniform float min_bright = 0.12;
 uniform bool fogged = true;
+uniform float flash : hint_range(0.0, 1.0) = 0.0;   // P8 hit flash: mix towards white (0 = off)
 
 vec3 srgb_to_linear(vec3 s) {
 	return mix(pow((s + vec3(0.055)) / 1.055, vec3(2.4)), s / 12.92, lessThan(s, vec3(0.04045)));
@@ -42,6 +43,6 @@ void fragment() {
 		float depth = -VERTEX.z;
 		k = max(min_bright, pow(clamp(1.0 - depth / light, 0.0, 1.0), 1.3));
 	}
-	vec3 s = c.rgb * k;
+	vec3 s = mix(c.rgb * k, vec3(1.0), flash);
 	ALBEDO = OUTPUT_IS_SRGB ? s : srgb_to_linear(s);
 }

@@ -56,6 +56,9 @@ const ACTIONS := {
 	# Views (P5)
 	"toggle_view": [KEY_TAB],
 	"cycle_render_scale": [KEY_F2],
+	# Effects and sound (P8)
+	"cycle_effects": [KEY_F3],
+	"cycle_volume": [KEY_F4],
 }
 
 

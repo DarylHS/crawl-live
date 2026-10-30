@@ -283,11 +283,15 @@ func test_billboards_and_walls_keep_their_framing_at_every_scale() -> void:
 func test_settings_keep_the_view_and_render_scale_together() -> void:
 	var path := TestHelpers.tmp_dir("game_view_settings") + "settings.json"
 	assert_true(UserSettings.save({"view": "top", "render_scale": "sharp"}, path))
-	assert_eq(UserSettings.load(path), {"view": "top", "render_scale": "sharp"})
+	var want := UserSettings.DEFAULTS.duplicate()
+	want["view"] = "top"
+	want["render_scale"] = "sharp"
+	assert_eq(UserSettings.load(path), want)
 	UserSettings.save({"view": "top", "render_scale": "huge"}, path)     # an unknown scale falls back
 	assert_eq(UserSettings.load(path)["render_scale"], "retro")
 	UserSettings.save({"view": "top"}, path)                              # an old file has no scale
-	assert_eq(UserSettings.load(path), {"view": "top", "render_scale": "retro"})
+	want["render_scale"] = "retro"
+	assert_eq(UserSettings.load(path), want)
 
 
 # --- Run logging --------------------------------------------------------------------------------

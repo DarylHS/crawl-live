@@ -22,6 +22,8 @@ extends Control
 @onready var hud: Hud = $Hud
 
 var app: AppState = null
+var note: Label = null                    ## the "Effects: reduced" note F3 and F4 flash at the top (P8)
+var _note_tween: Tween = null
 var summary_on_headless: bool = true      ## tests turn this off to run the real scene headless
 var options: Dictionary = {}              ## extra options merged over the command line (tests)
 var _shown: bool = true
@@ -39,6 +41,8 @@ func _ready() -> void:
 	game_view.set_input_enabled(false)       # Main takes the keys and routes them through the AppState
 	game_view.fp_view.set_render_scale(app.settings["render_scale"])
 	hud.bind(game_view)
+	_make_note()
+	app.setting_changed.connect(show_note)
 	_apply_scene()
 	if args.has("quick"):
 		app.pet_name = ""
@@ -78,9 +82,51 @@ func _unhandled_input(event: InputEvent) -> void:
 	var key := event as InputEventKey
 	if key == null or not key.pressed or key.echo:
 		return
+	var before := _menu_state()
+	hud.on_key()
+	game_view.fx_director.on_key()           # a key press finishes moving effects: input never waits on an animation
 	app.handle_key(key)
+	if _menu_state() != before:
+		game_view.fx_director.ui_select()    # a menu opened, closed or moved
 	get_viewport().set_input_as_handled()
 	_apply_scene()
+
+
+## What the menus show: changes when a key moved a cursor, opened or closed a menu or went to another screen.
+func _menu_state() -> Array:
+	return [app.scene, app.overlay, app.cursor, app.show_help, app.pet_idx, app.gender_idx, app.backstory_idx]
+
+
+## A line of text at the top of the window that fades after a moment ("Effects: reduced").
+func _make_note() -> void:
+	note = Label.new()
+	note.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	note.set_anchors_and_offsets_preset(Control.PRESET_TOP_WIDE)
+	note.offset_top = 8.0
+	note.offset_bottom = 40.0
+	note.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	note.add_theme_font_override("font", UiFonts.mono(true))
+	note.add_theme_font_size_override("font_size", 20)
+	note.add_theme_color_override("font_color", Color8(255, 196, 64))
+	note.add_theme_color_override("font_outline_color", Color8(14, 12, 18))
+	note.add_theme_constant_override("outline_size", 6)
+	note.modulate.a = 0.0
+	add_child(note)
+
+
+## Show `text` at the top, then fade it out. A Tween is Godot's built-in animator: this one waits, then
+## fades the label's alpha; starting a new note stops the old tween first.
+func show_note(text: String) -> void:
+	if note == null:
+		return
+	game_view.fx_director.ui_select()
+	note.text = text
+	note.modulate.a = 1.0
+	if _note_tween != null:
+		_note_tween.kill()
+	_note_tween = create_tween()
+	_note_tween.tween_interval(1.3)
+	_note_tween.tween_property(note, "modulate:a", 0.0, 0.5)
 
 
 func _process(delta: float) -> void:

@@ -136,7 +136,8 @@ static func build_safe_menu(st: HudStyle, world: World, cursor: int) -> HudList:
 
 # --- Box reveal and odds ----------------------------------------------------------------------
 
-static func build_reveal(st: HudStyle, world: World) -> HudList:
+## `hide_item` keeps the item's glyph, name and description off the screen while the P8 box animation plays.
+static func build_reveal(st: HudStyle, world: World, hide_item: bool = false) -> HudList:
 	var list := HudList.new(st)
 	var tier: String = world.last_reveal[0]
 	var key: String = world.last_reveal[1]
@@ -149,10 +150,11 @@ static func build_reveal(st: HudStyle, world: World) -> HudList:
 		var lines := MenuKit.wrap(st, "Earned for: %s" % world.last_reason, WIDTH - 60)
 		for i in mini(2, lines.size()):
 			list.centred(lines[i], cx, 232 + 17 * i, box_colour, "small")
-	list.centred(Items.glyph(key), cx, 305, _item_colour(key), "huge")
-	list.centred(it["name"], cx, 365, _item_colour(key), "big")
-	list.centred(Items.describe(key), cx, 397, st.colour("TEXT"))
-	list.centred(it["desc"], cx, 423, st.colour("TEXT_DIM"), "small")
+	if not hide_item:
+		list.centred(Items.glyph(key), cx, 305, _item_colour(key), "huge")
+		list.centred(it["name"], cx, 365, _item_colour(key), "big")
+		list.centred(Items.describe(key), cx, 397, st.colour("TEXT"))
+		list.centred(it["desc"], cx, 423, st.colour("TEXT_DIM"), "small")
 	var stats := Loot.box_stats(tier)
 	var ev: float = stats[0]
 	var sd: float = stats[1]

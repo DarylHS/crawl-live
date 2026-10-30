@@ -260,6 +260,9 @@ func _initialize() -> void:
 	quit(0)
 
 
+var _fx: FxDirector = null
+
+
 ## One chaos run, written to `path`.
 func _run(seed_v: int, steps: int, path: String) -> void:
 	out = FileAccess.open(path, FileAccess.WRITE)
@@ -268,6 +271,8 @@ func _run(seed_v: int, steps: int, path: String) -> void:
 	var c := seed_v % 54
 	var race: String = RACES[c % 6]; var cls: String = CLASSES[(c / 6) % 9]
 	w = World.new(seed_v, [pet, ""] if pet != "none" else null, hero, Callable(self, "_tap"), Callable(self, "_mtap"))
+	if OS.get_environment("CRAWL_FX") == "1":
+		_fx = FxDirector.attach_headless(w)       # P8 parity proof: the effects listen to every event and change nothing
 	tel = Telemetry.new(w, "chaos", "chaos%d" % seed_v, {"deals": "chaos"}) if telemetry_dir != "" else null
 	evs.clear(); msgs.clear()
 	if mute.has("showrunner"):
@@ -410,6 +415,9 @@ func _run(seed_v: int, steps: int, path: String) -> void:
 		_finale(seed_v)
 	w.events.tap = Callable()
 	w.messages.tap = Callable()
+	if _fx != null:
+		_fx.free()
+		_fx = null
 	tel = null
 	w = null
 	p = null

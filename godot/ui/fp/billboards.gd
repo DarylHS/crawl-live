@@ -28,6 +28,7 @@ const SHADOW_ALPHA := 120.0 / 255.0
 static var _fp_cfg: Dictionary = Content.table("ui_config")["firstperson"]
 
 var shown: int = 0                    ## sprites shown after the last sync (tests read it)
+var fx: FxState = null                ## P8: hit flashes and tile-to-tile slides of monsters and the pet (null: none)
 var _floor: DungeonFloor = null       ## the floor and camera of the last sync (the health bar test casts a ray)
 var _cam: Array = []
 var _shader: Shader = load("res://ui/fp/billboard.gdshader")
@@ -45,6 +46,7 @@ class _Slot:
 	var shadow: Sprite3D
 	var mat: ShaderMaterial
 	var bar_mat: ShaderMaterial
+	var flash: float = 0.0
 
 
 ## What to show, from what the player can see now: [{tile, tex, scale, lift, tier?, monster?, shadow?}].
@@ -74,7 +76,7 @@ func specs(world: World) -> Array:
 		var pcol: Array = pt.colour
 		out.append({"tile": Vector2i(pt.x, pt.y), "tex": _tex("pet:%s|%s" % [species, pcol],
 				func() -> Image: return SpriteArt.creature("pet:" + species, pcol)),
-				"scale": 0.5, "lift": 0.0})
+				"scale": 0.5, "lift": 0.0, "actor": pt})
 	for m in world.monsters:
 		if vis.has(Vector2i(m.x, m.y)):
 			var mkey := SpriteArt.monster_key(m)
@@ -83,13 +85,15 @@ func specs(world: World) -> Array:
 			var scale_v: float = _fp_cfg["TIER_SCALE"].get(tier, 0.62 + 0.03 * mini(m.max_hp, 12) / 4.0)
 			out.append({"tile": Vector2i(m.x, m.y), "tex": _tex("%s|%s|%s" % [mkey, mcol, tier],
 					func() -> Image: return SpriteArt.creature(mkey, mcol, tier)),
-					"scale": scale_v, "lift": 0.0, "monster": m})
+					"scale": scale_v, "lift": 0.0, "monster": m, "actor": m})
 	return out
 
 
 ## Show a billboard for each thing in `specs`. Cheap enough to call every frame.
 func sync(world: World, cam: Array = []) -> void:
 	var list := specs(world)
+	if fx != null and _floor != world.floor:
+		fx.forget_actors()              # a new floor: nothing slides or flashes across the change
 	_floor = world.floor
 	_cam = cam
 	var fwd := Vector2.ZERO
@@ -106,6 +110,8 @@ func sync(world: World, cam: Array = []) -> void:
 				continue                      # behind you or in your face: Python skips it too
 		spec["depth"] = depth
 		used.append(spec)
+		if fx != null and spec.has("actor"):
+			fx.track_actor((spec["actor"] as Object).get_instance_id(), tile)
 	while _pool.size() < used.size():
 		_pool.append(_make_slot())
 	for i in _pool.size():
@@ -130,6 +136,15 @@ func _place(slot: _Slot, spec: Dictionary, fwd: Vector2) -> void:
 	slot.mat.set_shader_parameter("sprite_tex", tex)
 	slot.sprite.pixel_size = pixel
 	var centre := Vector3(tile.x + 0.5, size_v / 2.0 + lift, tile.y + 0.5)
+	var flash := 0.0
+	if fx != null and spec.has("actor"):
+		var id := (spec["actor"] as Object).get_instance_id()
+		var slide := fx.slide_offset(id)
+		centre += Vector3(slide.x, 0.0, slide.y)
+		flash = fx.flash_of(id)
+	if flash != slot.flash:
+		slot.flash = flash
+		slot.mat.set_shader_parameter("flash", flash)
 	slot.sprite.position = centre
 	slot.shadow.visible = spec.get("shadow", false)
 	if slot.shadow.visible:
