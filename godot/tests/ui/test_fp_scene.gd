@@ -2,7 +2,7 @@ extends TestCase
 ## The first-person scene (P4 parts of tests/test_firstperson.py "renders each floor" and the
 ## floor caches): the floor mesh for every floor (face counts, slots, materials and tints), the
 ## placeholder textures, and fp_view.tscn driven headless (rebuild per floor, stairs lock, camera
-## yaw, markers). Pixels are checked by tools/screenshots.gd under Xvfb, not here.
+## yaw, billboards). Pixels are checked by tools/screenshots.gd under Xvfb, not here.
 
 const SCENE := preload("res://scenes/fp_view.tscn")
 
@@ -158,30 +158,41 @@ func test_markers_show_what_the_player_can_see() -> void:
 	var v := _view()
 	var w := World.new(4, ["dog", "Rex"])
 	v.start(w)
-	var want := 0
-	var monsters := 0
-	for m in w.monsters:
-		if w.visible.has(Vector2i(m.x, m.y)):
-			monsters += 1
-	want += monsters
-	if w.active_pet != null and w.visible.has(Vector2i(w.pet.x, w.pet.y)):
-		want += 1
-	for t in w.floor_items:
-		if w.visible.has(t):
-			want += 1
-	for t in w.floor.stairs:
-		if w.visible.has(t):
-			want += 1
-	for t in w.floor.furniture:
-		if w.visible.has(t):
-			want += 1
-	assert_eq(v.markers.shown, want)
+	assert_eq(v.billboards.shown, _in_front(v, w))
 	var p := w.player
 	w.monsters.clear()
-	var g := Entities.spawn_monster("goblin", p.x, p.y)   # on a visible tile for sure
+	var tile := Vector2i(p.x, p.y)
+	for n in DungeonFloor.NEIGHBOURS_8:
+		if w.floor.walkable(p.x + n.x, p.y + n.y):
+			tile = Vector2i(p.x + n.x, p.y + n.y)
+			break
+	v.logic.angle = rad_to_deg(atan2(tile.x - p.x, -(tile.y - p.y)))   # look at the neighbour
+	var g := Entities.spawn_monster("goblin", tile.x, tile.y)
 	w.monsters.append(g)
+	w.update_fov()
+	v.logic.cam = []
 	v.refresh(0.0)
-	assert_eq(v.markers.shown, want - monsters + 1)
+	assert_eq(v.billboards.shown, _in_front(v, w))
+	assert_gt(v.billboards.shown, 0)
+
+
+## What should be shown: everything in view that is more than Python's 0.2 tiles in front of the eye.
+func _in_front(v: FpView, w: World) -> int:
+	var cam := v.logic.cam
+	var fwd := Vector2(cos(cam[2]), sin(cam[2]))
+	var tiles: Array[Vector2i] = []
+	for m in w.monsters:
+		tiles.append(Vector2i(m.x, m.y))
+	if w.active_pet != null:
+		tiles.append(Vector2i(w.pet.x, w.pet.y))
+	tiles.append_array(w.floor_items.keys())
+	tiles.append_array(w.floor.stairs)
+	tiles.append_array(w.floor.furniture.keys())
+	var n := 0
+	for t in tiles:
+		if w.visible.has(t) and (t.x + 0.5 - cam[0]) * fwd.x + (t.y + 0.5 - cam[1]) * fwd.y > 0.2:
+			n += 1
+	return n
 
 
 func test_light_never_brightens_past_the_texture_near_the_eye() -> void:
@@ -215,17 +226,17 @@ func test_a_monster_ahead_shows_and_w_attacks_it() -> void:
 			break
 		v.logic.turn(1)
 	assert_false(w.in_safe_room)
-	var base := v.markers.shown
+	var base := v.billboards.shown
 	w.monsters.append(Entities.spawn_monster("goblin", p.x + 2 * f.x, p.y + 2 * f.y))
 	w.update_fov()
 	v.refresh(0.0)
-	assert_eq(v.markers.shown, base + 1)                # two tiles ahead: drawn
+	assert_eq(v.billboards.shown, base + 1)                # two tiles ahead: drawn
 	w.monsters.clear()
 	var goblin := Entities.spawn_monster("goblin", p.x + f.x, p.y + f.y)
 	w.monsters.append(goblin)
 	w.update_fov()
 	v.refresh(0.0)
-	assert_eq(v.markers.shown, base + 1)                # adjacent: drawn
+	assert_eq(v.billboards.shown, base + 1)                # adjacent: drawn
 	var turn := w.turn
 	var pos := Vector2i(p.x, p.y)
 	var attacks: Array = []

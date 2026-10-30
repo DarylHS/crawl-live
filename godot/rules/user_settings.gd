@@ -12,7 +12,10 @@ const DEFAULT_PATH: String = "user://settings.json"
 const FILE_NAME: String = "settings.json"
 ## first-person, top-down map
 const VIEWS: Array[String] = ["fp", "top"]
-const DEFAULTS: Dictionary = {"view": "fp"}
+## Graphics render scale (owner addition in P5; the Python version ignores the key): the 3D
+## resolution, Retro 320 x 200 with hard pixels, Sharp 640 x 400, Full at the size of the map area.
+const RENDER_SCALES: Array[String] = ["retro", "sharp", "full"]
+const DEFAULTS: Dictionary = {"view": "fp", "render_scale": "retro"}
 
 
 ## The settings file inside `dir`.
@@ -36,6 +39,8 @@ static func load(path: String = DEFAULT_PATH) -> Dictionary:
 	var data: Variant = parser.data
 	if data is Dictionary and data.get("view") is String and VIEWS.has(data["view"]):
 		out["view"] = data["view"]
+	if data is Dictionary and data.get("render_scale") is String and RENDER_SCALES.has(data["render_scale"]):
+		out["render_scale"] = data["render_scale"]
 	return out
 
 

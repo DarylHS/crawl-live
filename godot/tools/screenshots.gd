@@ -19,6 +19,7 @@ var out_dir := ""
 var seed_value := 1
 var pet: Variant = null
 var fps_frames := 300
+var gv: GameView = null
 var view: FpView = null
 var records: Array = []
 
@@ -39,12 +40,15 @@ func _initialize() -> void:
 
 
 func _run() -> void:
-	var scene: PackedScene = load("res://scenes/fp_view.tscn")
-	view = scene.instantiate()
-	view.input_enabled = false
-	root.add_child(view)
-	view.set_anchors_preset(Control.PRESET_TOP_LEFT)
-	view.size = Vector2(OUT_W, OUT_H)
+	var scene: PackedScene = load("res://scenes/game_view.tscn")
+	gv = scene.instantiate()
+	gv.settings_path = ""                    # shots never touch the player's settings or runs
+	gv.runs_dir = ""
+	gv.input_enabled = false
+	root.add_child(gv)
+	gv.set_anchors_preset(Control.PRESET_TOP_LEFT)
+	gv.size = Vector2(OUT_W, OUT_H)
+	view = gv.fp_view
 
 	await _shot("start_room", _fresh())
 	await _shot_corridor()
@@ -58,9 +62,12 @@ func _run() -> void:
 	await _shot_diagonal()
 	await _shot_combat()
 	await _shot_mid_glide()
+	await _shot_sprites()
+	await _shot_scales()
+	_sprite_sheet()
 
 	var timings := await _timings()
-	view.queue_free()
+	gv.queue_free()
 	await process_frame
 	await _window_shot()
 
@@ -94,7 +101,7 @@ func _fresh(depth: int = 1) -> Dictionary:
 func _shot(shot_name: String, ctx: Dictionary, angle: Variant = null, cam: Array = []) -> void:
 	var w: World = ctx["world"]
 	w.update_fov()
-	view.start(w)
+	gv.start(w)
 	if angle != null:
 		view.logic.angle = angle
 	view.controller.sync_combat()
@@ -103,15 +110,47 @@ func _shot(shot_name: String, ctx: Dictionary, angle: Variant = null, cam: Array
 	if not cam.is_empty():
 		view.logic.cam = cam
 		view.refresh(0.0)
+	await _finish(shot_name, ctx)
+
+
+## Save the first-person frame (the 3D view without the overlays) and its record, then the
+## minimap close-up as "mm_<name>" and the top-down view of the same moment as "top_<name>".
+func _finish(shot_name: String, ctx: Dictionary, with_top: bool = true) -> void:
+	var w: World = ctx["world"]
 	await RenderingServer.frame_post_draw
 	await RenderingServer.frame_post_draw
 	var img := view.capture()
-	img.resize(OUT_W, OUT_H, Image.INTERPOLATE_NEAREST)
+	img.resize(OUT_W, OUT_H, Image.INTERPOLATE_NEAREST if view.render_scale == "retro" else Image.INTERPOLATE_BILINEAR)
 	img.save_png(out_dir.path_join(shot_name + ".png"))
-	records.append({"name": shot_name, "floors": Array(ctx["floors"]), "edits": ctx["edits"],
+	var rec := {"name": shot_name, "view": "fp", "floors": Array(ctx["floors"]), "edits": ctx["edits"],
 			"player": [w.player.x, w.player.y], "angle": view.logic.angle,
 			"cam": view.logic.cam.duplicate(), "grid": view.logic.grid,
-			"combat": w.combat != null, "stairs_locked": w.stairs_locked})
+			"combat": w.combat != null, "stairs_locked": w.stairs_locked}
+	records.append(rec)
+	if not with_top:
+		return
+	var win := root.get_texture().get_image()
+	var mm := view.minimap
+	var r := Rect2i(Vector2i(mm.global_position) - Vector2i(2, 2), Vector2i(mm.size) + Vector2i(4, 40))
+	var crop := win.get_region(r)
+	crop.resize(r.size.x * 3, r.size.y * 3, Image.INTERPOLATE_NEAREST)
+	crop.save_png(out_dir.path_join("mm_" + shot_name + ".png"))
+	var mrec := rec.duplicate()
+	mrec["name"] = "mm_" + shot_name
+	mrec["view"] = "minimap"
+	records.append(mrec)
+	gv.set_view("top")
+	gv.top_view.refresh()
+	await RenderingServer.frame_post_draw
+	await RenderingServer.frame_post_draw
+	var top := root.get_texture().get_image().get_region(Rect2i(0, 0, OUT_W, OUT_H))
+	top.save_png(out_dir.path_join("top_" + shot_name + ".png"))
+	var trec := rec.duplicate()
+	trec["name"] = "top_" + shot_name
+	trec["view"] = "top"
+	records.append(trec)
+	gv.set_view("fp")
+	view.logic.cam = (rec["cam"] as Array).duplicate()
 
 
 ## Move the player (and refresh FOV), recording it for the replay.
@@ -155,7 +194,7 @@ func _corridor(w: World, n: int, dirs: Array = [0, 1, 2, 3, 4, 5, 6, 7]) -> Vari
 
 
 ## A one-tile-wide corridor (walls both sides for 3 tiles) with at least 5 open tiles ahead.
-func _shot_corridor() -> void:
+func _shot_corridor(shot_name: String = "corridor") -> void:
 	var ctx := _fresh()
 	var w: World = ctx["world"]
 	_quiet(ctx)
@@ -180,7 +219,7 @@ func _shot_corridor() -> void:
 					run += 1
 				if ok and run >= 5:
 					_place(ctx, x, y)
-					await _shot("corridor", ctx, d * 90.0)
+					await _shot(shot_name, ctx, d * 90.0)
 					return
 	push_error("screenshots.gd: no corridor found")
 
@@ -301,7 +340,7 @@ func _shot_diagonal() -> void:
 
 ## Python test_render `_combat`: a stunned goblin two tiles down a straight corridor, a fight on.
 ## The look angle starts 30 degrees off the grid; the lock rounds it and the camera settles.
-func _shot_combat() -> void:
+func _shot_combat(shot_name: String = "combat_locked") -> void:
 	var ctx := _fresh()
 	var w: World = ctx["world"]
 	_quiet(ctx)
@@ -318,7 +357,7 @@ func _shot_combat() -> void:
 	m.max_hp = 999
 	w.monsters.append(m)
 	w.update_fov()
-	view.start(w)
+	gv.start(w)
 	view.logic.angle = d * 45.0 + 30.0        # free look, off the grid
 	view.logic.cam = []
 	view.refresh(0.0)
@@ -329,7 +368,7 @@ func _shot_combat() -> void:
 	for _i in 60:                             # the lock rounds the angle; the camera glides there
 		view.controller.update(1.0 / 30.0, [])
 	assert(view.logic.grid)
-	await _shot_current("combat_locked", ctx)
+	await _shot_current(shot_name, ctx)
 
 
 ## One step down a corridor, a tenth of a second into the glide (0.4 of a tile).
@@ -341,7 +380,7 @@ func _shot_mid_glide() -> void:
 	var spot: Vector2i = found[0]
 	var d: int = found[1]
 	_place(ctx, spot.x, spot.y)
-	view.start(w)
+	gv.start(w)
 	view.logic.angle = d * 45.0
 	view.logic.cam = []
 	view.refresh(0.0)
@@ -354,17 +393,180 @@ func _shot_mid_glide() -> void:
 
 ## Save the frame as it is now (no reset), for shots set up by driving the controller.
 func _shot_current(shot_name: String, ctx: Dictionary) -> void:
-	var w: World = ctx["world"]
 	view.refresh(0.0)
-	await RenderingServer.frame_post_draw
-	await RenderingServer.frame_post_draw
-	var img := view.capture()
-	img.resize(OUT_W, OUT_H, Image.INTERPOLATE_NEAREST)
-	img.save_png(out_dir.path_join(shot_name + ".png"))
-	records.append({"name": shot_name, "floors": Array(ctx["floors"]), "edits": ctx["edits"],
-			"player": [w.player.x, w.player.y], "angle": view.logic.angle,
-			"cam": view.logic.cam.duplicate(), "grid": view.logic.grid,
-			"combat": w.combat != null, "stairs_locked": w.stairs_locked})
+	await _finish(shot_name, ctx)
+
+
+# --- Sprites, render scales, Tab --------------------------------------------------------
+
+## Put a monster on the floor and record it for the replay. spec: [kind, a, b, x, y, hp_fraction]
+## with kind "mon" (a = monster key), "act" (a = tier, b = base monster) or "boss" (a = depth).
+func _spawn(ctx: Dictionary, spec: Array) -> void:
+	var w: World = ctx["world"]
+	var m: Monster
+	match spec[0]:
+		"mon":
+			m = Entities.spawn_monster(spec[1], spec[3], spec[4])
+		"act":
+			m = Bosses.spawn_act(spec[1], spec[2], spec[3], spec[4])
+		_:
+			m = Bosses.spawn_boss(int(spec[1]), spec[3], spec[4])
+	m.hp = maxi(1, int(m.max_hp * float(spec[5])))
+	w.monsters.append(m)
+	ctx["edits"].append(spec)
+
+
+## Drop an item on the floor (the replay does the same).
+func _drop_item(ctx: Dictionary, key: String, tile: Vector2i) -> void:
+	var w: World = ctx["world"]
+	w.floor_items[tile] = [key]
+	ctx["edits"].append(["item", key, tile.x, tile.y])
+
+
+## A stage: a clear open area ahead of a tile (forward tiles deep, half_w to each side), found by
+## scanning the floor. Returns [origin, direction index (0-3), forward step, right step].
+func _stage(w: World, forward: int, half_w: int) -> Array:
+	var f := w.floor
+	for y in f.height:
+		for x in f.width:
+			for d in 4:
+				var s: Vector2i = FpLogic.DIRS[d]
+				var side := Vector2i(-s.y, s.x)
+				var ok := true
+				for k in range(0, forward + 1):
+					for l in range(-half_w, half_w + 1):
+						var t := Vector2i(x, y) + s * k + side * l
+						if not _empty(w, t.x, t.y) or f.is_safe(t.x, t.y) or w.floor_items.has(t):
+							ok = false
+							break
+					if not ok:
+						break
+				if ok:
+					return [Vector2i(x, y), d, s, side]
+	return []
+
+
+func _staged(forward: int, half_w: int) -> Array:
+	var ctx := _fresh()
+	var w: World = ctx["world"]
+	w.monsters.clear()
+	ctx["edits"].append(["clear_monsters"])
+	var st := _stage(w, forward, half_w)
+	if st.is_empty():
+		push_error("screenshots.gd: no %d x %d open area" % [forward, half_w * 2 + 1])
+		return []
+	_place(ctx, st[0].x, st[0].y)
+	return [ctx, st]
+
+
+func _at(st: Array, forward: int, lateral: int) -> Vector2i:
+	return (st[0] as Vector2i) + (st[2] as Vector2i) * forward + (st[3] as Vector2i) * lateral
+
+
+## Billboards: monsters and damaged ones, the three boss tiers, the pet and items, and monsters at
+## distances one to seven.
+func _shot_sprites() -> void:
+	var a := _staged(6, 3)
+	if a.is_empty():
+		return
+	var ctx: Dictionary = a[0]
+	var st: Array = a[1]
+	for spec in [["mon", "goblin", "", 2, -1, 1.0], ["mon", "goblin", "", 2, 1, 0.5],
+			["mon", "vacbot", "", 4, -1, 1.0], ["mon", "brute", "", 4, 1, 0.25],
+			["mon", "skeleton", "", 6, 0, 1.0]]:
+		_spawn(ctx, _tile_spec(spec, st))
+	await _shot("sprites_monsters", ctx, st[1] * 90.0)
+
+	ctx = _staged(6, 3)[0]
+	for spec in [["act", "opening", "skeleton", 4, -2, 1.0], ["act", "featured", "brute", 4, 0, 0.6],
+			["boss", 1, "", 4, 2, 1.0]]:
+		_spawn(ctx, _tile_spec(spec, st))
+	await _shot("sprites_tiers", ctx, st[1] * 90.0)
+
+	ctx = _staged(6, 3)[0]
+	var w: World = ctx["world"]
+	if w.pet != null:
+		var p := _at(st, 2, -1)
+		w.pet.x = p.x
+		w.pet.y = p.y
+		ctx["edits"].append(["pet_to", p.x, p.y])
+	for it in [["tonic", 2, 1], ["katana", 3, 0], ["plate", 4, -1], ["popper", 4, 1], ["sock", 5, 0],
+			["pan", 5, 2], ["brew", 3, -2]]:
+		_drop_item(ctx, it[0], _at(st, it[1], it[2]))
+	await _shot("sprites_pet_items", ctx, st[1] * 90.0)
+
+	var b := _staged(8, 1)
+	if b.is_empty():
+		b = _staged(6, 1)
+	ctx = b[0]
+	st = b[1]
+	var dist := 1
+	for lat in [-1, 1, -1, 1, -1, 1, -1]:
+		_spawn(ctx, _tile_spec(["mon", "goblin", "", dist, lat, 1.0], st))
+		dist += 1
+	await _shot("sprites_distances", ctx, st[1] * 90.0)
+
+
+## A spec with its (forward, lateral) put as x, y tiles of the stage.
+func _tile_spec(spec: Array, st: Array) -> Array:
+	var t := _at(st, int(spec[3]), int(spec[4]))
+	var out := spec.duplicate()
+	out[3] = t.x
+	out[4] = t.y
+	return out
+
+
+## The same corridor and the same fight at the three render scales.
+func _shot_scales() -> void:
+	for scale_name in UserSettings.RENDER_SCALES:
+		view.set_render_scale(scale_name)
+		await _shot_corridor("corridor_" + scale_name)
+	for scale_name in UserSettings.RENDER_SCALES:
+		view.set_render_scale(scale_name)
+		await _shot_combat("combat_" + scale_name)
+	view.set_render_scale("retro")
+
+
+## Every placeholder sprite at 4x on one sheet (what the lookup returns for each asset key).
+func _sprite_sheet() -> void:
+	var keys := SpriteArt.all_keys()
+	var cols := 12
+	var rows := ceili(keys.size() / float(cols))
+	var sheet := Image.create_empty(cols * 36 * 3, rows * 36 * 3, false, Image.FORMAT_RGBA8)
+	sheet.fill(Color8(52, 48, 64))
+	var names: Array = []
+	for i in keys.size():
+		var key := keys[i]
+		var img: Image
+		var kind := key.get_slice(":", 0)
+		var nm := key.get_slice(":", 1)
+		if kind == "item":
+			img = SpriteArt.item(nm)
+		elif kind == "furn":
+			img = SpriteArt.furniture(nm)
+		elif kind == "fx":
+			img = SpriteArt.stairs(nm == "stairs_locked")
+		else:
+			var tier := ""
+			var look := nm
+			for t in ["opening_", "featured_"]:
+				if nm.begins_with(t):
+					tier = t.trim_suffix("_")
+					look = nm.substr(t.length())
+			var col: Array = [200, 100, 50]
+			if kind == "mon":
+				col = Content.table("monsters")[look]["colour"]
+			elif kind == "boss":
+				col = Content.boss(int(look.get_slice("_", 1)))["colour"]
+			elif kind == "pet":
+				col = Content.table("pets")[look]["colour"]
+			img = SpriteArt.creature(key, col, tier if kind == "mon" else ("headliner" if kind == "boss" else ""))
+		var big := img.duplicate() as Image
+		big.resize(96, 96, Image.INTERPOLATE_NEAREST)
+		sheet.blend_rect(big, Rect2i(0, 0, 96, 96), Vector2i((i % cols) * 108 + 6, (i / cols) * 108 + 6))
+		names.append(key)
+	sheet.save_png(out_dir.path_join("sprite_sheet.png"))
+	_save_json("sprite_sheet_keys.json", {"columns": cols, "keys": names})
 
 
 # --- Timings and the whole window ----------------------------------------------------
@@ -380,7 +582,7 @@ func _timings() -> Dictionary:
 	for d in range(1, 7):
 		if d > 1:
 			w.new_floor(d)
-		view.start(w)
+		gv.start(w)
 		build.append(snappedf(view.build_ms, 0.01))
 		textures.append(snappedf(view.materials_ms, 0.01))
 	var frames := 0
@@ -410,11 +612,21 @@ func _timings() -> Dictionary:
 func _window_shot() -> void:
 	var main: Control = (load("res://scenes/main.tscn") as PackedScene).instantiate()
 	main.set("_seed", seed_value)
+	var game: GameView = main.get_node("GameView")
+	game.settings_path = ""                  # Tab here must not write the player's settings
+	game.runs_dir = ""
 	root.add_child(main)
 	for _i in 4:
 		await RenderingServer.frame_post_draw
-	var img := root.get_texture().get_image()
-	img.save_png(out_dir.path_join("window_start.png"))
+	root.get_texture().get_image().save_png(out_dir.path_join("window_start.png"))
+	game.press(&"toggle_view")               # Tab: the map
+	for _i in 4:
+		await RenderingServer.frame_post_draw
+	root.get_texture().get_image().save_png(out_dir.path_join("window_tab_top.png"))
+	game.press(&"toggle_view")               # Tab again: back to first-person
+	for _i in 4:
+		await RenderingServer.frame_post_draw
+	root.get_texture().get_image().save_png(out_dir.path_join("window_tab_back.png"))
 	main.queue_free()
 	await process_frame
 

@@ -1,5 +1,5 @@
 extends Control
-## Main scene (P4): a run in the first-person 3D view, with a PLACEHOLDER status panel and log.
+## Main scene (P5): a run in the first-person 3D view or the top-down map (Tab), with a PLACEHOLDER status panel and log.
 ##
 ##   godot --path godot                              # a random seed, the first companion (cat)
 ##   godot --path godot -- --seed 1234 --pet dog     # a fixed seed; --pet cat|dog|budgie|mouse|none
@@ -9,7 +9,7 @@ extends Control
 ## Headless (`godot --headless --path godot`) it still loads every content table, prints a summary
 ## and quits, as the P0 placeholder did.
 
-@onready var fp_view: FpView = $FpView
+@onready var game_view: GameView = $GameView
 @onready var status: Label = $Status
 @onready var log_label: Label = $Log
 
@@ -27,7 +27,7 @@ func _ready() -> void:
 		_seed = int(args["seed"])            # else keep a seed set before _ready (screenshots)
 	var species: String = args.get("pet", Content.table("pets").keys()[0])
 	_pet = null if species == "none" else [species, ""]
-	fp_view.new_run_requested.connect(_new_run)
+	game_view.new_run_requested.connect(_new_run)
 	_new_run()
 
 
@@ -35,19 +35,19 @@ func _ready() -> void:
 func _new_run() -> void:
 	var w := World.new(_seed, _pet, default_hero())
 	_seed = null
-	fp_view.start(w)
+	game_view.start(w)
 	print("Crawl Live! seed %d" % w.seed)
 
 
 func _process(delta: float) -> void:
-	var w := fp_view.world
+	var w := game_view.world
 	if w == null:
 		return
 	_status_wait -= delta
 	if _status_wait > 0.0:
 		return
 	_status_wait = 0.1
-	status.text = status_text(w, fp_view.logic)
+	status.text = status_text(w, game_view.fp_view.logic, game_view.view)
 	var lines: Array[String] = []
 	for line in w.messages.recent(7):
 		lines.append(line[0])
@@ -62,7 +62,7 @@ static func default_hero() -> Dictionary:
 
 
 ## The placeholder status panel's text (P6 replaces it with the real side panel).
-static func status_text(w: World, view: FpLogic) -> String:
+static func status_text(w: World, logic: FpLogic, view: String = "fp") -> String:
 	var p := w.player
 	var out: Array[String] = [
 		"Floor %d   Turn %d" % [w.depth, w.turn],
@@ -76,7 +76,8 @@ static func status_text(w: World, view: FpLogic) -> String:
 		out.append("Stairs locked: %s" % w.timer_text(w.stairs_wait))
 	else:
 		out.append("Stairs open")
-	out.append("Facing %s (%d)" % [view.compass(), int(view.angle)])
+	if view == "fp":
+		out.append("Facing %s (%d)" % [logic.compass(), int(logic.angle)])
 	if w.combat != null:
 		var parts: Array[String] = []
 		for part in ["move", "action", "bonus"]:
@@ -88,8 +89,8 @@ static func status_text(w: World, view: FpLogic) -> String:
 		out.append("\nYou died. Enter: new run")
 	elif w.state == "victory":
 		out.append("\nYou escaped! Enter: new run")
-	out.append("\nW/S walk, A/D strafe, Q/E turn")
-	out.append("Space wait, > descend")
+	out.append("\nW/S walk, A/D strafe, Q/E turn" if view == "fp" else "\nWASD or arrows move")
+	out.append("Space wait, > descend\nTab: map / 3D view, F2: graphics")
 	out.append("%d FPS" % Engine.get_frames_per_second())
 	return "\n".join(out)
 

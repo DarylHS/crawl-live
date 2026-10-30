@@ -54,7 +54,7 @@ The game is being ported to Godot 4 (GDScript) in `godot/`. The Python version s
 - [x] **P2 Rules systems:** items, loot, achievements, showrunner, practice skills, classes, bosses, pet, shop, contracts, crafting, fun facts, save/load, telemetry. Parity traces over full bot runs.
 - [x] **P3 Bot and data** (stop for review): GDScript bot, 2,000 runs, comparison with Phase 7 data, notebooks re-run.
 - [x] **P4 First-person 3D:** floor meshes or GridMap, per-floor tints and textures, distance fog, torchlight, free look and smooth walking, grid-locked combat camera matching Phase 7.
-- [ ] **P5 Entities and top-down:** Sprite3D billboards (placeholders first, art bible sizes, boss-tier outlines), minimap, top-down view (TileMapLayer), Tab switching, settings file.
+- [x] **P5 Entities and top-down:** Sprite3D billboards (placeholders first, art bible sizes, boss-tier outlines), minimap, top-down view (TileMapLayer), Tab switching, settings file.
 - [ ] **P6 HUD and combat UI:** log, side panel, initiative tracker, Move/Action/Bonus pips, provoke warnings and chevrons, banners, toasts, Analyst scout report.
 - [ ] **P7 Menus and screens:** title, character creation, pet pick, race/class picker, inventory, safe-room menu, loot box odds and reveal, trade-ups, rerolls, shop, crafting, attributes, practice skills, contracts, help for both views, death/victory, run report charts. One Theme resource.
 - [ ] **P8 Juice:** hit flashes, floating damage numbers, screen shake on crits and boss phases, particles (torches, bombs, loot boxes), animated loot box reveal, movement tweens, sound effects.
@@ -244,3 +244,9 @@ The game is being ported to Godot 4 (GDScript) in `godot/`. The Python version s
 - Playable: `godot --path godot -- --seed 1 --pet dog` (walk, turn, fight, wait, descend on the real rules). Creatures, items and furniture are placeholders until P5; HUD, minimap and menus come in P5-P7.
 - One verifier failure fixed before merge (over-bright walls up close; unported first-person tests not yet listed in plan B.1).
 - Owner accepted all eight art bible recommendations (docs/art-bible.md section 7): 32 px top-down tiles with zoom-out, one top-down sprite per race, weapon view model in P8, comedy in props only, single frames, credit DCSS, procedural fill-in art first, Act overlays.
+
+### Port P5: entities and top-down
+
+- Sprite3D billboards for monsters (Acts and Headliners larger with tier-coloured outlines), pet, items (with shadows), stairwell arrow and padlock, furniture and health bars, sized and shaded like Python (fog only, 0.12 minimum). The pictures are placeholders ported from the pygame body-plan sprites, looked up by the art bible's asset keys (`SpriteArt`), so P9 only has to register real PNGs. `scripts/gd_test.sh` covers sprites, minimap, top view and game view in `godot/tests/ui/`.
+- Minimap and "Facing X" in the first-person view; the top-down map (TileMapLayer terrain, glyph layer) is the pygame view as it is; Tab switches views and `settings.json` remembers the choice. Owner addition: a Graphics render scale (Retro 320 x 200 by default, Sharp 640 x 400, Full at the map area size), F2 cycles it, saved in the same file. No change to game rules; `UserSettings` gained the `render_scale` key only. Details and the key list: `docs/port-plan.md` B.2.
+- Screenshots: `godot/tools/screenshots.gd` and `scripts/fp_compare_shots.py` write first-person, top-down and minimap shots with pygame side by side, billboards at several distances, and the corridor and fight at all three render scales.

@@ -1,0 +1,458 @@
+class_name SpriteArt
+extends RefCounted
+## The sprite lookup: one 32 x 32 picture per creature, item, piece of furniture and stairwell
+## marker, found by the art bible's asset keys (docs/art-bible.md section 6):
+##
+##   mon:<monster>          mon:opening_<monster>, mon:featured_<monster>   (Acts)
+##   boss:boss_<depth>      pet:<species>      item:<item>      furn:<kind>
+##   fx:stairs_open         fx:stairs_locked
+##
+## Today every key is answered by a placeholder drawn in code, ported from the pygame "body plan"
+## sprites in crawler/ui/firstperson.py (creatures), with simple per-kind shapes for items. P9 drops
+## real art in without touching the views: `register(key, image)` (or a `res://assets/manifest.json`
+## entry, {"mon:goblin": {"file": "sprites/monsters/goblin.png"}}) wins over the placeholder, and
+## missing keys keep falling back to the placeholder, so nothing ever crashes on a missing PNG.
+##
+## Creatures get the same finishing as Python's `creature_sprite`, whatever their source: light from
+## above (the lower half darker, 1.1 to 0.75 down the rows) and a one pixel outline drawn from the
+## alpha, near-black for ordinary monsters and the tier colour for Acts and Headliners. Every pixel
+## is fully opaque or fully transparent (binary alpha). Feet sit on the bottom rows.
+
+const SIZE := 32
+const OUTLINE := Color8(14, 12, 18)
+const MANIFEST := "res://assets/manifest.json"
+
+static var _cache: Dictionary = {}       ## cache key -> Image (finished)
+static var _overrides: Dictionary = {}   ## asset key -> Image supplied by register()
+static var _manifest: Variant = null     ## Dictionary once read, false when there is none
+
+
+## Use `image` for `key` from now on (what the art loader of P9 calls).
+static func register(key: String, image: Image) -> void:
+	_overrides[key] = image
+	_cache.clear()
+
+
+## Forget registered images, the manifest and every cached sprite (tests).
+static func reset() -> void:
+	_overrides.clear()
+	_cache.clear()
+	_manifest = null
+
+
+# --- Asset keys -------------------------------------------------------------------------
+
+## The asset key for a monster: Headliners are boss:boss_N, Acts mon:<tier>_<base>, the rest mon:<key>.
+static func monster_key(m: Monster) -> String:
+	if m.tier == "headliner":
+		return "boss:" + m.base
+	if m.tier != "":
+		return "mon:%s_%s" % [m.tier, m.base]
+	return "mon:" + m.key
+
+
+## The body plan name behind a monster: its base (an Act's monster, a Headliner's boss_N) or its key.
+static func look_of(m: Monster) -> String:
+	return m.base if m.base != "" else m.key
+
+
+## Every asset key the game can ask for (monsters, Acts, Headliners, pets, items, furniture, stairs).
+static func all_keys() -> Array[String]:
+	var out: Array[String] = []
+	for k: String in Content.table("monsters"):
+		out.append("mon:" + k)
+		out.append("mon:opening_" + k)
+		out.append("mon:featured_" + k)
+	for d: String in Content.table("bosses"):
+		out.append("boss:boss_" + d)
+	for k: String in Content.table("pets"):
+		out.append("pet:" + k)
+	for k: String in Content.table("items")["items"]:
+		out.append("item:" + k)
+	for k: String in Content.table("ui_config")["hud"]["FURNITURE_GLYPHS"]:
+		out.append("furn:" + k)
+	out.append_array(["fx:stairs_open", "fx:stairs_locked"])
+	return out
+
+
+# --- Lookup -----------------------------------------------------------------------------
+
+## A finished creature sprite. `key` is a mon:/boss:/pet: asset key, `colour` the creature's
+## colour (the body-plan placeholders are drawn in it), `tier` picks the outline colour.
+static func creature(key: String, colour: Array, tier: String = "") -> Image:
+	var outline := OUTLINE
+	var tiers: Dictionary = Content.table("ui_config")["firstperson"]["TIER_OUTLINE"]
+	if tiers.has(tier):
+		var t: Array = tiers[tier]
+		outline = Color8(t[0], t[1], t[2])
+	var ck := "%s|%s|%s" % [key, str(colour), outline.to_html()]
+	if _cache.has(ck):
+		return _cache[ck]
+	var base := _supplied(key)
+	if base == null:
+		base = _supplied(_base_key(key))        # an Act without its own art uses its monster's
+	if base == null:
+		var c := PixelCanvas.new(SIZE)
+		_body(c, _plan_name(key), Color8(colour[0], colour[1], colour[2]))
+		base = c.image
+	var out := finish_creature(base, outline)
+	_cache[ck] = out
+	return out
+
+
+## A finished item sprite (lying on the floor, shapes by kind: weapons diagonal, armour a torso,
+## potions bottles, bombs round with a fuse, junk greyish).
+static func item(item_key: String) -> Image:
+	return _plain("item:" + item_key, func(c: PixelCanvas) -> void: _item_shape(c, item_key))
+
+
+## A finished furniture sprite for "bed", "bench" or "counter".
+static func furniture(kind: String) -> Image:
+	return _plain("furn:" + kind, func(c: PixelCanvas) -> void: _furniture_shape(c, kind))
+
+
+## The floating stairwell arrow: gold when open, red with a padlock when locked.
+static func stairs(locked: bool) -> Image:
+	var key := "fx:stairs_locked" if locked else "fx:stairs_open"
+	return _plain(key, func(c: PixelCanvas) -> void: _stairs_shape(c, locked))
+
+
+## The soft dark ellipse under an item (Python's glyph_sprite shadow), as an opaque white ellipse:
+## the billboard tints it black and fades it. 32 x 32, in the bottom rows.
+static func shadow() -> Image:
+	return _plain("fx:shadow", func(c: PixelCanvas) -> void: c.ellipse(4, 22, 24, 10, Color.WHITE))
+
+
+## Light from above and a one pixel outline round the opaque pixels, binary alpha.
+static func finish_creature(src: Image, outline: Color) -> Image:
+	var img := src.duplicate() as Image
+	if img.get_format() != Image.FORMAT_RGBA8:
+		img.convert(Image.FORMAT_RGBA8)
+	var w := img.get_width()
+	var h := img.get_height()
+	var solid := PackedByteArray()
+	solid.resize(w * h)
+	for y in h:
+		var k := lerpf(1.1, 0.75, y / float(h - 1))
+		for x in w:
+			var p := img.get_pixel(x, y)
+			if p.a > 0.0:
+				solid[y * w + x] = 1
+				img.set_pixel(x, y, Color(minf(p.r * k, 1.0), minf(p.g * k, 1.0), minf(p.b * k, 1.0), 1.0))
+			else:
+				img.set_pixel(x, y, Color(0, 0, 0, 0))
+	for y in h:
+		for x in w:
+			if solid[y * w + x] == 1:
+				continue
+			if (x > 0 and solid[y * w + x - 1] == 1) or (x < w - 1 and solid[y * w + x + 1] == 1) \
+					or (y > 0 and solid[(y - 1) * w + x] == 1) or (y < h - 1 and solid[(y + 1) * w + x] == 1):
+				img.set_pixel(x, y, outline)
+	return img
+
+
+## Image.get_used_rect for sprites: the bounding box of the opaque pixels.
+static func bounds(img: Image) -> Rect2i:
+	return img.get_used_rect()
+
+
+static func _plain(key: String, painter: Callable) -> Image:
+	if _cache.has(key):
+		return _cache[key]
+	var img := _supplied(key)
+	if img == null:
+		var c := PixelCanvas.new(SIZE)
+		painter.call(c)
+		img = c.image
+	_cache[key] = img
+	return img
+
+
+## An image from register() or the manifest, or null.
+static func _supplied(key: String) -> Image:
+	if _overrides.has(key):
+		return _overrides[key]
+	if _manifest == null:
+		_manifest = false
+		if FileAccess.file_exists(MANIFEST):
+			var parsed: Variant = JSON.parse_string(FileAccess.get_file_as_string(MANIFEST))
+			if parsed is Dictionary:
+				_manifest = parsed
+	if _manifest is Dictionary and (_manifest as Dictionary).has(key):
+		var entry: Dictionary = _manifest[key]
+		var path := "res://assets/".path_join(str(entry.get("file", "")))
+		if FileAccess.file_exists(path):
+			var img := Image.load_from_file(path)
+			if img != null and not img.is_empty():
+				_overrides[key] = img
+				return img
+	return null
+
+
+## mon:opening_goblin -> mon:goblin; other keys unchanged.
+static func _base_key(key: String) -> String:
+	var parts := key.split(":")
+	if parts.size() == 2:
+		for tier in ["opening_", "featured_"]:
+			if parts[1].begins_with(tier):
+				return parts[0] + ":" + parts[1].substr(tier.length())
+	return key
+
+
+## The body plan name behind a key ("mon:opening_goblin" -> "goblin", "boss:boss_3" -> "boss_3").
+static func _plan_name(key: String) -> String:
+	return _base_key(key).get_slice(":", 1)
+
+
+static func _shade(c: Color, k: float) -> Color:
+	return Color(clampf(c.r * k, 0.0, 1.0), clampf(c.g * k, 0.0, 1.0), clampf(c.b * k, 0.0, 1.0))
+
+
+static func _pts(a: Array) -> Array[Vector2]:
+	var out: Array[Vector2] = []
+	for p in a:
+		out.append(Vector2(p[0], p[1]))
+	return out
+
+
+# --- Creature body plans (crawler/ui/firstperson.py BODIES) --------------------------------
+
+static func _body(c: PixelCanvas, plan: String, col: Color) -> void:
+	match plan:
+		"gnawer", "mouse":
+			_beast(c, col, "round", true, true)
+		"goblin":
+			_biped(c, col)
+		"vacbot":
+			_robot(c, col)
+		"skeleton":
+			_biped(c, col, {"ribs": true})
+		"brute":
+			_biped(c, col, {"big": true})
+		"cultist":
+			_biped(c, col, {"robe": true, "hood": true})
+		"golem":
+			_blob(c, col, {"stitches": true})
+		"stalker":
+			_ghost(c, col)
+		"boss_1":
+			_blob(c, col, {"crown": true})
+		"boss_2":
+			_biped(c, col, {"robe": true, "glasses": true})
+		"boss_3":
+			_biped(c, col, {"big": true, "hat": true})
+		"boss_4":
+			_biped(c, col, {"robe": true, "hood": true, "horns": true, "staff": true})
+		"boss_5":
+			_blob(c, col, {"wrap": true})
+		"boss_6":
+			_biped(c, col, {"big": true, "horns": true, "tie": true})
+		"cat":
+			_beast(c, col, "pointy", false, false)
+		"dog":
+			_beast(c, col, "floppy", false, false)
+		"budgie":
+			_bird(c, col)
+		_:
+			_biped(c, col)
+
+
+static func _biped(c: PixelCanvas, col: Color, o: Dictionary = {}) -> void:
+	var dark := _shade(col, 0.6)
+	var light := _shade(col, 1.2)
+	var w: int = 4 if o.get("big", false) else 0
+	if o.get("robe", false):
+		c.polygon(_pts([[10 - w, 30], [22 + w, 30], [19 + w / 2, 13], [13 - w / 2, 13]]), dark)
+	else:
+		c.rect(11 - w / 2, 23, 4, 8, dark)
+		c.rect(17 + w / 2, 23, 4, 8, dark)
+	c.ellipse(9 - w, 12, 14 + 2 * w, 14, col)
+	c.rect(6 - w, 14, 4, 10, col)
+	c.rect(22 + w, 14, 4, 10, col)
+	c.circle(16, 8, 5, light)
+	var hood: bool = o.get("hood", false)
+	if hood:
+		c.polygon(_pts([[10, 12], [22, 12], [19, 1], [13, 1]]), dark)
+		c.rect(13, 6, 6, 5, Color8(20, 14, 24))
+	if o.get("ribs", false):
+		for y in [15, 18, 21]:
+			c.line(Vector2(12, y), Vector2(20, y), dark)
+	if o.get("tie", false):
+		c.polygon(_pts([[14, 13], [18, 13], [16, 22]]), Color8(240, 240, 240))
+		c.polygon(_pts([[15, 14], [17, 14], [16, 21]]), Color8(40, 40, 160))
+	if o.get("horns", false):
+		c.polygon(_pts([[11, 5], [13, 2], [9, -2]]), Color8(230, 220, 200))
+		c.polygon(_pts([[21, 5], [19, 2], [23, -2]]), Color8(230, 220, 200))
+	if o.get("crown", false):
+		c.polygon(_pts([[11, 4], [21, 4], [21, 0], [19, 2], [16, -1], [13, 2], [11, 0]]), Color8(255, 205, 60))
+	if o.get("hat", false):
+		c.ellipse(9, 1, 14, 7, Color8(250, 200, 40))
+		c.rect(8, 5, 16, 2, Color8(250, 200, 40))
+	if o.get("staff", false):
+		c.line(Vector2(27, 4), Vector2(27, 30), Color8(150, 110, 70), 2)
+		c.circle(27, 4, 3, Color8(180, 255, 200))
+	var eye_y := 9 if hood else 8
+	var eye := Color8(255, 230, 120) if hood else Color.WHITE
+	for ex in [14, 18]:
+		c.set_at(ex, eye_y, eye)
+	if o.get("glasses", false):
+		c.circle(14, 8, 2, Color8(30, 30, 30), 1)
+		c.circle(18, 8, 2, Color8(30, 30, 30), 1)
+
+
+static func _beast(c: PixelCanvas, col: Color, ears: String, tail: bool, small: bool) -> void:
+	var dark := _shade(col, 0.6)
+	var light := _shade(col, 1.2)
+	var off := 6 if small else 0
+	c.ellipse(7 + off / 2, 14 + off, 18 - off, 13 - off / 2, col)
+	for lx in [10, 19]:
+		c.rect(lx + off / 3, 25, 3, 6, dark)
+	var hx := 16
+	var hy := 13 + off
+	if ears == "pointy":
+		c.polygon(_pts([[hx - 6, hy - 2], [hx - 3, hy - 4], [hx - 6, hy - 10]]), col)
+		c.polygon(_pts([[hx + 6, hy - 2], [hx + 3, hy - 4], [hx + 6, hy - 10]]), col)
+	elif ears == "floppy":
+		c.ellipse(hx - 10, hy - 5, 5, 10, dark)
+		c.ellipse(hx + 5, hy - 5, 5, 10, dark)
+	elif ears == "round":
+		c.circle(hx - 6, hy - 5, 4, light)
+		c.circle(hx + 6, hy - 5, 4, light)
+	c.circle(hx, hy, 6 - off / 3, light)
+	c.circle(hx, hy + 3, 1, Color8(30, 20, 20))
+	for ex in [hx - 3, hx + 2]:
+		c.set_at(ex, hy - 1, Color.WHITE)
+		c.set_at(ex, hy, Color8(20, 10, 10))
+	if tail:
+		c.lines(_pts([[24, 26], [29, 22], [30, 16], [27, 12]]), Color8(220, 160, 170))
+
+
+static func _bird(c: PixelCanvas, col: Color) -> void:
+	var dark := _shade(col, 0.6)
+	var light := _shade(col, 1.25)
+	var beak := Color8(250, 170, 60)
+	c.ellipse(6, 14, 8, 12, dark)
+	c.ellipse(18, 14, 8, 12, dark)
+	c.ellipse(10, 12, 12, 16, col)
+	c.circle(16, 10, 5, light)
+	c.polygon(_pts([[15, 11], [17, 11], [16, 14]]), beak)
+	for ex in [14, 18]:
+		c.set_at(ex, 9, Color8(20, 10, 10))
+	c.line(Vector2(13, 28), Vector2(13, 31), beak)
+	c.line(Vector2(19, 28), Vector2(19, 31), beak)
+
+
+static func _robot(c: PixelCanvas, col: Color) -> void:
+	var dark := _shade(col, 0.55)
+	var light := _shade(col, 1.25)
+	c.ellipse(3, 20, 26, 11, dark)
+	c.ellipse(3, 17, 26, 11, col)
+	c.ellipse(8, 18, 16, 5, light)
+	c.circle(16, 24, 2, Color8(255, 60, 60))
+	for x in range(6, 27, 3):
+		c.line(Vector2(x, 29), Vector2(x - 1, 31), Color8(60, 60, 60))
+
+
+static func _ghost(c: PixelCanvas, col: Color) -> void:
+	var light := _shade(col, 1.3)
+	c.circle(16, 11, 9, col)
+	c.polygon(_pts([[7, 11], [25, 11], [27, 30], [22, 26], [18, 31], [14, 26], [10, 31], [5, 26]]), col)
+	c.ellipse(11, 8, 4, 6, Color8(240, 240, 255))
+	c.ellipse(17, 8, 4, 6, Color8(240, 240, 255))
+	c.circle(16, 11, 9, light, 1)
+
+
+static func _blob(c: PixelCanvas, col: Color, o: Dictionary = {}) -> void:
+	var dark := _shade(col, 0.6)
+	var light := _shade(col, 1.2)
+	c.ellipse(2, 12, 28, 20, col)
+	c.ellipse(7, 4, 18, 16, light)
+	for ex in [12, 19]:
+		c.circle(ex, 11, 2, Color.WHITE)
+		c.set_at(ex, 11, Color8(10, 10, 10))
+	c.arc(11, 12, 10, 6, 3.4, 6.0, dark)
+	if o.get("stitches", false):
+		c.line(Vector2(6, 20), Vector2(26, 24), dark)
+		for x in range(8, 26, 4):
+			c.line(Vector2(x, 19 + (x - 6) / 5), Vector2(x + 1, 23 + (x - 6) / 5), dark)
+	if o.get("wrap", false):                       # cling film, kept inside the body
+		var body: Image = c.image.duplicate()
+		for k in range(-20, 32, 7):
+			c.line(Vector2(k, 31), Vector2(k + 18, 4), Color8(240, 250, 255))
+		for y in c.image.get_height():
+			for x in c.image.get_width():
+				if body.get_pixel(x, y).a == 0.0:
+					c.image.set_pixel(x, y, Color(0, 0, 0, 0))
+	if o.get("crown", false):
+		c.polygon(_pts([[9, 6], [23, 6], [23, 0], [20, 3], [16, -1], [12, 3], [9, 0]]), Color8(255, 205, 60))
+
+
+# --- Items, furniture, stairs -------------------------------------------------------------------
+
+static func _item_shape(c: PixelCanvas, key: String) -> void:
+	var row: Dictionary = Content.item(key)
+	var col := Color8(row["colour"][0], row["colour"][1], row["colour"][2])
+	var dark := _shade(col, 0.55)
+	var edge := Color8(30, 26, 36)
+	match row["kind"]:
+		"weapon":                                   # a diagonal: handle bottom left, head top right
+			c.line(Vector2(7, 27), Vector2(22, 10), edge, 4)
+			c.line(Vector2(8, 26), Vector2(21, 11), col, 2)
+			if row.get("style", "") == "blunt":
+				c.rect(19, 5, 9, 8, edge)
+				c.rect(20, 6, 7, 6, col)
+			else:
+				c.line(Vector2(14, 18), Vector2(26, 5), col, 2)
+			c.rect(7, 25, 4, 4, dark)
+		"armour":                                   # a torso with sleeves
+			c.polygon(_pts([[10, 8], [22, 8], [28, 13], [25, 19], [22, 17], [22, 29], [10, 29], [10, 17], [7, 19], [4, 13]]), edge)
+			c.polygon(_pts([[11, 10], [21, 10], [26, 13], [24, 17], [21, 15], [21, 27], [11, 27], [11, 15], [8, 17], [6, 13]]), col)
+			c.rect(14, 8, 4, 3, dark)
+		"potion":                                   # a bottle: cork, neck, round body
+			c.rect(13, 6, 6, 3, Color8(190, 150, 100))
+			c.rect(14, 9, 4, 6, edge)
+			c.circle(16, 22, 8, edge)
+			c.rect(15, 9, 2, 5, col)
+			c.circle(16, 22, 7, col)
+			c.rect(12, 19, 3, 3, _shade(col, 1.4))
+		"bomb":                                     # round, with a fuse and a spark
+			c.circle(15, 22, 8, edge)
+			c.circle(15, 22, 7, col)
+			c.rect(12, 18, 3, 3, _shade(col, 1.4))
+			c.lines(_pts([[19, 14], [22, 10], [25, 9]]), Color8(200, 170, 110))
+			c.circle(26, 8, 2, Color8(255, 240, 120))
+		_:                                          # junk: a lumpy greyish thing
+			c.ellipse(6, 16, 20, 13, edge)
+			c.ellipse(7, 17, 18, 11, _shade(col, 0.8))
+			c.ellipse(11, 14, 10, 8, edge)
+			c.ellipse(12, 15, 8, 6, col)
+
+
+static func _furniture_shape(c: PixelCanvas, kind: String) -> void:
+	if kind == "bed":
+		c.rect(2, 18, 28, 8, Color8(90, 60, 40))
+		c.rect(3, 13, 26, 7, Color8(150, 180, 230))
+		c.rect(4, 11, 8, 5, Color8(240, 240, 240))
+		for x in [3, 27]:
+			c.rect(x, 24, 2, 8, Color8(70, 45, 30))
+	elif kind == "bench":
+		c.rect(1, 14, 30, 5, Color8(160, 115, 70))
+		for x in [3, 26]:
+			c.rect(x, 19, 3, 13, Color8(110, 80, 50))
+		c.rect(6, 9, 7, 5, Color8(170, 170, 180))                       # vice
+		c.line(Vector2(18, 13), Vector2(26, 6), Color8(200, 200, 210), 2)   # spanner
+	else:
+		c.rect(0, 14, 32, 18, Color8(120, 90, 140))
+		c.rect(0, 12, 32, 3, Color8(255, 196, 64))
+		c.rect(11, 4, 10, 8, Color8(60, 200, 120))                      # till
+		c.rect(13, 6, 6, 3, Color8(20, 40, 30))
+
+
+static func _stairs_shape(c: PixelCanvas, locked: bool) -> void:
+	var col := Color8(235, 80, 80) if locked else Color8(255, 196, 64)
+	var tri := _pts([[6, 10], [26, 10], [16, 26]])
+	c.polygon(tri, col)
+	c.polygon_outline(tri, Color8(60, 30, 10))
+	if locked:
+		c.rect(12, 14, 8, 6, Color8(40, 30, 30))
+		c.arc(12, 8, 8, 10, 0.0, 3.15, Color8(40, 30, 30))

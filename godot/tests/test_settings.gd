@@ -12,7 +12,7 @@ func _write(path: String, text: String) -> void:
 func test_view_round_trips() -> void:
 	var path := TestHelpers.tmp_dir("settings_round_trip") + "settings.json"
 	assert_true(UserSettings.save({"view": "top"}, path))
-	assert_eq(UserSettings.load(path), {"view": "top"})
+	assert_eq(UserSettings.load(path), {"view": "top", "render_scale": "retro"})      # P5 added the render scale
 	assert_eq(FileAccess.get_file_as_string(path), "{\"view\": \"top\"}")      # json.dumps text
 	assert_true(UserSettings.save({"view": "fp"}, path))
 	assert_eq(UserSettings.load(path)["view"], "fp")

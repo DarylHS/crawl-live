@@ -1,7 +1,7 @@
 [gd_scene load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://ui/main.gd" id="1"]
-[ext_resource type="PackedScene" path="res://scenes/fp_view.tscn" id="2"]
+[ext_resource type="PackedScene" path="res://scenes/game_view.tscn" id="2"]
 
 [node name="Main" type="Control"]
 layout_mode = 3
@@ -22,7 +22,7 @@ grow_vertical = 2
 mouse_filter = 2
 color = Color(0.047, 0.043, 0.063, 1)
 
-[node name="FpView" parent="." instance=ExtResource("2")]
+[node name="GameView" parent="." instance=ExtResource("2")]
 layout_mode = 0
 anchors_preset = 0
 anchor_right = 0.0

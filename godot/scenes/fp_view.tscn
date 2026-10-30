@@ -1,8 +1,9 @@
-[gd_scene load_steps=5 format=3]
+[gd_scene load_steps=6 format=3]
 
 [ext_resource type="Script" path="res://ui/fp/fp_view.gd" id="1"]
 [ext_resource type="Script" path="res://ui/fp/fp_camera_rig.gd" id="2"]
-[ext_resource type="Script" path="res://ui/fp/fp_markers.gd" id="3"]
+[ext_resource type="Script" path="res://ui/fp/billboards.gd" id="3"]
+[ext_resource type="Script" path="res://ui/fp/minimap.gd" id="4"]
 
 [sub_resource type="Environment" id="Environment_fp"]
 background_mode = 1
@@ -44,7 +45,7 @@ environment = SubResource("Environment_fp")
 
 [node name="Level" type="Node3D" parent="Viewport"]
 
-[node name="Markers" type="Node3D" parent="Viewport"]
+[node name="Billboards" type="Node3D" parent="Viewport"]
 script = ExtResource("3")
 
 [node name="Rig" type="Node3D" parent="Viewport"]
@@ -82,3 +83,16 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 color = Color(0.784, 0.078, 0.078, 0)
+
+[node name="Minimap" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -202.0
+offset_top = 10.0
+offset_right = -10.0
+offset_bottom = 130.0
+grow_horizontal = 0
+mouse_filter = 2
+script = ExtResource("4")

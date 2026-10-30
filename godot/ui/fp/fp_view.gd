@@ -7,9 +7,10 @@ extends Control
 ##     Viewport (SubViewport 320 x 200, its own 3D world)
 ##       Environment (WorldEnvironment: black background, dim ambient light, depth fog to LIGHT)
 ##       Level (Node3D: FloorMesh, rebuilt by FloorMeshBuilder when the floor changes)
-##       Markers (FpMarkers: P4 placeholder sprites for monsters, pet, items, stairs, furniture)
+##       Billboards (Billboards: sprites for monsters, pet, items, stairs, furniture)
 ##       Rig (FpCameraRig: Camera3D and the OmniLight3D torch)
-##     Screen (TextureRect showing the viewport, scaled up with nearest filtering: hard pixels)
+##     Screen (TextureRect showing the viewport; nearest filtering at Retro: hard pixels)
+##     Minimap (Minimap: the corner map and "Facing X", drawn at full resolution over the 3D)
 ##     Flash (ColorRect: the red hurt flash)
 ##
 ## Light: ambient 0.6 plus a torch of 0.4 with no distance attenuation, so a wall face-on at any
@@ -30,14 +31,19 @@ const PRESS_ORDER: Array[StringName] = [&"descend", &"walk_forward", &"walk_back
 ## Actions read every frame while held (free look and walking).
 const HELD_ACTIONS: Array[StringName] = [&"walk_forward", &"walk_back", &"strafe_left",
 		&"strafe_right", &"turn_left", &"turn_right"]
+## Render scale choices (Graphics setting): the 3D viewport's size. Retro is Python's 320 x 200 with hard
+## pixels; Sharp doubles it; Full matches the on-screen size of this view. The camera, field of view and
+## aspect do not change, only the resolution, and sprites are sized in world units, so they scale along.
+const RENDER_SIZES := {"retro": Vector2i(320, 200), "sharp": Vector2i(640, 400)}
 const FLASH_ALPHA := 110.0 / 255.0   ## Python: red at alpha 110 times the flash strength
 
 @onready var viewport: SubViewport = $Viewport
 @onready var level: Node3D = $Viewport/Level
-@onready var markers: FpMarkers = $Viewport/Markers
+@onready var billboards: Billboards = $Viewport/Billboards
 @onready var rig: FpCameraRig = $Viewport/Rig
 @onready var screen: TextureRect = $Screen
 @onready var flash_rect: ColorRect = $Flash
+@onready var minimap: Minimap = $Minimap
 
 var controller := FpController.new()
 var materials := FpMaterials.new()
@@ -46,12 +52,53 @@ var hud: bool = true               ## false while a menu or end screen covers th
 var floor_mesh: MeshInstance3D = null
 var build_ms: float = 0.0          ## time the last floor mesh took to build
 var materials_ms: float = 0.0      ## time the last floor's textures took (0 when cached)
+var render_scale: String = "retro"   ## "retro" | "sharp" | "full" (UserSettings.RENDER_SCALES)
+var active: bool = true            ## false while the map view is showing (nothing renders or updates)
 var _stairs_slot: int = -1
 var _stairs_locked: bool = false
 
 
 func _ready() -> void:
 	screen.texture = viewport.get_texture()
+	resized.connect(_apply_render_scale)
+	_apply_render_scale()
+
+
+## Choose the 3D resolution: "retro", "sharp" or "full" (anything else counts as retro).
+func set_render_scale(choice: String) -> void:
+	render_scale = choice if UserSettings.RENDER_SCALES.has(choice) else "retro"
+	_apply_render_scale()
+
+
+## The 3D viewport's size for the current render scale.
+func viewport_size() -> Vector2i:
+	if render_scale == "full":
+		return Vector2i(maxi(1, int(size.x)), maxi(1, int(size.y)))
+	return RENDER_SIZES[render_scale]
+
+
+func _apply_render_scale() -> void:
+	if viewport == null:
+		return
+	viewport.size = viewport_size()
+	screen.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST if render_scale == "retro" \
+			else CanvasItem.TEXTURE_FILTER_LINEAR
+
+
+## Show or hide the whole view. Hidden, the 3D stops rendering and the world is left alone; shown
+## again, the camera snaps to you with no stale hurt flash (Python's toggle_view / reset_camera).
+func set_active(on: bool) -> void:
+	if on == active:
+		return
+	active = on
+	visible = on
+	process_mode = Node.PROCESS_MODE_INHERIT if on else Node.PROCESS_MODE_DISABLED
+	viewport.render_target_update_mode = SubViewport.UPDATE_ALWAYS if on else SubViewport.UPDATE_DISABLED
+	if on:
+		logic.reset_camera()
+		if world != null:
+			controller.sync_combat()
+			refresh(0.0)
 
 
 ## The world being shown, or null before start.
@@ -108,7 +155,7 @@ func _process(delta: float) -> void:
 
 
 ## Bring the 3D scene up to date with the world and the camera: rebuild the floor mesh on a new
-## floor, place the eye, swap the stairs grate when the lock changes, sync the markers and fade
+## floor, place the eye, swap the stairs grate when the lock changes, sync the billboards and fade
 ## the hurt flash. dt only fades the flash (the glide runs in FpController.update).
 func refresh(dt: float) -> void:
 	var w := world
@@ -124,7 +171,10 @@ func refresh(dt: float) -> void:
 	var locked := w.stairs_locked or w.exit_sealed
 	if _stairs_slot >= 0 and locked != _stairs_locked:
 		_set_stairs_material(w, locked)
-	markers.sync(w)
+	billboards.sync(w, logic.cam)
+	minimap.visible = hud
+	if hud:
+		minimap.update_from(w, logic.angle, logic.compass())
 	logic.note_hp(w, hud)
 	flash_rect.color.a = FLASH_ALPHA * logic.flash if logic.flash > 0.02 else 0.0
 	logic.fade_flash(dt)

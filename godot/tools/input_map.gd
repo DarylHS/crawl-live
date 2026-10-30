@@ -28,6 +28,9 @@ const ACTIONS := {
 	"move_sw": [KEY_KP_1],
 	"wait": ["period", KEY_SPACE, KEY_KP_5],
 	"descend": ["shift_period", "enter", "kp_enter"],
+	# Views (P5)
+	"toggle_view": [KEY_TAB],
+	"cycle_render_scale": [KEY_F2],
 }
 
 
