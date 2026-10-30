@@ -9,7 +9,7 @@ extends TestCase
 
 const GAME := preload("res://scenes/game_view.tscn")
 const HUD := preload("res://scenes/hud.tscn")
-const K := preload("res://tests/support/test_keys.gd")
+const K := preload("res://tools/key_events.gd")
 
 var _n: int = 0
 

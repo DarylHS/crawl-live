@@ -1,4 +1,4 @@
-class_name TestKeys
+class_name KeyEvents
 extends RefCounted
 ## Key events for the AppState tests, as the pygame tests build them (`_key(pygame.K_i, "i")`):
 ## a pressed InputEventKey with the keycode (as keycode and physical key, so letters, arrows and
