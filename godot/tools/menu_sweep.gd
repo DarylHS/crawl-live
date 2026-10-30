@@ -53,6 +53,7 @@ func _new(seed_value: int, save_name: String = "slot.json") -> void:
 	gv.app.seed_value = seed_value
 	DirAccess.make_dir_recursive_absolute(tmp_dir)
 	gv.app.save_path = tmp_dir + save_name
+	DirAccess.remove_absolute(gv.app.save_path)                    # a save left by an earlier run would show on the title
 	_holder.add_child(gv)
 	gv.set_anchors_preset(Control.PRESET_TOP_LEFT)
 	gv.size = Vector2(1024, 640)
@@ -173,6 +174,8 @@ func run_all() -> void:
 	await monsters()
 	await skills()
 	await combat()
+	await walking_and_looking()
+	await corner_and_provoke()
 	await sweep()
 	_release()
 
@@ -415,6 +418,121 @@ func combat() -> void:
 	_begin()
 	_combat(2, true)
 	await _shot("combat_boss")
+
+
+## test_after_walking_screenshot and test_looking_diagonally_down_a_corridor
+func walking_and_looking() -> void:
+	_prefix = ""
+	await _new(1)
+	var w := _begin()
+	w.monsters.clear()
+	w.pet.downed = true
+	var found := _corridor(w, 3)
+	_place(found[0], found[1])
+	for _i in 40:
+		app.update(1.0 / 30.0, [&"walk_forward"])
+	app.update(1.0 / 30.0, [])
+	await _shot("game_after_walking")
+	await _new(1)
+	w = _begin()
+	var f := w.floor
+	var best_run := 0
+	var best_spot := Vector2i.ZERO
+	var best_d := 1
+	for y in f.height:
+		for x in f.width:
+			if not _empty(w, x, y):
+				continue
+			for d in [1, 3, 5, 7]:                                  # an open diagonal: no corner cutting
+				var s: Vector2i = FpLogic.DIRS8[d]
+				var run := 0
+				var cx := x
+				var cy := y
+				while run < 8 and f.walkable(cx + s.x, cy + s.y) and f.walkable(cx + s.x, cy) and f.walkable(cx, cy + s.y):
+					run += 1
+					cx += s.x
+					cy += s.y
+				if run > best_run:
+					best_run = run
+					best_spot = Vector2i(x, y)
+					best_d = d
+	w.player.x = best_spot.x
+	w.player.y = best_spot.y
+	w.update_fov()
+	app.fp.view.angle = best_d * 45
+	await _shot("game_diagonal")
+
+
+## A cardinal spot with an open tile ahead and an open tile behind it (Python `_behind_spot`).
+func _behind_spot(w: World) -> Array:
+	var f := w.floor
+	for y in f.height:
+		for x in f.width:
+			if not _empty(w, x, y) or f.is_safe(x, y):
+				continue
+			for d in [0, 2, 4, 6]:
+				var s: Vector2i = FpLogic.DIRS8[d]
+				if _empty(w, x + s.x, y + s.y) and _empty(w, x - s.x, y - s.y) and not f.is_safe(x - s.x, y - s.y):
+					return [Vector2i(x, y), d]
+	push_error("MenuSweep: no spot with an open tile behind")
+	return [Vector2i.ZERO, 0]
+
+
+## test_boxes_over_the_map_never_hide_you_in_a_top_left_corner and test_a_step_that_would_provoke...
+func corner_and_provoke() -> void:
+	_prefix = ""
+	await _new(1)
+	var w := _begin()
+	gv.set_view("top")
+	w.monsters.clear()
+	var f := w.floor
+	var spot := Vector2i.ZERO
+	var best := 1 << 30
+	for y in f.height:
+		for x in f.width:
+			if not _empty(w, x, y) or f.is_safe(x, y):
+				continue
+			var open := false
+			for s: Vector2i in FpLogic.DIRS8:
+				if _empty(w, x + s.x, y + s.y):
+					open = true
+			if open and x + y < best:
+				best = x + y
+				spot = Vector2i(x, y)
+	w.player.x = spot.x
+	w.player.y = spot.y
+	w.update_fov()
+	for n in FpLogic.DIRS8.size():
+		var s: Vector2i = FpLogic.DIRS8[n]
+		if _empty(w, spot.x + s.x, spot.y + s.y) and n < 3:
+			var m := Entities.spawn_monster("goblin", spot.x + s.x, spot.y + s.y)
+			m.stunned = 99
+			w.monsters.append(m)
+			w.join_combat(m)
+	w.add_toast("Achievement: Test", "gold", "Bronze box. Open it in a safe room.")
+	await _shot("combat_corner")
+
+	await _new(1)
+	w = _begin()
+	w.monsters.clear()
+	w.pet.downed = true
+	w.player.max_hp = 999
+	w.player.hp = 999
+	var found := _behind_spot(w)
+	spot = found[0]
+	var d: int = found[1]
+	_place(spot, d)
+	app.fp.view.angle = d * 45
+	var st: Vector2i = FpLogic.DIRS8[d]
+	var g := Entities.spawn_monster("goblin", spot.x - st.x, spot.y - st.y)    # right behind you
+	g.hp = 999
+	g.max_hp = 999
+	w.monsters.append(g)
+	w.join_combat(g)
+	app.update(1.0 / 30.0, [])
+	await _shot("aoo_warning")
+	_letter("w")
+	await _shot("aoo_log")
 
 
 ## test_screenshot_sweep_of_every_screen_in_both_views

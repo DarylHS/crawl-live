@@ -15,7 +15,14 @@ the same world. Each record has a "view":
   hud_fp / hud_top  the whole 1280 x 768 window through `Renderer.draw_game` (side panel, log, tracker,
            toasts, chevrons, "ahead" label) in the first-person or map view, with the death and victory
            overlays when the run has ended (P6)
-and with --side, Godot is pasted left and pygame right. The Godot sprite sheet (sprite_sheet.png) is
+and with --side, Godot is pasted left and pygame right.
+
+P7 menus and screens: godot/tools/screenshots.gd also writes <name>_top.png and <name>_fp.png for every
+screen of tests/test_render.py (title, creation, inventory, safe room, boxes, shop, craft, reports, combat,
+help, ... 77 names), under pygame's own names. Run the pygame side with
+`CRAWL_SCREENSHOTS=OUT/pygame_raw python -m pytest tests/test_render.py` and pair them by file name:
+    python scripts/fp_compare_shots.py OUT/godot --menus OUT/pygame_raw --pygame OUT/pygame --side OUT/side_by_side
+(the first argument may be the Godot directory instead of its shots.json when only menus are paired). The Godot sprite sheet (sprite_sheet.png) is
 paired with pygame's creature_sprite for the same keys (sprite_sheet in --pygame / --side).
 """
 import argparse
@@ -186,14 +193,19 @@ def sprite_sheet(spec_dir):
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    ap.add_argument("shots", help="shots.json from godot/tools/screenshots.gd")
+    ap.add_argument("shots", help="shots.json from godot/tools/screenshots.gd, or its directory (menus only)")
+    ap.add_argument("--menus", help="directory of pygame menu PNGs (CRAWL_SCREENSHOTS of tests/test_render.py) to pair "
+                                    "with Godot's <name>_<view>.png of the same name")
     ap.add_argument("--pygame", required=True, help="directory for the pygame PNGs")
     ap.add_argument("--side", help="directory for side by side PNGs (Godot left, pygame right)")
     args = ap.parse_args()
     pygame.init()
-    with open(args.shots) as f:
-        spec = json.load(f)
-    godot_dir = os.path.dirname(os.path.abspath(args.shots))
+    if os.path.isdir(args.shots):
+        spec, godot_dir = {"shots": []}, os.path.abspath(args.shots)
+    else:
+        with open(args.shots) as f:
+            spec = json.load(f)
+        godot_dir = os.path.dirname(os.path.abspath(args.shots))
     os.makedirs(args.pygame, exist_ok=True)
     if args.side:
         os.makedirs(args.side, exist_ok=True)
@@ -212,6 +224,13 @@ def main():
             pygame.image.save(side, os.path.join(args.side, name + ".png"))
         print(f"{name}")
 
+    done = {shot["name"] for shot in spec["shots"]}
+    if args.menus:
+        for fname in sorted(os.listdir(args.menus)):
+            name = fname[:-4]
+            if fname.endswith(".png") and name not in done and os.path.exists(os.path.join(godot_dir, fname)):
+                pair(name, pygame.image.load(os.path.join(godot_dir, fname)),
+                     pygame.image.load(os.path.join(args.menus, fname)))
     for shot in spec["shots"]:
         img = render(spec, shot)
         gimg = pygame.image.load(os.path.join(godot_dir, shot["name"] + ".png"))

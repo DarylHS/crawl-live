@@ -55,7 +55,7 @@ static func configure(target: AppState, args: Dictionary) -> void:
 	if args.has("runs-dir"):
 		target.runs_dir = args["runs-dir"]
 	if args.has("pet"):
-		var idx := Content.table("pets").keys().find(args["pet"])
+		var idx: int = Content.table("pets").keys().find(args["pet"])
 		if idx >= 0:
 			target.pet_idx = idx
 

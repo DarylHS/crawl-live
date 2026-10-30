@@ -50,3 +50,9 @@ func line_height(face: String) -> int:
 	var f := font(face)
 	var sz := face_size(face)
 	return ceili(f.get_ascent(sz) + f.get_descent(sz))
+
+
+## pygame's `font.get_linesize()` for each face (18, 16, 26 and 66 px): what pygame steps down a wrapped
+## paragraph by. `line_height` rounds the Godot metrics up, one pixel more for the small and big faces.
+func linesize(face: String) -> int:
+	return {"font": 18, "small": 16, "big": 26, "huge": 66}.get(face, line_height(face))

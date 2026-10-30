@@ -353,7 +353,7 @@ static func build_chooser(st: HudStyle, title: String, subtitle: String, names: 
 		var lines: PackedStringArray = MenuKit.wrap(st, text, w - 400, face) if text != "" else PackedStringArray([""])
 		for line in lines:
 			list.text(line, x0 + 360, y, d[1], face)
-			y += st.line_height(face) + 2
+			y += st.linesize(face) + 2
 		y += 6
 	list.centred(footer, x0 + w / 2, y0 + h - 28, st.colour("TEXT_DIM"), "small")
 	return list

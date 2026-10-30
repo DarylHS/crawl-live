@@ -13,6 +13,9 @@ extends SceneTree
 ## side panel, log, tracker, toasts and overlays, in both views), replayed in pygame with `Renderer.draw_game`.
 ## It also writes window_start.png (the whole P4 main scene) and timings.json (mesh build time per
 ## floor and frames a second for a scripted walk and turn).
+## P7 adds every menu and screen of the pygame sweep (tools/menu_sweep.gd: the scenes, overlays, combat and
+## attack of opportunity screens of tests/test_render.py, 70+ names) as <name>_top.png and <name>_fp.png, the
+## same names pygame writes with CRAWL_SCREENSHOTS, plus menu_shots.json. `--menus-only` writes just those.
 
 const OUT_W := 1024
 const OUT_H := 640
@@ -21,6 +24,7 @@ var out_dir := ""
 var seed_value := 1
 var pet: Variant = null
 var fps_frames := 300
+var menus_only := false
 var gv: GameView = null
 var view: FpView = null
 var hud: Hud = null
@@ -38,11 +42,16 @@ func _initialize() -> void:
 	var species: String = args.get("pet", Content.table("pets").keys()[0])
 	pet = null if species == "none" else [species, ""]
 	fps_frames = int(args.get("fps-frames", "300"))
+	menus_only = args.has("menus-only")
 	DirAccess.make_dir_recursive_absolute(out_dir)
 	_run.call_deferred()
 
 
 func _run() -> void:
+	if menus_only:
+		await _menu_shots()
+		quit(0)
+		return
 	var scene: PackedScene = load("res://scenes/game_view.tscn")
 	gv = scene.instantiate()
 	gv.settings_path = ""                    # shots never touch the player's settings or runs
@@ -74,6 +83,7 @@ func _run() -> void:
 	gv.queue_free()
 	await process_frame
 	await _window_shot()
+	await _menu_shots()
 
 	_save_json("shots.json", {"seed": seed_value, "pet": pet, "hero": _hero(), "shots": records})
 	_save_json("timings.json", timings)
@@ -870,12 +880,14 @@ func _timings() -> Dictionary:
 
 ## The P4 main scene as a player sees it (placeholder panel and log included).
 func _window_shot() -> void:
-	var main: Control = (load("res://scenes/main.tscn") as PackedScene).instantiate()
-	main.set("_seed", seed_value)
+	var main: Main = (load("res://scenes/main.tscn") as PackedScene).instantiate()
 	var game: GameView = main.get_node("GameView")
 	game.settings_path = ""                  # Tab here must not write the player's settings
 	game.runs_dir = ""
 	root.add_child(main)
+	main.app.seed_value = seed_value
+	for _i in 4:                             # Enter through the title and the creation screens
+		main.app.handle_key(KeyEvents.key(KEY_ENTER))
 	for _i in 4:
 		await RenderingServer.frame_post_draw
 	root.get_texture().get_image().save_png(out_dir.path_join("window_start.png"))
@@ -889,6 +901,25 @@ func _window_shot() -> void:
 	root.get_texture().get_image().save_png(out_dir.path_join("window_tab_back.png"))
 	main.queue_free()
 	await process_frame
+
+
+## Every menu and screen of the pygame sweep, in both views (tools/menu_sweep.gd), saved as the whole
+## 1280 x 768 window under pygame's names.
+func _menu_shots() -> void:
+	var sweep := MenuSweep.new(root, _menu_shot)
+	await sweep.run_all()
+	_save_json("menu_shots.json", {"names": sweep.names})
+	print("screenshots: %d menu screens in both views" % sweep.names.size())
+
+
+func _menu_shot(shot_name: String, app: AppState, h: Hud, g: GameView) -> void:
+	for v in ["top", "fp"]:
+		if app.scene == AppState.GAME:
+			g.set_view(v)
+		h.sync()
+		for _i in 4:
+			await RenderingServer.frame_post_draw
+		root.get_texture().get_image().save_png(out_dir.path_join("%s_%s.png" % [shot_name, v]))
 
 
 func _save_json(file_name: String, data: Variant) -> void:

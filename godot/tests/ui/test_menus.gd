@@ -78,6 +78,8 @@ func test_every_other_screen_of_the_pygame_run_draws_too() -> void:
 	await sweep.monsters()
 	await sweep.skills()
 	await sweep.combat()
+	await sweep.walking_and_looking()
+	await sweep.corner_and_provoke()
 	sweep._release()
 	assert_true(seen.size() >= 40, "shots: %d" % seen.size())
 	for n in ["title", "identity", "backstory", "pet_select", "game", "game_revealed", "help", "death",
@@ -86,7 +88,7 @@ func test_every_other_screen_of_the_pygame_run_draws_too() -> void:
 			"shop_buy", "shop_sell", "box_odds_silver", "reveal_reroll", "report", "attributes",
 			"game_attributes_panel", "game_tab", "game_monster", "game_monster_adjacent", "help_game", "skills",
 			"shop_remote", "combat_start", "combat_mid", "combat_attacked", "inventory_combat", "help_combat",
-			"combat_end", "combat_boss"]:
+			"combat_end", "combat_boss", "game_after_walking", "game_diagonal", "combat_corner", "aoo_warning", "aoo_log"]:
 		assert_true(seen.has(n), n)
 
 
