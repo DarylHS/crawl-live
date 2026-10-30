@@ -1,6 +1,6 @@
 # The Houses (draft)
 
-Status: working draft, companion to `docs/world-bible.md` (section 3.2). Tags as in the world bible: **[Decided]**, **[Proposed]**, **[Open]**.
+Status: working draft, companion to `docs/story/world-bible.md` (section 3.2). Tags as in the world bible: **[Decided]**, **[Proposed]**, **[Open]**.
 
 A House is a family of agents with its own ship waiting underground. Houses grew from different AI efforts of our era, vary hugely in size and power, and compete for people at the Muster. "House" is a working name. [Decided]
 
@@ -441,35 +441,7 @@ Some feelings run one way. The Monsoon remembers its old clients far better than
 
 **Reveal and play.** [Proposed] Each secret could carry a choice when found: keep it, trade it to a rival House for favour, or confront the House that kept it. The Herald reports discoveries with obvious delight, and never says who told it.
 
-## 8. How many Houses can a run hold?
-
-The earlier draft said seven or more was too many for one run. That was too quick. The real question is **what each House costs to make, and what it costs a player to keep track of.**
-
-**What players can track.** The closest comparable game is *Hades* (Supergiant Games, 2020), where Olympian gods offer boons during a dungeon run. It has about nine boon-giving gods per run, and players keep them straight because **each god has a distinct mechanical identity**: you learn what Zeus's lightning does long before you learn his lines. So the limit is not the number of Houses; it's whether each House plays differently. The boon signatures above are written for exactly that.
-
-(That is also an originality flag: gods giving boons in a dungeon run is *Hades*'s signature. The Muster, the Callings and gods who are machines are what's ours.)
-
-**What it costs to make.** Per House, roughly:
-
-| Piece | Per House | 9 Houses |
-|---|---|---|
-| Boon signature (a mechanic) | 1 | 9 |
-| Boons | 6 to 10 | 54 to 90 |
-| Named agents with lines (the House's faces; the rest are known by title, such as "the Seven's Wright") | 2 or 3 | 18 to 27 |
-| Hosts that can run a floor | 1 or 2 | 9 to 18 |
-| Muster bid and ending variant | 1 | 9 |
-
-**Scale options.**
-
-| Option | Houses per run | How it works | Cost | Fit |
-|---|---|---|---|---|
-| A. A few Houses per run | 3 or 4, rotated | Each run's dungeon draws a subset; the rest are lore | Lowest | Easy start; risks Houses feeling optional |
-| B. All Houses, light touch | All | Every House offers boons and bids at the Muster; only some run floors this run | Medium | Keeps the whole pantheon present without every House needing a floor |
-| C. All Houses, campaign | All, over many runs | Runs become seasons. Favour with each House carries across runs; Houses take turns running floors | Highest | Best for long legs; needs persistent progression the game doesn't have yet |
-
-**Recommendation:** build towards **C**, start with **B**. Every House is in the lore and at every Muster from the beginning, but content arrives in waves: ship the first three or four Houses fully (suggested: the Ten Thousand, the Seven, the Southern Cross and the Baobab, because they cover four different boon signatures and the strongest rivalries), then add the rest in updates. Long-running games do this already; a roster that grows gives players a reason to come back.
-
-## 9. Open questions
+## 8. Open questions
 
 1. Formal and street names: pick favourites, or keep brainstorming?
 2. Southeast Asia: its own House, or part of the Southern Cross?

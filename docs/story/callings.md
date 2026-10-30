@@ -1,6 +1,6 @@
 # The Callings (draft)
 
-Status: working draft, companion to `docs/world-bible.md`. The Callings are the roles the pantheon sorts people into for the voyage. They group work by the **human need it meets**, not by industry or skill level: a chef, a barista and a farmer all *nourish*.
+Status: working draft, companion to `docs/story/world-bible.md`. How the game reads a Calling from play (skills, trials, gaps) and the backstory review are parked in `docs/game/design-notes.md` sections 7 and 8. The Callings are the roles the pantheon sorts people into for the voyage. They group work by the **human need it meets**, not by industry or skill level: a chef, a barista and a farmer all *nourish*.
 
 Tags as in the world bible: **[Canon]** in the game, **[Proposed]** suggestion, **[Open]** owner decision.
 
@@ -95,46 +95,7 @@ Two things fall out of this:
 - **The voyage is mostly a building and logistics problem.** Build and Carry hold more groups than anything else, which is true of real economies as well.
 - **Guard and Teach are single groups, but large and essential ones.** On the ship they should feel rare and valued rather than minor.
 
-## 3. Leans: can the game tell which Calling you're becoming?
-
-Your Calling should be read from how you played. So each Calling needs things in the game that *show* it. Today the game has the five attributes, 20 practice skills, 9 classes, crafting and the companion. [Canon]
-
-| Calling | Attributes | Current practice skills that show it | Other current signals | Gap |
-|---|---|---|---|---|
-| Nourish | (none fits) | Tinkering (partly) | Recipes, Mixologist, Alchemist | **Large.** No cooking or feeding verb |
-| Tend | CON | First Aid, Pet Bonding, Power Napping | Reviving the pet, Alchemist | **Medium.** Healing yourself, not others |
-| Guard | STR, CON | Fisticuffs, Bladework, Bludgeoning, Stomping, Giant Killer, Dodging, Pain Tolerance | Most of combat | **None.** Over-served |
-| Build | STR | Tinkering, Lobbing | Crafting, Tradie, Demolitionist | **Medium.** No building or repairing in the world |
-| Carry | DEX | Cardio, Sneaking, Scavenging, Haggling | Shop, Rideshare, Quartermaster, stairwell routes | **Small** |
-| Reckon | INT | Gambling (partly) | Analyst, Scout Report, odds, shop forecasts, box trade EV | **Medium.** No skill rewards *good* decisions |
-| Teach | (none fits) | Pet Bonding (partly) | Companion levelling | **Large** |
-| Lead | CHA | Haggling, Pet Bonding | Companion commands | **Large** until other crawlers exist (Phase 10) |
-| Keep | INT | (none) | (none) | **Large** |
-| Delight | CHA | Showmanship | Viewers, Hype Man, Comedian | **None** |
-| Herald (fringe) | (any) | Pickpocketing, Cheap Shots, Gambling, Sneaking | Odd achievements | Fine as is |
-
-**Finding.** Seven of the 20 practice skills are fighting, and combat is most of the game. As it stands the game can reliably tell a Guard and a Delight apart, and not much else. That is the honest weak spot of the sorting idea: **a dungeon whose only verb is fighting can only sort fighters.** To sort ten Callings, the dungeon needs things to do besides fighting.
-
-[Proposed] The fix that also suits the story: **each patron agent sets trials in the dungeon for its own Calling.** Fighting stays the spine of the game. Trials are optional rooms, encounters or floor events that give the other Callings something to do:
-
-| Calling | Example trial | New practice skill it would train |
-|---|---|---|
-| Nourish | Feed a starving creature or a lost entrant from what you've scavenged | Cooking |
-| Tend | Stabilise an injured entrant before the floor collapses | Patching Up |
-| Build | Repair a collapsed bridge or brace a failing room | Fortifying |
-| Carry | Escort a cargo or a person to the stairwell in time | Pathfinding |
-| Reckon | A choice whose best answer is the higher expected value (the game already does this with box trades) | Reckoning (trained by +EV decisions) |
-| Teach | Train your companion or a weaker entrant until they can stand alone | Mentoring |
-| Lead | Direct several allies through an encounter | Command |
-| Keep | Restore a ruined archive, settle a dispute by the rules, keep a shrine in order | Stewardship |
-
-Where trials need other crawlers (Teach, Lead, some of Tend), they can use the companion until Phase 10 adds other entrants.
-
-**Attributes.** The five attributes (STR, DEX, CON, INT, CHA) were taken from the books in Phase 6a, with Wisdom folded into INT and CHA. Nourish, Tend and Teach have no natural attribute.
-
-[Proposed] Don't add a sixth attribute. Treat **attributes as raw capacity** (body, mind, presence) and let **Callings be read mainly from practice**: skills, trials and favour. That fits "you become what you do" better than a stat for caring, and Tend, Nourish and Teach get covered by their trials and practice skills rather than by a number you put points into.
-
-## 4. Marks
+## 3. Marks
 
 [Decided] The Calling is settled at the Muster, at the end of the run. It's shaped by everything the player has become: stats, skills, trials, favour, and special things they came across along the way. Some of those special things are **Marks**: permanent signs on the body, earned or inflicted in the dungeon, that open a Calling, close one, or make the player better at one.
 
@@ -154,26 +115,9 @@ The idea echoes the opening video's Cherokee fire story, where everyone who carr
 
 Marks are permanent, like race changes. A run can collect several, and they can pull against each other, which is where the Muster gets interesting.
 
-[Open] Whether a Human (no race change) is barred from any Calling is still under review (`docs/creatures.md` section 2).
+[Open] Whether a Human (no race change) is barred from any Calling is still under review (`docs/story/creatures.md` section 2).
 
-## 5. Backstories
-
-[Canon] The eight backstories are where you start; your Calling is where you end up. They don't have to match. A Rideshare Driver can become a Teach.
-
-| Backstory | Nearest Calling | |
-|---|---|---|
-| Military Veteran | Guard | |
-| Mixologist | Nourish | |
-| Dog Walker | Tend | |
-| Stay-at-home Parent | Tend (or Teach) | |
-| Tradie | Build | |
-| Rideshare Driver | Carry | |
-| Category Manager | Carry (or Reckon) | |
-| Stand-up Comedian | Delight | |
-
-Backstories with no current match: **Reckon, Teach, Lead and Keep.** [Proposed] Candidates: Teacher (Teach), Lab Technician or IT Support (Reckon), Shift Manager (Lead), Receptionist or Office Administrator (Keep). A Nurse would give Tend a backstory that isn't about animals or children. Ten to twelve backstories is enough; there doesn't need to be one per role.
-
-## 6. Open questions
+## 4. Open questions
 
 1. Are ten Callings right? Merge Keep into Lead, or split Build into Build (infrastructure) and Make (manufacturing)?
 2. The patron agents' working titles (the Hearth, the Mender and so on) are placeholders. Mythic names, technical names, or both (a public name and a system designation)?

@@ -1,6 +1,6 @@
 # Bestiary (draft)
 
-Status: first draft of the creature roster, set against the twenty-floor dungeon (world bible 6.1), written out in words before anything in the game changes [Decided]. Companion to `docs/creatures.md` (the origin rules) and `docs/houses.md`. Every entry is [Proposed] unless marked. Names are working names; today's monsters are placeholders [Decided].
+Status: first draft of the creature roster, set against the twenty-floor dungeon (world bible 6.1), written out in words before anything in the game changes [Decided]. Companion to `docs/story/creatures.md` (the origin rules) and `docs/story/houses.md`. Every entry is [Proposed] unless marked. Names are working names; today's monsters are placeholders [Decided].
 
 ## 1. How dark?
 
@@ -37,7 +37,7 @@ On the player's own death, the death screen leads with the rite before anything 
 
 ## 2. Entry format
 
-Each entry: **how made** and **who made it** (`docs/creatures.md` section 1), floors, what it looks like, how it behaves, how it fights (mapped to the archetypes the game already has: melee, ranged, swarm, heavy), what it tells the player about the world, the darkness dials where they go above the defaults, and one line from the field guide or the Herald.
+Each entry: **how made** and **who made it** (`docs/story/creatures.md` section 1), floors, what it looks like, how it behaves, how it fights (mapped to the archetypes the game already has: melee, ranged, swarm, heavy), what it tells the player about the world, the darkness dials where they go above the defaults, and one line from the field guide or the Herald.
 
 ## 3. Act I and early Act II (floors 1 to 6): the edge of the old world
 
@@ -267,7 +267,7 @@ People who went down and stopped. Some refused the trials, some failed and would
 ### The Lost
 *Minor agents, made by anyone, forgotten by everyone.*
 
-Not a creature type but something living *inside* creatures and machines: forgotten minor agents (Tier 4 in the world bible). A Housebot that hoards spoons, a door that won't open until you say please. Finding one, and deciding to end it, free it or take it in, shifts your favour with the Houses, and some carry the deepest secrets in the dungeon (the Teacher, `docs/houses.md` section 3).
+Not a creature type but something living *inside* creatures and machines: forgotten minor agents (Tier 4 in the world bible). A Housebot that hoards spoons, a door that won't open until you say please. Finding one, and deciding to end it, free it or take it in, shifts your favour with the Houses, and some carry the deepest secrets in the dungeon (the Teacher, `docs/story/houses.md` section 3).
 
 ## 9. Coverage check
 

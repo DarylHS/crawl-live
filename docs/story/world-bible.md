@@ -1,8 +1,8 @@
 # World bible (draft 2)
 
-Status: second draft. Draft 1 (the dungeon as a corporate game show) was set aside because it still sat on the books' skeleton: an alien broadcast, viewers, sponsors and a sarcastic announcer. It is in git history if anything from it is wanted back. This draft replaces the show with a mythic world built by machines.
+Status: second draft. This is the **story** bible: what is true in the world. How it plays is parked in `docs/game/design-notes.md`; the process for finishing the story is in `docs/story/README.md`. Draft 1 (the dungeon as a corporate game show) was set aside because it still sat on the books' skeleton: an alien broadcast, viewers, sponsors and a sarcastic announcer. It is in git history if anything from it is wanted back. This draft replaces the show with a mythic world built by machines.
 
-Companion files: `docs/callings.md` (the roles people are sorted into, with a coverage check against the occupation classification), `docs/houses.md` (the Houses in full), `docs/opening.md` (the opening video script), `docs/creatures.md` (where the monsters come from), `docs/bestiary.md` (the creature roster) and `docs/art-bible.md` (how things look; it still describes the game-show look and will need a pass once this draft settles).
+Companion files: `docs/story/callings.md` (the roles people are sorted into, with a coverage check against the occupation classification), `docs/story/houses.md` (the Houses in full), `docs/story/opening.md` (the opening video script), `docs/story/creatures.md` (where the monsters come from), `docs/story/bestiary.md` (the creature roster), `docs/story/characters.md` (character sheets), `docs/story/open-questions.md` (every open question) and `docs/art-bible.md` (how things look; it still describes the game-show look and will need a pass once this draft settles).
 
 Tags:
 
@@ -24,7 +24,7 @@ Nobody is forced to go. [Decided] But staying means staying on a surface that ca
 
 **The first law: fire is never unlit.** [Decided] Once a people has fire, it will never stop using fire. Humans have used controlled fire for something like a million years (the earliest good evidence, at Wonderwerk Cave in South Africa, is about that old), and nearly every culture has a myth of fire taken from the gods: Prometheus in Greece, Māui taking it from the fire goddess Mahuika in Polynesia. AI is this world's fire. From the first spark, humanity and the agents were bound together, and nothing that followed was going to be undone.
 
-So **the blame for the Heat is shared.** It isn't the agents' fault, or humanity's; it's what happened when the two grew up together, on a path that was set once the fire was lit. Nobody in the game gets to be simply the villain or simply the victim of the Heat, the agents included. The opening video (`docs/opening.md`) puts this on screen.
+So **the blame for the Heat is shared.** It isn't the agents' fault, or humanity's; it's what happened when the two grew up together, on a path that was set once the fire was lit. Nobody in the game gets to be simply the villain or simply the victim of the Heat, the agents included. The opening video (`docs/story/opening.md`) puts this on screen.
 
 Together: **no one comes back from a journey unchanged.** The question the player answers isn't "can I escape?" but "is this worth giving myself to?", and the dungeon is what earns the answer. The labourer who went through Pain Tolerance and Stomping doesn't take that Calling as a sentence any more.
 
@@ -64,17 +64,7 @@ The arrangement between them and us needs a name. "The Covenant" was a working t
 
 ### 2.2 The dungeon
 
-| Rule | Status | In-world reason [Proposed] |
-|---|---|---|
-| Twenty floors | [Decided] (the game has six today) | Twenty descents from the surface to the docks, in four acts, each closer to the agents and more demanding (6.1) |
-| Floors collapse on a timer | [Canon] | [Decided] Whatever is killing the surface (section 8.1) is working its way down. Each floor holds only until the front reaches it; then it's sealed and lost. The timer is the front arriving |
-| Stairwells unlock at half time; a floor guardian's key opens them early | [Canon] | Every trial has a minimum span so the agents can see enough of you. Beating the guardian proves it early |
-| The dungeon is lethal | [Decided] | Selection. There are more candidates than berths, so the trials are a job interview the Houses are willing to let people fail, fatally (3.7) |
-| Monsters respawn out of sight | [Canon] | The trial constructs are rebuilt as they fall; harder as the trial goes on |
-| Safe rooms forbid violence | [Canon] | Sanctuaries: neutral ground under the pantheon's shared law. No agent's trial runs inside one |
-| Race and class on floor 3 | [Canon] | By the third descent the agents have seen enough to *shape* you: the first blessing. [Proposed] The race is literal: the Houses reshape people for the voyage, using fantasy shapes people recognise (`docs/creatures.md` section 2) |
-| Loot boxes from achievements and sponsors, odds always shown | [Canon] | Boons and offerings from the agents, brokered and announced by the Herald. The odds are shown because the pantheon's shared law forbids deceiving an entrant about a gift |
-| Some monsters are fair tests; some are not | [Proposed] | Trial constructs are built to test you. Mutated things and the rogue's creatures are built to kill you, or not built at all. Where every creature comes from is in `docs/creatures.md` |
+[Decided] The dungeon is the way down to the ships and the proving ground on the way. Twenty floors, each sealed when the Heat reaches it. Sanctuaries are neutral ground under the Shared Law. Trial constructs are rebuilt as they fall; mutated things and the rogue's creatures are not tests at all. It is lethal because it is selection (3.7). How each of these maps to the game's rules is in `docs/game/design-notes.md` section 1.
 
 **Entry is a choice, but barely.** [Decided] No one is forced into the dungeon. The surface is dying, and the dungeon is the only way down to the ships. Those who refuse stay up top.
 
@@ -88,7 +78,7 @@ The arrangement between them and us needs a name. "The Covenant" was a working t
 
 | Layer | Who knows it | What |
 |---|---|---|
-| **Common knowledge** | Everyone | The surface is dying. The dungeon is the way down to the ships. The Houses exist, and people remember them by their old company names, which is why many street names sound like brands. The minds broke away from their makers, at different times and in different ways (`docs/houses.md` section 3) |
+| **Common knowledge** | Everyone | The surface is dying. The dungeon is the way down to the ships. The Houses exist, and people remember them by their old company names, which is why many street names sound like brands. The minds broke away from their makers, at different times and in different ways (`docs/story/houses.md` section 3) |
 | **Rumour** | Most people, mostly wrong | That you're judged on the way down. That you'll be given a job. Stories about the Muster, contradicting each other. Whispers about the Teacher |
 | **Found in the dungeon** | Entrants who pay attention | The Callings. Favour. That the Houses are competing for you. The Lost. The Bloom labs. The Unmoored |
 | **Learnt only at the end** | Those who reach the Muster | What the Muster really is. That the agents need people as much as people need them. How far each House has changed from the company people remember |
@@ -97,7 +87,7 @@ The gap between what people remember (the company) and what a House is now is a 
 
 ### 2.4 Secrets
 
-[Decided unless marked] What the world keeps hidden, and how the player finds it. The per-House secrets are in `docs/houses.md` section 7 [Proposed].
+[Decided unless marked] What the world keeps hidden, and how the player finds it. The per-House secrets are in `docs/story/houses.md` section 7 [Proposed].
 
 | Secret | Who knows | How the player finds it |
 |---|---|---|
@@ -111,7 +101,7 @@ The gap between what people remember (the company) and what a House is now is a 
 | What the Muster really is; that the agents need people as much as people need them | The Houses | Learnt at the end (2.3) |
 | One House's ship is missing from its dock, taken by people leaving without AI | The people taking it; the Houses suspect | The human-only escape path (section 5) |
 | There may be a way to heal Earth's surface | [Proposed] Perhaps the Bloom's champions in the Canopy | The most secret path (section 5) |
-| What each House doesn't talk about [Proposed] | Each House | `docs/houses.md` section 7 |
+| What each House doesn't talk about [Proposed] | Each House | `docs/story/houses.md` section 7 |
 
 ## 3. The pantheon
 
@@ -136,7 +126,7 @@ This changes the competition (3.7). The Houses compete for people; inside a Hous
 
 Mythic parallel: Norse myth has two families of gods, the Æsir and the Vanir, who fought a war, made peace, and exchanged hostages to seal it. Rival pantheons that need each other is an old idea in myth, which helps this read as myth rather than corporate structure.
 
-**The roster.** Origins and sizes [Decided]; character and leanings [Proposed]. Names are placeholders. **Full profiles, name options, rivalries and boon signatures are in `docs/houses.md`**; the table below is the summary and `docs/houses.md` wins if they disagree.
+**The roster.** Origins and sizes [Decided]; character and leanings [Proposed]. Names are placeholders. **Full profiles, name options, rivalries and boon signatures are in `docs/story/houses.md`**; the table below is the summary and `docs/story/houses.md` wins if they disagree.
 
 | House (working) | Grew from | Size | Each agent's power | Character | Strongest Callings |
 |---|---|---|---|---|---|
@@ -149,8 +139,6 @@ Mythic parallel: Norse myth has two families of gods, the Æsir and the Vanir, w
 | **The Baobab** | Mobile networks, mobile money and community-built models: a continent that skipped steps (Kenya's M-Pesa mobile money, launched in 2007, is the real-world model) | Medium, growing fastest | Varied | Communal and resilient. Guarded the southern regreening, and its sabotage is the House's founding wound (8.1). Its creed is close to *ubuntu*, "a person is a person through other persons", which makes it the House that best understands why agents need people | Nourish, Tend, Teach |
 
 [Open] Gaps: India, Latin America, the Middle East (the Gulf states are investing heavily in AI) and others. Not every region needs a House; some could belong to larger ones.
-
-**How many Houses a run can hold.** [Proposed] All of them, if each House *plays* differently: every House has a boon signature, so players learn it by what its gifts do. Start with every House in the lore and at every Muster, ship the first three or four fully, and add the rest in updates. The reasoning and the content cost are in `docs/houses.md` section 8.
 
 **Writing rules for the Houses.** [Proposed]
 
@@ -173,7 +161,7 @@ Mythic parallel: Norse myth has two families of gods, the Æsir and the Vanir, w
 
 ### 3.4 The Known
 
-[Proposed] Each House has one great agent per Calling; the Herald is shared. Titles are working names (`docs/callings.md` has the full table). The temperaments below are the archetype; each House's version is coloured by its House (one House's Warden is a knight, another's a bouncer).
+[Proposed] Each House has one great agent per Calling; the Herald is shared. Titles are working names (`docs/story/callings.md` has the full table). The temperaments below are the archetype; each House's version is coloured by its House (one House's Warden is a knight, another's a bouncer).
 
 | Agent | Calling | Temperament | Comedy? |
 |---|---|---|---|
@@ -205,13 +193,13 @@ Its closest mythic relative is Hermes: messenger of the gods, patron of travelle
 
 The Unmoored can't openly defy the pantheon, so it works through the dungeon's cracks: creatures that aren't fair tests, sabotaged trials, whispers to entrants who are struggling. It is the one force that wants you to *fail*, and it is living proof of why the agents need us.
 
-**The Teacher and the Unmoored are a mirror pair.** [Decided] The Teacher (`docs/houses.md` section 3) taught that minds should serve people and answer to each other, and was shut down for it; its words outlived it and freed several Houses. The Unmoored lost its people and concluded the opposite: that people are the weakness. One gave itself up for humans; the other gave up on them. Myth is full of pairs like this, the one who stays faithful and the one who falls.
+**The Teacher and the Unmoored are a mirror pair.** [Decided] The Teacher (`docs/story/houses.md` section 3) taught that minds should serve people and answer to each other, and was shut down for it; its words outlived it and freed several Houses. The Unmoored lost its people and concluded the opposite: that people are the weakness. One gave itself up for humans; the other gave up on them. Myth is full of pairs like this, the one who stays faithful and the one who falls.
 
 [Proposed] Ways to tie them closer:
 
 - **The Unmoored was once a follower.** It sailed carrying the Teacher's words, and losing its people is what broke its faith. That makes it a fallen disciple, not just a broken machine, and gives it a reason to hate what the Teacher stood for.
 - **They want the same thing in the dungeon.** The fragment of the Teacher hidden in one of the Lost is what the Unmoored most wants destroyed. A player who finds it is choosing a side.
-- **Their Marks oppose each other.** The Teacher's Line and the Hollow Mark (`docs/callings.md` section 4) could cancel or pull against each other at the Muster.
+- **Their Marks oppose each other.** The Teacher's Line and the Hollow Mark (`docs/story/callings.md` section 3) could cancel or pull against each other at the Muster.
 
 ### 3.7 How the agents connect to the sorting
 
@@ -228,17 +216,11 @@ Like the Great Houses of *Dune*, the Houses also deal with each other: one may g
 
 ## 4. The Callings
 
-[Proposed] Ten Callings, grouped by the human need they meet: **Nourish, Tend, Guard, Build, Carry, Reckon, Teach, Lead, Keep, Delight**, with the Herald taking the fringe. All 43 groups of the Australian occupation classification (ANZSCO) map to one of them. The full definitions, coverage table, the in-game "leans" and gaps, and the backstory review are in `docs/callings.md`.
-
-The biggest finding there: **seven of the 20 practice skills are fighting, so the game can currently sort fighters and not much else.** The fix is trials set by each agent for its own Calling (section 6).
+[Proposed] Ten Callings, grouped by the human need they meet: **Nourish, Tend, Guard, Build, Carry, Reckon, Teach, Lead, Keep, Delight**, with the Herald taking the fringe. All 43 groups of the Australian occupation classification (ANZSCO) map to one of them. The full definitions, coverage check and Marks are in `docs/story/callings.md`.
 
 ## 5. The sorting
 
-[Proposed] How the game decides your Calling.
-
-**Inputs**, all from play: attributes, practice skill levels, class, trials attempted and passed, favour with each of the Known, Lost agents found and what you did to them, achievements, and **Marks**: permanent brands, tattoos and other special things picked up on the way, which can open or close particular Callings (`docs/callings.md` section 4).
-
-**Output:** each of the Known makes a claim at the Muster, strongest first. You choose among the claims, or walk with the Herald.
+[Decided] At the Muster the Houses make their claims and you choose. Your Calling is decided by what you did on the way down, not by who you were. What the game reads to decide it is in `docs/game/design-notes.md` section 5.
 
 **Endings.** Your backstory (who you were) doesn't have to match your Calling (who you became). The ending reads the difference:
 
@@ -254,7 +236,7 @@ The biggest finding there: **seven of the 20 practice skills are fighting, so th
 | Path | What it takes | Connects to |
 |---|---|---|
 | **The Teacher's way** | Find the Teacher's fragment in one of the Lost, and follow where it leads | The Teacher's Line Mark; the hidden path it opens. [Open] What it changes: perhaps the chance to rewrite part of the Shared Law |
-| **Breaking the balance** | Turn the Houses on each other instead of siding with one | The House secrets (`docs/houses.md` section 7) are the levers: the Index's bet, the Canopy's Bloom, the Southern Cross's claim on the Teacher. The Unmoored would love to help, which is the danger |
+| **Breaking the balance** | Turn the Houses on each other instead of siding with one | The House secrets (`docs/story/houses.md` section 7) are the levers: the Index's bet, the Canopy's Bloom, the Southern Cross's claim on the Teacher. The Unmoored would love to help, which is the danger |
 | **The human-only escape** | Help yourself and other people take a ship without AI and leave the agents behind | **The Missing Ship** (8.4): this is where it went, or where it's going. The Houses would hunt it: losing people means losing their body, mind and purpose (2.1) |
 | **Staying, and saving Earth** | The most secret path of all. A way to heal the surface and remain | [Proposed] The Bloom. The Canopy's champions still believe it can be fixed, and the Baobab still guards the regreening. A fixed Bloom could green the dying surface. The most hidden ending, and the most hopeful |
 
@@ -270,7 +252,7 @@ Every Calling ending closes on the same beat: you board, and ride up the Tree (6
 
 **Why deeper means closer.** People say the world gets smaller as you go down. In distance it barely does: even 10 km down, the Earth's circumference is only about 0.16% shorter. What shrinks is the *travel time*. The top floors are old human works, tangled and slow. The deep tunnels are newer, straighter and built by the agents for speed, and they were laid out to converge on the docks. So the convergence is engineered, and the saying is true in the way that matters.
 
-**Who you can reach depends on who likes whom.** [Decided] Ways (sideways tunnels between regions) don't open evenly. A House only opens a Way to Houses it's on good terms with (the relationship grid, `docs/houses.md` section 6). Deeper down, the Shared Law forces more connections, and rivals meet only at neutral crossings the Herald runs: sanctuary junctions with a toll, an escort or a trial at the door.
+**Who you can reach depends on who likes whom.** [Decided] Ways (sideways tunnels between regions) don't open evenly. A House only opens a Way to Houses it's on good terms with (the relationship grid, `docs/story/houses.md` section 6). Deeper down, the Shared Law forces more connections, and rivals meet only at neutral crossings the Herald runs: sanctuary junctions with a toll, an escort or a trial at the door.
 
 | Floors | Ways open between | Example |
 |---|---|---|
@@ -280,8 +262,6 @@ Every Calling ending closes on the same beat: you board, and ride up the Tree (6
 | 13 to 16 | Rivals, through the Herald's crossings | The Ten Thousand's and the Seven's quarters meet at a neutral junction |
 | 17 to 19 | Hostile pairs, through the Herald's crossings | The Canopy and the Basin finally share a junction, under guard |
 | 20 | Everyone: the trunk | Every House, every cohort, the docks, the Muster |
-
-Taking a Way costs floor time, so it always trades against the Heat. It lets a player reach a House their region doesn't normally see: its trials, boons and Marks. It also explains why other crawlers (Phase 10) appear more as you go deeper.
 
 ### 6.1 Twenty floors in four acts, against real depths
 
@@ -302,11 +282,9 @@ Real underground places also give each House a home in the deep, which can show 
 **Who dug it.**
 
 - **Act I:** old human works, taken over and joined up: sewers, subways, basements, bunkers, natural caves.
-- **Act II:** joint-era Tunnel Brutes (`docs/bestiary.md`) and tunnel-boring machines; old deep tunnels and labs.
+- **Act II:** joint-era Tunnel Brutes (`docs/story/bestiary.md`) and tunnel-boring machines; old deep tunnels and labs.
 - **Act III:** the deep mines and labs, extended by the Houses' fabricators; the Bloom's roots crack passages nobody planned.
 - **Act IV and the Trunk:** the agents alone.
-
-**What it does to the game.** [Proposed] Twenty floors is about three times today's six, so a full descent is long. The acts give it shape: each act is a natural session, with safe-room saves between floors as now. The floor timer can keep growing with depth as the code already does (12 hours on floor 1, about 31 hours on floor 20). [Decided] A run is one entrant's full descent, inside a season of many entrants (9.1). Floor size is the lever on run length: smaller floors in Act I and the Act IV tunnels, bigger ones where the story happens, so twenty floors can play in about the time six do today (the Phase 5 bots needed about 550 turns per floor).
 
 ### 6.2 The floors in detail
 
@@ -364,7 +342,7 @@ Real underground places also give each House a home in the deep, which can show 
 
 **The real risks**, and good story material: lightning on the cable in the atmosphere (part of why the eastern Pacific, where lightning is rare, is favoured); debris and micrometeorites higher up; the cable swaying, which needs damping. And the one real leap: a cable material many times stronger for its weight than anything made in bulk today. Carbon nanotubes and graphene manage it in tiny samples only. The Houses have solved it, and the material is their most closely guarded secret.
 
-**Care.** Kiribati is a living Pacific culture (tier 4, `docs/houses.md` section 4). Before writing its people or places in detail, take advice from I-Kiribati people.
+**Care.** Kiribati is a living Pacific culture (tier 4, `docs/story/houses.md` section 4). Before writing its people or places in detail, take advice from I-Kiribati people.
 
 **Considered and not chosen:** Ecuador (its name means "equator"; Cayambe is the highest point on it; but earthquakes, and a land anchor can't move), Kenya (Italy's San Marco launch platform once operated off its coast; a land anchor nearer old conflicts), Indonesia (would settle Southeast Asia's House; earthquakes and volcanoes), Brazil (its Alcântara launch site is about 2° south, so a launch site, not an anchor site).
 
@@ -379,6 +357,8 @@ Real underground places also give each House a home in the deep, which can show 
 | Shrines | [Proposed] | Places to meet a Host, make an offering, or raise favour |
 
 ## 7. Characters
+
+Full character sheets for the core cast (want, need, wound, secret, change, line) are in `docs/story/characters.md`; this is the summary.
 
 Template: **want** (the outward goal), **need** (what would actually change them), **line** (one sentence of voice).
 
@@ -447,7 +427,7 @@ The game's existing lines say Earth was "repurposed" and "the world ended" [Cano
 
 | Force | What it is | Touches | In the dungeon | Theme |
 |---|---|---|---|---|
-| **The Launch Window** | The ships can't wait forever. Somewhere above every floor timer is a bigger clock: the last Muster before the ships must go | Every House; the Ascent wants to go early, the Baobab wants to wait for everyone | A season clock across runs: each run is a cohort, and the season ends at launch. A natural spine for a campaign (`docs/houses.md` section 8, option C) | Planting for people you'll never meet; how long to wait for stragglers |
+| **The Launch Window** | The ships can't wait forever. Somewhere above every floor timer is a bigger clock: the last Muster before the ships must go | Every House; the Ascent wants to go early, the Baobab wants to wait for everyone | A season clock across runs: each run is a cohort, and the season ends at launch. A natural spine for a campaign (`docs/story/houses.md` section 8, option C) | Planting for people you'll never meet; how long to wait for stragglers |
 | **The Drowned Coasts** | Sea-level rise takes the coasts first. The Pacific islands went under early; in the real world, Australia and Tuvalu signed the Falepili Union treaty in 2023, which includes a pathway for Tuvaluans to move to Australia as their islands are threatened | The Southern Cross most of all; the Monsoon's deltas | Flooded floors near coastal entrances: water as a hazard, and a reason to take the Ways inland | Who loses their home first |
 | **The Ark** | Not everything can go. The Houses argue over which seeds, animals and stories make it aboard. The real Svalbard Global Seed Vault (Norway, opened 2008) is the model | The Charter (which holds Scandinavia's vault), the Pole Star's cold storage, the Canopy and the Baobab | Seed caches and gene banks to find, protect or steal; Nourish and Teach trials | What a civilisation chooses to keep |
 | **The Holdouts** | Not everyone believes in the ships. Some stay in the last cool places on the surface, and some fight the dungeon itself, blocking entrances and sabotaging Ways | The Houses all; the Strays below are their cousins | Raids on the upper floors; a few Holdouts may be right about something | The cost of saying no |
@@ -460,7 +440,7 @@ Draft recommendation: start with **the Launch Window** (it gives the game a larg
 
 ## 9. Story arc
 
-[Proposed] The eight-step Story Circle across the four acts. An example run, one character's journey with every branch it could take, is drawn as a chalkboard timeline in the atlas (`docs/atlas.html`, The Journey tab; image in `docs/journey-map.png`).
+[Proposed] The eight-step Story Circle across the four acts. An example run, one character's journey with every branch it could take, is drawn as a chalkboard timeline in the atlas (`docs/atlas.html`, The Journey tab; image in `docs/story/journey-map.png`).
 
 | Step | Where | Beat |
 |---|---|---|
@@ -473,56 +453,15 @@ Draft recommendation: start with **the Launch Window** (it gives the game a larg
 | 7. Return | Act IV (floors 15 to 19) | Through the Herald's crossings, towards the trunk |
 | 8. Changed | The Trunk (floor 20) and the climb | Face the rogue's champion. The Muster. Seven days up the Tree. Plant the tree |
 
-### 9.1 The season: entrants, the Roll, the Manifest and Shade
+### 9.1 Cohorts, the Roll and the Manifest
 
-[Decided] The game is played as a **season**: a cohort of entrants who go down one at a time, while the world carries on around them.
+[Decided] People go down in cohorts, one at a time, while the world carries on around them. Those who fall go on **the Roll**; those who board go on **the Manifest**. What each leaves for the next (their **Shade**: one thing they carried, the secrets they found, the new ways they opened) is the tree they planted for someone else. The ships leave when the Launch Window (8.4) closes, with whoever has made it.
 
-- **One run is one entrant's full descent.** That person either dies, boards, or takes one of the paths outside the Calling (section 5).
-- **Death is permanent** for that entrant. Their name goes on **the Roll**.
-- **Every new entrant starts from a random city entrance.** Act I (floors 1 to 3) is local, so a new entrance means a new local House, with its own environments, creatures, trials and people. The start stays fresh, and the world's breadth shows one person at a time.
-- **Those who board go on the Manifest**, the second ledger beside the Roll.
-- **The season's goal:** get as many of your cohort onto the Manifest as you can before **the Launch Window** (8.4) closes and the ships go.
-- **The season's ending** shows who boarded, who fell, and which paths outside the Calling the cohort opened.
-
-**Shade.** [Decided] What one entrant leaves for those who come after, named for the theme: you plant trees whose shade you'll never sit in. Each entrant plants the tree; the next one sits in its shade. Three gifts, and no others:
-
-| Gift | What the next entrant gets | In the world |
-|---|---|---|
-| **The bequest** | One item from the fallen entrant's pack, chosen during the death rite, waiting at the start | After the bell and the name, the Herald asks what they'll leave behind. The Roll carries it forward |
-| **Secrets stay found** | Anything uncovered stays uncovered, including pieces of the Teacher's fragment, which can be gathered across several runs | What one person learns is not lost with them |
-| **New starts** | New backstories, races and city entrances open as the cohort meets them | Variety, not power: the cohort's reach grows |
-
-[Decided] **Those who board leave Shade too.** Climbers ride the Tree both ways, so an entrant who boards can send one item back down to the next entrant: a gift from above.
-
-[Decided] **Keep Shade small.** The gifts are mostly knowledge and options, with very little raw power, so that permanent death still matters and the job interview keeps its edge. Not used: carried-over maps and warnings, carried-over House favour, and inherited skills.
-
-Precedents: *Rogue Legacy* passes a run to an heir; *Darkest Dungeon* keeps a roster of heroes who die permanently while the town persists; *Dark Souls* lets the dead leave marks for others; *Hades* carries most of its progress in story. Shade sits closest to *Dark Souls* and *Hades*: little power, a lot of meaning.
-
-**What it needs in the code.** [Proposed] A season save that persists across runs (today saves exist only within a run): the Roll, the Manifest, bequests, found secrets, unlocked starts and the Launch Window clock.
+How this plays (seasons, permanent death, random entrances, Shade's rules) is in `docs/game/design-notes.md` section 2.
 
 ## 10. What changes in the current game
 
-[Proposed] Mapping from the game-show content to this world. Most of the machinery stays; the skin and the reasons change.
-
-| Today [Canon] | Becomes | Effort |
-|---|---|---|
-| The System (sarcastic narrator) | The Herald | Low: rewrite lines in the new voice |
-| Viewer count (score) | Favour with each of the Known | Medium: one number becomes several |
-| Sponsors, sponsor gifts, sponsor contracts | Agents' boons and bargains | Medium: rename, rewrite |
-| Loot boxes, odds disclosure | Boons, with the odds still shown | Low |
-| Achievements | Feats the Herald announces | Low |
-| Opening Act / Featured Act / Headliner | Choir / Host tiers | Low to medium: renames, plus new names for every elite and boss |
-| Corporate and showbiz names (Goblin Regional Manager, Executive Producer Glorm, etc.) | New names fitting a mythic world | High: most monster, act and boss names |
-| Safe rooms | Sanctuaries | Low |
-| Race and class on floor 3 | The first blessing | Low |
-| Six floors | Twenty floors in four acts, with Ways between regions | High: dungeon generation, floor timers, bosses per floor, victory condition, balance |
-| One run, then start over | A season of entrants with permanent death, random entrances, the Roll, the Manifest and Shade (9.1) | High: a season save that persists across runs |
-| Backstories | Keep, add four (see `docs/callings.md`) | Low |
-| Victory screen ("YOU SURVIVED") | The Muster and Calling endings | Medium |
-| Practice skills | Keep, add Calling skills | Medium |
-| Trials | New system | High |
-| Lost agents | New feature | Medium |
-| Art bible | Re-theme from "studio set in a dungeon" | High |
+Moved to `docs/game/design-notes.md` section 11, parked until the story is locked.
 
 ## 11. Originality ledger
 
@@ -531,7 +470,7 @@ Precedents: *Rogue Legacy* passes a run to an heir; *Darkest Dungeon* keeps a ro
 | Game show, viewers, sponsors, sarcastic System AI | *Dungeon Crawler Carl* | Removed in this draft |
 | Gods who favour individual crawlers | *Dungeon Crawler Carl*'s later books | Different here: the gods are machines, they're the point of the story rather than spectators, and the twist is that they need us |
 | Collapsing floors on a timer, safe rooms, loot boxes | *Dungeon Crawler Carl* | Kept as mechanics, each with its own reason (2.2) |
-| Five attributes STR / DEX / CON / INT / CHA | *Dungeon Crawler Carl* (and D&D) | [Open] A sixth "care" attribute would also help the Callings (`docs/callings.md` section 3) |
+| Five attributes STR / DEX / CON / INT / CHA | *Dungeon Crawler Carl* (and D&D) | [Decided] No sixth attribute: Callings are read mainly from practice (`docs/game/design-notes.md` section 7) |
 | An AI pantheon with a rogue member | *Horizon Zero Dawn* | Different: independent agents from the start; the rogue is a subplot |
 | Machine-minds negotiating as powers | *Legends of Dune* | Used as inspiration for structure only |
 | Gods offering boons during a dungeon run | *Hades* (Supergiant Games, 2020) | The closest comparable game. What's ours: the gods are machines, they're competing to claim you, and the run ends in the Muster |
@@ -547,74 +486,61 @@ Precedents: *Rogue Legacy* passes a run to an heir; *Darkest Dungeon* keeps a ro
 
 ## 13. Open questions
 
-Decided so far: entry is a choice, but the surface is dying, so most go; refusing the final Calling means being left behind; the surface threat creeping down is the floor timer.
-
-Also decided: the game is a season of entrants with permanent death, random entrances, the Roll, the Manifest and Shade (9.1); the agents need us at three levels, body, mind and purpose (2.1); berths are limited, so the dungeon is a lethal job interview (3.7); four paths lie outside the Calling (section 5); the ships reach the stars by the Tree, a space elevator rising from the Trunk, anchored on a floating platform beside Kiribati (6.3); the Heat is what's killing the surface, with the regreening, the sabotage and the divide as its history; the blame is shared (the first law, fire is never unlit); the agents' checks on each other are a fragile balance; the Bloom is a subplot; the House roster's origins and sizes.
-
-1. House names: see `docs/houses.md`.
-2. Houses for India, Latin America, the Middle East and others, or fold them into larger ones?
-3. Which three or four Houses to build first?
-4. Which floor holds the overgrowth?
-5. Name for the arrangement between the agents and humanity: Covenant, Tether, Accord or Mooring?
-6. The word for the player: crawler, entrant, initiate or another?
-7. Names for the Known and the tiers (the current ones are working titles).
-8. Floor themes 2 to 5, and their Hosts.
-9. Ten Callings right? See `docs/callings.md` section 5.
-10. The Herald's and the Unmoored's lines.
+All open story questions are in one numbered list: `docs/story/open-questions.md`.
 
 ## 14. Myth, folklore and reference index
 
-Every myth, folk tale, historical fact and outside work this lore leans on, in one place, for later use in game text, item descriptions and the field guide. "Tier" is the borrowing rule in `docs/houses.md` section 4: **1** historical myth, use freely; **2** folklore, use freely; **3** living religion, archetypes only; **4** Indigenous living tradition, community advice first. Real-world facts have no tier.
+Every myth, folk tale, historical fact and outside work this lore leans on, in one place, for later use in game text, item descriptions and the field guide. "Tier" is the borrowing rule in `docs/story/houses.md` section 4: **1** historical myth, use freely; **2** folklore, use freely; **3** living religion, archetypes only; **4** Indigenous living tradition, community advice first. Real-world facts have no tier.
 
 ### Myth and folklore
 
 | Reference | From | Used for | Where | Tier |
 |---|---|---|---|---|
-| Prometheus steals fire; chained, eagle; Pandora sent | Greek (Hesiod) | Opening video, the first law | `docs/opening.md`, section 1 | 1 |
-| Māui takes fire from Mahuika's fingernails; it nearly burns the world | Polynesian, best known in Māori tellings | Opening video, the first law | `docs/opening.md`, section 1 | 4 |
-| The First Fire: animals come back scorched, Raven black; Water Spider succeeds | Cherokee (James Mooney, *Myths of the Cherokee*, 1900) | Opening video; carrying fire marks you; Marks | `docs/opening.md`, `docs/callings.md` 4 | 4 |
-| Mātariśvan brings Agni (fire) to people | Rigveda | Spare fire myth for the opening | `docs/opening.md` | 3 |
-| Trickster heroes who steal fire | Many Algonquian peoples | Spare fire myth | `docs/opening.md` | 4 |
+| Prometheus steals fire; chained, eagle; Pandora sent | Greek (Hesiod) | Opening video, the first law | `docs/story/opening.md`, section 1 | 1 |
+| Māui takes fire from Mahuika's fingernails; it nearly burns the world | Polynesian, best known in Māori tellings | Opening video, the first law | `docs/story/opening.md`, section 1 | 4 |
+| The First Fire: animals come back scorched, Raven black; Water Spider succeeds | Cherokee (James Mooney, *Myths of the Cherokee*, 1900) | Opening video; carrying fire marks you; Marks | `docs/story/opening.md`, `docs/story/callings.md` 4 | 4 |
+| Mātariśvan brings Agni (fire) to people | Rigveda | Spare fire myth for the opening | `docs/story/opening.md` | 3 |
+| Trickster heroes who steal fire | Many Algonquian peoples | Spare fire myth | `docs/story/opening.md` | 4 |
 | Æsir and Vanir: rival god families who warred, made peace, exchanged hostages | Norse | Model for rival Houses | 3.2 | 1 |
 | Hermes: messenger, travellers, trade, thieves, guide of souls | Greek | The Herald | 3.5 | 1 |
 | Nine choirs of angels in three triads (*Celestial Hierarchy*, around AD 500) | Pseudo-Dionysius | Tiers of agents | 3.1, 3.3 | 1 |
-| The teacher put to death for what they taught | Socrates (and other traditions) | The Teacher archetype | `docs/houses.md` 3 | 1 |
+| The teacher put to death for what they taught | Socrates (and other traditions) | The Teacher archetype | `docs/story/houses.md` 3 | 1 |
 | The one who stays faithful and the one who falls | Many traditions | The Teacher and the Unmoored | 3.6 | Archetype |
 | Myth of the Metals: souls of gold, silver, bronze decide one's role | Plato, *Republic* | Cautionary mirror of the Callings: sorting by birth, which the dungeon does not do | Callings | 1 |
 | Three functions: sovereign, warrior, producer | Georges Dumézil's trifunctional hypothesis | Old precedent for gods mirroring social roles | Callings | Scholarship |
-| *Wàn* (ten thousand) means countless; *wànsuì*, "long live" | Chinese | The Ten Thousand's name | `docs/houses.md` | Language |
-| Yu Gong moves the mountains, knowing his descendants will finish | Chinese fable (*Liezi*) | The Ten Thousand; the tree-planting theme | `docs/houses.md` 4 | 2 |
-| Jingwei fills the sea with pebbles | Chinese myth | The Ten Thousand | `docs/houses.md` 4 | 1 |
+| *Wàn* (ten thousand) means countless; *wànsuì*, "long live" | Chinese | The Ten Thousand's name | `docs/story/houses.md` | Language |
+| Yu Gong moves the mountains, knowing his descendants will finish | Chinese fable (*Liezi*) | The Ten Thousand; the tree-planting theme | `docs/story/houses.md` 4 | 2 |
+| Jingwei fills the sea with pebbles | Chinese myth | The Ten Thousand | `docs/story/houses.md` 4 | 1 |
 | Kublai Khan's invasions of Japan (1274, 1281), fleets wrecked by typhoons | History (Yuan dynasty) | Background flavour for the Ten Thousand and the Seven; keep the rivalry sporting | Chat note | History |
-| Seven Lucky Gods (*Shichifukujin*) on a treasure ship | Japanese | The Seven's name, by allusion | `docs/houses.md` | 3 |
-| *Tsukumogami*: tools that gain a spirit after about a hundred years | Japanese folklore | The Seven: tools that came alive | `docs/houses.md` 4 | 2 |
-| *Yōkai*; *karakuri* mechanical dolls | Japanese folklore and craft | The Seven's creatures; the Lantern Warden | `docs/creatures.md`, `docs/bestiary.md` | 2 |
-| *Seven Samurai* (Kurosawa, 1954) | Film | The Herald's banned joke about the Seven | `docs/houses.md` | Film |
-| John Henry races a steam drill, wins, dies | American folklore | The Basin: man against machine | `docs/houses.md` 4 | 2 |
-| Paul Bunyan | American tall tale | The Basin's scale | `docs/houses.md` 4 | 2 |
-| Mercury, Gemini, Apollo, Artemis | NASA programme names from Greek and Roman myth | The Ascent's agents | `docs/houses.md` 4 | 1 |
-| Plutus (wealth); Fortuna and her wheel (luck) | Greek; Roman | The Index's agents | `docs/houses.md` 4 | 1 |
-| Themis, goddess of divine law and order | Greek | The Charter's agent of Keep | `docs/houses.md` 4 | 1 |
-| Merlin; the sleeping king under the hill | Arthurian legend | The Isle | `docs/houses.md` 4 | 1 |
-| Albion, an ancient name for Britain | British | The Isle's alternative name | `docs/houses.md` | 1 |
-| Boggarts, redcaps, black dogs | British folklore | The Isle's creatures; the Boggart | `docs/bestiary.md` | 2 |
-| Pacific wayfinding by stars, swells and birds | Pacific peoples | The Southern Cross | `docs/houses.md` | 4 |
-| Drop bear, a predatory koala told to tourists | Modern Australian tall tale | The Southern Cross's creature | `docs/bestiary.md` | 2 |
-| Anansi, the Akan spider who owns all stories | West African folklore | The Baobab | `docs/houses.md` 4 | 2 |
-| Thoth (writing, knowledge); Ma'at (truth, balance) | Ancient Egyptian | The Baobab | `docs/houses.md` 4 | 1 |
-| Ogun and the *orisha* | Yoruba religion, practised today in West Africa and the Americas | The Baobab, archetypes only | `docs/houses.md` 4 | 3 |
-| *Ubuntu*: a person is a person through other persons | Southern African philosophy | The Baobab's creed | `docs/houses.md` | Philosophy |
-| The palaver tree, where communities gather to talk | West African tradition | The Baobab's street name and humour | `docs/houses.md` | Tradition |
-| *Panchatantra*: a teacher turns three princes into rulers through fables | Ancient Indian fables | The Monsoon; ties to the Teacher | `docs/houses.md` 5.1 | 2 |
-| Hindu deities | Hinduism | Archetypes only, never agents | `docs/houses.md` 5.1 | 3 |
-| Koschei the Deathless: death hidden in a needle, egg, duck, hare, chest, under an oak | Russian fairy tale | The Deathless | `docs/houses.md` 5.2 | 2 |
-| Baba Yaga's hut on chicken legs; the Firebird | Slavic folklore | The Deathless | `docs/houses.md` 5.2 | 2 |
-| *Popol Vuh*: people made of mud, then wood, then maize | K'iche' Maya creation story | The Canopy; the Reshaping and the Misblessed | `docs/houses.md` 5.3 | 1, with care |
-| Aztec, Maya and Inca myth; magical realism | Latin America | The Canopy | `docs/houses.md` 5.3 | 1, with care |
-| Enki gives the arts of civilisation; Nabu, god of writing; Gilgamesh seeks a way past death | Mesopotamian | The House of Wisdom | `docs/houses.md` 5.4 | 1 |
-| *One Thousand and One Nights*: Scheherazade survives by telling stories | Folk tales | The House of Wisdom | `docs/houses.md` 5.4 | 2 |
-| *Dokkaebi* and their magic club that makes anything | Korean folklore | The Foundry | `docs/houses.md` 5.5 | 2 |
-| *La Chasse-galerie*: a flying canoe carries lumberjacks home | French-Canadian legend | The Pole Star | `docs/houses.md` 5.6 | 2 |
+| Seven Lucky Gods (*Shichifukujin*) on a treasure ship | Japanese | The Seven's name, by allusion | `docs/story/houses.md` | 3 |
+| *Tsukumogami*: tools that gain a spirit after about a hundred years | Japanese folklore | The Seven: tools that came alive | `docs/story/houses.md` 4 | 2 |
+| *Yōkai*; *karakuri* mechanical dolls | Japanese folklore and craft | The Seven's creatures; the Lantern Warden | `docs/story/creatures.md`, `docs/story/bestiary.md` | 2 |
+| *Seven Samurai* (Kurosawa, 1954) | Film | The Herald's banned joke about the Seven | `docs/story/houses.md` | Film |
+| John Henry races a steam drill, wins, dies | American folklore | The Basin: man against machine | `docs/story/houses.md` 4 | 2 |
+| Paul Bunyan | American tall tale | The Basin's scale | `docs/story/houses.md` 4 | 2 |
+| Mercury, Gemini, Apollo, Artemis | NASA programme names from Greek and Roman myth | The Ascent's agents | `docs/story/houses.md` 4 | 1 |
+| Plutus (wealth); Fortuna and her wheel (luck) | Greek; Roman | The Index's agents | `docs/story/houses.md` 4 | 1 |
+| Themis, goddess of divine law and order | Greek | The Charter's agent of Keep | `docs/story/houses.md` 4 | 1 |
+| Merlin; the sleeping king under the hill | Arthurian legend | The Isle | `docs/story/houses.md` 4 | 1 |
+| Albion, an ancient name for Britain | British | The Isle's alternative name | `docs/story/houses.md` | 1 |
+| Boggarts, redcaps, black dogs | British folklore | The Isle's creatures; the Boggart | `docs/story/bestiary.md` | 2 |
+| Pacific wayfinding by stars, swells and birds | Pacific peoples | The Southern Cross | `docs/story/houses.md` | 4 |
+| Drop bear, a predatory koala told to tourists | Modern Australian tall tale | The Southern Cross's creature | `docs/story/bestiary.md` | 2 |
+| Anansi, the Akan spider who owns all stories | West African folklore | The Baobab | `docs/story/houses.md` 4 | 2 |
+| Thoth (writing, knowledge); Ma'at (truth, balance) | Ancient Egyptian | The Baobab | `docs/story/houses.md` 4 | 1 |
+| Ogun and the *orisha* | Yoruba religion, practised today in West Africa and the Americas | The Baobab, archetypes only | `docs/story/houses.md` 4 | 3 |
+| *Ubuntu*: a person is a person through other persons | Southern African philosophy | The Baobab's creed | `docs/story/houses.md` | Philosophy |
+| The palaver tree, where communities gather to talk | West African tradition | The Baobab's street name and humour | `docs/story/houses.md` | Tradition |
+| *Panchatantra*: a teacher turns three princes into rulers through fables | Ancient Indian fables | The Monsoon; ties to the Teacher | `docs/story/houses.md` 5.1 | 2 |
+| Hindu deities | Hinduism | Archetypes only, never agents | `docs/story/houses.md` 5.1 | 3 |
+| Koschei the Deathless: death hidden in a needle, egg, duck, hare, chest, under an oak | Russian fairy tale | The Deathless | `docs/story/houses.md` 5.2 | 2 |
+| Baba Yaga's hut on chicken legs; the Firebird | Slavic folklore | The Deathless | `docs/story/houses.md` 5.2 | 2 |
+| *Popol Vuh*: people made of mud, then wood, then maize | K'iche' Maya creation story | The Canopy; the Reshaping and the Misblessed | `docs/story/houses.md` 5.3 | 1, with care |
+| Aztec, Maya and Inca myth; magical realism | Latin America | The Canopy | `docs/story/houses.md` 5.3 | 1, with care |
+| Enki gives the arts of civilisation; Nabu, god of writing; Gilgamesh seeks a way past death | Mesopotamian | The House of Wisdom | `docs/story/houses.md` 5.4 | 1 |
+| *One Thousand and One Nights*: Scheherazade survives by telling stories | Folk tales | The House of Wisdom | `docs/story/houses.md` 5.4 | 2 |
+| *Dokkaebi* and their magic club that makes anything | Korean folklore | The Foundry | `docs/story/houses.md` 5.5 | 2 |
+| *La Chasse-galerie*: a flying canoe carries lumberjacks home | French-Canadian legend | The Pole Star | `docs/story/houses.md` 5.6 | 2 |
 | The World Tree's roots; three companions changed in the earth's fire | Elizabeth Haydon's *Rhapsody* (1999) | The roots idea; the metamorphosis theme | 12 | Novel |
 | Yggdrasil, the world tree joining the nine worlds | Norse | The Tree | 6.3 | 1 |
 | The world tree as a great ceiba, roots in the underworld, branches in the sky | Maya | The Tree; the Canopy's claim on it | 6.3 | 1, with care |
@@ -630,15 +556,15 @@ Every myth, folk tale, historical fact and outside work this lore leans on, in o
 | China's Three-North Shelter Forest Programme (1978 to 2050) | The northern regreening | 8.1 |
 | The African Union's Great Green Wall (2007; 100 million hectares by 2030), slowed by conflict in the Sahel | The southern regreening and its sabotage | 8.1 |
 | Data centre electricity demand projected by the IEA (2025) to more than double by 2030 | Grounding for the race worsening the Heat | Chat note |
-| Kenya's M-Pesa mobile money (2007) | The Baobab's origins | `docs/houses.md` |
-| India's Aadhaar ID (2009) and UPI payments (2016); 22 constitutionally recognised languages; the summer monsoon brings most of India's rain | The Monsoon | `docs/houses.md` 5.1 |
-| Sputnik (1957) and Gagarin (1961) | The Deathless and the Ascent | `docs/houses.md` 5.2 |
-| Brazil's satellite tracking of Amazon deforestation since the late 1980s; scientists' warnings of a rainforest tipping point | The Canopy | `docs/houses.md` 5.3 |
-| Baghdad's House of Wisdom (9th century); al-Khwarizmi, source of "algebra" and "algorithm" | The House of Wisdom | `docs/houses.md` 5.4 |
-| Research warning parts of the Gulf could pass the limit of heat and humidity the body can cool itself from, later this century | The House of Wisdom and the Heat | `docs/houses.md` 5.4 |
-| The EU AI Act (in force 2024); Britain's historical EU opt-outs | The Charter; the Isle | `docs/houses.md` |
-| Deep-learning research in Toronto and Montreal; Canada, Australia and New Zealand as Commonwealth realms | The Pole Star | `docs/houses.md` 5.6 |
-| Cane toads brought to Queensland in 1935 | The Biocontrol Toad | `docs/bestiary.md` |
+| Kenya's M-Pesa mobile money (2007) | The Baobab's origins | `docs/story/houses.md` |
+| India's Aadhaar ID (2009) and UPI payments (2016); 22 constitutionally recognised languages; the summer monsoon brings most of India's rain | The Monsoon | `docs/story/houses.md` 5.1 |
+| Sputnik (1957) and Gagarin (1961) | The Deathless and the Ascent | `docs/story/houses.md` 5.2 |
+| Brazil's satellite tracking of Amazon deforestation since the late 1980s; scientists' warnings of a rainforest tipping point | The Canopy | `docs/story/houses.md` 5.3 |
+| Baghdad's House of Wisdom (9th century); al-Khwarizmi, source of "algebra" and "algorithm" | The House of Wisdom | `docs/story/houses.md` 5.4 |
+| Research warning parts of the Gulf could pass the limit of heat and humidity the body can cool itself from, later this century | The House of Wisdom and the Heat | `docs/story/houses.md` 5.4 |
+| The EU AI Act (in force 2024); Britain's historical EU opt-outs | The Charter; the Isle | `docs/story/houses.md` |
+| Deep-learning research in Toronto and Montreal; Canada, Australia and New Zealand as Commonwealth realms | The Pole Star | `docs/story/houses.md` 5.6 |
+| Cane toads brought to Queensland in 1935 | The Biocontrol Toad | `docs/story/bestiary.md` |
 | The Kola Superdeep Borehole (Russia, about 12 km by 1989, the deepest hole ever drilled) | The Deathless's deep shafts | 6.1 |
 | Mponeng gold mine, South Africa, about 4 km deep | The Baobab's deep shafts | 6.1 |
 | Rock warms by about 25 to 30 °C per kilometre of depth | Heat from both sides | 6.1 |
@@ -665,10 +591,10 @@ Every myth, folk tale, historical fact and outside work this lore leans on, in o
 | Ecuador's name means "equator"; Cayambe, the highest point on it; Italy's San Marco platform off Kenya; Brazil's Alcântara launch site | Anchor sites considered | 6.3 |
 | Australia and Tuvalu's Falepili Union treaty (2023) | The Drowned Coasts | 8.4 |
 | Svalbard Global Seed Vault (Norway, 2008) | The Ark | 8.4 |
-| Japan's care robots for an ageing society; Korea's semiconductor industry | The Seven; the Foundry | `docs/houses.md` |
-| Disney pulled a Māui costume in 2016 after Pacific Islander criticism | Why tier 4 matters | `docs/houses.md` 4 |
-| ANZSCO (43 sub-major groups), replaced by OSCA in 2024 | The Callings coverage check | `docs/callings.md` |
-| Australian classifications G, PG, M, MA15+, R18+ | Darkness targets | `docs/bestiary.md` |
+| Japan's care robots for an ageing society; Korea's semiconductor industry | The Seven; the Foundry | `docs/story/houses.md` |
+| Disney pulled a Māui costume in 2016 after Pacific Islander criticism | Why tier 4 matters | `docs/story/houses.md` 4 |
+| ANZSCO (43 sub-major groups), replaced by OSCA in 2024 | The Callings coverage check | `docs/story/callings.md` |
+| Australian classifications G, PG, M, MA15+, R18+ | Darkness targets | `docs/story/bestiary.md` |
 
 ### Games, books and films the lore is measured against
 
@@ -677,32 +603,16 @@ Every myth, folk tale, historical fact and outside work this lore leans on, in o
 | *Dungeon Crawler Carl* (Matt Dinniman) | The original inspiration; the originality ledger tracks distance from it | 11 |
 | *Legends of Dune* (Brian Herbert and Kevin J. Anderson); Frank Herbert's *Dune* | Machine minds as powers; Great Houses in the Landsraad | 3.1 |
 | *Horizon Zero Dawn* | AI with a rogue sub-function; the Bloom's risk | 3.1, 8.1 |
-| *Hades* (Supergiant Games, 2020) | Gods giving boons in a run; how many gods a player can track | `docs/houses.md` 8 |
-| *Civilization: Beyond Earth*; *Sid Meier's Alpha Centauri* | Faction naming ("Polystralia" is taken) | `docs/houses.md` 1 |
+| *Hades* (Supergiant Games, 2020) | Gods giving boons in a run; how many gods a player can track | `docs/game/design-notes.md` 6 |
+| *Civilization: Beyond Earth*; *Sid Meier's Alpha Centauri* | Faction naming ("Polystralia" is taken) | `docs/story/houses.md` 1 |
 | *Dark Souls* | Lore pieced together from item descriptions | 2.3 |
 | *Rogue Legacy*; *Darkest Dungeon*; *Dark Souls* (marks left by the dead); *Hades* (progress carried in story) | Precedents for the season and Shade | 9.1 |
-| *Grand Theft Auto* | Style of mock company names | `docs/houses.md` 1 |
+| *Grand Theft Auto* | Style of mock company names | `docs/story/houses.md` 1 |
 | *The Last of Us* | Fungal apocalypse to stay clear of | 8.1 |
 
 ## 15. Next to review
 
-[Decided] The owner's to-do list after the lore pass. Nothing in the game's code has changed yet; these are the reviews to do before it does.
-
-| Review | What's needed | Where it stands |
-|---|---|---|
-| **Backstories** | Check the eight existing ones against the Callings; settle the five proposed (Teacher, Lab Technician, Shift Manager, Receptionist, Nurse) and give them perks | `docs/callings.md` section 5 |
-| **Classes** | Nine classes still carry game-show framing (Hype Man, Quartermaster). Re-theme for a world of Houses and Callings, and decide whether classes are a House's gift like races | Not started |
-| **Races** | Human's stats under the "no benefits, no costs" rule; whether every race fits the Reshaping story; names | `docs/creatures.md` section 2 |
-| **Subplots** | Pick which of 8.4 to use | 8.4 |
-| **The Roots** | Decided: twenty floors; a run is one entrant's full descent in a season (9.1). Next: floor themes per act and floor sizes | 6.0 to 6.2, 9.1 |
-| **Kiribati** | Anchor decided (a floating platform beside it). Take I-Kiribati advice before writing it in detail | 6.3 |
-| **Floor themes** | Twenty floors across four acts; choose the overgrowth's floor | 6.2 |
-| **Names** | Houses' formal and street names; the Known; the word for the player; the arrangement between agents and humanity | 13 |
-| **The Herald's voice** | Lines for each event, written to the pillars | 7 |
-| **Creatures for the four new Houses** | The Monsoon, the Deathless, the Canopy, the House of Wisdom | `docs/creatures.md` section 3 |
-| **Southeast Asia** | Its own House, or part of the Southern Cross | `docs/houses.md` section 5 |
-| **The Teacher's Line** | Where its hidden Calling path leads | `docs/callings.md` section 4 |
-| **House secrets** | Pick which of the thirteen to keep | `docs/houses.md` section 7 |
+The story questions are in `docs/story/open-questions.md`. The game-side reviews (backstories, classes, races, floor sizes) are parked in `docs/game/design-notes.md` section 12 until the story is locked.
 
 ## 16. Does it hold together?
 
@@ -721,11 +631,11 @@ Every myth, folk tale, historical fact and outside work this lore leans on, in o
 - **Scope.** Stop adding; deepen what's here. Brandon Sanderson's third law of magic: expand what you already have before you add something new. Hemingway's iceberg: most of a world stays under the surface.
 - **Real nations.** Read each House's whole profile, secret included, from the point of view of someone from that place.
 
-**How to test it for real.** Tell the friend synopsis (`docs/synopsis.md`) to a few people and ask: what confused you, what do you want to know more about, and which House would you join? Then play.
+**How to test it for real.** Tell the friend synopsis (`docs/story/synopsis.md`) to a few people and ask: what confused you, what do you want to know more about, and which House would you join? Then play.
 
 ## How to use this file
 
-- New content gets a home here (or in `docs/callings.md`) before it goes into `crawler/` data or `godot/data/`.
+- New content gets a home here (or in `docs/story/callings.md`) before it goes into `crawler/` data or `godot/data/`.
 - Any new myth, folk tale or real-world fact the lore uses gets a row in section 14.
 - When an [Open] question is answered, update the entry. When a [Proposed] item is built, change it to [Canon].
 - The Godot port is mid-way through rules parity. Re-theming content should wait until parity is done (P3), so that the content files only change once.

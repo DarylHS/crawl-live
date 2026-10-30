@@ -1,6 +1,6 @@
 # Creatures (draft)
 
-Status: working draft, companion to `docs/world-bible.md`. Where the dungeon's creatures come from, how they keep appearing, and how each House makes its own. Tags as in the bible: **[Decided]**, **[Proposed]**, **[Open]**, **[Canon]**.
+Status: working draft, companion to `docs/story/world-bible.md`. Where the dungeon's creatures come from, how they keep appearing, and how each House makes its own. Tags as in the bible: **[Decided]**, **[Proposed]**, **[Open]**, **[Canon]**.
 
 ## 1. Five origins
 
@@ -24,7 +24,7 @@ Status: working draft, companion to `docs/world-bible.md`. Where the dungeon's c
 | **Nobody** | Mutation and accident |
 | **The Unmoored** | The rogue, working through the cracks |
 
-So a creature can be, say, engineered in the joint era (the Tunnel Brute), storybuilt by a House (the Knockoff Goblin), or mutated by nobody (the Gnawer). The full roster is in `docs/bestiary.md`.
+So a creature can be, say, engineered in the joint era (the Tunnel Brute), storybuilt by a House (the Knockoff Goblin), or mutated by nobody (the Gnawer). The full roster is in `docs/story/bestiary.md`.
 
 **Fair and unfair.** [Proposed] The dungeon's existing rule (world bible 2.2) is that some creatures are fair tests and some aren't. Storybuilt constructs and House nursery creatures are fair: built or allowed by the Houses, and bound by the Shared Law. Mutated creatures and anything the Unmoored makes are not. The player should be able to learn to tell them apart, and the difference matters: a fair trial can be failed and learnt from; an unfair one can just kill you.
 
@@ -60,7 +60,7 @@ This does three things:
 
 Staying Human skips all of it: no time lost, no settling in, no change.
 
-When it goes wrong, the result is the Misblessed (`docs/bestiary.md` section 6). The Houses say it almost never goes wrong.
+When it goes wrong, the result is the Misblessed (`docs/story/bestiary.md` section 6). The Houses say it almost never goes wrong.
 
 **The odds.** [Decided] The chance is low, because nobody would choose this. But some Marks picked up earlier in the run make it likelier. [Proposed] Examples: the Hollow Mark (touched by the Unmoored's creatures), Bloom exposure from the overgrowth, or a second Reshaping offer from a rival House after the first.
 
@@ -87,11 +87,9 @@ When it goes wrong, the result is the Misblessed (`docs/bestiary.md` section 6).
 | Sentient Houseplant | Nourish, Tend | Carry, Guard |
 | Human | Anything, moderately | Nothing |
 
-[Open] Rules change for later: today Human gets +1 to every attribute and +5 HP [Canon]. Under "no benefits, no costs", Human would have no attribute changes, and its advantage would be the open Muster instead. Revisit when the rules are next touched.
-
 ## 3. How each House makes creatures
 
-[Proposed] Each House builds and breeds in its own style, matching its character and boon signature in `docs/houses.md`. Entrants can learn to tell whose trial they're in by what attacks them.
+[Proposed] Each House builds and breeds in its own style, matching its character and boon signature in `docs/story/houses.md`. Entrants can learn to tell whose trial they're in by what attacks them.
 
 | House | Its creatures | Fantasy it borrows from |
 |---|---|---|
@@ -108,22 +106,7 @@ When it goes wrong, the result is the Misblessed (`docs/bestiary.md` section 6).
 
 On borrowing folklore: European and Japanese folklore are widely retold and broadly fair game. Indigenous stories (Aboriginal Australian, Māori, many African and Native American traditions) belong to living communities. Use them only with care and, for a commercial release, with advice from those communities. The drop bear is safe: it's a modern Australian joke with no cultural owner.
 
-## 4. Today's monsters under this lore
-
-[Canon] names; [Proposed] origins. [Decided] Today's monsters are placeholders and can be replaced. This table shows how they'd fit if kept; `docs/bestiary.md` is the fuller draft roster and takes precedence.
-
-| Monster | Origin | Who made it | Note |
-|---|---|---|---|
-| Sewer Gnawer | Mutated | Nobody | Rats changed by the Heat working downwards |
-| Knockoff Goblin | Storybuilt | The Basin | The name already fits. A cheap copy of a fantasy goblin |
-| Feral Vacuum Bot | Feral machine | Nobody (sometimes a Lost agent inside) | Keep exactly as it is |
-| Grumpy Skeleton | Storybuilt | The Charter or the Seven | A machine armature built to look like a skeleton, because people know what a skeleton means |
-| Tunnel Brute | Engineered | Several Houses | Bred to dig the dungeon. When the digging stopped, nobody took them home |
-| Hex Cultist | People | Human | Not creatures at all: people who worship the Houses or the Unmoored. [Open] How dark to go with human enemies |
-| Flesh Golem | Forced | A House nursery | A failed colony organism, grown from tissue and never finished |
-| Shadow Stalker | Unfair | The Unmoored | Its first creature in the roster |
-
-## 5. How the dungeon stays full
+## 4. How the dungeon stays full
 
 [Proposed]
 
@@ -132,10 +115,10 @@ On borrowing folklore: European and Japanese folklore are widely retold and broa
 - **Nurseries leak.** The deeper floors sit close to the Houses' nurseries. Escapes are common, which is why stranger creatures appear further down.
 - **The Heat pushes things down.** Creatures from the upper floors flee the Heat, so the mix shifts as a floor's timer runs out.
 
-## 6. Open questions
+## 5. Open questions
 
-Decided: the race change is permanent; staying Human is allowed, with no benefits and no costs; not every creature is a House's; some come from the joint era before independence; current monsters are placeholders and can be replaced; characters are written out in words (`docs/bestiary.md`) before anything in the game changes.
+Decided: the race change is permanent; staying Human is allowed, with no benefits and no costs; not every creature is a House's; some come from the joint era before independence; current monsters are placeholders and can be replaced; characters are written out in words (`docs/story/bestiary.md`) before anything in the game changes.
 
 1. Human's stats under the new race rule (section 2).
-2. The darkness targets in `docs/bestiary.md` section 1.
+2. The darkness targets in `docs/story/bestiary.md` section 1.
 3. Do players learn which House made a creature, for example through a field guide that fills in as they go?

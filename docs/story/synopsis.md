@@ -1,6 +1,6 @@
 # Synopsis
 
-Two short tellings of the world lore: one to send to a friend, one to tell a five-year-old. Both follow `docs/world-bible.md`; names are working names.
+Two short tellings of the world lore: one to send to a friend, one to tell a five-year-old. Both follow `docs/story/world-bible.md`; names are working names.
 
 ## For a friend
 

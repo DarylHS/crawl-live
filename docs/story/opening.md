@@ -1,6 +1,6 @@
 # Opening sequence (draft)
 
-Status: first draft of a short opening video, about 75 to 90 seconds. Companion to `docs/world-bible.md`; it puts the bible's first law (fire is never unlit) on screen. Tags as in the bible.
+Status: first draft of a short opening video, about 75 to 90 seconds. Companion to `docs/story/world-bible.md`; it puts the bible's first law (fire is never unlit) on screen. Tags as in the bible.
 
 ## Purpose
 
