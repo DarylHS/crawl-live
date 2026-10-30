@@ -56,7 +56,7 @@ var fp := FpController.new()
 var top := TopController.new()
 var telemetry: Telemetry = null    ## the current run's telemetry, held for the run (the bus keeps no reference)
 var logged_runs: int = 0           ## runs written to runs_dir so far
-var load_failed: bool = false      ## the last load found no usable save (the title says so)
+var load_failed: bool = false      ## the last load found no usable save (Python only prints it, and so do we)
 
 
 ## Options (all optional): "seed", "save_path", "runs_dir", "settings_path" (Python's App arguments).
@@ -121,6 +121,7 @@ func load_run() -> bool:
 	var w := SaveGame.load(save_path)
 	if w == null:
 		load_failed = true
+		print("Could not load save: %s" % save_path)
 		return false
 	attach_world(w)
 	return true

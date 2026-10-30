@@ -34,7 +34,7 @@ static func frame(list: HudList, title: String, y: int = 90, h: int = 560) -> vo
 static func wrap(st: HudStyle, text: String, width: int, face: String = "small") -> PackedStringArray:
 	var lines := PackedStringArray()
 	var line := ""
-	for word in text.split(" ", false):
+	for word in text.replace("\t", " ").replace("\n", " ").replace("\r", " ").split(" ", false):
 		var trial := ("%s %s" % [line, word]).strip_edges()
 		if st.width(face, trial) > width and line != "":
 			lines.append(line)

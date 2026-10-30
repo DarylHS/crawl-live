@@ -287,7 +287,7 @@ static func build_shop(st: HudStyle, world: World, cursor: int, mode: String) ->
 			list.text("%d gold" % world.sell_price(key), X0 + 330, y, st.colour("TEXT"), "small")
 			y += 22
 		if rows.is_empty():
-			list.text("Nothing to sell.", X0 + 30, y, st.colour("TEXT_DIM"))
+			list.text("Nothing to sell.", X0 + 30, y, st.colour("TEXT_DIM"), "small")
 		list.text("The shop pays 40% of an item's value. Junk sells too.", X0 + 30, 600, st.colour("TEXT_DIM"), "small")
 	list.centred("Up/Down select   Enter %s   Tab buy/sell   Esc back" % mode, X0 + WIDTH / 2, 650,
 			st.colour("TEXT_DIM"), "small")

@@ -23,6 +23,7 @@ extends Control
 
 var app: AppState = null
 var summary_on_headless: bool = true      ## tests turn this off to run the real scene headless
+var options: Dictionary = {}              ## extra options merged over the command line (tests)
 var _shown: bool = true
 
 
@@ -31,6 +32,7 @@ func _ready() -> void:
 		_print_content_summary()
 		return
 	var args := _parse_args(OS.get_cmdline_user_args())
+	args.merge(options, true)
 	app = game_view.app
 	configure(app, args)
 	app.load_settings()
@@ -44,8 +46,12 @@ func _ready() -> void:
 		print("Crawl Live! seed %d" % app.world.seed)
 
 
-## Apply the command line options (`--seed`, `--pet`, `--save-dir`, `--runs-dir`) to the app.
+## Point the app at the player's files (user://settings.json, user://runs, user://saves/slot1.json) and apply
+## the command line options (`--seed`, `--pet`, `--save-dir`, `--runs-dir`) over them.
 static func configure(target: AppState, args: Dictionary) -> void:
+	target.settings_path = UserSettings.DEFAULT_PATH      # the real player's files unless told otherwise
+	target.runs_dir = "user://runs"
+	target.save_path = SaveGame.slot_path()
 	if args.has("seed"):
 		target.seed_value = int(args["seed"])
 	if args.has("save-dir"):

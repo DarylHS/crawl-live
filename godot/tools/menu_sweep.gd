@@ -84,6 +84,14 @@ func _letter(ch: String) -> void:
 	app.handle_key(K.letter(ch))
 
 
+## A letter key, or "?" for the help key.
+func _kq(name: String) -> void:
+	if name == "?":
+		app.handle_key(K.question())
+	else:
+		_letter(name)
+
+
 func _type(text: String) -> void:
 	for ch in text:
 		_letter(ch)
@@ -233,6 +241,7 @@ func items() -> void:
 	await _shot("inventory")
 	_letter("d")
 	_key(KEY_ESCAPE)
+	_letter("m")                                                    # not in a safe room: a message
 	_to_safe_room(w)
 	_letter("m")
 	_key(KEY_DOWN)
@@ -380,6 +389,22 @@ func skills() -> void:
 	_letter("k")
 	await _shot("skills")
 	_letter("k")
+	await _new(1)                                                   # test_menus_in_first_person...: a Supply Drop
+	w = _begin()
+	w.monsters.clear()
+	w.inventory = ["tonic", "pan"]
+	_letter("i")
+	_letter("s")
+	_key(KEY_ESCAPE)
+	for pair in [["i", KEY_ESCAPE], ["i", ""], ["k", ""], ["l", ""], ["?", ""]]:
+		_kq(pair[0])
+		if pair[0] != "k":
+			_letter("s")
+			_letter("w")
+		if typeof(pair[1]) == TYPE_INT:
+			_key(pair[1])
+		else:
+			_kq(pair[0])
 	w.remote_shop = true
 	app.overlay = "shop"
 	app.cursor = 0

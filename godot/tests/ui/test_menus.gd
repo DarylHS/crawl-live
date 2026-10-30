@@ -377,3 +377,12 @@ func test_the_tracker_over_the_inventory_clears_the_menu() -> void:
 
 func tracker_shows(h: Hud) -> bool:
 	return h.tracker_over.list != null and not h.tracker_over.list.items.is_empty()
+
+
+func test_text_ending_in_an_overhanging_glyph_is_a_pixel_wider() -> void:
+	assert_eq(style.width("big", "INVENTORY"), 118)               # Y overhangs its advance
+	assert_eq(style.width("big", "SAFE ROOM"), 117)
+	assert_eq(style.width("font", "Q / E, Left / Right"), 19 * 9)
+	assert_eq(style.width("font", "W / Up, S"), 9 * 9)
+	assert_eq(style.width("font", "show"), 4 * 9 + 1)             # w
+	assert_eq(style.width("small", "RW"), 2 * 8)                  # the small face has none

@@ -45,3 +45,35 @@ func test_command_line_options_reach_the_app() -> void:
 	assert_eq(a.save_path, "/tmp/x/slot1.json")
 	assert_eq(a.settings_path, "/tmp/x/settings.json")
 	assert_eq(a.runs_dir, "/tmp/y")
+
+
+func test_a_default_main_uses_the_players_files_and_remembers_tab_and_f2() -> void:
+	var a := AppState.new({"settings_path": "", "runs_dir": ""})
+	Main.configure(a, {})
+	assert_eq(a.settings_path, UserSettings.DEFAULT_PATH)
+	assert_eq(a.runs_dir, "user://runs")
+	assert_eq(a.save_path, SaveGame.slot_path())
+	# Tab and F2 survive a restart (an own directory stands in for user://).
+	var dir := TestHelpers.tmp_dir("main_persist")
+	var m: Main = (load("res://scenes/main.tscn") as PackedScene).instantiate()
+	m.summary_on_headless = false
+	m.options = {"save-dir": dir.trim_suffix("/"), "runs-dir": dir + "runs"}
+	add_child_autofree(m)
+	await get_tree().process_frame
+	for _i in 4:
+		get_tree().root.push_input(K.key(KEY_ENTER))
+	await get_tree().process_frame
+	get_tree().root.push_input(K.key(KEY_TAB))
+	get_tree().root.push_input(K.key(KEY_F2))
+	await get_tree().process_frame
+	assert_eq(m.app.view, "top")
+	m.queue_free()
+	await get_tree().process_frame
+	var m2: Main = (load("res://scenes/main.tscn") as PackedScene).instantiate()
+	m2.summary_on_headless = false
+	m2.options = {"save-dir": dir.trim_suffix("/"), "runs-dir": dir + "runs"}
+	add_child_autofree(m2)
+	await get_tree().process_frame
+	assert_eq(m2.app.view, "top")
+	assert_eq(m2.app.settings["render_scale"], "sharp")
+	assert_eq(m2.game_view.fp_view.render_scale, "sharp")

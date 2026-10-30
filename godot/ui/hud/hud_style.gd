@@ -10,6 +10,10 @@ extends RefCounted
 const THEME_PATH := "res://ui/theme/crawl_theme.tres"
 const TYPE := "Crawl"
 
+## Characters whose ink overhangs the advance in each face (measured against pygame's `font.size`): a
+## string ending in one is a pixel wider.
+const OVERHANG := {"font": "wRW_", "big": "wKRWY#%&_"}
+
 var theme: Theme = load(THEME_PATH)
 
 
@@ -30,7 +34,10 @@ func colour(colour_name: String) -> Color:
 
 ## Width and height of `s` in `face`, as pygame's font.size(s): the advance and the line height.
 func measure(face: String, s: String) -> Vector2i:
-	return Vector2i(s.length() * advance(face), line_height(face))
+	var w := s.length() * advance(face)
+	if s != "" and OVERHANG.get(face, "").contains(s[-1]):
+		w += 1                                  # SDL_ttf's size() includes the ink of a last glyph that overhangs its advance
+	return Vector2i(w, line_height(face))
 
 
 ## The whole-pixel advance of every character of a face (the font is monospace): pygame rounds it
