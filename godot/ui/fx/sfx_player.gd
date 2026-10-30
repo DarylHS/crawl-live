@@ -14,6 +14,7 @@ var mixer := SfxMixer.new()
 var played: Array[String] = []        ## every sound started, newest last (tests read it; capped)
 var _players: Array[AudioStreamPlayer] = []
 var _overrides: Dictionary = {}       ## name -> AudioStream or false
+var _made: Dictionary = {}            ## name -> the synthesised AudioStreamWAV
 
 
 func _ready() -> void:
@@ -53,7 +54,8 @@ func play(sound_name: String, pitch: float = 1.0) -> bool:
 	return true
 
 
-## Stop everything playing (leaving the game screen).
+## Stop everything playing. Quit through `Main.quit_game` or wait a moment after this before `quit()`:
+## sounds still playing when the program exits are reported as leaked audio objects.
 func stop_all() -> void:
 	for p in _players:
 		p.stop()
@@ -71,4 +73,15 @@ func _stream(sound_name: String) -> AudioStream:
 				break
 	if _overrides[sound_name] is AudioStream:
 		return _overrides[sound_name]
-	return SfxSynth.stream(sound_name)
+	if not _made.has(sound_name):
+		_made[sound_name] = SfxSynth.stream(sound_name)     # made on first use, kept for the life of this node
+	return _made[sound_name]
+
+
+## Let go of every stream and playback so nothing outlives the node (no leaked audio objects at exit).
+func _exit_tree() -> void:
+	for p in _players:
+		p.stop()
+		p.stream = null
+	_made.clear()
+	_overrides.clear()

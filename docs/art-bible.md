@@ -206,9 +206,21 @@ The owner accepted every recommendation:
 |---|---|
 | 1 | Top-down uses 32 px tiles (32 x 20 tile viewport) with a zoom-out key to the 16 px glyph overview. |
 | 2 | Top-down player sprite: one per race (6). |
-| 3 | First-person weapon view model: yes, added later (P8). |
+| 3 | First-person weapon view model: yes, added in P8 (procedural placeholders, one per starting weapon; see section 8). |
 | 4 | Comedy in props only, no cartoon restyle. |
 | 5 | Single frames for now; idle frames later for bosses only. |
 | 6 | Credit DCSS artists and source pages in-game and in `assets/CREDITS.md`. |
 | 7 | Fill-in art generated procedurally first; commission the ones that matter most (Headliners, vacuum bot) later. |
 | 8 | Acts use badge and sash overlays on the base monster; unique sprites for bosses only. |
+
+## 8. Weapon view model and effects (P8)
+
+Effects are code, not drawn frames: flashes, floating numbers, shake, particles, torch flicker and slides need no art. Two art hooks were added for P9:
+
+| Key | Picture | Notes |
+|---|---|---|
+| `wpn:<item>` (`wpn:pan`, `wpn:cleaver`, `wpn:katana`, `wpn:extinguisher`, `wpn:sledge`) | 80 x 80, binary alpha, the hands and sleeves included | Grip at about x 44, y 62 near the bottom; the sleeves run off the bottom edge. Shown at 1 picture pixel per pixel of the 320 x 200 frame (nearest filter), so it sits in the same pixel grid as the world. |
+| `wpn:blade`, `wpn:blunt`, `wpn:unarmed` | the same, used for any weapon of that style with no picture of its own | `unarmed` is two fists. |
+| `fx:torch_0`, `fx:torch_1` | 32 x 32, the wall torch (bracket and flame) in two flicker frames | Drawn with the billboard shader, fog only. |
+
+The placeholders are drawn by `ui/art/weapon_art.gd` and `SpriteArt.torch`; register real PNGs under those keys (`SpriteArt.register` or the manifest) and nothing else changes. Palette: hands and sleeves use skin tones and a dark blue contestant sleeve with the near-black (20, 16, 24) outline; floating numbers use the accent colours (white hits, gold crits, red damage taken, green healing, blue pet).

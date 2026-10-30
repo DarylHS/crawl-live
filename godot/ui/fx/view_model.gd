@@ -22,6 +22,7 @@ var moving: float = 0.0          ## 0 to 1, how much the camera is moving now
 var dim: bool = false            ## a menu covers the view
 var last_pose: Dictionary = {}   ## the pose drawn last (tests read it)
 var _textures: Dictionary = {}   ## cache key -> ImageTexture
+var _drawn_dim: bool = false
 
 
 func _init() -> void:
@@ -51,7 +52,7 @@ func current_pose() -> Dictionary:
 
 
 func _process(_delta: float) -> void:
-	if visible:
+	if visible and (current_pose() != last_pose or dim != _drawn_dim):   # redraw only when the weapon actually moved
 		queue_redraw()
 
 
@@ -60,6 +61,7 @@ func _draw() -> void:
 	var s := size.x / 320.0
 	var pose := current_pose()
 	last_pose = pose
+	_drawn_dim = dim
 	var pivot := Vector2(size.x * SCREEN_X, size.y - (float(WeaponArt.SIZE) - PIVOT.y) * s + 2.0 * s)
 	var off: Vector2 = pose["off"]
 	var k: float = pose["scale"]

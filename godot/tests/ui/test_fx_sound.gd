@@ -42,13 +42,12 @@ func test_the_sounds_differ_from_each_other() -> void:
 		seen[sig] = n
 
 
-func test_streams_are_16_bit_mono_wavs_made_once() -> void:
+func test_streams_are_16_bit_mono_wavs() -> void:
 	var w := SfxSynth.stream("hit")
 	assert_eq(w.format, AudioStreamWAV.FORMAT_16_BITS)
 	assert_eq(w.mix_rate, SfxSynth.MIX_RATE)
 	assert_false(w.stereo)
 	assert_eq(w.data.size(), SfxSynth.samples("hit").size() * 2)
-	assert_true(SfxSynth.stream("hit") == w)
 
 
 func test_the_mixer_mutes_throttles_and_rotates_voices() -> void:

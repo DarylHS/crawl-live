@@ -673,6 +673,33 @@ P0 ─ S1 ─┬─ S2 ─┬─ S4 ─┐
 
 The same physical key maps to different actions by view and scene (W walks in first-person, moves north on the map, moves the cursor in menus; R rests in play, rerolls on the reveal screen, opens the report on the end screen; L opens attributes in play, loads on the title). `ui/main.gd` resolves this the way `App.handle_key` does: it passes the action and the current context to `AppState`, never letting two contexts handle one press.
 
+F2 = `cycle_render_scale` (P5), F3 = `cycle_effects` and F4 = `cycle_volume` (P8): any screen, saved in the settings file.
+
+### 10.6 Effects and sound (P8)
+
+Effects are decoration driven by what the rules already announce, never by new rules. `FxDirector` (a Node made by `GameView`) subscribes to the `World`'s `EventBus` events, `FxPlan` (a pure table) says which effects each event fires, `FxState` holds their timing, and the views only read it:
+
+| Event | Effects |
+|---|---|
+| `player_attack` | weapon swing (`ViewModel`), "miss" number and sound on a miss |
+| `player_hit` | white flash on the monster, `-N` number, hit sparks, hit sound; crit: gold `CRIT -N!`, more sparks, screen shake, crit sound |
+| `nat20` | "NATURAL 20" text |
+| `damage_taken` | `-N` number low on screen, hurt sound; shake when it is a quarter of your HP |
+| `kill`, `boss_kill` | dust burst, kill sound; bosses add shake and a fanfare |
+| `boss_phase` | the biggest shake, "PHASE TWO", a roar |
+| `bomb` | fire and smoke burst, an orange flash of light (OmniLight3D tween), shake, boom |
+| `box_opened` | the reveal animation (`FxReveal`, `RevealCanvas`: rattle, lid flies off, sparkles) and its two sounds |
+| `step`, `descend`, `achievement`, `item_use`, `item_pickup`, `level_up`, `combat_start`, `player_death`, `pet_hit` | sounds, a heal number and motes, a pet hit flash |
+
+Also always on (no event): a torch flicker on the camera light (dips only, so walls are never brighter than their texture), wall torches with embers (`WallTorches`, a hash of the tile and depth chooses the sites, never the game's RNG), a walking bob, monsters and the pet sliding between tiles (`FxState.track_actor`, 0.14 s), and the weapon view model (`ViewModel` + `WeaponArt`, picture keyed `wpn:<item>` then `wpn:<style>` in `SpriteArt.weapon_view`).
+
+- **Setting.** `settings.json` gains `effects` ("on", "reduced", "off"; F3), `volume` (percent; F4 walks 100, 70, 40, 10, muted) and `muted`. Python ignores the keys (`tests/test_settings.py`). "Reduced" has no shake and no camera bob, half flashes, a third of the particles, a gentler flicker; "off" has no effects at all (the red hurt flash included), sound stays on its own switch. `FxSettings.profile` is the one place that says what each mode means.
+- **Skipping.** `FxDirector.on_key()` runs before every key is handled (`Main`): it finishes the shake, flashes, slides, swing, particle bursts and delayed sounds, and the box animation (`Hud.on_key`). Floating numbers keep drifting. Nothing waits for an effect and nothing queues up (each kind is capped).
+- **Targets.** Events carry the monster key, not its tile, so `FxTargets` picks the nearest monster of that key from the World's list at the moment of the event (the previous frame's snapshot for the dead). A rules change adding `x`, `y` to `player_hit`, `kill` and `bomb` would make this exact; not needed so far.
+- **Sound.** `SfxSynth` makes 19 short sounds from sine, square, saw, triangle and noise voices (deterministic, no RNG); `SfxPlayer` plays them through a pool of 8 `AudioStreamPlayer`s, and a `res://assets/sfx/<name>.wav` or `.ogg` replaces any of them. `godot/tools/export_sfx.gd` writes them as WAV files.
+- **Proof.** `CRAWL_FX=1` makes `tools/trace_run.gd` and `tools/chaos.gd` attach a headless director to every World; `scripts/fx_parity.sh` compares those traces with Python's.
+- **Tools.** `tools/fx_shots.gd` (frame sequences and contact sheets under Xvfb, plus a frame rate test) and `scripts/fx_gif.py`. The pygame pairing tools (`screenshots.gd`, `menu_sweep.gd`) call `GameView.set_plain(true)`, which turns effects off and hides the view model, since pygame has neither.
+
 ---
 
 ## 11. Risks, open questions and parity verdict
@@ -777,6 +804,8 @@ Every pytest test not yet ported is named here, with the slice that must port it
 | (none) | | Every pytest test is ported or covered. P7 ported the last three (`test_new_runs_and_floors_face_the_most_open_way` load part, `test_menus_in_first_person_leave_you_where_you_were`, `test_screenshot_sweep_of_every_screen_in_both_views`) and the menu and screen tests of `test_render.py` into `tests/ui/test_app_state.gd` and `tests/ui/test_menus.gd`. Nothing is deferred to P8-P10 (juice, art and sign-off add features, not ports). |
 
 ### B.2 Notes carried forward to later slices
+
+- **P8 (juice; done) notes for P9 and P10:** files in `ui/fx/` (`FxSettings`, `FxPlan`, `FxState`, `FxTargets`, `FxDirector`, `FxParticles`, `WallTorches`, `ViewModel`, `ViewModelPose`, `FxCanvas`, `FxReveal`, `RevealCanvas`, `SfxSynth`, `SfxMixer`, `SfxPlayer`) and `ui/art/weapon_art.gd`; design in 10.6. Tests: `tests/ui/test_fx_plan.gd`, `test_fx_state.gd`, `test_fx_sound.gd`, `test_fx_scene.gd`. P9: register `wpn:<item>`, `wpn:<style>` and `fx:torch_0/1` art in `SpriteArt`, and drop recorded sounds in `assets/sfx/`. The pygame pairing tools use `GameView.set_plain(true)` so their shots stay comparable. `GameView.fx_director` exists on every GameView (tests included), so tests that count events or timing see the director's reads, never changes. Frame rate under Xvfb software GL at 1280 x 768 (llvmpipe): about 36 FPS with effects off, 34 to 35 on, so effects cost 1 to 3 FPS here.
 
 - **P7 (menus and screens; done) notes for P8 to P10:**
   - Files: `ui/app/app_state.gd` (`AppState`, headless: `scene` title / identity / backstory / pet_select / game, `overlay` "" or inventory / safe / reveal / box / shop / craft / class / contract / report / skills / attributes, `cursor`, `show_help`, creation fields, `view`, settings, save and load, run logging; `handle_key(InputEventKey)` is the one input path, `update(dt, held)` the per frame one, `press(action)` the old action entry point); `ui/menus/` (`MenuKit` frame, wrap, fit; `MenuModels` inventory, safe room, box odds and reveal, shop, craft, class picker, sponsor offer, practice, attributes; `ScreenModels` title, help, identity, backstory, pet pick; `ReportModel` the three charts), all filling a `HudList` in 1280 x 768 pixels at pygame's coordinates; `scenes/hud.tscn` gained the `Menu`, `TrackerOver` and `Help` canvases (the Hud reads the GameView's `app`); `ui/main.gd` (`Main`) only forwards keys and held actions. `GameView` now owns an `AppState` (`game_view.app`) and delegates `view`, `settings`, `blocked`, `press`, `toggle_view`, run logging to it; `FpView.controller` and `TopView.controller` are the app's `fp` and `top`.

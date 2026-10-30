@@ -70,7 +70,6 @@ const SOUNDS := {
 			{"w": "square", "f0": 82, "f1": 78, "t0": 0.15, "dur": 0.2, "vol": 0.8}]],
 }
 
-static var _streams: Dictionary = {}      ## name -> AudioStreamWAV
 
 
 ## Every sound name.
@@ -107,10 +106,8 @@ static func samples(sound_name: String) -> PackedFloat32Array:
 	return mix
 
 
-## An AudioStreamWAV (16-bit mono) for a sound, made once and kept.
+## A new AudioStreamWAV (16-bit mono) for a sound (SfxPlayer keeps the ones it uses).
 static func stream(sound_name: String) -> AudioStreamWAV:
-	if _streams.has(sound_name):
-		return _streams[sound_name]
 	var s := samples(sound_name)
 	var data := PackedByteArray()
 	data.resize(s.size() * 2)
@@ -121,7 +118,6 @@ static func stream(sound_name: String) -> AudioStreamWAV:
 	wav.mix_rate = MIX_RATE
 	wav.stereo = false
 	wav.data = data
-	_streams[sound_name] = wav
 	return wav
 
 

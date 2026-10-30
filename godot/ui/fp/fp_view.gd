@@ -233,10 +233,10 @@ func _apply_fx(w: World, dt: float) -> void:
 ## A short orange flash of light at a world point (a bomb going off): an OmniLight3D whose energy a
 ## Tween fades out. A Tween is Godot's built-in animator for a property: `tween_property(node, "x", to,
 ## seconds)` runs it over time from the main loop, and `kill()` stops it. Visual only.
-func bomb_light(pos: Vector3) -> void:
+func bomb_light(pos: Vector3, strength: float = 1.0) -> void:
 	var light := OmniLight3D.new()
 	light.light_color = Color(1.0, 0.7, 0.35)
-	light.light_energy = 3.0
+	light.light_energy = 3.0 * strength
 	light.omni_range = 4.0
 	light.shadow_enabled = false
 	viewport.add_child(light)

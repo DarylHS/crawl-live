@@ -238,7 +238,9 @@ func _run(seed_value: int) -> void:
 	app.handle_key(K.key(KEY_ESCAPE))                  # (a real Esc would quit this script at once)
 	_check(not app.running, "Esc on the title quits")
 
+	main.game_view.fx_director.sfx.stop_all()
 	main.queue_free()
+	await create_timer(0.3).timeout                    # sounds still playing at exit would be reported as leaked audio objects
 	if failures.is_empty():
 		print("e2e: PASS")
 		quit(0)

@@ -24,6 +24,7 @@ extends Control
 var app: AppState = null
 var note: Label = null                    ## the "Effects: reduced" note F3 and F4 flash at the top (P8)
 var _note_tween: Tween = null
+var _quitting: bool = false
 var summary_on_headless: bool = true      ## tests turn this off to run the real scene headless
 var options: Dictionary = {}              ## extra options merged over the command line (tests)
 var _shown: bool = true
@@ -138,8 +139,17 @@ func _process(delta: float) -> void:
 			held.append(a)
 	app.update(delta, held)
 	_apply_scene()
-	if not app.running:
-		get_tree().quit()
+	if not app.running and not _quitting:
+		quit_game()
+
+
+## Leave the game: stop the sounds and give the audio thread a moment to let go of them, then quit
+## (a sound playing at exit is reported as a leaked audio object).
+func quit_game() -> void:
+	_quitting = true
+	game_view.fx_director.sfx.stop_all()
+	await get_tree().create_timer(0.25).timeout
+	get_tree().quit()
 
 
 ## Show the game view only on the game scene (the other screens cover the window).

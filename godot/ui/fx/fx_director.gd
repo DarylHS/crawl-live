@@ -19,6 +19,9 @@ extends Node
 
 const FIRED_KEEP := 64
 
+## Events handled by every director so far in this process (the parity runs print it to show the effects ran).
+static var events_handled: int = 0
+
 var state := FxState.new()
 var sfx := SfxPlayer.new()
 var app: AppState = null
@@ -119,6 +122,7 @@ func _sync_settings() -> void:
 func handle(event: String, data: Dictionary) -> void:
 	if world == null:
 		return
+	events_handled += 1
 	var tgt: Variant = _target_for(event, data)
 	var ctx := {"mode": state.mode, "max_hp": world.player.max_hp}
 	for e in FxPlan.plan(event, data, ctx):
@@ -203,7 +207,7 @@ func _burst(e: Dictionary, tgt: Variant) -> void:
 			pos = Vector3(tile.x + 0.5, 0.3, tile.y + 0.5)
 	fp_view.particles.burst(e["kind"], pos, int(e["count"]))
 	if e["kind"] == "bomb":
-		fp_view.bomb_light(pos)
+		fp_view.bomb_light(pos, float(state.profile["flash"]))      # dimmer when reduced
 
 
 ## Where a floating number starts, in the view's pixels: over the struck monster's head, low and centred

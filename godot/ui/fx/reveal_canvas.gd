@@ -12,6 +12,7 @@ var colour: Color = Color.WHITE        ## the box tier's colour
 var centre: Vector2 = Vector2(520.0, 312.0)
 var sparkle_scale: float = 1.0         ## particle share from the Effects setting (0 = none)
 var _sparks: CPUParticles2D = null
+var _was_running: bool = false
 
 
 func _init() -> void:
@@ -51,7 +52,10 @@ func update_from(r: FxReveal, tier_colour: Color, mid: Vector2, particles: float
 		_sparks.color_ramp = ramp
 		_sparks.restart()
 		_sparks.emitting = true
-	queue_redraw()
+	var running := r != null and r.running
+	if running or _was_running:                 # no redraw at all while there is no box
+		queue_redraw()
+	_was_running = running
 
 
 func _draw() -> void:

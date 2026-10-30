@@ -24,6 +24,7 @@ var fp: FpView = null
 var world: World = null
 var dir_idx := 0                 ## direction (0-3) the stage faces
 var report: Dictionary = {}
+var perf_mode := "on"            ## the effects mode for the whole run (--mode on|reduced|off), for the frame rate test
 
 
 func _initialize() -> void:
@@ -34,6 +35,7 @@ func _initialize() -> void:
 		quit(2)
 		return
 	seed_value = int(args.get("seed", "1"))
+	perf_mode = String(args.get("mode", "on"))
 	if args.has("only"):
 		only = String(args["only"]).split(",")
 	DirAccess.make_dir_recursive_absolute(out_dir)
@@ -54,7 +56,7 @@ func _run() -> void:
 	app = main.app
 	gv = main.game_view
 	fp = gv.fp_view
-	app.settings["effects"] = "on"
+	app.settings["effects"] = perf_mode
 	app.pet_name = ""
 	_stage(2)
 	await _settle()
@@ -156,6 +158,7 @@ func _record(effect: String, dur: float, trigger: Callable, cols: int = 6) -> vo
 	await _settle(3)
 	gv.fx_director.state.finish()
 	gv.fx_director.state.numbers.clear()
+	await _settle(3)                       # let the cleared state reach the screen before the "before" frame
 	var frames: Array[Image] = []
 	frames.append(_grab())                 # the frame before the trigger
 	trigger.call()
@@ -323,8 +326,8 @@ func _slide() -> void:
 	await _record("slide", 0.4, _step_monster_back, 6)
 
 
-## The torch light flickering and the wall torches, standing near one.
-func _torches() -> void:
+## Put you three tiles from a wall torch, facing it. Returns false when no torch has room.
+func _face_torch() -> bool:
 	var sites := WallTorches.sites_for(world.floor)
 	var f := world.floor
 	for s: Dictionary in sites:
@@ -339,7 +342,14 @@ func _torches() -> void:
 			fp.logic.angle = rad_to_deg(atan2(d.x, -d.y))        # 0 is north, 90 east
 			fp.logic.cam = []
 			fp.refresh(0.0)
-			break
+			return true
+	return false
+
+
+## The torch light flickering and the wall torches, standing near one.
+func _torches() -> void:
+	_stage(2)
+	_face_torch()
 	await _record("torch", 2.0, _noop, 6)
 
 
@@ -362,18 +372,30 @@ func _modes() -> void:
 		app.settings["effects"] = mode
 		_stage(2)
 		await _record("mode_" + mode, 0.5, _emit_everything, 6)
-	app.settings["effects"] = "on"
+	app.settings["effects"] = perf_mode
 
 
-## Frames a second with everything running: torches, a fight's numbers and bursts, walking.
+## Frames a second with everything running: a fight's numbers, bursts and bombs, then wall torches.
 func _perf() -> void:
+	report["perf"] = {"mode": perf_mode, "renderer": RenderingServer.get_current_rendering_driver_name(),
+			"adapter": RenderingServer.get_video_adapter_name(), "window": root.size}
 	var m := _stage(2)
 	world.equipment["weapon"] = "sledge"
+	await _perf_run("fight", 240)
+	m.hp = 999
+	_stage(2)
+	_face_torch()
+	await _perf_run("torches", 240)
+	print("fx_shots: perf ", report["perf"])
+
+
+func _perf_run(label: String, count: int) -> void:
 	await _settle(10)
 	var frames := 0
 	var worst := 0.0
 	var t_all := 0.0
-	while frames < 240:
+	var slow := 0
+	while frames < count:
 		if frames % 20 == 0:
 			world.events.emit("player_attack", {"target": "goblin", "chance": 0.8, "hit": true, "crit": true,
 					"small": true, "boss": false, "roll": 20})
@@ -384,9 +406,8 @@ func _perf() -> void:
 		var dt := main.get_process_delta_time()
 		t_all += dt
 		worst = maxf(worst, dt)
+		slow += int(dt > 1.0 / 30.0)
 		frames += 1
-	m.hp = 999
-	report["perf"] = {"frames": frames, "avg_fps": snappedf(frames / t_all, 0.1), "worst_frame_ms": snappedf(worst * 1000.0, 0.1),
-			"renderer": RenderingServer.get_current_rendering_driver_name(), "adapter": RenderingServer.get_video_adapter_name(),
-			"torches_showing": fp.torches.shown, "window": root.size}
-	print("fx_shots: perf ", report["perf"])
+	report["perf"][label] = {"frames": frames, "avg_fps": snappedf(frames / t_all, 0.1),
+			"worst_frame_ms": snappedf(worst * 1000.0, 0.1), "frames_under_30fps": slow,
+			"torches_showing": fp.torches.shown}
