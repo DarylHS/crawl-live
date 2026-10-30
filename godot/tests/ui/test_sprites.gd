@@ -326,3 +326,17 @@ func test_the_billboard_bar_follows_that_rule() -> void:
 		if s != null and s.visible and s.texture != null and s.texture.get_width() == 64:
 			bars += 1
 	assert_eq(bars, 0)
+
+
+func test_huge_sprites_are_culled_as_python_does() -> void:
+	# Python skips a sprite whose screen size is over VIEW_H * 3 = 600 pixels. An open 8 x 8 floor,
+	# the eye 0.3 tiles from the sprite centre, looking north (screen size is 200 / tz * scale).
+	var f := DungeonFloor.new(8, 8, 1)
+	for y in 8:
+		for x in 8:
+			f.tiles[y][x] = DungeonFloor.FLOOR
+	var cam := [2.5, 2.8, -PI / 2]
+	assert_eq(FpLogic.MAX_SPRITE_PX, 600)
+	assert_false(FpLogic.sprite_column_clear(f, cam, Vector2i(2, 2), 1.0))      # 666 px: culled
+	assert_true(FpLogic.sprite_column_clear(f, cam, Vector2i(2, 2), 0.8))       # 533 px: drawn
+	assert_false(FpLogic.sprite_column_clear(f, cam, Vector2i(2, 2), 0.0))      # under 2 px

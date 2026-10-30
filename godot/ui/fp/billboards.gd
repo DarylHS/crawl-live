@@ -101,7 +101,8 @@ func sync(world: World, cam: Array = []) -> void:
 		var depth := 1.0
 		if not cam.is_empty():
 			depth = (tile.x + 0.5 - cam[0]) * fwd.x + (tile.y + 0.5 - cam[1]) * fwd.y
-			if depth <= MIN_DEPTH:
+			var px_size := int(200.0 / maxf(depth, 1e-6) * float(spec["scale"]))
+			if depth <= MIN_DEPTH or px_size < 2 or px_size > FpLogic.MAX_SPRITE_PX:
 				continue                      # behind you or in your face: Python skips it too
 		spec["depth"] = depth
 		used.append(spec)

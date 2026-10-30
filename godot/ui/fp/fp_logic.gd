@@ -270,6 +270,10 @@ static func wall_distance(floor: DungeonFloor, px: float, py: float, rdx: float,
 	return 1e9
 
 
+## Python's large-sprite cull: a sprite wider than this many screen pixels (VIEW_H x 3) is not drawn.
+const MAX_SPRITE_PX := 600
+
+
 ## Python's rule for drawing a damaged monster's health bar: the sprite must have columns on the
 ## 320 pixel screen and the ray through its centre column must reach it before any wall. `cam` is
 ## [x, y, a]; `scale` the sprite's size as a fraction of the wall height. A sprite closer than 0.2
@@ -292,7 +296,7 @@ static func sprite_column_clear(floor: DungeonFloor, cam: Array, tile: Vector2i,
 	var size := int(200.0 / tz * scale)
 	var lo := maxi(0, screen_x - size / 2)
 	var hi := mini(320, screen_x - size / 2 + size)
-	if size < 2 or lo >= hi:
+	if size < 2 or size > MAX_SPRITE_PX or lo >= hi:
 		return false
 	var col := mini(maxi(screen_x, 0), 319)
 	var camx := 2.0 * col / 320.0 - 1.0
