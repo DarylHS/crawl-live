@@ -28,7 +28,10 @@ var app: AppState = null
 var fp_view: FpView = null
 var world: World = null
 var fired: Array[Dictionary] = []          ## the last effects applied, newest last (tests read it)
-var _snapshot: Array[Dictionary] = []      ## monsters as of the last frame (the dead are gone from the live list)
+var _snapshot: Array[Dictionary] = []      ## monsters as of the end of the last turn or frame (the dead are gone from the live list)
+var _hp_snapshot: Array[Dictionary] = []   ## monsters after the last event, to see who lost HP
+var _consumed: Dictionary = {}             ## ids of snapshot monsters already matched to a death
+var resolved: Variant = null                  ## the creature the last event was about (tests and probes read it)
 var _last_target: Variant = null           ## the monster your last attack was aimed at: {id, key, tile}
 var force_visible: bool = false            ## treat the 3D view as showing (headless tests and the parity runs, with no view)
 var _volume: int = -1
@@ -70,7 +73,7 @@ func bind(new_app: AppState, view: FpView) -> void:
 ## Start listening to a world (a new run or a loaded one).
 func attach_world(w: World) -> void:
 	world = w
-	_snapshot = []
+	_take_snapshot()
 	_last_target = null
 	state.forget_actors()
 	var me: WeakRef = weakref(self)           # a lambda keeps what it captures alive: the bus holds only this weak reference
@@ -101,7 +104,7 @@ func _process(delta: float) -> void:
 	for sound_name in state.advance(delta):
 		sfx.play(sound_name)
 	if world != null:
-		_snapshot = FxTargets.snapshot(world)
+		_take_snapshot()
 
 
 func _sync_settings() -> void:
@@ -124,39 +127,68 @@ func handle(event: String, data: Dictionary) -> void:
 		return
 	events_handled += 1
 	var tgt: Variant = _target_for(event, data)
+	resolved = tgt
 	var ctx := {"mode": state.mode, "max_hp": world.player.max_hp}
 	for e in FxPlan.plan(event, data, ctx):
 		_apply(e, tgt)
+	_hp_snapshot = FxTargets.snapshot(world)    # remember every monster's HP, so the next bite can tell who lost some
+	if event == "turn":
+		_take_snapshot()
 
 
-## Which creature an event is about, or null: the nearest monster of the event's key (see FxTargets).
+## Which creature an event is about, or null. Identity decides, never the key alone: a kill is the monster of
+## the snapshot that is no longer in the World's list, a pet bite the one whose HP just dropped, a bomb the
+## nearest one in sight before it went off, an attack the nearest of the attack's key.
 func _target_for(event: String, data: Dictionary) -> Variant:
 	var p := Vector2i(world.player.x, world.player.y)
 	match event:
 		"player_attack":
 			_last_target = FxTargets.nearest(FxTargets.snapshot(world), p, String(data.get("target", "")))
 			return _last_target
-		"player_hit", "nat20":
+		"player_hit":
+			var struck: Variant = FxTargets.hurt(_hp_snapshot, FxTargets.snapshot(world), p)    # whose HP just dropped
+			if struck != null:
+				_last_target = struck
+			return _last_target
+		"nat20":
 			return _last_target
 		"kill":
-			var key := String(data.get("monster", ""))
-			var by := String(data.get("by", ""))
-			if _last_target != null and _last_target["key"] == key and (by == "melee" or by == "skill"):
-				return _last_target
 			var from := p
-			if by == "pet" and world.active_pet != null:
+			if String(data.get("by", "")) == "pet" and world.active_pet != null:
 				from = Vector2i(world.active_pet.x, world.active_pet.y)
-			return FxTargets.nearest(_snapshot, from, key)
+			var dead: Variant = FxTargets.gone(_snapshot, _live_ids(), from, String(data.get("monster", "")), _consumed)
+			if dead != null:
+				_consumed[dead["id"]] = true
+				return FxTargets.at_now(dead)
+			return null
 		"bomb":
-			var seen: Array = []
+			var seen: Array = []              # everything that stood in sight when the bomb went off, the dead included
 			for a in _snapshot:
-				if world.visible.has(a["tile"]):
-					seen.append(a)
+				var now := FxTargets.at_now(a)
+				if world.visible.has(now["tile"]):
+					seen.append(now)
 			return FxTargets.nearest(seen, p)
 		"pet_hit":
 			if world.active_pet != null:
-				return FxTargets.nearest(FxTargets.snapshot(world), Vector2i(world.active_pet.x, world.active_pet.y))
+				var pt := Vector2i(world.active_pet.x, world.active_pet.y)
+				var now := FxTargets.snapshot(world)
+				var bitten: Variant = FxTargets.hurt(_hp_snapshot, now, pt)
+				return bitten if bitten != null else FxTargets.nearest(now, pt)     # a monster new since the last event: the nearest
 	return null
+
+
+func _live_ids() -> Dictionary:
+	var ids := {}
+	for m in world.monsters:
+		ids[m.get_instance_id()] = true
+	return ids
+
+
+## The "before" picture of the floor: who is where and with how much HP, as of the end of the last turn or frame.
+func _take_snapshot() -> void:
+	_snapshot = FxTargets.snapshot(world)
+	_hp_snapshot = _snapshot
+	_consumed.clear()
 
 
 func _apply(e: Dictionary, tgt: Variant) -> void:
@@ -199,7 +231,7 @@ func _burst(e: Dictionary, tgt: Variant) -> void:
 			var cam := fp_view.logic.cam
 			if cam.is_empty():
 				return
-			pos = Vector3(cam[0] + cos(cam[2]) * 0.45, 0.3, cam[1] + sin(cam[2]) * 0.45)
+			pos = Vector3(cam[0] + cos(cam[2]) * 1.4, 0.3, cam[1] + sin(cam[2]) * 1.4)     # far enough out that the motes are small
 		_:
 			if tgt == null:
 				return

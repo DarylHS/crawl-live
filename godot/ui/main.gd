@@ -42,6 +42,7 @@ func _ready() -> void:
 	game_view.set_input_enabled(false)       # Main takes the keys and routes them through the AppState
 	game_view.fp_view.set_render_scale(app.settings["render_scale"])
 	hud.bind(game_view)
+	get_tree().auto_accept_quit = false       # the window close button goes through quit_game (sounds stopped first)
 	_make_note()
 	app.setting_changed.connect(show_note)
 	_apply_scene()
@@ -140,6 +141,15 @@ func _process(delta: float) -> void:
 	app.update(delta, held)
 	_apply_scene()
 	if not app.running and not _quitting:
+		quit_game()
+
+
+func _exit_tree() -> void:
+	get_tree().auto_accept_quit = true
+
+
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_WM_CLOSE_REQUEST and app != null and not _quitting:
 		quit_game()
 
 

@@ -159,9 +159,10 @@ static func build_reveal(st: HudStyle, world: World, hide_item: bool = false) ->
 	var ev: float = stats[0]
 	var sd: float = stats[1]
 	var v: int = it["value"]
-	var verdict := "above" if v > ev else ("below" if v < ev else "exactly")
-	list.centred("Worth %d gold: %s this box's average of %s (give or take %s)." % [
-			v, verdict, PyFmt.fixed(ev, 1), PyFmt.fixed(sd, 1)], cx, 450, st.colour("TEXT"), "small")
+	if not hide_item:                           # the value gives the item away too
+		var verdict := "above" if v > ev else ("below" if v < ev else "exactly")
+		list.centred("Worth %d gold: %s this box's average of %s (give or take %s)." % [
+				v, verdict, PyFmt.fixed(ev, 1), PyFmt.fixed(sd, 1)], cx, 450, st.colour("TEXT"), "small")
 	var fee := world.reroll_fee(tier)
 	if world.inventory.has(key):
 		list.centred("R: hand it back and reroll for %d gold (you have %d)." % [fee, world.gold], cx, 475,

@@ -43,7 +43,7 @@ static func plan(event: String, data: Dictionary, ctx: Dictionary = {}) -> Array
 			var crit: bool = data.get("crit", false)
 			var dmg := int(data.get("damage", 0))
 			out.append(_sound("crit" if crit else "hit"))
-			_flash(out, p, 1.0 if not crit else 1.0)
+			_flash(out, p, 1.0)
 			_number(out, p, "target", "CRIT -%d!" % dmg if crit else "-%d" % dmg, "crit" if crit else "hit", NUMBER_DUR + (0.25 if crit else 0.0))
 			_burst(out, p, "crit" if crit else "hit", "target", 14 if crit else 6)
 			if crit:
@@ -115,7 +115,7 @@ static func plan(event: String, data: Dictionary, ctx: Dictionary = {}) -> Array
 static func events() -> Array[String]:
 	return ["player_attack", "player_hit", "nat20", "damage_taken", "dodged", "kill", "boss_phase",
 			"boss_kill", "bomb", "pet_hit", "box_opened", "achievement", "step", "descend", "item_use",
-			"item_pickup", "level_up", "combat_start", "player_death"]
+			"item_pickup", "level_up", "combat_start", "player_death", "turn", "riposte"]
 
 
 static func _sound(sound_name: String, delay: float = 0.0) -> Dictionary:

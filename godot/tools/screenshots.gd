@@ -883,10 +883,10 @@ func _timings() -> Dictionary:
 func _window_shot() -> void:
 	var main: Main = (load("res://scenes/main.tscn") as PackedScene).instantiate()
 	var game: GameView = main.get_node("GameView")
-	game.settings_path = ""                  # Tab here must not write the player's settings
-	game.runs_dir = ""
-	game.set_plain(true)
+	main.options = {"save-dir": OS.get_cache_dir().path_join("crawl_shots_scratch"),   # never the player's own settings.json
+			"runs-dir": OS.get_cache_dir().path_join("crawl_shots_scratch/runs")}
 	root.add_child(main)
+	game.set_plain(true)                     # after add_child: Main._ready reloads the settings
 	main.app.seed_value = seed_value
 	for _i in 4:                             # Enter through the title and the creation screens
 		main.app.handle_key(KeyEvents.key(KEY_ENTER))

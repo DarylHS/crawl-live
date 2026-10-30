@@ -18,6 +18,7 @@ var _made: Dictionary = {}            ## name -> the synthesised AudioStreamWAV
 
 
 func _ready() -> void:
+	_add_limiter()
 	for i in mixer.voices:
 		var p := AudioStreamPlayer.new()
 		p.bus = &"Master"
@@ -85,3 +86,18 @@ func _exit_tree() -> void:
 		p.stream = null
 	_made.clear()
 	_overrides.clear()
+
+
+## A limiter on the Master bus (once, shared by every SfxPlayer): stacked sounds, such as a bomb that kills three
+## monsters at once, are squashed under the ceiling instead of clipping.
+static func _add_limiter() -> void:
+	var bus := AudioServer.get_bus_index(&"Master")
+	if bus < 0:
+		return
+	for i in AudioServer.get_bus_effect_count(bus):
+		if AudioServer.get_bus_effect(bus, i) is AudioEffectLimiter:
+			return
+	var lim := AudioEffectLimiter.new()
+	lim.ceiling_db = -3.0                     # 3 dB of headroom
+	lim.threshold_db = -6.0
+	AudioServer.add_bus_effect(bus, lim)

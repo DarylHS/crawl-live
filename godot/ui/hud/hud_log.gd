@@ -6,9 +6,15 @@ extends RefCounted
 
 
 ## [[text, colour Array]] wrapped to `max_w` pixels in the `font` face, the last LOG_LINES of them.
-static func wrapped(style: HudStyle, messages: MessageLog, max_w: int) -> Array:
+## `hold_box` keeps the newest "The ... box contains: ..." line off the log (P8: the box is still rattling).
+static func wrapped(style: HudStyle, messages: MessageLog, max_w: int, hold_box: bool = false) -> Array:
 	var lines: Array = []
-	for entry: Array in messages.recent(HudPlace.LOG_LINES):
+	var entries: Array = messages.recent(HudPlace.LOG_LINES)
+	if hold_box:
+		var more: Array = messages.recent(HudPlace.LOG_LINES + 1)
+		if not more.is_empty() and " box contains: " in String(more[-1][0]):
+			entries = more.slice(0, more.size() - 1)
+	for entry: Array in entries:
 		var line := ""
 		for word in _words(entry[0]):
 			var trial := (line + " " + word).strip_edges()
@@ -48,12 +54,12 @@ static func faded(colour: Array, back: Array, age: int) -> Color:
 
 
 ## Draw the log panel into `list`.
-static func build(list: HudList, world: World) -> void:
+static func build(list: HudList, world: World, hold_box: bool = false) -> void:
 	var st := list.style
 	var y0 := HudPlace.MAP_H
 	list.fill(Rect2i(0, y0, HudPlace.MAP_W, HudPlace.SCREEN_H - y0), st.colour("PANEL_BG"))
 	list.fill(Rect2i(0, y0, HudPlace.MAP_W, 1), st.colour("WALL_DIM"))
-	var lines := wrapped(st, world.messages, HudPlace.MAP_W - 24)
+	var lines := wrapped(st, world.messages, HudPlace.MAP_W - 24, hold_box)
 	var back := Content.table("ui_config")["colours"]["PANEL_BG"] as Array
 	for i in lines.size():
 		var col := faded(lines[i][1], back, lines.size() - 1 - i)

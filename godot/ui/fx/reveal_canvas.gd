@@ -78,10 +78,13 @@ func _draw() -> void:
 			draw_colored_polygon(PackedVector2Array([p1, tip, p2]), Color(1, 1, 0.8, 0.5 * glow))
 	# body: 20 x 12 blocks, with a ribbon down the middle
 	var body := Rect2(o.x - 10 * BLOCK, o.y - 4, 20 * BLOCK, 12 * BLOCK)
-	draw_rect(body.grow(BLOCK), edge)
-	draw_rect(body, colour)
-	draw_rect(Rect2(body.position.x, body.end.y - 3 * BLOCK, body.size.x, 3 * BLOCK), dark)
-	draw_rect(Rect2(body.position.x + 9 * BLOCK, body.position.y, 2 * BLOCK, body.size.y), lite)
+	# the box is drawn over the menu text, so it fades out as soon as the lid goes: the item shows through
+	var ba := clampf(1.0 - lift * 3.0, 0.0, 1.0)
+	if ba > 0.0:
+		draw_rect(body.grow(BLOCK), Color(edge, ba))
+		draw_rect(body, Color(colour, ba))
+		draw_rect(Rect2(body.position.x, body.end.y - 3 * BLOCK, body.size.x, 3 * BLOCK), Color(dark, ba))
+		draw_rect(Rect2(body.position.x + 9 * BLOCK, body.position.y, 2 * BLOCK, body.size.y), Color(lite, ba))
 	# lid: 22 x 4 blocks sitting on the body, rising and turning away as it opens
 	var lid_pos := Vector2(o.x - 11 * BLOCK, o.y - 4 - 4 * BLOCK) + Vector2(lift * 70.0, -lift * 150.0)
 	var fade := 1.0 - clampf(lift * 1.2, 0.0, 1.0)

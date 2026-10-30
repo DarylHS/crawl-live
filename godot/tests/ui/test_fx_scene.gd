@@ -340,9 +340,15 @@ func test_the_reveal_hides_the_item_until_the_lid_opens_and_a_key_shows_it() -> 
 	assert_true(h.reveal.running)
 	var name_text: String = Items.items()["katana"]["name"]
 	assert_false(" ".join(h.menu_texts).contains(name_text), "hidden while the box rattles")
+	assert_false(" ".join(h.menu_texts).contains("Worth"), "the value would give it away too")
+	w.messages.add("The Gold box contains: %s!" % name_text, [255, 196, 64])
+	var held := HudLog.wrapped(h.style, w.messages, 900, true)
+	assert_false(str(held).contains("box contains"), "the log line waits for the lid")
+	assert_true(str(HudLog.wrapped(h.style, w.messages, 900, false)).contains("box contains"))
 	h.reveal.advance(FxReveal.SHAKE_END + 0.01)
 	h.sync()
 	assert_true(" ".join(h.menu_texts).contains(name_text), "shown once it opens")
+	assert_true(" ".join(h.menu_texts).contains("Worth"))
 	# a second box (a reroll) rattles again, and a key shows the item at once
 	w.box_log.append({"tier": "gold", "item": "pan", "value": 10, "ev": 40.0, "rerolled": true, "turn": 0, "reason": ""})
 	w.last_reveal = ["gold", "pan"]
@@ -396,3 +402,118 @@ func _digest(w: World) -> String:
 	return PyJson.dumps({"p": [w.player.x, w.player.y, w.player.hp, w.player.xp, w.player.kills], "turn": w.turn,
 			"depth": w.depth, "gold": w.gold, "state": w.state, "mons": mons, "msgs": msgs,
 			"rng": w.rng.random(), "loot": w.loot_rng.random()})
+
+
+# --- Effects land on the right creature (identity, never the key alone) -----------------------------
+
+## A world with `n` goblins in sight at distinct tiles near you (nearest first), a headless director attached.
+func _goblins(n: int) -> Array:
+	var w := World.new(2, ["dog", ""], _hero())
+	w.monsters.clear()
+	w.update_fov()
+	var spots := TestHelpers.free_tiles_near(w, w.player.x, w.player.y, 4)
+	var chosen: Array = []
+	for t: Vector2i in spots:
+		if w.visible.has(t) and t != Vector2i(w.player.x, w.player.y):
+			chosen.append(t)
+	chosen.sort_custom(func(a: Vector2i, b: Vector2i) -> bool:
+		return FxTargets.cheb(a, Vector2i(w.player.x, w.player.y)) < FxTargets.cheb(b, Vector2i(w.player.x, w.player.y)))
+	var mons: Array = []
+	for i in n:
+		var m := Entities.spawn_monster("goblin", chosen[i].x, chosen[i].y)
+		m.hp = 50
+		m.max_hp = 50
+		w.monsters.append(m)
+		mons.append(m)
+	w.update_fov()
+	return [w, mons, FxDirector.attach_headless(w)]
+
+
+func test_a_skill_or_riposte_kill_lands_on_the_monster_that_died_not_the_last_one_attacked() -> void:
+	var f := _goblins(2)
+	var w: World = f[0]
+	var near: Monster = f[1][0]
+	var far: Monster = f[1][1]
+	var d: FxDirector = f[2]
+	w.events.emit("player_attack", {"target": "goblin", "hit": true, "crit": false})      # aimed at the nearer one
+	assert_eq(d.resolved["id"], near.get_instance_id())
+	w.monsters.erase(far)                                                               # a riposte or skill kills the other
+	w.events.emit("kill", _kill_data("skill"))
+	assert_eq(d.resolved["id"], far.get_instance_id(), "the farther goblin died")
+	assert_eq(d.resolved["tile"], Vector2i(far.x, far.y))
+	d.free()
+
+
+func test_a_bomb_kills_each_dead_monster_and_aims_at_the_nearest_one_in_sight() -> void:
+	var f := _goblins(3)
+	var w: World = f[0]
+	var mons: Array = f[1]
+	var d: FxDirector = f[2]
+	var gone: Array = [mons[0], mons[2]]
+	for m: Monster in gone:
+		w.monsters.erase(m)
+		w.events.emit("kill", _kill_data("bomb"))
+		assert_true([mons[0].get_instance_id(), mons[2].get_instance_id()].has(d.resolved["id"]))
+	w.events.emit("bomb", {"item": "popper", "kills": 2})
+	assert_eq(d.resolved["id"], mons[0].get_instance_id(), "aimed at the nearest")
+	# the two kills were two different monsters
+	d.free()
+	var g := _goblins(3)
+	var w2: World = g[0]
+	var d2: FxDirector = g[2]
+	var ids := {}
+	for i in [2, 0]:
+		w2.monsters.erase(g[1][i])
+		w2.events.emit("kill", _kill_data("bomb"))
+		ids[d2.resolved["id"]] = true
+	assert_eq(ids.size(), 2)
+	d2.free()
+
+
+func test_a_pet_bite_flashes_the_monster_that_lost_hp_even_when_another_is_nearer() -> void:
+	var f := _goblins(2)
+	var w: World = f[0]
+	var near: Monster = f[1][0]
+	var far: Monster = f[1][1]
+	var d: FxDirector = f[2]
+	far.hp -= 4                                                                        # the pet bit the farther one
+	w.events.emit("pet_hit", {"pet": "Rex", "damage": 4})
+	assert_eq(d.resolved["id"], far.get_instance_id())
+	near.hp -= 3
+	w.events.emit("pet_hit", {"pet": "Rex", "damage": 3})
+	assert_eq(d.resolved["id"], near.get_instance_id(), "HP is remembered after each event")
+	d.free()
+
+
+func test_your_own_hit_flashes_the_monster_that_lost_hp() -> void:
+	var f := _goblins(2)
+	var w: World = f[0]
+	var far: Monster = f[1][1]
+	var d: FxDirector = f[2]
+	w.events.emit("player_attack", {"target": "goblin", "hit": true, "crit": false})  # nearest of the key: the near one
+	far.hp -= 5                                                                       # but the blow landed on the far one (a sweep, a riposte)
+	w.events.emit("player_hit", {"target": "goblin", "damage": 5, "crit": false})
+	assert_eq(d.resolved["id"], far.get_instance_id())
+	d.free()
+
+
+func test_stacked_sounds_meet_a_limiter_and_the_window_close_goes_through_quit_game() -> void:
+	var p := SfxPlayer.new()
+	add_child_autofree(p)
+	var bus := AudioServer.get_bus_index(&"Master")
+	var limiters := 0
+	for i in AudioServer.get_bus_effect_count(bus):
+		limiters += int(AudioServer.get_bus_effect(bus, i) is AudioEffectLimiter)
+	assert_eq(limiters, 1)
+	var p2 := SfxPlayer.new()
+	add_child_autofree(p2)
+	limiters = 0
+	for i in AudioServer.get_bus_effect_count(bus):
+		limiters += int(AudioServer.get_bus_effect(bus, i) is AudioEffectLimiter)
+	assert_eq(limiters, 1, "added once, however many players")
+
+
+## A full "kill" payload, as the rules send it (the achievement listeners read every key of it).
+func _kill_data(by: String) -> Dictionary:
+	return {"monster": "goblin", "monster_name": "Goblin", "xp": 5, "style": by, "boss": false, "small": true,
+			"depth": 1, "turn": 1, "by": by, "player_hp": 20, "player_max_hp": 34}

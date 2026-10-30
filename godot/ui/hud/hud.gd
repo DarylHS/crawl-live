@@ -87,7 +87,7 @@ func sync() -> void:
 	game_view.fp_view.hud = overlays
 	panel.show_list(HudPanel.build(w, style))
 	var log_list := HudList.new(style)
-	HudLog.build(log_list, w)
+	HudLog.build(log_list, w, reveal.item_hidden())
 	log_canvas.show_list(log_list)
 	last_tracker = Rect2i()
 	last_toasts = []
