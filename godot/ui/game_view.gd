@@ -39,6 +39,7 @@ func _ready() -> void:
 	top_view.input_enabled = input_enabled
 	fp_view.new_run_requested.connect(func() -> void: new_run_requested.emit())
 	top_view.new_run_requested.connect(func() -> void: new_run_requested.emit())
+	top_view.acted.connect(_after_top_action)
 	_show_view()
 
 
@@ -89,9 +90,11 @@ func press(action: StringName) -> bool:
 			cycle_render_scale()
 			used = true
 	elif world != null:
-		used = fp_view.controller.press(action) if view == "fp" else top_view.controller.press(action)
-		if view == "top":
-			fp_view.controller.after_action()                 # face the open way on a new floor, as Python
+		if view == "fp":
+			used = fp_view.controller.press(action)
+		else:
+			used = top_view.controller.press(action)
+			_after_top_action()
 	log_run_if_over()
 	return used
 
@@ -127,6 +130,14 @@ func set_render_scale(choice: String) -> void:
 	fp_view.set_render_scale(choice)
 	settings["render_scale"] = fp_view.render_scale
 	_save_settings()
+
+
+## After any key used in the map view (real key events and `press`): what Python's handle_key does
+## whatever the view, so a new floor is faced the open way from the arrival tile, whatever you do on
+## the map before Tab back, then log the run if it ended.
+func _after_top_action() -> void:
+	fp_view.controller.after_action()
+	log_run_if_over()
 
 
 func _show_view() -> void:

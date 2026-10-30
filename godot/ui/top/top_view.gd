@@ -42,6 +42,7 @@ var written: int = 0                 ## tiles written to the TileMapLayer by the
 var _floor: DungeonFloor = null
 var _state: PackedByteArray = PackedByteArray()   ## per tile: atlas column + 1 last written, 0 = empty
 signal new_run_requested
+signal acted                       ## a key was used (the parent runs its follow-up: first-person facing, run logging)
 
 
 func _ready() -> void:
@@ -81,6 +82,7 @@ func _unhandled_input(event: InputEvent) -> void:
 				action = a
 				break
 	if action != &"" and controller.press(action):
+		acted.emit()
 		get_viewport().set_input_as_handled()
 
 

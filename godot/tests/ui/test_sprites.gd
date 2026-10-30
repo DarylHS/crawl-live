@@ -266,3 +266,63 @@ func test_billboards_scale_with_the_render_scale_because_they_use_world_units() 
 		for s in _shown(v.billboards):
 			after.append([s.position, s.pixel_size])
 		assert_eq(after, before, choice)
+
+
+# --- The health bar's wall test (Python: the ray through the sprite's centre column) ------------
+
+func _cam_at(x: int, y: int, angle_deg: float) -> Array:
+	return [x + 0.5, y + 0.5, deg_to_rad(angle_deg) - PI / 2]
+
+
+func test_a_bar_is_hidden_when_a_wall_covers_the_sprite_centre_column() -> void:
+	# Seed 1, player (21, 5) looking 135 degrees, a damaged goblin at (23, 7): in tile FOV, but the
+	# ray to its centre hits a nearer wall, so Python draws no bar (found by the verifier).
+	var w := World.new(1)
+	var cam := _cam_at(21, 5, 135.0)
+	var scale_v := 0.62 + 0.03 * 9 / 4.0
+	assert_false(FpLogic.sprite_column_clear(w.floor, cam, Vector2i(23, 7), scale_v))
+
+
+func test_a_bar_shows_down_a_clear_line_and_not_behind_you_or_a_wall() -> void:
+	var w := World.new(1)
+	var f := w.floor
+	var found := false
+	for y in f.height:
+		for x in f.width:
+			if found or not f.walkable(x, y) or f.is_safe(x, y):
+				continue
+			for d in 4:
+				var s: Vector2i = FpLogic.DIRS[d]
+				var run := 0
+				while f.walkable(x + s.x * (run + 1), y + s.y * (run + 1)):
+					run += 1
+				if run >= 3 and not found:
+					found = true
+					var cam := _cam_at(x, y, d * 90.0)
+					assert_true(FpLogic.sprite_column_clear(f, cam, Vector2i(x + 2 * s.x, y + 2 * s.y), 0.6875))
+					assert_false(FpLogic.sprite_column_clear(f, cam, Vector2i(x - s.x, y - s.y), 0.6875), "behind")
+					var beyond := Vector2i(x + s.x * (run + 1), y + s.y * (run + 1))   # inside the wall
+					assert_false(FpLogic.sprite_column_clear(f, cam, beyond, 0.6875), "past the wall")
+	assert_true(found)
+
+
+func test_the_billboard_bar_follows_that_rule() -> void:
+	var v := _view()
+	var w := World.new(1)
+	w.monsters.clear()
+	v.start(w)
+	var g := Entities.spawn_monster("goblin", 23, 7)
+	g.hp = 3
+	w.monsters.append(g)
+	w.player.x = 21
+	w.player.y = 5
+	w.update_fov()
+	v.logic.angle = 135.0
+	v.logic.cam = []
+	v.refresh(0.0)
+	var bars := 0
+	for child in v.billboards.get_children():
+		var s := child as Sprite3D
+		if s != null and s.visible and s.texture != null and s.texture.get_width() == 64:
+			bars += 1
+	assert_eq(bars, 0)

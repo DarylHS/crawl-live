@@ -243,6 +243,62 @@ func animating(world: World) -> bool:
 	return gap[0] != 0.0 or gap[1] != 0.0 or gap[2] != 0.0
 
 
+# --- What a ray sees (Python `_cast` and the health bar test in `_draw_sprites`) ----------------
+
+## Python `_cast` for one ray: the perpendicular distance from (px, py) along (rdx, rdy) to the first
+## wall (or the map edge) by DDA, up to `LIGHT * 2 + 2` cell steps; 1e9 when none is hit.
+static func wall_distance(floor: DungeonFloor, px: float, py: float, rdx: float, rdy: float) -> float:
+	var mx := int(px)
+	var my := int(py)
+	var ddx := absf(1.0 / rdx) if rdx != 0.0 else 1e30
+	var ddy := absf(1.0 / rdy) if rdy != 0.0 else 1e30
+	var sx := -1 if rdx < 0 else 1
+	var sy := -1 if rdy < 0 else 1
+	var sdx := (px - mx) * ddx if rdx < 0 else (mx + 1 - px) * ddx
+	var sdy := (py - my) * ddy if rdy < 0 else (my + 1 - py) * ddy
+	for _i in int(LIGHT * 2) + 2:
+		var side := 0
+		if sdx < sdy:
+			sdx += ddx
+			mx += sx
+		else:
+			sdy += ddy
+			my += sy
+			side = 1
+		if not floor.in_bounds(mx, my) or floor.tiles[my][mx] == DungeonFloor.WALL:
+			return maxf((sdx - ddx) if side == 0 else (sdy - ddy), 1e-3)
+	return 1e9
+
+
+## Python's rule for drawing a damaged monster's health bar: the sprite must have columns on the
+## 320 pixel screen and the ray through its centre column must reach it before any wall. `cam` is
+## [x, y, a]; `scale` the sprite's size as a fraction of the wall height. A sprite closer than 0.2
+## tiles ahead is not drawn at all (false).
+static func sprite_column_clear(floor: DungeonFloor, cam: Array, tile: Vector2i, scale: float) -> bool:
+	var px: float = cam[0]
+	var py: float = cam[1]
+	var dx := cos(float(cam[2]))
+	var dy := sin(float(cam[2]))
+	var plx := -dy * PLANE
+	var ply := dx * PLANE
+	var inv_det := 1.0 / (plx * dy - dx * ply)
+	var rx := tile.x + 0.5 - px
+	var ry := tile.y + 0.5 - py
+	var tx := inv_det * (dy * rx - dx * ry)
+	var tz := inv_det * (-ply * rx + plx * ry)
+	if tz <= 0.2:
+		return false
+	var screen_x := int(160.0 * (1.0 + tx / tz))
+	var size := int(200.0 / tz * scale)
+	var lo := maxi(0, screen_x - size / 2)
+	var hi := mini(320, screen_x - size / 2 + size)
+	if size < 2 or lo >= hi:
+		return false
+	var col := mini(maxi(screen_x, 0), 319)
+	var camx := 2.0 * col / 320.0 - 1.0
+	return wall_distance(floor, px, py, dx + plx * camx, dy + ply * camx) > tz
+
+
 # --- Hurt flash ------------------------------------------------------------------------
 
 ## Note the player's HP once per drawn frame: the flash fires only when the HP deficit grows

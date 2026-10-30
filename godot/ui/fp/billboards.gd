@@ -28,6 +28,8 @@ const SHADOW_ALPHA := 120.0 / 255.0
 static var _fp_cfg: Dictionary = Content.table("ui_config")["firstperson"]
 
 var shown: int = 0                    ## sprites shown after the last sync (tests read it)
+var _floor: DungeonFloor = null       ## the floor and camera of the last sync (the health bar test casts a ray)
+var _cam: Array = []
 var _shader: Shader = load("res://ui/fp/billboard.gdshader")
 var _bar_shader: Shader = load("res://ui/fp/billboard_bar.gdshader")
 var _textures: Dictionary = {}        ## cache key -> ImageTexture
@@ -88,6 +90,8 @@ func specs(world: World) -> Array:
 ## Show a billboard for each thing in `specs`. Cheap enough to call every frame.
 func sync(world: World, cam: Array = []) -> void:
 	var list := specs(world)
+	_floor = world.floor
+	_cam = cam
 	var fwd := Vector2.ZERO
 	if not cam.is_empty():
 		fwd = Vector2(cos(cam[2]), sin(cam[2]))
@@ -133,7 +137,8 @@ func _place(slot: _Slot, spec: Dictionary, fwd: Vector2) -> void:
 		slot.shadow.pixel_size = pixel
 		slot.shadow.position = centre + Vector3(fwd.x, 0.0, fwd.y) * SHADOW_BACK
 	var m: Monster = spec.get("monster")
-	slot.bar.visible = m != null and m.hp < m.max_hp
+	slot.bar.visible = m != null and m.hp < m.max_hp \
+			and (_cam.is_empty() or FpLogic.sprite_column_clear(_floor, _cam, tile, float(spec["scale"])))
 	if slot.bar.visible:
 		var depth: float = spec["depth"]
 		var px := depth / PX_PER_TILE                      # one pixel of the 320 x 200 frame, in tiles

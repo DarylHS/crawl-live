@@ -317,18 +317,44 @@ func test_f2_is_ignored_while_a_menu_blocks_the_view() -> void:
 	assert_eq(g.fp_view.render_scale, "retro")
 
 
-func test_descending_in_the_map_view_faces_the_open_way_on_tab_back() -> void:
-	var g := _game()
-	var w := _world()
-	g.start(w)
-	g.press(&"toggle_view")
-	var floor_before := w.floor
-	var prefer := g.fp_view.logic.facing
-	w.new_floor(2)                                            # what descending does
-	g.press(&"wait")                                          # any map action runs the follow-up
-	assert_false(w.floor == floor_before)
-	var p := w.player
-	assert_eq(g.fp_view.logic.facing, FpLogic.open_facing(w.floor, p.x, p.y, prefer))
+func _key_event(code: Key, shift: bool = false) -> void:
+	for pressed in [true, false]:
+		var e := InputEventKey.new()
+		e.keycode = code
+		e.physical_keycode = code
+		e.shift_pressed = shift
+		e.pressed = pressed
+		if code == KEY_PERIOD:
+			e.unicode = 62 if shift else 46
+		Input.parse_input_event(e)
+		Input.flush_buffered_events()
+
+
+func test_descending_in_the_map_view_faces_the_open_way_from_the_arrival_tile() -> void:
+	# Real key events in the map view: stand on the stairs, ">" , a few steps away, Tab back.
+	for seed_value in [1, 2, 4, 6]:
+		var g := _game()
+		g.set_input_enabled(true)
+		var w := _world(seed_value)
+		w.monsters.clear()
+		g.start(w)
+		g.press(&"toggle_view")
+		w.has_key = true                                      # the stairs are open
+		var st := w.floor.stairs[0]
+		w.player.x = st.x
+		w.player.y = st.y
+		w.update_fov()
+		var prefer := g.fp_view.logic.facing
+		var old_floor := w.floor
+		_key_event(KEY_PERIOD, true)                          # ">": a real descend
+		assert_false(w.floor == old_floor, "descended, seed %d" % seed_value)
+		var arrival := Vector2i(w.player.x, w.player.y)
+		var want := FpLogic.open_facing(w.floor, arrival.x, arrival.y, prefer)
+		for code in [KEY_RIGHT, KEY_LEFT, KEY_DOWN, KEY_UP, KEY_RIGHT, KEY_RIGHT]:   # wander off
+			_key_event(code)
+		assert_ne(Vector2i(w.player.x, w.player.y), arrival, "moved away, seed %d" % seed_value)
+		g.press(&"toggle_view")
+		assert_eq(g.fp_view.logic.facing, want, "faces the open way from the arrival tile, seed %d" % seed_value)
 
 
 func test_renders_each_floor_with_the_overlays() -> void:
