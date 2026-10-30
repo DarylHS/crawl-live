@@ -186,20 +186,67 @@ func test_tracker_draws_with_none_one_and_many_fighters() -> void:
 		assert_true(sizes[0] < sizes[1] and sizes[1] < sizes[2])
 
 
-func test_the_hud_rebuilds_only_when_something_changed() -> void:
+## The canvases' lists as they are on screen now, to compare with a fresh build.
+func _shown(h: Hud) -> Array:
+	var out: Array = []
+	for c: HudCanvas in [h.panel, h.log_canvas, h.chevrons, h.ahead, h.tracker, h.toasts, h.end]:
+		out.append([] if c.list == null else c.list.items.duplicate(true))
+	return out
+
+
+## After each action the HUD must show what a brand new Hud would (nothing stale is kept between frames).
+func _assert_fresh(h: Hud, g: GameView, label: String) -> void:
+	h.sync()
+	var now := _shown(h)
+	var holder := Control.new()
+	add_child_autofree(holder)
+	var fresh: Hud = HUD.instantiate()
+	holder.add_child(fresh)
+	fresh.covered = h.covered
+	fresh.tracker_over_menu = h.tracker_over_menu
+	fresh.bind(g)
+	assert_eq(now, _shown(fresh), label)
+
+
+func test_the_hud_never_shows_stale_lists() -> void:
 	var a := _screen()
+	var g: GameView = a[0]
 	var h: Hud = a[1]
 	var w: World = a[2]
-	var n := h.rebuilds
-	for i in 5:
-		h.sync()
-	assert_eq(h.rebuilds, n)                                # nothing changed: nothing rebuilt
-	w.wait()
-	h.sync()
-	assert_eq(h.rebuilds, n + 1)
-	h.covered = true
-	h.sync()
-	assert_eq(h.rebuilds, n + 2)
+	for i in 210:                                           # fill the 200 line log...
+		w.messages.add("filler %d" % i)
+	_assert_fresh(h, g, "log full")
+	w.messages.add("a message only, with the log already full")    # ...then a message-only change
+	_assert_fresh(h, g, "message at a full log")
+	assert_eq(HudLog.wrapped(style, w.messages, 1000).back()[0], "a message only, with the log already full")
+	w.toasts = [[w.turn, "First", "gold"]]
+	_assert_fresh(h, g, "toast")
+	w.turn += GameConfig.TOAST_TURNS
+	_assert_fresh(h, g, "toast expired")
+	w.toasts = [[w.turn - GameConfig.TOAST_TURNS - 1, "Old", "gold"]]
+	w.toasts.append([w.turn, "Second", "silver"])
+	_assert_fresh(h, g, "a toast replacing an expired one")
+	w.boxes = ["bronze", "bronze"]
+	_assert_fresh(h, g, "boxes")
+	w.boxes = ["silver", "bronze"]                          # a trade-up: same count, different tiers
+	_assert_fresh(h, g, "box trade-up")
+	w.inventory.append("pan")
+	var idx := w.inventory.find("pan")
+	w.equip(idx)
+	_assert_fresh(h, g, "equip (to-hit and damage)")
+	w.pet.hp = maxi(1, w.pet.hp - 3)
+	_assert_fresh(h, g, "pet HP")
+	var m := Entities.spawn_monster("goblin", w.player.x + 1, w.player.y)
+	w.monsters.append(m)
+	w.update_fov()
+	w.combat = Encounter.new(w.player)
+	w.combat.add(w.player, 10, 1)
+	w.combat.add(m, 5, 0)
+	_assert_fresh(h, g, "fight")
+	m.hp -= 1                                               # a monster's HP alone changes the tracker
+	_assert_fresh(h, g, "monster HP")
+	w.combat.spend("move")
+	_assert_fresh(h, g, "pip spent")
 
 
 func test_menus_hide_the_first_person_overlays() -> void:
