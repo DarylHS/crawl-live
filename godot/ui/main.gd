@@ -1,21 +1,19 @@
 extends Control
-## Main scene (P5): a run in the first-person 3D view or the top-down map (Tab), with a PLACEHOLDER status panel and log.
+## Main scene (P6): a run in the first-person 3D view or the top-down map (Tab), with the real HUD (Hud).
 ##
 ##   godot --path godot                              # a random seed, the first companion (cat)
 ##   godot --path godot -- --seed 1234 --pet dog     # a fixed seed; --pet cat|dog|budgie|mouse|none
 ##
-## Title, character creation, the real HUD and menus arrive in P5-P7; until then the Status and
-## Log labels are plain text, and Enter after death or victory starts a new run with a new seed.
+## Title, character creation and menus arrive in P7; until then Enter after death or victory starts
+## a new run with a new seed.
 ## Headless (`godot --headless --path godot`) it still loads every content table, prints a summary
 ## and quits, as the P0 placeholder did.
 
 @onready var game_view: GameView = $GameView
-@onready var status: Label = $Status
-@onready var log_label: Label = $Log
+@onready var hud: Hud = $Hud
 
 var _seed: Variant = null
 var _pet: Variant = null
-var _status_wait: float = 0.0
 
 
 func _ready() -> void:
@@ -36,22 +34,8 @@ func _new_run() -> void:
 	var w := World.new(_seed, _pet, default_hero())
 	_seed = null
 	game_view.start(w)
+	hud.bind(game_view)
 	print("Crawl Live! seed %d" % w.seed)
-
-
-func _process(delta: float) -> void:
-	var w := game_view.world
-	if w == null:
-		return
-	_status_wait -= delta
-	if _status_wait > 0.0:
-		return
-	_status_wait = 0.1
-	status.text = status_text(w, game_view.fp_view.logic, game_view.view)
-	var lines: Array[String] = []
-	for line in w.messages.recent(7):
-		lines.append(line[0])
-	log_label.text = "\n".join(lines)
 
 
 ## Python App's hero when you press Enter through character creation: "Crawler", the first
@@ -59,40 +43,6 @@ func _process(delta: float) -> void:
 static func default_hero() -> Dictionary:
 	return {"name": "Crawler", "gender": Content.table("genders").keys()[0],
 			"backstory": Content.table("backstories").keys()[0]}
-
-
-## The placeholder status panel's text (P6 replaces it with the real side panel).
-static func status_text(w: World, logic: FpLogic, view: String = "fp") -> String:
-	var p := w.player
-	var out: Array[String] = [
-		"Floor %d   Turn %d" % [w.depth, w.turn],
-		"HP %d / %d" % [p.hp, p.max_hp],
-		"Gold %d" % w.gold,
-		"Collapse in %s" % w.timer_text(),
-	]
-	if w.exit_sealed:
-		out.append("Exit sealed")
-	elif w.stairs_locked:
-		out.append("Stairs locked: %s" % w.timer_text(w.stairs_wait))
-	else:
-		out.append("Stairs open")
-	if view == "fp":
-		out.append("Facing %s (%d)" % [logic.compass(), int(logic.angle)])
-	if w.combat != null:
-		var parts: Array[String] = []
-		for part in ["move", "action", "bonus"]:
-			parts.append(part.capitalize() if w.combat.has(part) else "-")
-		out.append("COMBAT round %d: %s" % [w.combat.round, " ".join(parts)])
-	if w.on_stairs:
-		out.append("Stairs here: > or Enter")
-	if w.state == "dead":
-		out.append("\nYou died. Enter: new run")
-	elif w.state == "victory":
-		out.append("\nYou escaped! Enter: new run")
-	out.append("\nW/S walk, A/D strafe, Q/E turn" if view == "fp" else "\nWASD or arrows move")
-	out.append("Space wait, > descend\nTab: map / 3D view, F2: graphics")
-	out.append("%d FPS" % Engine.get_frames_per_second())
-	return "\n".join(out)
 
 
 ## --key value pairs (and bare --flag) from the user arguments after `--`.

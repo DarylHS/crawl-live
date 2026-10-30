@@ -1,0 +1,44 @@
+[gd_resource type="Theme" format=3]
+
+[ext_resource type="FontFile" path="res://assets/fonts/DejaVuSansMono-Bold.ttf" id="1_c6hw3"]
+[ext_resource type="FontFile" path="res://assets/fonts/DejaVuSansMono.ttf" id="2_c856g"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_cudru"]
+bg_color = Color(0.08627451, 0.078431375, 0.11764706, 1)
+
+[resource]
+default_font = ExtResource("2_c856g")
+default_font_size = 15
+Button/colors/font_color = Color(0.88235295, 0.87058824, 0.92156863, 1)
+Crawl/colors/ACCENT = Color(1, 0.76862746, 0.2509804, 1)
+Crawl/colors/BAR_BACK = Color(0.1764706, 0.16470589, 0.22745098, 1)
+Crawl/colors/BG = Color(0.047058824, 0.043137256, 0.0627451, 1)
+Crawl/colors/DANGER = Color(0.92156863, 0.3137255, 0.3137255, 1)
+Crawl/colors/FLOOR_DIM = Color(0.09411765, 0.08627451, 0.12156863, 1)
+Crawl/colors/FLOOR_LIT = Color(0.20392157, 0.1882353, 0.2509804, 1)
+Crawl/colors/GOOD = Color(0.43137255, 0.8235294, 0.47058824, 1)
+Crawl/colors/INFO = Color(0.43137255, 0.6666667, 0.9411765, 1)
+Crawl/colors/LABEL_BACK = Color(0, 0, 0, 0.627451)
+Crawl/colors/PANEL_BG = Color(0.08627451, 0.078431375, 0.11764706, 1)
+Crawl/colors/PLAYER_COLOUR = Color(1, 1, 1, 1)
+Crawl/colors/SAFE_DIM = Color(0.078431375, 0.16470589, 0.11764706, 1)
+Crawl/colors/SAFE_LIT = Color(0.16470589, 0.36078432, 0.2509804, 1)
+Crawl/colors/TEXT = Color(0.88235295, 0.87058824, 0.92156863, 1)
+Crawl/colors/TEXT_DIM = Color(0.50980395, 0.49411765, 0.5686275, 1)
+Crawl/colors/WALL_DIM = Color(0.15686275, 0.14509805, 0.20392157, 1)
+Crawl/colors/WALL_LIT = Color(0.34509805, 0.3137255, 0.43137255, 1)
+Crawl/colors/WARN = Color(1, 0.54901963, 0.15686275, 1)
+Crawl/colors/YOU_ROW = Color(0.23529412, 0.20392157, 0.11764706, 1)
+Crawl/font_sizes/big = 22
+Crawl/font_sizes/font = 15
+Crawl/font_sizes/huge = 56
+Crawl/font_sizes/small = 13
+Crawl/fonts/big = ExtResource("1_c6hw3")
+Crawl/fonts/font = ExtResource("2_c856g")
+Crawl/fonts/huge = ExtResource("1_c6hw3")
+Crawl/fonts/small = ExtResource("2_c856g")
+Label/colors/font_color = Color(0.88235295, 0.87058824, 0.92156863, 1)
+Panel/styles/panel = SubResource("StyleBoxFlat_cudru")
+PanelContainer/styles/panel = SubResource("StyleBoxFlat_cudru")
+RichTextLabel/colors/default_color = Color(0.88235295, 0.87058824, 0.92156863, 1)
+RichTextLabel/colors/font_color = Color(0.88235295, 0.87058824, 0.92156863, 1)

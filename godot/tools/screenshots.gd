@@ -9,6 +9,8 @@ extends SceneTree
 ## record in shots.json: seed, pet, floors made, player tile, look angle, the exact camera
 ## [x, y, a], and any changes made to the world (monsters cleared or spawned, a key, combat).
 ## scripts/fp_compare_shots.py replays shots.json in the pygame raycaster for a side by side.
+## P6 adds the HUD shots, hud_<name>_fp.png and hud_<name>_top.png (the whole 1280 x 768 window with the
+## side panel, log, tracker, toasts and overlays, in both views), replayed in pygame with `Renderer.draw_game`.
 ## It also writes window_start.png (the whole P4 main scene) and timings.json (mesh build time per
 ## floor and frames a second for a scripted walk and turn).
 
@@ -21,6 +23,7 @@ var pet: Variant = null
 var fps_frames := 300
 var gv: GameView = null
 var view: FpView = null
+var hud: Hud = null
 var records: Array = []
 
 
@@ -65,6 +68,7 @@ func _run() -> void:
 	await _shot_sprites()
 	await _shot_scales()
 	_sprite_sheet()
+	await _hud_shots()
 
 	var timings := await _timings()
 	gv.queue_free()
@@ -122,7 +126,7 @@ func _finish(shot_name: String, ctx: Dictionary, with_top: bool = true) -> void:
 	var img := view.capture()
 	img.resize(OUT_W, OUT_H, Image.INTERPOLATE_NEAREST if view.render_scale == "retro" else Image.INTERPOLATE_BILINEAR)
 	img.save_png(out_dir.path_join(shot_name + ".png"))
-	var rec := {"name": shot_name, "view": "fp", "floors": Array(ctx["floors"]), "edits": ctx["edits"],
+	var rec := {"name": shot_name, "view": "fp", "floors": Array(ctx["floors"]), "edits": (ctx["edits"] as Array).duplicate(true),
 			"player": [w.player.x, w.player.y], "angle": view.logic.angle,
 			"cam": view.logic.cam.duplicate(), "grid": view.logic.grid,
 			"combat": w.combat != null, "stairs_locked": w.stairs_locked}
@@ -567,6 +571,262 @@ func _sprite_sheet() -> void:
 		names.append(key)
 	sheet.save_png(out_dir.path_join("sprite_sheet.png"))
 	_save_json("sprite_sheet_keys.json", {"columns": cols, "keys": names})
+
+
+# --- HUD shots (P6) ----------------------------------------------------------------------
+
+## Apply an edit to the world and record it for the pygame replay (scripts/fp_compare_shots.py
+## build_world). Kinds: quiet, place, fight [key | "boss", x, y], player_hp, move, wait, toast,
+## encounter, class, use_skill, box, gold, state, mon / act / boss (see _spawn).
+func _do(ctx: Dictionary, e: Array) -> void:
+	var w: World = ctx["world"]
+	match e[0]:
+		"quiet":
+			_quiet(ctx)
+			return
+		"place":
+			_place(ctx, e[1], e[2])
+			return
+		"mon", "act", "boss":
+			_spawn(ctx, e)
+			return
+		"fight":
+			var m: Monster = Bosses.spawn_boss(w.depth, e[2], e[3]) if e[1] == "boss" \
+					else Entities.spawn_monster(e[1], e[2], e[3])
+			m.hp = 999
+			m.max_hp = 999
+			w.monsters.append(m)
+			w.update_fov()
+			w.join_combat(m)
+			w.combat.round = 1
+			m.stunned = 0 if e.size() > 4 else 99          # a fifth element: awake, so it can react
+		"player_hp":
+			w.player.max_hp = e[1]
+			w.player.hp = e[1]
+		"move":
+			w.move_player(e[1], e[2])
+		"wait":
+			w.wait()
+		"toast":
+			w.add_toast(e[1], e[2], e[3])
+		"encounter":
+			var enc := Encounter.new(w.player)
+			enc.add(w.player, 10, 1)
+			for i in int(e[1]):
+				enc.add(Entities.spawn_monster("goblin", 0, 0), i, 0)
+			w.combat = enc
+		"class":
+			w.choose_class(e[1], e[2])
+		"use_skill":
+			w.use_skill()
+		"box":
+			w.add_box(e[1], "A screenshot test.")
+		"gold":
+			w.gold = int(e[1])
+		"state":
+			w.state = e[1]
+			w.death_cause = e[2]
+	ctx["edits"].append(e)
+
+
+## A straight corridor spot (cardinal) of n open tiles ahead, in a quiet world, with the player placed.
+## Returns [spot, direction index 0-7 (even), step].
+func _hud_corridor(ctx: Dictionary, n: int = 3) -> Array:
+	_do(ctx, ["quiet"])
+	var w: World = ctx["world"]
+	var found: Variant = _corridor(w, n, [0, 2, 4, 6])
+	if found == null:
+		push_error("screenshots.gd: no straight corridor for a HUD shot")
+		return []
+	var spot: Vector2i = found[0]
+	_do(ctx, ["place", spot.x, spot.y])
+	_do(ctx, ["player_hp", 999])
+	return [spot, found[1], FpLogic.DIRS8[found[1]]]
+
+
+## A cardinal spot with an open tile ahead and an open tile behind it (Python test_render `_behind_spot`).
+func _behind_spot(w: World) -> Array:
+	var f := w.floor
+	for y in f.height:
+		for x in f.width:
+			if not _empty(w, x, y) or f.is_safe(x, y):
+				continue
+			for d in [0, 2, 4, 6]:
+				var s: Vector2i = FpLogic.DIRS8[d]
+				if _empty(w, x + s.x, y + s.y) and _empty(w, x - s.x, y - s.y) and not f.is_safe(x - s.x, y - s.y):
+					return [Vector2i(x, y), d, s]
+	return []
+
+
+## Show the world in both views and save the whole window for each: hud_<name>_fp.png and _top.png.
+## angle: the look angle (null = open way); reset_cam false keeps the camera as it is (a mid-glide).
+func _hud_shot(shot_name: String, ctx: Dictionary, angle: Variant = null, reset_cam: bool = true) -> void:
+	var w: World = ctx["world"]
+	if reset_cam:
+		w.update_fov()
+		gv.start(w)
+		if angle != null:
+			view.logic.angle = angle
+		view.controller.sync_combat()
+		view.logic.cam = []
+		view.refresh(0.0)
+	var cam: Array = view.logic.cam.duplicate()
+	var look: float = view.logic.angle
+	var grid: bool = view.logic.grid
+	for v in ["fp", "top"]:
+		gv.set_view(v)
+		for _i in 4:
+			await RenderingServer.frame_post_draw
+		var img := root.get_texture().get_image()
+		var file_name := "hud_%s_%s" % [shot_name, v]
+		img.save_png(out_dir.path_join(file_name + ".png"))
+		records.append({"name": file_name, "view": "hud_" + v, "floors": Array(ctx["floors"]), "edits": (ctx["edits"] as Array).duplicate(true),
+				"player": [w.player.x, w.player.y], "angle": look, "cam": cam, "grid": grid,
+				"combat": w.combat != null, "stairs_locked": w.stairs_locked})
+	gv.set_view("fp")
+
+
+func _hud_shots() -> void:
+	hud = (load("res://scenes/hud.tscn") as PackedScene).instantiate()
+	root.add_child(hud)
+	hud.bind(gv)
+	gv.set_view("fp")
+
+	var ctx := _fresh()                                         # the opening look of a run
+	await _hud_shot("start", ctx)
+
+	ctx = _fresh()                                              # a few steps down a corridor, mid-glide
+	var c := _hud_corridor(ctx, 3)
+	if not c.is_empty():
+		var step: Vector2i = c[2]
+		gv.start(ctx["world"])
+		view.logic.angle = c[1] * 45.0
+		view.logic.cam = []
+		view.refresh(0.0)
+		view.controller.press(&"walk_forward")
+		view.controller.update(0.05, [])
+		view.controller.update(0.05, [])
+		ctx["edits"].append(["move", step.x, step.y])
+		view.refresh(0.0)
+		await _hud_shot("mid_walk", ctx, null, false)
+
+	# A fight: a stunned goblin two tiles ahead (Python test_render `_combat`).
+	ctx = _fresh()
+	c = _hud_corridor(ctx, 3)
+	if not c.is_empty():
+		var spot: Vector2i = c[0]
+		var s: Vector2i = c[2]
+		_do(ctx, ["fight", "goblin", spot.x + 2 * s.x, spot.y + 2 * s.y])
+		await _hud_shot("combat_start", ctx, c[1] * 45.0)
+		_do(ctx, ["move", s.x, s.y])
+		await _hud_shot("combat_mid", ctx, c[1] * 45.0)
+		_do(ctx, ["wait"])
+		_do(ctx, ["move", s.x, s.y])
+		await _hud_shot("combat_attacked", ctx, c[1] * 45.0)
+
+	# The same fight against the floor's Headliner.
+	ctx = _fresh()
+	c = _hud_corridor(ctx, 3)
+	if not c.is_empty():
+		var spot: Vector2i = c[0]
+		var s: Vector2i = c[2]
+		_do(ctx, ["fight", "boss", spot.x + 2 * s.x, spot.y + 2 * s.y])
+		await _hud_shot("combat_boss", ctx, c[1] * 45.0)
+
+	# The tracker with none, one and many fighters (Python test_tracker_draws_with_none_one_and_many_fighters).
+	for n in [0, 1, 12]:
+		ctx = _fresh()
+		_do(ctx, ["encounter", n])
+		await _hud_shot("tracker_%d" % n, ctx)
+
+	# A step that would provoke: a goblin right behind you (Python test_a_step_that_would_provoke...).
+	ctx = _fresh()
+	_do(ctx, ["quiet"])
+	var b := _behind_spot(ctx["world"])
+	if not b.is_empty():
+		var spot: Vector2i = b[0]
+		var s: Vector2i = b[2]
+		_do(ctx, ["place", spot.x, spot.y])
+		_do(ctx, ["player_hp", 999])
+		_do(ctx, ["fight", "goblin", spot.x - s.x, spot.y - s.y, "live"])
+		await _hud_shot("provoke_behind", ctx, b[1] * 45.0)
+		# ... and the log after taking the step the warning named
+		_do(ctx, ["move", s.x, s.y])
+		await _hud_shot("provoke_taken", ctx, b[1] * 45.0)
+
+	# A monster beside you that you cannot see: a red chevron, no fight.
+	ctx = _fresh()
+	_do(ctx, ["quiet"])
+	b = _behind_spot(ctx["world"])
+	if not b.is_empty():
+		var spot: Vector2i = b[0]
+		var d: int = b[1]
+		_do(ctx, ["place", spot.x, spot.y])
+		var right: Vector2i = FpLogic.DIRS8[(d + 2) % 8]
+		var w: World = ctx["world"]
+		if _empty(w, spot.x + right.x, spot.y + right.y):
+			_do(ctx, ["mon", "goblin", "", spot.x + right.x, spot.y + right.y, 1.0])
+			await _hud_shot("chevron_side", ctx, d * 45.0)
+
+	# Toasts: an achievement, then one over a fight (the banner and the toast stack).
+	ctx = _fresh()
+	_do(ctx, ["toast", "Achievement: Test", "gold", "Bronze box. Open it in a safe room."])
+	await _hud_shot("toast", ctx)
+	ctx = _fresh()
+	c = _hud_corridor(ctx, 3)
+	if not c.is_empty():
+		var spot: Vector2i = c[0]
+		var s: Vector2i = c[2]
+		_do(ctx, ["toast", "Achievement: Test", "gold", "Bronze box. Open it in a safe room."])
+		_do(ctx, ["fight", "goblin", spot.x + 2 * s.x, spot.y + 2 * s.y])
+		await _hud_shot("toast_combat", ctx, c[1] * 45.0)
+
+	# The Analyst's Scout Report with monsters in sight.
+	ctx = _fresh()
+	c = _hud_corridor(ctx, 5)
+	if not c.is_empty():
+		var spot: Vector2i = c[0]
+		var s: Vector2i = c[2]
+		_do(ctx, ["class", "human", "analyst"])
+		_do(ctx, ["use_skill"])
+		_do(ctx, ["mon", "goblin", "", spot.x + 2 * s.x, spot.y + 2 * s.y, 1.0])
+		_do(ctx, ["mon", "vacbot", "", spot.x + 3 * s.x, spot.y + 3 * s.y, 0.5])
+		_do(ctx, ["mon", "brute", "", spot.x + 4 * s.x, spot.y + 4 * s.y, 1.0])
+		await _hud_shot("scout", ctx, c[1] * 45.0)
+
+	# A well-stocked panel: class, deal (none), boxes, points to spend.
+	ctx = _fresh()
+	_do(ctx, ["class", "human", "brawler"])
+	_do(ctx, ["box", "bronze"])
+	_do(ctx, ["box", "bronze"])
+	_do(ctx, ["box", "gold"])
+	_do(ctx, ["gold", 1234])
+	await _hud_shot("panel_full", ctx)
+
+	# The safe room and the stairwell hints in the panel.
+	ctx = _fresh()
+	var wr: World = ctx["world"]
+	_do(ctx, ["quiet"])
+	var sc := wr.floor.safe_room.centre()
+	_do(ctx, ["place", sc.x, sc.y])
+	await _hud_shot("safe_room", ctx)
+	ctx = _fresh()
+	wr = ctx["world"]
+	_do(ctx, ["quiet"])
+	var st: Vector2i = wr.floor.stairs[0]
+	_do(ctx, ["place", st.x, st.y])
+	await _hud_shot("stairwell", ctx)
+
+	# The end screens.
+	ctx = _fresh()
+	_do(ctx, ["state", "dead", "Eaten by a Knockoff Goblin on floor 1."])
+	await _hud_shot("death", ctx)
+	ctx = _fresh()
+	_do(ctx, ["state", "victory", null])
+	await _hud_shot("victory", ctx)
+
+	hud.queue_free()
+	await process_frame
 
 
 # --- Timings and the whole window ----------------------------------------------------

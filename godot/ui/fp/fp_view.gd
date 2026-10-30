@@ -204,6 +204,34 @@ func _set_stairs_material(w: World, locked: bool) -> void:
 	floor_mesh.set_surface_override_material(_stairs_slot, mats["stairs_locked"] if locked else null)
 
 
+## Screen rectangles (in this view's coordinates, 1024 x 640 at full size) of your pet and the monsters
+## in sight, from Camera3D.unproject_position: a sprite stands on its tile and is as wide as it is
+## tall. The HUD keeps the initiative tracker clear of them (port plan 10.3).
+func actor_rects() -> Array:
+	var out: Array = []
+	var w := world
+	if w == null or rig.camera == null:
+		return out
+	var cam := rig.camera
+	var vp_size := Vector2(viewport.size)
+	var to_view := (size if size.x > 0.0 else Vector2(1024, 640)) / vp_size
+	for spec: Dictionary in billboards.specs(w):
+		var pet_tile: bool = w.active_pet != null and spec["tile"] == Vector2i(w.active_pet.x, w.active_pet.y)
+		if not spec.has("monster") and not pet_tile:
+			continue
+		var tile: Vector2i = spec["tile"]
+		var height: float = float(spec["scale"]) * FloorMeshBuilder.WALL_H
+		var foot := Vector3(tile.x + 0.5, 0.0, tile.y + 0.5)
+		var head := foot + Vector3(0.0, height, 0.0)
+		if cam.is_position_behind(foot):
+			continue
+		var a := cam.unproject_position(foot) * to_view
+		var b := cam.unproject_position(head) * to_view
+		var h := absf(a.y - b.y)
+		out.append(Rect2i(Vector2i(int(a.x - h / 2.0), int(minf(a.y, b.y))), Vector2i(int(h), int(h))))
+	return out
+
+
 ## The 320 x 200 frame as an Image (call after a frame has been drawn).
 func capture() -> Image:
 	return viewport.get_texture().get_image()

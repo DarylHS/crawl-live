@@ -1,7 +1,8 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene load_steps=4 format=3]
 
 [ext_resource type="Script" path="res://ui/main.gd" id="1"]
 [ext_resource type="PackedScene" path="res://scenes/game_view.tscn" id="2"]
+[ext_resource type="PackedScene" path="res://scenes/hud.tscn" id="3"]
 
 [node name="Main" type="Control"]
 layout_mode = 3
@@ -32,22 +33,5 @@ offset_bottom = 640.0
 grow_horizontal = 1
 grow_vertical = 1
 
-[node name="Status" type="Label" parent="."]
-layout_mode = 0
-offset_left = 1036.0
-offset_top = 12.0
-offset_right = 1272.0
-offset_bottom = 628.0
-theme_override_colors/font_color = Color(0.882, 0.871, 0.922, 1)
-theme_override_font_sizes/font_size = 14
-autowrap_mode = 3
-
-[node name="Log" type="Label" parent="."]
-layout_mode = 0
-offset_left = 12.0
-offset_top = 646.0
-offset_right = 1272.0
-offset_bottom = 764.0
-theme_override_colors/font_color = Color(0.882, 0.871, 0.922, 1)
-theme_override_font_sizes/font_size = 14
-clip_text = true
+[node name="Hud" parent="." instance=ExtResource("3")]
+layout_mode = 1

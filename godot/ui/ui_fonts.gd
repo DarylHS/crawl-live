@@ -1,15 +1,13 @@
 class_name UiFonts
 extends RefCounted
-## The monospace font of the pygame UI (config MONO: DejaVu Sans Mono, then common fallbacks), as a
-## SystemFont so nothing is bundled yet (P7's Theme picks the final font). Every call makes a new
-## font: the owner keeps it, so no font handle lives in a static variable until exit.
+## The monospace font of the pygame UI (config MONO: DejaVu Sans Mono), bundled under
+## assets/fonts/ with its licence (owner decision 6). `mono` hands out the loaded FontFile: Godot's
+## resource cache shares it, so there is nothing to free and no font lives in a static variable.
 
-const NAMES: PackedStringArray = ["DejaVu Sans Mono", "Menlo", "Consolas", "Courier New", "monospace"]
+const REGULAR := "res://assets/fonts/DejaVuSansMono.ttf"
+const BOLD := "res://assets/fonts/DejaVuSansMono-Bold.ttf"
 
 
-## A monospace SystemFont, bold or regular.
-static func mono(bold: bool = false) -> SystemFont:
-	var f := SystemFont.new()
-	f.font_names = NAMES
-	f.font_weight = 700 if bold else 400
-	return f
+## The bundled DejaVu Sans Mono, bold or regular.
+static func mono(bold: bool = false) -> Font:
+	return load(BOLD if bold else REGULAR) as Font

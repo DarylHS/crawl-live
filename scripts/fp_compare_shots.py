@@ -12,6 +12,9 @@ the same world. Each record has a "view":
   fp       crawler/ui/firstperson.py at 320 x 200, scaled to 1024 x 640 with hard pixels (no overlays)
   top      the map view (Renderer.draw_map) cropped to the 1024 x 640 map area
   minimap  the first-person minimap and "Facing X" label, cropped and scaled 3x like the Godot close-up
+  hud_fp / hud_top  the whole 1280 x 768 window through `Renderer.draw_game` (side panel, log, tracker,
+           toasts, chevrons, "ahead" label) in the first-person or map view, with the death and victory
+           overlays when the run has ended (P6)
 and with --side, Godot is pasted left and pygame right. The Godot sprite sheet (sprite_sheet.png) is
 paired with pygame's creature_sprite for the same keys (sprite_sheet in --pygame / --side).
 """
@@ -30,6 +33,8 @@ from crawler.bosses import spawn_act, spawn_boss  # noqa: E402
 from crawler.entities import MONSTERS, PETS, spawn_monster  # noqa: E402
 from crawler.bosses import BOSSES  # noqa: E402
 from crawler.ui.firstperson import TIER_OUTLINE, FirstPersonView, creature_sprite  # noqa: E402
+from crawler.encounter import Encounter  # noqa: E402
+from crawler.ui import screens  # noqa: E402
 from crawler.ui.hud import Renderer  # noqa: E402
 from crawler.world import World  # noqa: E402
 
@@ -75,6 +80,37 @@ def build_world(spec, shot):
             assert w.join_combat(m)
             w.combat.round = 1
             m.stunned = 99
+        elif kind == "fight":                        # a sturdy, stunned fighter and the fight on (P6 shots)
+            m = spawn_boss(w.depth, edit[2], edit[3]) if edit[1] == "boss" else spawn_monster(edit[1], edit[2], edit[3])
+            m.hp = m.max_hp = 999
+            w.monsters.append(m)
+            w.update_fov()
+            assert w.join_combat(m)
+            w.combat.round = 1
+            m.stunned = 0 if len(edit) > 4 else 99
+        elif kind == "player_hp":
+            w.player.max_hp = w.player.hp = edit[1]
+        elif kind == "move":
+            w.move_player(edit[1], edit[2])
+        elif kind == "wait":
+            w.wait()
+        elif kind == "toast":
+            w.add_toast(edit[1], edit[2], edit[3])
+        elif kind == "encounter":
+            w.combat = enc = Encounter(w.player)
+            enc.add(w.player, 10, 1)
+            for i in range(edit[1]):
+                enc.add(spawn_monster("goblin", 0, 0), i, 0)
+        elif kind == "class":
+            assert w.choose_class(edit[1], edit[2])
+        elif kind == "use_skill":
+            assert w.use_skill()
+        elif kind == "box":
+            w.add_box(edit[1], "A screenshot test.")
+        elif kind == "gold":
+            w.gold = edit[1]
+        elif kind == "state":
+            w.state, w.death_cause = edit[1], edit[2]
         else:
             raise ValueError(f"unknown edit {edit!r}")
     w.update_fov()
@@ -102,6 +138,15 @@ def render(spec, shot):
         r.draw_map(screen, w)
         return screen.subsurface((0, 0, *OUT_SIZE)).copy()
     v = _first_person(w, shot)
+    if kind in ("hud_fp", "hud_top"):
+        r = Renderer()
+        screen = pygame.Surface((C.SCREEN_W, C.SCREEN_H))
+        r.draw_game(screen, w, v if kind == "hud_fp" else None, 1, hud=w.state == "playing")
+        if w.state == "dead":
+            screens.draw_death(r, screen, w)
+        elif w.state == "victory":
+            screens.draw_victory(r, screen, w)
+        return screen
     if kind == "minimap":
         screen = pygame.Surface((C.SCREEN_W, C.SCREEN_H))
         v.draw(screen, w, pygame.Rect(0, 0, *OUT_SIZE))

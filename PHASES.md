@@ -55,7 +55,7 @@ The game is being ported to Godot 4 (GDScript) in `godot/`. The Python version s
 - [x] **P3 Bot and data** (stop for review): GDScript bot, 2,000 runs, comparison with Phase 7 data, notebooks re-run.
 - [x] **P4 First-person 3D:** floor meshes or GridMap, per-floor tints and textures, distance fog, torchlight, free look and smooth walking, grid-locked combat camera matching Phase 7.
 - [x] **P5 Entities and top-down:** Sprite3D billboards (placeholders first, art bible sizes, boss-tier outlines), minimap, top-down view (TileMapLayer), Tab switching, settings file.
-- [ ] **P6 HUD and combat UI:** log, side panel, initiative tracker, Move/Action/Bonus pips, provoke warnings and chevrons, banners, toasts, Analyst scout report.
+- [x] **P6 HUD and combat UI:** log, side panel, initiative tracker, Move/Action/Bonus pips, provoke warnings and chevrons, banners, toasts, Analyst scout report.
 - [ ] **P7 Menus and screens:** title, character creation, pet pick, race/class picker, inventory, safe-room menu, loot box odds and reveal, trade-ups, rerolls, shop, crafting, attributes, practice skills, contracts, help for both views, death/victory, run report charts. One Theme resource.
 - [ ] **P8 Juice:** hit flashes, floating damage numbers, screen shake on crits and boss phases, particles (torches, bombs, loot boxes), animated loot box reveal, movement tweens, sound effects.
 - [ ] **P9 Art:** Dungeon Crawl Stone Soup CC0 tiles per the art bible; licence rechecked at the source, attribution in `assets/CREDITS.md`, art snapped to the shared palette.
@@ -257,3 +257,8 @@ The game is being ported to Godot 4 (GDScript) in `godot/`. The Python version s
 - Top-down view (`scenes/top_view.tscn`, TileMapLayer) matches pygame pixel for pixel; minimap and "Facing" label match. Tab switches views and F2 cycles the owner-requested render scale (Retro 320x200 default, Sharp 640x400, Full); both are saved in the settings file. Framing is identical at every scale.
 - The project now defaults to Godot's Compatibility renderer: everything was tuned there, and Forward+ made walls about 13% brighter than pygame. Revisit at P9 if the art moves to a modern lit look.
 - Two verifier failures fixed before merge (bracket pixels, label size, renderer default; then real-key facing after a map-view descent and health bars showing through walls). The bar rule now matches Python on 998,008 test views.
+
+### Port P6: HUD and combat UI
+
+- `scenes/hud.tscn` replaces the placeholder status and log: side panel, message log, initiative tracker with Move / Action / Bonus pips, toasts and the two-round combat banner, first-person chevrons and "ahead" label with the provoke warning, the Analyst's Scout Report, and the death and victory overlays, all at pygame's layout and wording (1280 x 768). Decisions live in headless models under `ui/hud/`; one Theme (`ui/theme/crawl_theme.tres`) holds the config colours and the bundled DejaVu Sans Mono.
+- Side-by-side shots against pygame (`godot/tools/screenshots.gd` and `scripts/fp_compare_shots.py`) match to within a pixel or two of text placement; the 3D part differs only as in P4.
