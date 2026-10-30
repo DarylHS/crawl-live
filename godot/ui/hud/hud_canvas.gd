@@ -5,7 +5,7 @@ extends Control
 ## (redrawing only when it differs from what is already on screen).
 ##
 ## Text is drawn with the Theme's fonts at pygame's positions (top-left of the text, so the baseline is
-## the font's ascent below). Frames are drawn inside their rectangle as pygame's `draw.rect(width=n)`.
+## the font's ascent below), character by character at the face's whole-pixel advance. Frames are drawn inside their rectangle as pygame's `draw.rect(width=n)`.
 
 var list: HudList = null
 var _shown: Array = []
@@ -35,8 +35,12 @@ func _draw() -> void:
 				var face: String = it["f"]
 				var font := st.font(face)
 				var sz := st.face_size(face)
-				draw_string(font, Vector2(it["x"], it["y"] + font.get_ascent(sz)), it["s"],
-						HORIZONTAL_ALIGNMENT_LEFT, -1, sz, it["c"])
+				var adv := st.advance(face)
+				var base: float = it["y"] + font.get_ascent(sz)
+				var s: String = it["s"]
+				for i in s.length():                  # one character at a time, at pygame's whole-pixel advance
+					if s[i] != " ":
+						draw_char(font, Vector2(it["x"] + i * adv, base), s[i], sz, it["c"])
 			"r":
 				draw_rect(Rect2(it["r"]), it["c"])
 			"f":

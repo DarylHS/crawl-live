@@ -36,6 +36,8 @@ var last_toasts: Array[Rect2i] = []   ## the toast rectangles drawn last
 var ahead_text: String = ""        ## the "ahead" label's text ("" when not shown)
 var ahead_rect := Rect2i()         ## the "ahead" label's text rectangle
 var _tracker_model := HudTracker.new()
+var _signature: Array = []         ## what the lists were last built from; unchanged means nothing to rebuild
+var rebuilds: int = 0              ## how many times sync rebuilt the lists (tests, timings)
 
 
 ## Attach to the GameView this HUD draws for and draw once.
@@ -52,9 +54,15 @@ func _process(_delta: float) -> void:
 func sync() -> void:
 	var w: World = null if game_view == null else game_view.world
 	if w == null:
+		_signature = []
 		for c: HudCanvas in [panel, log_canvas, chevrons, ahead, tracker, toasts, end]:
 			c.show_list(null)
 		return
+	var sig := _sig(w)
+	if sig == _signature:
+		return
+	_signature = sig
+	rebuilds += 1
 	var playing := w.state == "playing"
 	var overlays := playing and not covered
 	game_view.fp_view.hud = overlays
@@ -103,7 +111,9 @@ func sync() -> void:
 ## in sight, projected with Camera3D.unproject_position (you are not on screen).
 func actor_rects(w: World) -> Array:
 	if game_view.view == "fp":
-		return game_view.fp_view.actor_rects()
+		var out: Array = [Rect2i(-100000, -100000, 0, 0)]       # avoid[0] is "you" in the map view: nobody here
+		out.append_array(game_view.fp_view.actor_rects())
+		return out
 	var tile := TopView.TILE
 	var cam := TopView.camera(w)
 	var ents: Array = [w.player]
@@ -117,3 +127,19 @@ func actor_rects(w: World) -> Array:
 		out.append(Rect2i((e.x - cam.x) * tile, (e.y - cam.y) * tile, tile, tile))
 	return out
 
+
+
+## Everything the HUD draws depends on: the run's numbers that change as you play (turn, HP, XP, gold,
+## points, class cooldown, scout time, the fight's round and budget, messages and toasts), the view,
+## the look angle and camera pose (chevrons, label and sprite rectangles move as you glide), and the
+## flags P7 sets. Equal signatures mean the same lists, so sync does nothing.
+func _sig(w: World) -> Array:
+	var p := w.player
+	var enc := w.combat
+	var fp := game_view.fp_view.logic
+	return [w.get_instance_id(), w.turn, w.state, w.depth, p.x, p.y, p.hp, p.max_hp, p.xp, p.level, p.stat_points,
+			w.gold, w.viewers, w.skill_cooldown, w.scout_turns, w.timer, w.exit_sealed, w.has_key,
+			w.boxes.size(), w.messages.lines.size(), w.toasts.size(), w.monsters.size(), w.floor,
+			enc != null, enc.round if enc != null else 0, enc.budget.duplicate() if enc != null else {},
+			enc.order.size() if enc != null else 0,
+			game_view.view, fp.angle, fp.cam, covered, tracker_over_menu]

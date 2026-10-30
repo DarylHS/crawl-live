@@ -30,9 +30,14 @@ func colour(colour_name: String) -> Color:
 
 ## Width and height of `s` in `face`, as pygame's font.size(s): the advance and the line height.
 func measure(face: String, s: String) -> Vector2i:
-	var f := font(face)
-	var sz := face_size(face)
-	return Vector2i(ceili(f.get_string_size(s, HORIZONTAL_ALIGNMENT_LEFT, -1, sz).x), line_height(face))
+	return Vector2i(s.length() * advance(face), line_height(face))
+
+
+## The whole-pixel advance of every character of a face (the font is monospace): pygame rounds it
+## (8, 9, 13 and 34 px for the 13, 15, 22 and 56 px faces), and HudCanvas draws each character at
+## this spacing so lines are as wide as pygame's.
+func advance(face: String) -> int:
+	return roundi(font(face).get_char_size(77, face_size(face)).x)       # "M"
 
 
 ## Width only (pygame `font.size(s)[0]`).

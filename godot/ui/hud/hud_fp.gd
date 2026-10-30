@@ -77,7 +77,7 @@ static func build_chevrons(list: HudList, world: World, logic: FpLogic, rect: Re
 	for ch: Dictionary in chevrons(world, logic.angle, rect, prov):
 		var colour := list.style.colour("WARN") if ch["provoked"] else list.style.colour("DANGER")
 		list.polygon(ch["pts"], colour)
-		list.centred(ch["text"], ch["pos"].x, ch["pos"].y, colour, "big")
+		list.centred(ch["text"], ch["pos"].x, ch["pos"].y, colour, "fp_big")
 
 
 ## The hint for steps that would provoke, "S / A provoke the Knockoff Goblin", or "" when none would.
@@ -116,10 +116,10 @@ static func build_ahead(list: HudList, world: World, logic: FpLogic, rect: Rect2
 	var union := Rect2i()
 	var first := true
 	for line: Dictionary in lines:
-		var m := st.measure("big", line["text"])
+		var m := st.measure("fp_big", line["text"])
 		var r := Rect2i(rect.position.x + rect.size.x / 2 - m.x / 2, y, m.x, m.y)
 		list.fill(Rect2i(r.position.x - 10, r.position.y - 4, r.size.x + 20, r.size.y + 8), st.colour("LABEL_BACK"))
-		list.text(line["text"], r.position.x, r.position.y, st.colour(line["colour"]), "big")
+		list.text(line["text"], r.position.x, r.position.y, st.colour(line["colour"]), "fp_big")
 		union = r if first else union.merge(r)
 		first = false
 		y = r.end.y + 10

@@ -5,13 +5,15 @@ extends SceneTree
 ##   godot --headless --path godot -s res://tools/make_theme.gd
 ##
 ## Colours and faces sit under the custom type "Crawl" (read through HudStyle); the stock Control
-## types get the same font, text colour and panel look so P7's menus start from it. tests/ui/test_hud_style.gd
+## types get the same font, text colour and panel look so P7's menus start from it. tests/ui/test_hud.gd
 ## checks the saved file against ui_config.json, so a colour change in the config shows up as a failure
 ## until this tool is run again.
 
 const OUT := "res://ui/theme/crawl_theme.tres"
-## face name -> [bold, pixel size] (crawler/ui/hud.py Renderer fonts).
-const FACES := {"font": [false, 15], "small": [false, 13], "big": [true, 22], "huge": [true, 56]}
+## face name -> [bold, pixel size] (crawler/ui/hud.py Renderer fonts; fp_big is the first-person view's own 18 px bold,
+## firstperson.py, for the chevron and "ahead" labels).
+const FACES := {"font": [false, 15], "small": [false, 13], "big": [true, 22], "huge": [true, 56],
+		"fp_big": [true, 18]}
 ## Colours written as literals in crawler/ui/hud.py: the bar track, your row in the tracker, the dark
 ## strip behind the first-person labels.
 const HUD_COLOURS := {"BAR_BACK": [45, 42, 58], "YOU_ROW": [60, 52, 30], "LABEL_BACK": [0, 0, 0, 160]}

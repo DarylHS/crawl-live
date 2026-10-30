@@ -186,6 +186,22 @@ func test_tracker_draws_with_none_one_and_many_fighters() -> void:
 		assert_true(sizes[0] < sizes[1] and sizes[1] < sizes[2])
 
 
+func test_the_hud_rebuilds_only_when_something_changed() -> void:
+	var a := _screen()
+	var h: Hud = a[1]
+	var w: World = a[2]
+	var n := h.rebuilds
+	for i in 5:
+		h.sync()
+	assert_eq(h.rebuilds, n)                                # nothing changed: nothing rebuilt
+	w.wait()
+	h.sync()
+	assert_eq(h.rebuilds, n + 1)
+	h.covered = true
+	h.sync()
+	assert_eq(h.rebuilds, n + 2)
+
+
 func test_menus_hide_the_first_person_overlays() -> void:
 	var a := _screen()
 	var g: GameView = a[0]
@@ -288,22 +304,24 @@ func test_boxes_over_the_map_never_hide_you_in_a_top_left_corner() -> void:
 	w.player.x = best.x
 	w.player.y = best.y
 	w.update_fov()
-	var n := 0
-	for dd in FpLogic.DIRS8:
+	for n in FpLogic.DIRS8.size():                          # Python: the first three of the eight directions
+		var dd: Vector2i = FpLogic.DIRS8[n]
 		if _empty(w, best.x + dd.x, best.y + dd.y) and n < 3:
 			var m := Entities.spawn_monster("goblin", best.x + dd.x, best.y + dd.y)
 			m.stunned = 99
 			w.monsters.append(m)
 			w.join_combat(m)
-			n += 1
 	w.add_toast("Achievement: Test", "gold", "Bronze box. Open it in a safe room.")
 	h.sync()
 	var actors := h.actor_rects(w)
 	assert_lt(actors[0].position.x, 18 * 16)
 	assert_lt(actors[0].position.y, 15 * 16)
-	assert_false(h.last_tracker.intersects(actors[0]))
-	for t in h.last_toasts:
-		for r: Rect2i in actors:
+	assert_gt(actors.size(), 2)                             # you and the fighters
+	assert_ne(h.last_tracker, Rect2i())
+	assert_false(h.last_toasts.is_empty())
+	for r: Rect2i in actors:
+		assert_false(h.last_tracker.intersects(r))
+		for t in h.last_toasts:
 			assert_false(t.intersects(r))
 
 
@@ -489,6 +507,9 @@ func test_theme_matches_the_config_colours_and_font() -> void:
 	assert_eq(style.face_size("small"), 13)
 	assert_eq(style.face_size("big"), 22)
 	assert_eq(style.face_size("huge"), 56)
+	assert_eq(style.face_size("fp_big"), 18)                  # the first-person labels' own bold face
+	assert_eq(style.font("fp_big"), style.font("big"))        # the same bold font file
+	assert_eq([style.advance("small"), style.advance("font"), style.advance("big"), style.advance("huge")], [8, 9, 13, 34])
 	assert_true(style.font("big").get_font_name().begins_with("DejaVu Sans Mono"))
 	assert_eq(style.width("font", "abcd") % 4, 0)             # monospace, whole pixels
 

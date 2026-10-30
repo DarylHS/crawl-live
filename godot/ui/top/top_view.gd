@@ -123,7 +123,7 @@ func refresh() -> void:
 	map_node.position = Vector2(-cam_tile * TILE)
 	written = _sync_terrain(w)
 	marks.set_world(w, cam_tile)
-	modulate = Color.WHITE if hud else Color(0.65, 0.65, 0.65)
+	modulate = Color.WHITE                  # Python never dims the map view; only the 3D view darkens itself
 
 
 ## Write the tiles of the window whose look changed; returns how many were written.
