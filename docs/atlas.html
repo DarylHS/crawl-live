@@ -230,6 +230,11 @@ ol.beats { margin: 0; padding-left: 22px; display: grid; gap: 10px; font-size: 0
 ol.beats li::marker { font-family: var(--font-data); font-weight: 600; color: var(--accent); }
 ol.branches { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; font-size: 0.92rem; }
 ol.branches b { font-family: var(--font-data); color: var(--corp); margin-right: 6px; }
+.flow { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 10px; align-items: stretch; }
+.flow .step { position: relative; }
+.flow .step.roll { border-left: 3px solid var(--bad); }
+.flow .step.manifest { border-left: 3px solid var(--good); }
+.flow .step.shade { border-left: 3px solid var(--accent); }
 footer { margin-top: 48px; padding-top: 16px; border-top: 1px solid var(--line); font-size: 0.82rem; color: var(--muted); display: grid; gap: 4px; }
 
 @media (max-width: 640px) {
@@ -597,6 +602,29 @@ footer { margin-top: 48px; padding-top: 16px; border-top: 1px solid var(--line);
 
     <section class="block">
       <div class="section-head">
+        <span class="eyebrow">How the game is played</span>
+        <h2>The season, and Shade</h2>
+        <p class="muted">A cohort of entrants goes down one at a time while the world carries on. Each run is one entrant's full descent. Death is permanent. Every new entrant starts from a random city entrance, so Act I brings a new local House, new environments, creatures and people.</p>
+      </div>
+      <div class="grid g2">
+        <div class="panel"><span class="eyebrow">Ledger of the fallen</span><h3>The Roll</h3><p>Every entrant who dies, by name, kept by the Steward.</p></div>
+        <div class="panel"><span class="eyebrow">Ledger of the boarded</span><h3>The Manifest</h3><p>Every entrant who boards. The season's goal: as many names here as possible before the Launch Window closes and the ships go.</p></div>
+      </div>
+      <div class="section-head">
+        <span class="eyebrow">You plant trees whose shade you'll never sit in</span>
+        <h3>Shade: what each entrant leaves for the next</h3>
+      </div>
+      <div class="grid g4">
+        <div class="panel"><h3>The bequest</h3><p>During the death rite, after the bell and the name, the Herald asks what you'll leave behind: one item from your pack, waiting for the next entrant.</p></div>
+        <div class="panel"><h3>Secrets stay found</h3><p>Anything uncovered stays uncovered, including pieces of the Teacher's fragment, gathered across runs.</p></div>
+        <div class="panel"><h3>New starts</h3><p>New backstories, races and city entrances open as the cohort meets them. Variety, not power.</p></div>
+        <div class="panel"><h3>A gift from above</h3><p>Climbers ride the Tree both ways. An entrant who boards can send one item back down to the next.</p></div>
+      </div>
+      <p class="muted" style="font-size:0.88rem">Shade stays small, so permanent death still matters. The season ends at launch: who boarded, who fell, and which paths outside the Calling the cohort opened.</p>
+    </section>
+
+    <section class="block">
+      <div class="section-head">
         <span class="eyebrow">Tests for new content</span>
         <h2>Four pillars</h2>
       </div>
@@ -645,6 +673,16 @@ footer { margin-top: 48px; padding-top: 16px; border-top: 1px solid var(--line);
           </ol>
           <p class="muted" style="font-size:0.85rem">Two more endings sit on the main line itself. If Sam's Calling had differed from their backstory, it would be the Changed ending. If Sam had gamed the trials, the Herald would have hired them.</p>
         </div>
+      </div>
+      <div class="section-head">
+        <span class="eyebrow">After Sam</span>
+        <h3>What one run hands to the next</h3>
+      </div>
+      <div class="flow">
+        <div class="step roll"><span class="n">If Sam falls</span><p>The bell, the name, the Roll. Sam leaves one item as a bequest.</p></div>
+        <div class="step manifest"><span class="n">If Sam boards</span><p>Sam's name goes on the Manifest, and one item comes back down the Tree.</p></div>
+        <div class="step shade"><span class="n">Shade carries on</span><p>The bequest or gift, every secret Sam found, and any new starts Sam's run opened.</p></div>
+        <div class="step"><span class="n">The next entrant</span><p>Someone new from Sam's cohort, starting from a random city: a different local House, different floors, the same season.</p></div>
       </div>
     </section>
   </main>
@@ -1095,6 +1133,7 @@ footer { margin-top: 48px; padding-top: 16px; border-top: 1px solid var(--line);
         <div class="step"><span class="n">1 · The bell</span><p>Everything stops. The music cuts. A single low bell.</p></div>
         <div class="step"><span class="n">2 · The name</span><p>The Herald says the name, plainly, with no joke. "Unnamed" for a stranger.</p></div>
         <div class="step"><span class="n">3 · The Roll</span><p>The name goes on the Roll of the fallen, kept by the Steward, readable in any sanctuary.</p></div>
+        <div class="step"><span class="n">4 · The bequest</span><p>For the player: one item left behind for the next entrant of the season.</p></div>
         <div class="step"><span class="n">Then</span><p>The Herald can be as rude as it likes about how you got there, once the bell has rung.</p></div>
       </div>
       <p class="muted" style="font-size:0.88rem">Human enemies are rare and can be spared. Sparing them feeds the Tend and Lead Callings.</p>

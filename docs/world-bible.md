@@ -306,7 +306,7 @@ Real underground places also give each House a home in the deep, which can show 
 - **Act III:** the deep mines and labs, extended by the Houses' fabricators; the Bloom's roots crack passages nobody planned.
 - **Act IV and the Trunk:** the agents alone.
 
-**What it does to the game.** [Proposed] Twenty floors is about three times today's six, so a full descent is long. The acts give it shape: each act is a natural session, with safe-room saves between floors as now. The floor timer can keep growing with depth as the code already does (12 hours on floor 1, about 31 hours on floor 20). [Open] Whether a run is the full descent, or an act at a time as part of a longer campaign (the Launch Window, 8.4).
+**What it does to the game.** [Proposed] Twenty floors is about three times today's six, so a full descent is long. The acts give it shape: each act is a natural session, with safe-room saves between floors as now. The floor timer can keep growing with depth as the code already does (12 hours on floor 1, about 31 hours on floor 20). [Decided] A run is one entrant's full descent, inside a season of many entrants (9.1). Floor size is the lever on run length: smaller floors in Act I and the Act IV tunnels, bigger ones where the story happens, so twenty floors can play in about the time six do today (the Phase 5 bots needed about 550 turns per floor).
 
 ### 6.2 The floors in detail
 
@@ -473,6 +473,33 @@ Draft recommendation: start with **the Launch Window** (it gives the game a larg
 | 7. Return | Act IV (floors 15 to 19) | Through the Herald's crossings, towards the trunk |
 | 8. Changed | The Trunk (floor 20) and the climb | Face the rogue's champion. The Muster. Seven days up the Tree. Plant the tree |
 
+### 9.1 The season: entrants, the Roll, the Manifest and Shade
+
+[Decided] The game is played as a **season**: a cohort of entrants who go down one at a time, while the world carries on around them.
+
+- **One run is one entrant's full descent.** That person either dies, boards, or takes one of the paths outside the Calling (section 5).
+- **Death is permanent** for that entrant. Their name goes on **the Roll**.
+- **Every new entrant starts from a random city entrance.** Act I (floors 1 to 3) is local, so a new entrance means a new local House, with its own environments, creatures, trials and people. The start stays fresh, and the world's breadth shows one person at a time.
+- **Those who board go on the Manifest**, the second ledger beside the Roll.
+- **The season's goal:** get as many of your cohort onto the Manifest as you can before **the Launch Window** (8.4) closes and the ships go.
+- **The season's ending** shows who boarded, who fell, and which paths outside the Calling the cohort opened.
+
+**Shade.** [Decided] What one entrant leaves for those who come after, named for the theme: you plant trees whose shade you'll never sit in. Each entrant plants the tree; the next one sits in its shade. Three gifts, and no others:
+
+| Gift | What the next entrant gets | In the world |
+|---|---|---|
+| **The bequest** | One item from the fallen entrant's pack, chosen during the death rite, waiting at the start | After the bell and the name, the Herald asks what they'll leave behind. The Roll carries it forward |
+| **Secrets stay found** | Anything uncovered stays uncovered, including pieces of the Teacher's fragment, which can be gathered across several runs | What one person learns is not lost with them |
+| **New starts** | New backstories, races and city entrances open as the cohort meets them | Variety, not power: the cohort's reach grows |
+
+[Decided] **Those who board leave Shade too.** Climbers ride the Tree both ways, so an entrant who boards can send one item back down to the next entrant: a gift from above.
+
+[Decided] **Keep Shade small.** The gifts are mostly knowledge and options, with very little raw power, so that permanent death still matters and the job interview keeps its edge. Not used: carried-over maps and warnings, carried-over House favour, and inherited skills.
+
+Precedents: *Rogue Legacy* passes a run to an heir; *Darkest Dungeon* keeps a roster of heroes who die permanently while the town persists; *Dark Souls* lets the dead leave marks for others; *Hades* carries most of its progress in story. Shade sits closest to *Dark Souls* and *Hades*: little power, a lot of meaning.
+
+**What it needs in the code.** [Proposed] A season save that persists across runs (today saves exist only within a run): the Roll, the Manifest, bequests, found secrets, unlocked starts and the Launch Window clock.
+
 ## 10. What changes in the current game
 
 [Proposed] Mapping from the game-show content to this world. Most of the machinery stays; the skin and the reasons change.
@@ -489,6 +516,7 @@ Draft recommendation: start with **the Launch Window** (it gives the game a larg
 | Safe rooms | Sanctuaries | Low |
 | Race and class on floor 3 | The first blessing | Low |
 | Six floors | Twenty floors in four acts, with Ways between regions | High: dungeon generation, floor timers, bosses per floor, victory condition, balance |
+| One run, then start over | A season of entrants with permanent death, random entrances, the Roll, the Manifest and Shade (9.1) | High: a season save that persists across runs |
 | Backstories | Keep, add four (see `docs/callings.md`) | Low |
 | Victory screen ("YOU SURVIVED") | The Muster and Calling endings | Medium |
 | Practice skills | Keep, add Calling skills | Medium |
@@ -521,7 +549,7 @@ Draft recommendation: start with **the Launch Window** (it gives the game a larg
 
 Decided so far: entry is a choice, but the surface is dying, so most go; refusing the final Calling means being left behind; the surface threat creeping down is the floor timer.
 
-Also decided: the agents need us at three levels, body, mind and purpose (2.1); berths are limited, so the dungeon is a lethal job interview (3.7); four paths lie outside the Calling (section 5); the ships reach the stars by the Tree, a space elevator rising from the Trunk, anchored on a floating platform beside Kiribati (6.3); the Heat is what's killing the surface, with the regreening, the sabotage and the divide as its history; the blame is shared (the first law, fire is never unlit); the agents' checks on each other are a fragile balance; the Bloom is a subplot; the House roster's origins and sizes.
+Also decided: the game is a season of entrants with permanent death, random entrances, the Roll, the Manifest and Shade (9.1); the agents need us at three levels, body, mind and purpose (2.1); berths are limited, so the dungeon is a lethal job interview (3.7); four paths lie outside the Calling (section 5); the ships reach the stars by the Tree, a space elevator rising from the Trunk, anchored on a floating platform beside Kiribati (6.3); the Heat is what's killing the surface, with the regreening, the sabotage and the divide as its history; the blame is shared (the first law, fire is never unlit); the agents' checks on each other are a fragile balance; the Bloom is a subplot; the House roster's origins and sizes.
 
 1. House names: see `docs/houses.md`.
 2. Houses for India, Latin America, the Middle East and others, or fold them into larger ones?
@@ -652,6 +680,7 @@ Every myth, folk tale, historical fact and outside work this lore leans on, in o
 | *Hades* (Supergiant Games, 2020) | Gods giving boons in a run; how many gods a player can track | `docs/houses.md` 8 |
 | *Civilization: Beyond Earth*; *Sid Meier's Alpha Centauri* | Faction naming ("Polystralia" is taken) | `docs/houses.md` 1 |
 | *Dark Souls* | Lore pieced together from item descriptions | 2.3 |
+| *Rogue Legacy*; *Darkest Dungeon*; *Dark Souls* (marks left by the dead); *Hades* (progress carried in story) | Precedents for the season and Shade | 9.1 |
 | *Grand Theft Auto* | Style of mock company names | `docs/houses.md` 1 |
 | *The Last of Us* | Fungal apocalypse to stay clear of | 8.1 |
 
@@ -665,7 +694,7 @@ Every myth, folk tale, historical fact and outside work this lore leans on, in o
 | **Classes** | Nine classes still carry game-show framing (Hype Man, Quartermaster). Re-theme for a world of Houses and Callings, and decide whether classes are a House's gift like races | Not started |
 | **Races** | Human's stats under the "no benefits, no costs" rule; whether every race fits the Reshaping story; names | `docs/creatures.md` section 2 |
 | **Subplots** | Pick which of 8.4 to use | 8.4 |
-| **The Roots** | Twenty floors decided. Next: floor themes per act, and whether a run is a full descent or an act at a time | 6.0 to 6.2 |
+| **The Roots** | Decided: twenty floors; a run is one entrant's full descent in a season (9.1). Next: floor themes per act and floor sizes | 6.0 to 6.2, 9.1 |
 | **Kiribati** | Anchor decided (a floating platform beside it). Take I-Kiribati advice before writing it in detail | 6.3 |
 | **Floor themes** | Twenty floors across four acts; choose the overgrowth's floor | 6.2 |
 | **Names** | Houses' formal and street names; the Known; the word for the player; the arrangement between agents and humanity | 13 |

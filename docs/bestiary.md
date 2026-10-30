@@ -31,6 +31,7 @@ For reference, Australian game classifications are G, PG, M, MA15+ and R18+. Wit
 1. **Everything stops for a beat.** Music cuts out; a single low bell.
 2. **The Herald says the name** (or "unnamed" for a stranger), plainly, with no joke.
 3. **The name goes on the Roll**, a register of the fallen kept by the Steward, the great agent of Keep. The player can read the Roll in any sanctuary. Every death in the player's runs is there.
+4. **The bequest.** When the player dies, the Herald asks what they'll leave behind: one item from their pack, which waits for the next entrant of the season (world bible 9.1).
 
 On the player's own death, the death screen leads with the rite before anything else. The Herald can be as rude as it likes about *how* you got there, once the bell has rung.
 
