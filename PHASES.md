@@ -53,7 +53,7 @@ The game is being ported to Godot 4 (GDScript) in `godot/`. The Python version s
 - [x] **P1 Rules core:** dice, attributes, dungeon generation, FOV, entities, combat, encounter/initiative, AI. Same seed gives identical floors and identical traces for scripted actions.
 - [x] **P2 Rules systems:** items, loot, achievements, showrunner, practice skills, classes, bosses, pet, shop, contracts, crafting, fun facts, save/load, telemetry. Parity traces over full bot runs.
 - [x] **P3 Bot and data** (stop for review): GDScript bot, 2,000 runs, comparison with Phase 7 data, notebooks re-run.
-- [ ] **P4 First-person 3D:** floor meshes or GridMap, per-floor tints and textures, distance fog, torchlight, free look and smooth walking, grid-locked combat camera matching Phase 7.
+- [x] **P4 First-person 3D:** floor meshes or GridMap, per-floor tints and textures, distance fog, torchlight, free look and smooth walking, grid-locked combat camera matching Phase 7.
 - [ ] **P5 Entities and top-down:** Sprite3D billboards (placeholders first, art bible sizes, boss-tier outlines), minimap, top-down view (TileMapLayer), Tab switching, settings file.
 - [ ] **P6 HUD and combat UI:** log, side panel, initiative tracker, Move/Action/Bonus pips, provoke warnings and chevrons, banners, toasts, Analyst scout report.
 - [ ] **P7 Menus and screens:** title, character creation, pet pick, race/class picker, inventory, safe-room menu, loot box odds and reveal, trade-ups, rerolls, shop, crafting, attributes, practice skills, contracts, help for both views, death/victory, run report charts. One Theme resource.
@@ -236,3 +236,10 @@ The game is being ported to Godot 4 (GDScript) in `godot/`. The Python version s
 - The four notebooks re-run on the Godot data with every output unchanged: victory 51.5%, loot box chi-square tests consistent with the stated odds, shop WAPE 79.3% naive vs 67.5% SES, death classifier ROC AUC 0.859. Details in `docs/p3-report.md`.
 - No balance changes come from the port. The Phase 7 outliers are still there for the owner: bog troll and houseplant win about 75% (others 44-53%), and the mouse pet wins 42% (others 53-57%).
 - Owner decisions after the P3 review: go ahead with P4; fix the v7 save bug (five dropped tracker counters) after the port, in both versions together (a v8 save).
+
+### Port P4: first-person 3D
+
+- `godot/scenes/fp_view.tscn` draws each floor as a generated mesh (only visible wall faces, one material per surface so tints, safe rooms and the stairs swap are material changes), rendered at 320x200 and scaled up with hard pixels. Fog ends at 8.5 tiles; a torch light rides on the camera. Camera and movement logic (`ui/fp/fp_logic.gd`, `fp_controller.gd`) is headless and tested against the Python first-person tests: free look, tap and hold turning, gliding, held walking, and the grid-locked combat camera.
+- Walls are 0.875 tiles high with the eye at 0.4375 so the view matches pygame's proportions (Python's raycaster used non-square pixels). Lighting never brightens past the texture; fog does the falloff. Side-by-side shots match pygame closely; distant floor is a little brighter (fog curve), torch flicker waits for P8.
+- Playable: `godot --path godot -- --seed 1 --pet dog` (walk, turn, fight, wait, descend on the real rules). Creatures, items and furniture are placeholders until P5; HUD, minimap and menus come in P5-P7.
+- One verifier failure fixed before merge (over-bright walls up close; unported first-person tests not yet listed in plan B.1).
