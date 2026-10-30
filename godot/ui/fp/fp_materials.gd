@@ -28,15 +28,15 @@ func for_depth(depth: int) -> Dictionary:
 	var out := {}
 	for slot in FpTextures.SLOTS:
 		var tex := ImageTexture.create_from_image(images[slot])
-		out[slot] = _make(tex, tint if slot in TINTED else Color.WHITE, slot == "stairs")
-	out["stairs_locked"] = _make(out["stairs"].albedo_texture, LOCKED_TINT, true)
+		out[slot] = _make(tex, tint if slot in TINTED else Color.WHITE)
+	out["stairs_locked"] = _make(out["stairs"].albedo_texture, LOCKED_TINT)
 	while _cache.size() >= KEEP:
 		_cache.erase(_cache.keys()[0])
 	_cache[depth] = out
 	return out
 
 
-static func _make(texture: Texture2D, albedo: Color, glows: bool) -> StandardMaterial3D:
+static func _make(texture: Texture2D, albedo: Color) -> StandardMaterial3D:
 	var m := StandardMaterial3D.new()
 	m.albedo_texture = texture
 	m.albedo_color = albedo
@@ -44,9 +44,4 @@ static func _make(texture: Texture2D, albedo: Color, glows: bool) -> StandardMat
 	m.vertex_color_use_as_albedo = true
 	m.specular_mode = BaseMaterial3D.SPECULAR_DISABLED
 	m.roughness = 1.0
-	if glows:                                  # the grate is lit by the show, not just the torch
-		m.emission_enabled = true
-		m.emission_texture = texture
-		m.emission = albedo
-		m.emission_energy_multiplier = 0.35
 	return m

@@ -54,6 +54,8 @@ func _run() -> void:
 	for d in range(1, 7):
 		await _shot("tint_floor_%d" % d, _fresh(d))
 	await _shot_fog()
+	await _shot_near_wall()
+	await _shot_diagonal()
 	await _shot_combat()
 	await _shot_mid_glide()
 
@@ -244,6 +246,57 @@ func _shot_fog() -> void:
 					best = [run, Vector2i(x, y), d]
 	_place(ctx, best[1].x, best[1].y)
 	await _shot("fog_torch", ctx, best[2] * 90.0)
+
+
+## A wall dead ahead at 0.5 tiles (the eye is at the tile centre): checks the torch never
+## brightens a close wall past what Python draws (it only ever darkens with distance).
+func _shot_near_wall() -> void:
+	var ctx := _fresh()
+	var w: World = ctx["world"]
+	_quiet(ctx)
+	var f := w.floor
+	for y in f.height:
+		for x in f.width:
+			if not f.walkable(x, y) or f.is_safe(x, y):
+				continue
+			for d in 4:
+				var s: Vector2i = FpLogic.DIRS[d]
+				var side := Vector2i(-s.y, s.x)
+				# a flat wall: the tile ahead and both its neighbours are wall, the way back is open
+				if f.walkable(x + s.x, y + s.y) or f.walkable(x + s.x + side.x, y + s.y + side.y) \
+						or f.walkable(x + s.x - side.x, y + s.y - side.y) or not f.walkable(x - s.x, y - s.y):
+					continue
+				_place(ctx, x, y)
+				await _shot("near_wall", ctx, d * 90.0)
+				return
+	push_error("screenshots.gd: no flat wall found")
+
+
+## Python test_render `test_looking_diagonally_down_a_corridor`: the longest open diagonal (no
+## corner cutting, up to 8 tiles), looking along it at 45 degrees.
+func _shot_diagonal() -> void:
+	var ctx := _fresh()
+	var w: World = ctx["world"]
+	var f := w.floor
+	var best := [0, Vector2i.ZERO, 1]
+	for y in f.height:
+		for x in f.width:
+			if not _empty(w, x, y):
+				continue
+			for d in [1, 3, 5, 7]:
+				var s: Vector2i = FpLogic.DIRS8[d]
+				var run := 0
+				var cx := x
+				var cy := y
+				while run < 8 and f.walkable(cx + s.x, cy + s.y) and f.walkable(cx + s.x, cy) \
+						and f.walkable(cx, cy + s.y):
+					run += 1
+					cx += s.x
+					cy += s.y
+				if run > best[0]:
+					best = [run, Vector2i(x, y), d]
+	_place(ctx, best[1].x, best[1].y)
+	await _shot("diagonal", ctx, best[2] * 45.0)
 
 
 ## Python test_render `_combat`: a stunned goblin two tiles down a straight corridor, a fight on.

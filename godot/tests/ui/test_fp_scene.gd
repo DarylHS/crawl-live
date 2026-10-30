@@ -184,6 +184,62 @@ func test_markers_show_what_the_player_can_see() -> void:
 	assert_eq(v.markers.shown, want - monsters + 1)
 
 
+func test_light_never_brightens_past_the_texture_near_the_eye() -> void:
+	# Python only darkens with distance ((1 - d / 8.5) ^ 1.3): ambient plus a face-on torch must
+	# stay at about 1, the torch must not grow towards the eye (no 1 / d hot spot), and the fog
+	# (not the light) does the falloff to black at LIGHT.
+	var v := _view()
+	var env: Environment = (v.get_node("Viewport/Environment") as WorldEnvironment).environment
+	var torch := v.rig.torch
+	assert_lt(env.ambient_light_energy + torch.light_energy, 1.05)
+	assert_eq(torch.omni_attenuation, 0.0)
+	assert_eq(env.fog_mode, Environment.FOG_MODE_DEPTH)
+	assert_almost_eq(env.fog_depth_end, FpLogic.LIGHT, 1e-6)
+	assert_eq(env.fog_light_color, Color.BLACK)
+	for slot in ["stairs", "stairs_locked"]:              # the grate is not lit from inside
+		assert_false((v.materials.for_depth(1)[slot] as StandardMaterial3D).emission_enabled)
+
+
+func test_a_monster_ahead_shows_and_w_attacks_it() -> void:
+	# Python test_render `test_forward_attacks_and_a_monster_in_view_draws`.
+	var v := _view()
+	var w := World.new(1, [Content.table("pets").keys()[0], ""])
+	w.monsters.clear()
+	v.start(w)
+	var p := w.player
+	var f := Vector2i.ZERO
+	for _i in 4:                                        # face an open tile
+		f = v.logic.relative("forward")
+		if w.floor.walkable(p.x + f.x, p.y + f.y) and w.pet_at(p.x + f.x, p.y + f.y) == null \
+				and w.floor.walkable(p.x + 2 * f.x, p.y + 2 * f.y) and w.pet_at(p.x + 2 * f.x, p.y + 2 * f.y) == null:
+			break
+		v.logic.turn(1)
+	assert_false(w.in_safe_room)
+	var base := v.markers.shown
+	w.monsters.append(Entities.spawn_monster("goblin", p.x + 2 * f.x, p.y + 2 * f.y))
+	w.update_fov()
+	v.refresh(0.0)
+	assert_eq(v.markers.shown, base + 1)                # two tiles ahead: drawn
+	w.monsters.clear()
+	var goblin := Entities.spawn_monster("goblin", p.x + f.x, p.y + f.y)
+	w.monsters.append(goblin)
+	w.update_fov()
+	v.refresh(0.0)
+	assert_eq(v.markers.shown, base + 1)                # adjacent: drawn
+	var turn := w.turn
+	var pos := Vector2i(p.x, p.y)
+	var attacks: Array = []
+	w.events.subscribe("player_attack", func(_n: String, d: Dictionary) -> void: attacks.append(d))
+	v.controller.press(&"walk_forward")                 # bump: attack (hit or miss), don't move
+	assert_eq(Vector2i(p.x, p.y), pos)
+	assert_eq(attacks.size(), 1)
+	# The attack starts combat and is your action; a one-hit kill ends it and passes the turn.
+	if w.combat != null:
+		assert_false(w.combat.has("action"))
+	else:
+		assert_eq(w.turn, turn + 1)
+
+
 func _key(code: Key, pressed: bool, shift := false) -> InputEventKey:
 	var e := InputEventKey.new()
 	e.keycode = code

@@ -12,6 +12,10 @@ extends Control
 ##     Screen (TextureRect showing the viewport, scaled up with nearest filtering: hard pixels)
 ##     Flash (ColorRect: the red hurt flash)
 ##
+## Light: ambient 0.6 plus a torch of 0.4 with no distance attenuation, so a wall face-on at any
+## range is lit at most about 1x its texture, as Python (which only ever darkens); the depth fog
+## does the falloff to black at LIGHT, and the torch's angle to each face adds gentle shading.
+##
 ## The rules never run here: input becomes InputMap action names for FpController, which calls
 ## World.move_player / wait / descend; this script only shows the result. `input_enabled` false
 ## lets a parent (P5-P7 menus, the screenshot tool) drive it instead.

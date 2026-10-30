@@ -9,7 +9,7 @@ background_mode = 1
 background_color = Color(0, 0, 0, 1)
 ambient_light_source = 2
 ambient_light_color = Color(1, 1, 1, 1)
-ambient_light_energy = 0.45
+ambient_light_energy = 0.6
 tonemap_mode = 0
 fog_enabled = true
 fog_mode = 1
@@ -55,11 +55,11 @@ current = true
 
 [node name="Torch" type="OmniLight3D" parent="Viewport/Rig"]
 light_color = Color(1, 0.95, 0.88, 1)
-light_energy = 1.4
+light_energy = 0.4
 light_specular = 0.0
 shadow_enabled = false
 omni_range = 8.5
-omni_attenuation = 1.0
+omni_attenuation = 0.0
 
 [node name="Screen" type="TextureRect" parent="."]
 texture_filter = 1

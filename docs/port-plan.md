@@ -775,13 +775,27 @@ Every pytest test not yet ported is named here, with the slice that must port it
 | Slice | pytest test | Why deferred |
 |---|---|---|
 | P5 | `test_telemetry.py`: `test_game_logs_finished_player_runs` | needs the App (the game writing player runs to its runs directory) |
+| P5 | `test_firstperson.py`: `test_renders_each_floor_with_the_overlays` (overlays part; the per-floor render is in `tests/ui/test_fp_scene.gd`) | minimap, compass and chevrons are P5/P6 |
+| P5 | `test_firstperson.py`: `test_every_creature_has_a_sprite` | billboards are P5 (P4 has placeholders) |
+| P5 | `test_firstperson.py`: `test_minimap_is_readable_and_tracks_exploring`, `test_minimap_window_follows_you_and_stays_on_the_floor` | minimap is P5 |
+| P5 | `test_firstperson.py`: `test_caches_follow_the_floor_object_not_its_id` (minimap cache part; the floor part is in `test_fp_logic.gd` / `test_fp_scene.gd`) | minimap is P5 |
+| P5 | `test_render.py`: `test_movement_follows_the_view` (top-view half; the first-person half is in `tests/ui/test_fp_controller.gd`) | top-down view is P5 |
+| P5 | `test_render.py`: `test_tab_back_to_first_person_has_no_stale_hurt_flash`, `test_fp_combat_is_grid_locked` (Tab part; the rest is in `test_fp_controller.gd`) | Tab switching is P5 |
+| P5 | `test_render.py`: `test_compass_and_minimap_arrow_follow_the_free_angle` | compass label and minimap are P5 |
+| P5 | `test_render.py`: `test_looking_diagonally_down_a_corridor` (P4 renders the same view as the `diagonal` shot of `tools/screenshots.gd`, not a test) | screenshot of both views needs P5 |
+| P6 | `test_render.py`: `test_a_step_that_would_provoke_is_flagged_in_both_views`, `test_combat_tracker_and_screens_in_both_views`, `test_combat_with_a_boss_draws`, `test_tracker_draws_with_none_one_and_many_fighters`, `test_menus_hide_the_first_person_overlays` | provoke warnings, tracker and first-person overlays are P6 |
+| P7 | `test_render.py`: `test_new_runs_and_floors_face_the_most_open_way` (load part; new runs and floors are in `test_fp_logic.gd` / `test_fp_controller.gd`) | loading from the title is P7 |
+| P7 | `test_render.py`: `test_menus_in_first_person_leave_you_where_you_were`, `test_screenshot_sweep_of_every_screen_in_both_views` | menus and screens are P7 |
 
 ### B.2 Notes carried forward to later slices
 
 - **P4 (first-person 3D) notes for P5 to P7:**
   - Files: `scenes/fp_view.tscn` + `ui/fp/fp_view.gd` (`FpView`: `start(world)`, `refresh(dt)`, `capture()`, `input_enabled`, `hud`), `ui/fp/fp_logic.gd` (`FpLogic`, headless camera maths), `ui/fp/fp_controller.gd` (`FpController`, headless: the first-person part of `App.handle_key` / `App.update` / `sync_combat`, driven by action names; `blocked` is the overlay/help flag P7's `AppState` should set), `ui/fp/floor_mesh_builder.gd`, `ui/fp/fp_materials.gd`, `ui/fp/fp_textures.gd` (placeholder 64 px textures), `ui/fp/fp_camera_rig.gd`, `ui/fp/fp_markers.gd` (PLACEHOLDER sprites: P5 replaces it with `billboards.gd`; keep the `sync(world)` call site in `FpView.refresh`). `ui/main.gd` has a placeholder status panel and log (P6 replaces them).
   - The mesh is filled with packed arrays rather than `SurfaceTool` (same mesh, faster); about 40-65 ms per 120 x 76 floor in GDScript, once per floor.
-  - Not done in P4 (still to port from `firstperson.py` / `game.py`): minimap, compass label, chevrons and the "ahead" / provoke label (P5/P6); class picker and contract offer on `pending_choice` / `pending_offer`, Tab, run logging (P5/P7). The rules do not block on `pending_choice`, so P4 play simply carries on without a class.
+  - Not done in P4 (still to port from `firstperson.py` / `game.py`): minimap, compass label, chevrons and the "ahead" / provoke label (P5/P6); class picker and contract offer on `pending_choice` / `pending_offer`, Tab, run logging (P5/P7); the play keys R rest, G pickup, C command pet, 1 class skill, Esc, and I / M / K / L menus (P7: add their InputMap actions and route them in `AppState`). The rules do not block on `pending_choice`, so P4 play simply carries on without a class.
+  - `FpController.press()` ignores `blocked` (only held keys honour it): P7 must route presses to the menu instead of the controller while an overlay or help is open, as `App.handle_key` does.
+  - After death or victory, P4's `FpView` starts a new run on any `descend` key, including `>`; P7's end screens should restart on Return / numpad Enter only, as Python does.
+  - Lighting (verifier fix): ambient 0.6 plus a torch of 0.4 with `omni_attenuation = 0`, so nothing near the eye is brighter than the texture (Python only darkens); depth fog does the falloff. The stairs grate has no emission (pygame's dark brown and gold). Measured mean brightness against pygame on the shot set: 0.96x to 1.15x, the wall at 0.5 tiles 1.00x.
   - InputMap actions are written by `tools/input_map.gd` (re-run it after editing its table). `tools/screenshots.gd` writes `shots.json`; `scripts/fp_compare_shots.py` replays it in pygame for side by side images.
 
 - **S6 (done):** `S2Support.hero()` and `S4Support.FakeWorld` are gone (tests use `World.new(1).player` and a real `World`). `Entities.new_pet` takes a String name (`None` -> `""`); `World.new` maps a `null` pet name to `""`.
