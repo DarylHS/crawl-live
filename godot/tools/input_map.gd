@@ -8,6 +8,7 @@ extends SceneTree
 ## use physical keys (the same positions on any layout, as WASD should be); punctuation and Enter
 ## use the key's meaning, so ">" is Shift + Period. Where one key has several actions (W walks in
 ## first-person and moves north on the map), the scene decides which applies, as App.handle_key did.
+## "?" opens the help by its character (any layout) and F1 by key; ">" descends by its character.
 
 const ACTIONS := {
 	# First-person (P4)
@@ -28,6 +29,30 @@ const ACTIONS := {
 	"move_sw": [KEY_KP_1],
 	"wait": ["period", KEY_SPACE, KEY_KP_5],
 	"descend": ["shift_period", "enter", "kp_enter"],
+	# Play keys and menus (P7). A press means different things by scene (AppState decides which action
+	# it tests), so R is both `rest` and `reroll`, D both `drop` and strafing, Enter `confirm` and `descend`.
+	"confirm": ["enter", "kp_enter"],
+	"back": [KEY_ESCAPE],
+	"erase": [KEY_BACKSPACE],
+	"menu_up": [KEY_UP, KEY_W],
+	"menu_down": [KEY_DOWN, KEY_S],
+	"menu_left": [KEY_LEFT],
+	"menu_right": [KEY_RIGHT],
+	"pickup": [KEY_G],
+	"inventory": [KEY_I],
+	"rest": [KEY_R],
+	"safe_menu": [KEY_M],
+	"pet_command": [KEY_C],
+	"practice": [KEY_K],
+	"attributes": [KEY_L],
+	"skill_1": [KEY_1],
+	"help": [KEY_F1],
+	"accept_deal": [KEY_Y],
+	"decline_deal": [KEY_N],
+	"unequip": [KEY_U],
+	"drop": [KEY_D],
+	"reroll": [KEY_R],
+	"trade_up": [KEY_T],
 	# Views (P5)
 	"toggle_view": [KEY_TAB],
 	"cycle_render_scale": [KEY_F2],

@@ -6,7 +6,8 @@ extends RefCounted
 ## the models can lay out what follows, as `Renderer.text` returns its rect.
 ##
 ## Items are Dictionaries: {k: "t", x, y, s, c, f} text, {k: "r", r, c} filled rectangle,
-## {k: "f", r, c, w} frame drawn inside r, {k: "p", pts, c} polygon.
+## {k: "f", r, c, w} frame drawn inside r, {k: "p", pts, c} polygon, {k: "pl", pts, c, w} polyline
+## (the report's chart lines).
 
 var style: HudStyle
 var items: Array = []
@@ -45,6 +46,11 @@ func frame(r: Rect2i, colour: Color, w: int = 1) -> void:
 
 func polygon(pts: PackedVector2Array, colour: Color) -> void:
 	items.append({"k": "p", "pts": pts, "c": colour})
+
+
+## A line through the points, w pixels wide (pygame `draw.lines(surface, colour, False, pts, w)`).
+func polyline(pts: PackedVector2Array, colour: Color, w: int = 1) -> void:
+	items.append({"k": "pl", "pts": pts, "c": colour, "w": w})
 
 
 ## Every text string, in drawing order (tests read what a model shows).

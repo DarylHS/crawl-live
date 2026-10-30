@@ -13,11 +13,16 @@ extends Control
 ##     Tracker    the initiative tracker with Move / Action / Bonus pips
 ##     Toasts     achievement toasts and the "COMBAT: roll for initiative" banner
 ##     End        the death / victory overlay
+##     Menu       the title, creation screens or the open overlay menu (P7, from AppState)
+##     TrackerOver  the tracker again, above the inventory's shade (Python draws it after the menu)
+##     Help       the help overlay
 ##
 ## This node only wires things together each frame: it asks the models (HudPanel, HudLog, HudTracker,
 ## HudToasts, HudFp, HudEnd) what to show and hands the lists to the canvases. While `covered` (a menu
-## or help is open, P7) or the run has ended, the map-area overlays and the 3D minimap are hidden, as
-## Python's `draw_game(hud=False)`; the panel and log stay.
+## or help is open) or the run has ended, the map-area overlays and the 3D minimap are hidden, as
+## Python's `draw_game(hud=False)`; the panel and log stay. What the menu and help canvases show comes
+## from the GameView's AppState (`scene`, `overlay`, `cursor`) through MenuModels, ScreenModels and
+## ReportModel; the title and creation screens cover the whole window.
 
 @onready var panel: HudCanvas = $Panel
 @onready var log_canvas: HudCanvas = $Log
@@ -26,11 +31,15 @@ extends Control
 @onready var tracker: HudCanvas = $Tracker
 @onready var toasts: HudCanvas = $Toasts
 @onready var end: HudCanvas = $End
+@onready var menu: HudCanvas = $Menu
+@onready var tracker_over: HudCanvas = $TrackerOver
+@onready var help: HudCanvas = $Help
 
 var style := HudStyle.new()
 var game_view: GameView = null
-var covered: bool = false          ## a menu or help hides the map-area overlays (P7 sets it)
-var tracker_over_menu: bool = false   ## the inventory shows the tracker over its dimmed view (so you see the Bonus pip)
+var covered: bool = false          ## force the map-area overlays hidden (an open menu or help does so too)
+var tracker_over_menu: bool = false   ## force the tracker over the menu (the open inventory does so too)
+var menu_texts: PackedStringArray = PackedStringArray()   ## every string the menu canvas shows (tests)
 var last_tracker := Rect2i()       ## the tracker box drawn last, an empty Rect2i when not shown
 var last_toasts: Array[Rect2i] = []   ## the toast rectangles drawn last
 var ahead_text: String = ""        ## the "ahead" label's text ("" when not shown)
@@ -50,13 +59,22 @@ func _process(_delta: float) -> void:
 
 ## Bring every canvas up to date with the world and the view that is showing.
 func sync() -> void:
+	var app := game_view.app if game_view != null else null
 	var w: World = null if game_view == null else game_view.world
-	if w == null:
-		for c: HudCanvas in [panel, log_canvas, chevrons, ahead, tracker, toasts, end]:
+	var in_game := w != null and (app == null or app.scene == AppState.GAME)
+	_sync_menus(app, w if in_game else null)
+	if not in_game:
+		for c: HudCanvas in [panel, log_canvas, chevrons, ahead, tracker, toasts, end, tracker_over]:
 			c.show_list(null)
+		last_tracker = Rect2i()
+		last_toasts = []
+		ahead_text = ""
+		ahead_rect = Rect2i()
 		return
+	var is_covered := covered or (app != null and app.covered())
+	var over_menu := tracker_over_menu or (app != null and app.overlay == "inventory")
 	var playing := w.state == "playing"
-	var overlays := playing and not covered
+	var overlays := playing and not is_covered
 	game_view.fp_view.hud = overlays
 	panel.show_list(HudPanel.build(w, style))
 	var log_list := HudList.new(style)
@@ -71,6 +89,7 @@ func sync() -> void:
 	var chev_list := HudList.new(style)
 	var ahead_list := HudList.new(style)
 	var tracker_list := HudList.new(style)
+	var over_list := HudList.new(style)
 	var toast_list := HudList.new(style)
 	if overlays:
 		var logic := game_view.fp_view.logic
@@ -89,13 +108,63 @@ func sync() -> void:
 			ahead_text = HudFp.ahead_text(w, logic)
 		if w.combat != null:
 			last_tracker = _tracker_model.build(tracker_list, w, rect, avoid if not fp else actor_rects(w))
-	elif playing and tracker_over_menu and w.combat != null:
-		last_tracker = _tracker_model.build(tracker_list, w, rect, actor_rects(w))
+	elif playing and over_menu and w.combat != null:
+		last_tracker = _tracker_model.build(over_list, w, rect, actor_rects(w))
 	chevrons.show_list(chev_list)
 	ahead.show_list(ahead_list)
 	tracker.show_list(tracker_list)
+	tracker_over.show_list(over_list)
 	toasts.show_list(toast_list)
 	end.show_list(HudEnd.build(w, style))
+
+
+## The menu and help canvases: the scene's screen (title, creation) or the open overlay over the game.
+func _sync_menus(app: AppState, w: World) -> void:
+	var list: HudList = null
+	if app != null:
+		match app.scene:
+			AppState.TITLE:
+				list = ScreenModels.build_title(style, SaveGame.has_save(app.save_path), app.loading)
+			AppState.IDENTITY:
+				list = ScreenModels.build_identity(style, app.hero_name, app.gender_idx)
+			AppState.BACKSTORY:
+				list = ScreenModels.build_backstory(style, app.backstory_idx)
+			AppState.PET_SELECT:
+				list = ScreenModels.build_pet_select(style, app.pet_idx, app.pet_name)
+			_:
+				if w != null:
+					list = overlay_list(app, w)
+	menu.show_list(list)
+	menu_texts = list.strings() if list != null else PackedStringArray()
+	help.show_list(ScreenModels.build_help(style, game_view.view) if app != null and app.show_help else null)
+
+
+## The open overlay menu's list, or null when none is open.
+func overlay_list(app: AppState, w: World) -> HudList:
+	match app.overlay:
+		"inventory":
+			return MenuModels.build_inventory(style, w, app.cursor)
+		"safe":
+			return MenuModels.build_safe_menu(style, w, app.cursor)
+		"reveal":
+			return MenuModels.build_reveal(style, w) if w.last_reveal != null else null
+		"box":
+			return MenuModels.build_box_info(style, w, app.box_tier)
+		"shop":
+			return MenuModels.build_shop(style, w, app.cursor, app.shop_mode)
+		"contract":
+			return MenuModels.build_contract(style, w) if PyMath.truthy(w.pending_offer) else null
+		"report":
+			return ReportModel.build(style, w)
+		"skills":
+			return MenuModels.build_practice(style, w)
+		"attributes":
+			return MenuModels.build_attributes(style, w, app.cursor)
+		"craft":
+			return MenuModels.build_craft(style, w, app.cursor)
+		"class":
+			return MenuModels.build_class_select(style, w, app.class_step, app.class_race, app.cursor)
+	return null
 
 
 ## Screen rectangles that boxes over the map keep clear of: in the map view you, your pet and the

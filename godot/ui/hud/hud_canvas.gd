@@ -53,3 +53,11 @@ func _draw() -> void:
 				draw_rect(Rect2(r.end.x - w, r.position.y + w, w, r.size.y - 2 * w), c)
 			"p":
 				draw_colored_polygon(it["pts"], it["c"])
+			"pl":
+				var pts: PackedVector2Array = it["pts"]
+				var w: int = it["w"]
+				var shift := Vector2(0.5, 0.5) if w % 2 == 1 else Vector2.ZERO    # odd widths sit on pixel centres
+				var moved := PackedVector2Array()
+				for pt in pts:
+					moved.append(pt + shift)
+				draw_polyline(moved, it["c"], float(w))

@@ -1,48 +1,101 @@
+class_name Main
 extends Control
-## Main scene (P6): a run in the first-person 3D view or the top-down map (Tab), with the real HUD (Hud).
+## Main scene (P7): the whole game from the title screen to the end screens, as `python main.py`.
 ##
-##   godot --path godot                              # a random seed, the first companion (cat)
-##   godot --path godot -- --seed 1234 --pet dog     # a fixed seed; --pet cat|dog|budgie|mouse|none
+##   godot --path godot                                    # title screen; Enter starts character creation
+##   godot --path godot -- --seed 1234 --pet dog           # a fixed seed for the first run; dog preselected
+##   godot --path godot -- --quick --seed 1 --pet dog      # skip the title and creation: straight into a run
+##   godot --path godot -- --save-dir DIR --runs-dir DIR   # where the save, settings and run logs go
 ##
-## Title, character creation and menus arrive in P7; until then Enter after death or victory starts
-## a new run with a new seed.
-## Headless (`godot --headless --path godot`) it still loads every content table, prints a summary
-## and quits, as the P0 placeholder did.
+## Scene tree:
+##   Main (Control, this script)
+##     Background (ColorRect)
+##     GameView (the first-person view and the map; owns the AppState)
+##     Hud (side panel, log, tracker, toasts, and the menu and help canvases)
+##
+## This node is only the wiring: real key presses go to `app.handle_key` (one path for every scene and
+## menu, ui/app/app_state.gd), held movement actions to `app.update`, and the title, creation screens
+## and menus are drawn by the Hud from what the AppState says. Headless (`godot --headless --path godot`)
+## it still loads every content table, prints a summary and quits, as the P0 placeholder did.
 
 @onready var game_view: GameView = $GameView
 @onready var hud: Hud = $Hud
 
-var _seed: Variant = null
-var _pet: Variant = null
+var app: AppState = null
+var summary_on_headless: bool = true      ## tests turn this off to run the real scene headless
+var _shown: bool = true
 
 
 func _ready() -> void:
-	if DisplayServer.get_name() == "headless":
+	if DisplayServer.get_name() == "headless" and summary_on_headless:
 		_print_content_summary()
 		return
 	var args := _parse_args(OS.get_cmdline_user_args())
-	if args.has("seed"):
-		_seed = int(args["seed"])            # else keep a seed set before _ready (screenshots)
-	var species: String = args.get("pet", Content.table("pets").keys()[0])
-	_pet = null if species == "none" else [species, ""]
-	game_view.new_run_requested.connect(_new_run)
-	_new_run()
-
-
-## Start a run: the fixed seed the first time (if given), then random seeds, as Python's App.
-func _new_run() -> void:
-	var w := World.new(_seed, _pet, default_hero())
-	_seed = null
-	game_view.start(w)
+	app = game_view.app
+	configure(app, args)
+	app.load_settings()
+	game_view.set_input_enabled(false)       # Main takes the keys and routes them through the AppState
+	game_view.fp_view.set_render_scale(app.settings["render_scale"])
 	hud.bind(game_view)
-	print("Crawl Live! seed %d" % w.seed)
+	_apply_scene()
+	if args.has("quick"):
+		app.pet_name = ""
+		app.start_run(_quick_pet(args))
+		print("Crawl Live! seed %d" % app.world.seed)
 
 
-## Python App's hero when you press Enter through character creation: "Crawler", the first
-## gender and the first backstory (so a fixed seed makes the same run as `python main.py`).
-static func default_hero() -> Dictionary:
-	return {"name": "Crawler", "gender": Content.table("genders").keys()[0],
-			"backstory": Content.table("backstories").keys()[0]}
+## Apply the command line options (`--seed`, `--pet`, `--save-dir`, `--runs-dir`) to the app.
+static func configure(target: AppState, args: Dictionary) -> void:
+	if args.has("seed"):
+		target.seed_value = int(args["seed"])
+	if args.has("save-dir"):
+		var dir: String = args["save-dir"]
+		target.save_path = SaveGame.slot_path(dir)
+		target.settings_path = UserSettings.settings_path(dir)
+	if args.has("runs-dir"):
+		target.runs_dir = args["runs-dir"]
+	if args.has("pet"):
+		var idx := Content.table("pets").keys().find(args["pet"])
+		if idx >= 0:
+			target.pet_idx = idx
+
+
+## The companion for `--quick`: `--pet` (or the first), "none" for no companion.
+static func _quick_pet(args: Dictionary) -> Variant:
+	var species: String = args.get("pet", Content.table("pets").keys()[0])
+	return null if species == "none" else [species, ""]
+
+
+func _unhandled_input(event: InputEvent) -> void:
+	if app == null:
+		return
+	var key := event as InputEventKey
+	if key == null or not key.pressed or key.echo:
+		return
+	app.handle_key(key)
+	get_viewport().set_input_as_handled()
+	_apply_scene()
+
+
+func _process(delta: float) -> void:
+	if app == null:
+		return
+	var held: Array[StringName] = []
+	for a in FpView.HELD_ACTIONS:
+		if Input.is_action_pressed(a):
+			held.append(a)
+	app.update(delta, held)
+	_apply_scene()
+	if not app.running:
+		get_tree().quit()
+
+
+## Show the game view only on the game scene (the other screens cover the window).
+func _apply_scene() -> void:
+	var on := app.scene == AppState.GAME
+	if on != _shown:
+		_shown = on
+		game_view.set_shown(on)
 
 
 ## --key value pairs (and bare --flag) from the user arguments after `--`.

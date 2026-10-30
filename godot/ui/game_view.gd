@@ -12,34 +12,73 @@ extends Control
 ##
 ## Both views read the same World. The hidden one does no work (the 3D viewport stops rendering).
 ## `settings_path` "" turns off the settings file and `runs_dir` "" turns off run logging, as the
-## Python App's settings_path=None and runs_dir=None do for tests. P7's AppState will own the
-## scene, overlays and menus; until then this node routes keys to the view that is showing.
+## Python App's settings_path=None and runs_dir=None do for tests. P7's AppState (ui/app/app_state.gd)
+## owns the scene, overlays, menus, settings and run logging; this node shows its world.
 
-signal new_run_requested           ## Enter pressed after the run ended
+signal new_run_requested           ## Enter pressed after the run ended (standalone use; Main routes keys through AppState)
 signal view_changed(view: String)
 
 @onready var fp_view: FpView = $FpView
 @onready var top_view: TopView = $TopView
 
-var settings_path: String = UserSettings.DEFAULT_PATH   ## "" = do not read or write settings
-var runs_dir: String = "user://runs"                    ## "" = do not log runs
-var settings: Dictionary = UserSettings.DEFAULTS.duplicate()
-var view: String = "fp"            ## "fp" | "top" (UserSettings.VIEWS)
-var blocked: bool = false          ## a menu or help covers the view (P7): Tab does nothing
-var input_enabled: bool = true     ## read the keyboard (off for tests and the screenshot tool)
-var telemetry: Telemetry = null    ## the current run's telemetry, held for the run (the bus keeps no reference)
-var logged_runs: int = 0           ## runs written to runs_dir so far
+## The scene state machine this view shows (crawler/game.py `App`): the two views share its
+## controllers, view, settings and run logging. Made here so a GameView works on its own (tests, the
+## screenshot tool); Main keys it by calling `app.handle_key`.
+var app := AppState.new({"settings_path": "", "runs_dir": ""})
+var input_enabled: bool = true     ## read the keyboard itself (off for Main, tests and the screenshot tool)
+
+
+## "" = do not read or write settings (set before the node enters the tree).
+var settings_path: String:
+	get:
+		return app.settings_path
+	set(v):
+		app.settings_path = v
+
+## "" = do not log runs.
+var runs_dir: String:
+	get:
+		return app.runs_dir
+	set(v):
+		app.runs_dir = v
+
+var settings: Dictionary:
+	get:
+		return app.settings
+
+var view: String:                  ## "fp" | "top" (UserSettings.VIEWS)
+	get:
+		return app.view
+
+## A menu or help covers the view: Tab and F2 do nothing.
+var blocked: bool:
+	get:
+		return app.blocked
+	set(v):
+		app.blocked = v
+
+var telemetry: Telemetry:          ## the current run's telemetry, held for the run
+	get:
+		return app.telemetry
+
+var logged_runs: int:              ## runs written to runs_dir so far
+	get:
+		return app.logged_runs
 
 
 func _ready() -> void:
-	settings = UserSettings.load(settings_path)
-	view = settings["view"]
+	app.load_settings()
+	fp_view.controller = app.fp
+	top_view.controller = app.top
 	fp_view.set_render_scale(settings["render_scale"])
 	fp_view.input_enabled = input_enabled
 	top_view.input_enabled = input_enabled
 	fp_view.new_run_requested.connect(func() -> void: new_run_requested.emit())
 	top_view.new_run_requested.connect(func() -> void: new_run_requested.emit())
 	top_view.acted.connect(_after_top_action)
+	app.world_started.connect(_on_world_started)
+	app.view_changed.connect(_on_view_changed)
+	app.render_scale_requested.connect(cycle_render_scale)
 	_show_view()
 
 
@@ -51,10 +90,30 @@ var world: World:
 
 ## Show a new or loaded run in whichever view is current and start logging it.
 func start(new_world: World) -> void:
-	telemetry = Telemetry.new(new_world, "player") if runs_dir != "" else null
-	fp_view.start(new_world)
-	top_view.start(new_world)
+	app.attach_world(new_world)
+
+
+func _on_world_started(_w: World) -> void:
+	fp_view.refresh(0.0)
+	top_view.refresh()
 	_show_view()
+
+
+func _on_view_changed(v: String) -> void:
+	_show_view()
+	view_changed.emit(v)
+
+
+## Show or hide the whole game screen (the title and creation screens cover it): hidden, neither view
+## renders or updates.
+func set_shown(on: bool) -> void:
+	visible = on
+	process_mode = Node.PROCESS_MODE_INHERIT if on else Node.PROCESS_MODE_DISABLED
+	if on:
+		_show_view()
+	else:
+		fp_view.set_active(false)
+		top_view.set_active(false)
 
 
 ## Turn the keyboard on or off for both views.
@@ -76,45 +135,25 @@ func _unhandled_input(event: InputEvent) -> void:
 
 
 func _process(_delta: float) -> void:
-	log_run_if_over()
+	app.log_run_if_over()
 
 
 ## An action name from the keyboard (or a test), routed to the view that is showing. Tab and F2
-## are handled here; everything else goes to that view's controller. Returns true when it was used.
+## are handled by the AppState; everything else goes to that view's controller. Returns true when
+## it was used.
 func press(action: StringName) -> bool:
-	var used := false
-	if action == &"toggle_view":
-		used = toggle_view()
-	elif action == &"cycle_render_scale":
-		if not blocked:                                       # menus swallow F2 as they do Tab
-			cycle_render_scale()
-			used = true
-	elif world != null:
-		if view == "fp":
-			used = fp_view.controller.press(action)
-		else:
-			used = top_view.controller.press(action)
-			_after_top_action()
-	log_run_if_over()
-	return used
+	return app.press(action)
 
 
 ## Tab: swap first-person and map and remember the choice. Menus swallow it and the end screens
 ## ignore it (Python). Returns true when the view changed.
 func toggle_view() -> bool:
-	if blocked or world == null or world.state != "playing":
-		return false
-	set_view("top" if view == "fp" else "fp")
-	return true
+	return app.toggle_view()
 
 
 ## Show "fp" or "top" and remember it (no menu or end-screen checks: Tab does those).
 func set_view(choice: String) -> void:
-	view = choice if UserSettings.VIEWS.has(choice) else "fp"
-	settings["view"] = view
-	_save_settings()
-	_show_view()
-	view_changed.emit(view)
+	app.set_view(choice)
 
 
 ## F2: Retro, Sharp, Full, Retro ... Remembered in the settings file.
@@ -128,16 +167,16 @@ func cycle_render_scale() -> String:
 ## Choose the 3D resolution and remember it.
 func set_render_scale(choice: String) -> void:
 	fp_view.set_render_scale(choice)
-	settings["render_scale"] = fp_view.render_scale
-	_save_settings()
+	app.settings["render_scale"] = fp_view.render_scale
+	app.save_settings()
 
 
-## After any key used in the map view (real key events and `press`): what Python's handle_key does
-## whatever the view, so a new floor is faced the open way from the arrival tile, whatever you do on
-## the map before Tab back, then log the run if it ended.
+## After any key used in the map view (real key events on a standalone GameView): what Python's
+## handle_key does whatever the view, so a new floor is faced the open way from the arrival tile,
+## whatever you do on the map before Tab back, then log the run if it ended.
 func _after_top_action() -> void:
 	fp_view.controller.after_action()
-	log_run_if_over()
+	app.log_run_if_over()
 
 
 func _show_view() -> void:
@@ -145,18 +184,6 @@ func _show_view() -> void:
 	top_view.set_active(view == "top")
 
 
-func _save_settings() -> void:
-	if not UserSettings.save(settings, settings_path):
-		push_warning("Could not save settings")
-
-
 ## Write your finished run to runs_dir/player_*.csv once, for the analysis notebooks.
 func log_run_if_over() -> void:
-	var w := world
-	if telemetry == null or w == null or w.state == "playing":
-		return
-	if runs_dir != "":
-		DirAccess.make_dir_recursive_absolute(runs_dir)
-		if PyCsv.write_tables(telemetry.tables(), runs_dir, "player_"):
-			logged_runs += 1
-	telemetry = null
+	app.log_run_if_over()
