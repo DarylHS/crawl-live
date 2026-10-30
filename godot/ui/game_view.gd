@@ -69,7 +69,7 @@ func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed(&"toggle_view") and not (event as InputEventKey).echo:
 		if toggle_view():
 			get_viewport().set_input_as_handled()
-	elif event.is_action_pressed(&"cycle_render_scale") and not (event as InputEventKey).echo:
+	elif event.is_action_pressed(&"cycle_render_scale") and not (event as InputEventKey).echo and not blocked:
 		cycle_render_scale()
 		get_viewport().set_input_as_handled()
 
@@ -85,10 +85,13 @@ func press(action: StringName) -> bool:
 	if action == &"toggle_view":
 		used = toggle_view()
 	elif action == &"cycle_render_scale":
-		cycle_render_scale()
-		used = true
+		if not blocked:                                       # menus swallow F2 as they do Tab
+			cycle_render_scale()
+			used = true
 	elif world != null:
 		used = fp_view.controller.press(action) if view == "fp" else top_view.controller.press(action)
+		if view == "top":
+			fp_view.controller.after_action()                 # face the open way on a new floor, as Python
 	log_run_if_over()
 	return used
 

@@ -108,5 +108,6 @@ func _provoke_marker(px: int, py: int) -> void:
 		var y: int = corner[1]
 		var sx: int = corner[2]
 		var sy: int = corner[3]
-		draw_line(Vector2(x, y), Vector2(x + sx * BRACKET_LEN, y), c, 2.0)
-		draw_line(Vector2(x, y), Vector2(x, y + sy * BRACKET_LEN), c, 2.0)
+		# pygame's width 2 line fills rows y and y + 1 (columns x and x + 1) and is 6 px long
+		draw_rect(Rect2(mini(x, x + BRACKET_LEN * sx), y, BRACKET_LEN + 1, 2), c)
+		draw_rect(Rect2(x, mini(y, y + BRACKET_LEN * sy), 2, BRACKET_LEN + 1), c)

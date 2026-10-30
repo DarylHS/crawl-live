@@ -31,7 +31,8 @@ func test_minimap_is_readable_and_tracks_exploring() -> void:
 	assert_true(far.x >= 0)
 	assert_eq(f.explored[far.y][far.x], 0)
 	assert_false(_same(mm.pixel(far.x, far.y), MinimapImage.FLOOR))     # unexplored: backing only
-	w.floor.explored[far.y][far.x] = 1                              # an Opening Act's map (Python _act_reward)
+	w._act_reward(Bosses.spawn_act("opening", "goblin", far.x, far.y))   # an Opening Act's map
+	assert_eq(f.explored[far.y][far.x], 1)
 	mm.redraw(w, 0.0)                                              # only the changed tiles redraw
 	assert_true(_same(mm.pixel(far.x, far.y), MinimapImage.FLOOR))
 	var seen := Vector2i(-1, -1)

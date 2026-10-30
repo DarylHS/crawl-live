@@ -19,7 +19,7 @@ func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	compass_label = Label.new()
 	compass_label.add_theme_font_override("font", _font)
-	compass_label.add_theme_font_size_override("font_size", 22)
+	compass_label.add_theme_font_size_override("font_size", 18)
 	compass_label.add_theme_color_override("font_color", MinimapImage.colour("TEXT"))
 	compass_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(compass_label)

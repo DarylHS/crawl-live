@@ -309,6 +309,28 @@ func test_game_logs_finished_player_runs() -> void:
 	assert_eq(g.logged_runs, 1)
 
 
+func test_f2_is_ignored_while_a_menu_blocks_the_view() -> void:
+	var g := _game()
+	g.start(_world())
+	g.blocked = true
+	assert_false(g.press(&"cycle_render_scale"))
+	assert_eq(g.fp_view.render_scale, "retro")
+
+
+func test_descending_in_the_map_view_faces_the_open_way_on_tab_back() -> void:
+	var g := _game()
+	var w := _world()
+	g.start(w)
+	g.press(&"toggle_view")
+	var floor_before := w.floor
+	var prefer := g.fp_view.logic.facing
+	w.new_floor(2)                                            # what descending does
+	g.press(&"wait")                                          # any map action runs the follow-up
+	assert_false(w.floor == floor_before)
+	var p := w.player
+	assert_eq(g.fp_view.logic.facing, FpLogic.open_facing(w.floor, p.x, p.y, prefer))
+
+
 func test_renders_each_floor_with_the_overlays() -> void:
 	# Python test_renders_each_floor_with_the_overlays: every floor draws in both views with the
 	# minimap and compass up (the per-floor mesh is checked in test_fp_scene.gd).

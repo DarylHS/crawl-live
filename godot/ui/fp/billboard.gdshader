@@ -10,7 +10,7 @@ render_mode unshaded, fog_disabled, depth_draw_opaque, cull_disabled;
 // only (parallel to the screen, so every pixel of it is at the same depth, as in Python), keeping
 // the node's scale. Binary alpha: a pixel is drawn whole or not at all. Colours are mixed the way
 // pygame mixes them: the texture value times the brightness, in sRGB. The Compatibility renderer (measured) shows
-// ALBEDO as it is (OUTPUT_IS_SRGB); Forward+ and Mobile need the value converted to linear first.
+// ALBEDO as it is (OUTPUT_IS_SRGB); Forward+ needs it converted to linear first (checked: sprites match there too).
 
 uniform sampler2D sprite_tex : filter_nearest, repeat_disable;
 uniform float light = 8.5;
