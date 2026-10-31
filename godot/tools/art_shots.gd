@@ -315,8 +315,9 @@ func _menu_shots() -> void:
 	w.update_fov()
 	if w.open_box("gold"):
 		app.overlay = "reveal"
-		main.hud.reveal.skip()
 		main._apply_scene()
+		await _frames(3)
+		main.hud.reveal.skip()                           # the animation has run its course: the item shows
 		await _save("menu_box_reveal")
 	app.overlay = ""
 	app.show_help = true
