@@ -5,3 +5,4 @@ saves/
 screenshots/
 runs/player_*
 runs/*events.csv
+godot/assets/**/*.png.import

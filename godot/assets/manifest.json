@@ -1,0 +1,904 @@
+{
+ "art_set": "default",
+ "generator": "scripts/art_build.py",
+ "mon:gnawer": {
+  "file": "sprites/monsters/gnawer.png",
+  "origin": "dcss",
+  "source": [
+   "https://github.com/crawl/tiles/releases/Nov-2015/mon/animals/quokka.png"
+  ],
+  "licence": "CC0 1.0 (https://creativecommons.org/publicdomain/zero/1.0/)"
+ },
+ "mon:goblin": {
+  "file": "sprites/monsters/goblin.png",
+  "origin": "dcss+fill-in",
+  "source": [
+   "https://github.com/crawl/tiles/releases/Nov-2015/mon/goblin.png"
+  ],
+  "licence": "CC0 1.0 (https://creativecommons.org/publicdomain/zero/1.0/)",
+  "note": "comedy props drawn over the DCSS body"
+ },
+ "mon:skeleton": {
+  "file": "sprites/monsters/skeleton.png",
+  "origin": "dcss+fill-in",
+  "source": [
+   "https://github.com/crawl/tiles/releases/Nov-2015/mon/undead/skeletons/skeleton_humanoid_small.png"
+  ],
+  "licence": "CC0 1.0 (https://creativecommons.org/publicdomain/zero/1.0/)",
+  "note": "comedy props drawn over the DCSS body"
+ },
+ "mon:brute": {
+  "file": "sprites/monsters/brute.png",
+  "origin": "dcss+fill-in",
+  "source": [
+   "https://github.com/crawl/tiles/releases/Nov-2015/mon/ogre.png"
+  ],
+  "licence": "CC0 1.0 (https://creativecommons.org/publicdomain/zero/1.0/)",
+  "note": "comedy props drawn over the DCSS body"
+ },
+ "mon:cultist": {
+  "file": "sprites/monsters/cultist.png",
+  "origin": "dcss",
+  "source": [
+   "https://github.com/crawl/tiles/releases/Nov-2015/mon/necromancer.png"
+  ],
+  "licence": "CC0 1.0 (https://creativecommons.org/publicdomain/zero/1.0/)"
+ },
+ "mon:golem": {
+  "file": "sprites/monsters/golem.png",
+  "origin": "dcss",
+  "source": [
+   "https://github.com/crawl/tiles/releases/Nov-2015/mon/nonliving/flesh_golem.png"
+  ],
+  "licence": "CC0 1.0 (https://creativecommons.org/publicdomain/zero/1.0/)"
+ },
+ "mon:stalker": {
+  "file": "sprites/monsters/stalker.png",
+  "origin": "dcss+fill-in",
+  "source": [
+   "https://github.com/crawl/tiles/releases/Nov-2015/mon/undead/shadow_wraith.png"
+  ],
+  "licence": "CC0 1.0 (https://creativecommons.org/publicdomain/zero/1.0/)",
+  "note": "lighter rim for contrast on floor 5"
+ },
+ "pet:cat": {
+  "file": "sprites/pets/cat.png",
+  "origin": "dcss",
+  "source": [
+   "https://github.com/crawl/tiles/releases/Nov-2015/player/felids/cat9.png"
+  ],
+  "licence": "CC0 1.0 (https://creativecommons.org/publicdomain/zero/1.0/)"
+ },
+ "pet:dog": {
+  "file": "sprites/pets/dog.png",
+  "origin": "dcss",
+  "source": [
+   "https://github.com/crawl/tiles/releases/Nov-2015/mon/animals/jackal.png"
+  ],
+  "licence": "CC0 1.0 (https://creativecommons.org/publicdomain/zero/1.0/)"
+ },
+ "pet:mouse": {
+  "file": "sprites/pets/mouse.png",
+  "origin": "dcss",
+  "source": [
+   "https://github.com/crawl/tiles/releases/Nov-2015/UNUSED/monsters/labrat_unseen.png"
+  ],
+  "licence": "CC0 1.0 (https://creativecommons.org/publicdomain/zero/1.0/)"
+ },
+ "boss:boss_1": {
+  "file": "sprites/headliners/boss_1.png",
+  "origin": "dcss+fill-in",
+  "source": [
+   "https://github.com/crawl/tiles/releases/Nov-2015/mon/unique/royal_jelly.png"
+  ],
+  "licence": "CC0 1.0 (https://creativecommons.org/publicdomain/zero/1.0/)",
+  "note": "comedy props drawn over the DCSS body"
+ },
+ "boss:boss_2": {
+  "file": "sprites/headliners/boss_2.png",
+  "origin": "dcss+fill-in",
+  "source": [
+   "https://github.com/crawl/tiles/releases/Nov-2015/mon/unique/josephine.png"
+  ],
+  "licence": "CC0 1.0 (https://creativecommons.org/publicdomain/zero/1.0/)",
+  "note": "comedy props drawn over the DCSS body"
+ },
+ "boss:boss_3": {
+  "file": "sprites/headliners/boss_3.png",
+  "origin": "dcss+fill-in",
+  "source": [
+   "https://github.com/crawl/tiles/releases/Nov-2015/mon/unique/iron_giant.png"
+  ],
+  "licence": "CC0 1.0 (https://creativecommons.org/publicdomain/zero/1.0/)",
+  "note": "comedy props drawn over the DCSS body"
+ },
+ "boss:boss_4": {
+  "file": "sprites/headliners/boss_4.png",
+  "origin": "dcss+fill-in",
+  "source": [
+   "https://github.com/crawl/tiles/releases/Nov-2015/mon/unique/erica.png"
+  ],
+  "licence": "CC0 1.0 (https://creativecommons.org/publicdomain/zero/1.0/)",
+  "note": "comedy props drawn over the DCSS body"
+ },
+ "boss:boss_5": {
+  "file": "sprites/headliners/boss_5.png",
+  "origin": "dcss+fill-in",
+  "source": [
+   "https://github.com/crawl/tiles/releases/Nov-2015/mon/nonliving/guardian_golem.png"
+  ],
+  "licence": "CC0 1.0 (https://creativecommons.org/publicdomain/zero/1.0/)",
+  "note": "comedy props drawn over the DCSS body"
+ },
+ "boss:boss_6": {
+  "file": "sprites/headliners/boss_6.png",
+  "origin": "dcss+fill-in",
+  "source": [
+   "https://github.com/crawl/tiles/releases/Nov-2015/mon/demons/balrug.png"
+  ],
+  "licence": "CC0 1.0 (https://creativecommons.org/publicdomain/zero/1.0/)",
+  "note": "comedy props drawn over the DCSS body"
+ },
+ "pet:budgie": {
+  "file": "sprites/pets/budgie.png",
+  "origin": "fill-in",
+  "source": [],
+  "licence": "original fill-in art for Crawl Live!, CC0 1.0",
+  "note": "no DCSS match; drawn in code"
+ },
+ "mon:vacbot": {
+  "file": "sprites/monsters/vacbot.png",
+  "origin": "fill-in",
+  "source": [],
+  "licence": "original fill-in art for Crawl Live!, CC0 1.0",
+  "note": "no DCSS match; drawn in code"
+ },
+ "fx:badge_opening": {
+  "file": "sprites/acts/badge_opening.png",
+  "origin": "fill-in",
+  "source": [],
+  "licence": "original fill-in art for Crawl Live!, CC0 1.0"
+ },
+ "fx:sash_featured": {
+  "file": "sprites/acts/sash_featured.png",
+  "origin": "fill-in",
+  "source": [],
+  "licence": "original fill-in art for Crawl Live!, CC0 1.0"
+ },
+ "player:human": {
+  "file": "sprites/player/human.png",
+  "origin": "dcss",
+  "source": [
+   "https://github.com/crawl/tiles/releases/Nov-2015/player/base/human_m.png",
+   "https://github.com/crawl/tiles/releases/Nov-2015/player/legs/pants_brown.png",
+   "https://github.com/crawl/tiles/releases/Nov-2015/player/body/shirt_blue.png",
+   "https://github.com/crawl/tiles/releases/Nov-2015/player/boots/middle_brown.png",
+   "https://github.com/crawl/tiles/releases/Nov-2015/player/hair/brown1.png"
+  ],
+  "licence": "CC0 1.0 (https://creativecommons.org/publicdomain/zero/1.0/)",
+  "note": "paper doll: base plus outfit layers"
+ },
+ "player:elf": {
+  "file": "sprites/player/elf.png",
+  "origin": "dcss",
+  "source": [
+   "https://github.com/crawl/tiles/releases/Nov-2015/player/base/elf_m.png",
+   "https://github.com/crawl/tiles/releases/Nov-2015/player/legs/pants_black.png",
+   "https://github.com/crawl/tiles/releases/Nov-2015/player/body/robe_green.png",
+   "https://github.com/crawl/tiles/releases/Nov-2015/player/boots/middle_gray.png",
+   "https://github.com/crawl/tiles/releases/Nov-2015/player/hair/elf_black.png"
+  ],
+  "licence": "CC0 1.0 (https://creativecommons.org/publicdomain/zero/1.0/)",
+  "note": "paper doll: base plus outfit layers"
+ },
+ "player:dwarf": {
+  "file": "sprites/player/dwarf.png",
+  "origin": "dcss",
+  "source": [
+   "https://github.com/crawl/tiles/releases/Nov-2015/player/base/dwarf_m.png",
+   "https://github.com/crawl/tiles/releases/Nov-2015/player/legs/pants_short_brown.png",
+   "https://github.com/crawl/tiles/releases/Nov-2015/player/body/leather_short.png",
+   "https://github.com/crawl/tiles/releases/Nov-2015/player/boots/middle_brown.png",
+   "https://github.com/crawl/tiles/releases/Nov-2015/player/head/helm_red.png"
+  ],
+  "licence": "CC0 1.0 (https://creativecommons.org/publicdomain/zero/1.0/)",
+  "note": "paper doll: base plus outfit layers"
+ },
+ "player:hobgoblin": {
+  "file": "sprites/player/hobgoblin.png",
+  "origin": "dcss",
+  "source": [
+   "https://github.com/crawl/tiles/releases/Nov-2015/mon/hobgoblin.png"
+  ],
+  "licence": "CC0 1.0 (https://creativecommons.org/publicdomain/zero/1.0/)"
+ },
+ "player:bog_troll": {
+  "file": "sprites/player/bog_troll.png",
+  "origin": "dcss",
+  "source": [
+   "https://github.com/crawl/tiles/releases/Nov-2015/mon/deep_troll.png"
+  ],
+  "licence": "CC0 1.0 (https://creativecommons.org/publicdomain/zero/1.0/)"
+ },
+ "player:houseplant": {
+  "file": "sprites/player/houseplant.png",
+  "origin": "dcss",
+  "source": [
+   "https://github.com/crawl/tiles/releases/Nov-2015/mon/fungi_plants/thorn_hunter.png"
+  ],
+  "licence": "CC0 1.0 (https://creativecommons.org/publicdomain/zero/1.0/)"
+ },
+ "player:crawler": {
+  "file": "sprites/player/crawler.png",
+  "origin": "dcss",
+  "source": [
+   "https://github.com/crawl/tiles/releases/Nov-2015/player/base/human_f.png",
+   "https://github.com/crawl/tiles/releases/Nov-2015/player/legs/pants_brown.png",
+   "https://github.com/crawl/tiles/releases/Nov-2015/player/body/shirt_blue.png",
+   "https://github.com/crawl/tiles/releases/Nov-2015/player/boots/middle_brown.png",
+   "https://github.com/crawl/tiles/releases/Nov-2015/player/hair/fem_red.png"
+  ],
+  "licence": "CC0 1.0 (https://creativecommons.org/publicdomain/zero/1.0/)",
+  "note": "before a race is chosen"
+ },
+ "item:cleaver": {
+  "file": "sprites/items/cleaver.png",
+  "origin": "dcss",
+  "source": [
+   "https://github.com/crawl/tiles/releases/Nov-2015/item/weapon/hand_axe1.png"
+  ],
+  "licence": "CC0 1.0 (https://creativecommons.org/publicdomain/zero/1.0/)"
+ },
+ "item:katana": {
+  "file": "sprites/items/katana.png",
+  "origin": "dcss",
+  "source": [
+   "https://github.com/crawl/tiles/releases/Nov-2015/item/weapon/scimitar1.png"
+  ],
+  "licence": "CC0 1.0 (https://creativecommons.org/publicdomain/zero/1.0/)",
+  "note": "recoloured to the item's colour"
+ },
+ "item:sledge": {
+  "file": "sprites/items/sledge.png",
+  "origin": "dcss",
+  "source": [
+   "https://github.com/crawl/tiles/releases/Nov-2015/item/weapon/mace_large1.png"
+  ],
+  "licence": "CC0 1.0 (https://creativecommons.org/publicdomain/zero/1.0/)"
+ },
+ "item:jersey": {
+  "file": "sprites/items/jersey.png",
+  "origin": "dcss",
+  "source": [
+   "https://github.com/crawl/tiles/releases/Nov-2015/item/armour/robe2.png"
+  ],
+  "licence": "CC0 1.0 (https://creativecommons.org/publicdomain/zero/1.0/)",
+  "note": "recoloured to the item's colour"
+ },
+ "item:vest": {
+  "file": "sprites/items/vest.png",
+  "origin": "dcss",
+  "source": [
+   "https://github.com/crawl/tiles/releases/Nov-2015/item/armour/leather_armour1.png"
+  ],
+  "licence": "CC0 1.0 (https://creativecommons.org/publicdomain/zero/1.0/)",
+  "note": "recoloured to the item's colour"
+ },
+ "item:plate": {
+  "file": "sprites/items/plate.png",
+  "origin": "dcss",
+  "source": [
+   "https://github.com/crawl/tiles/releases/Nov-2015/item/armour/plate1.png"
+  ],
+  "licence": "CC0 1.0 (https://creativecommons.org/publicdomain/zero/1.0/)",
+  "note": "recoloured to the item's colour"
+ },
+ "item:tonic": {
+  "file": "sprites/items/tonic.png",
+  "origin": "dcss",
+  "source": [
+   "https://github.com/crawl/tiles/releases/Nov-2015/item/potion/ruby.png"
+  ],
+  "licence": "CC0 1.0 (https://creativecommons.org/publicdomain/zero/1.0/)",
+  "note": "recoloured to the item's colour"
+ },
+ "item:brew": {
+  "file": "sprites/items/brew.png",
+  "origin": "dcss",
+  "source": [
+   "https://github.com/crawl/tiles/releases/Nov-2015/item/potion/murky.png"
+  ],
+  "licence": "CC0 1.0 (https://creativecommons.org/publicdomain/zero/1.0/)",
+  "note": "recoloured to the item's colour"
+ },
+ "item:elixir": {
+  "file": "sprites/items/elixir.png",
+  "origin": "dcss",
+  "source": [
+   "https://github.com/crawl/tiles/releases/Nov-2015/item/potion/orange.png"
+  ],
+  "licence": "CC0 1.0 (https://creativecommons.org/publicdomain/zero/1.0/)",
+  "note": "recoloured to the item's colour"
+ },
+ "item:pan": {
+  "file": "sprites/items/pan.png",
+  "origin": "fill-in",
+  "source": [],
+  "licence": "original fill-in art for Crawl Live!, CC0 1.0",
+  "note": "no DCSS match; drawn in code"
+ },
+ "item:extinguisher": {
+  "file": "sprites/items/extinguisher.png",
+  "origin": "fill-in",
+  "source": [],
+  "licence": "original fill-in art for Crawl Live!, CC0 1.0",
+  "note": "no DCSS match; drawn in code"
+ },
+ "item:popper": {
+  "file": "sprites/items/popper.png",
+  "origin": "fill-in",
+  "source": [],
+  "licence": "original fill-in art for Crawl Live!, CC0 1.0",
+  "note": "no DCSS match; drawn in code"
+ },
+ "item:fireworks": {
+  "file": "sprites/items/fireworks.png",
+  "origin": "fill-in",
+  "source": [],
+  "licence": "original fill-in art for Crawl Live!, CC0 1.0",
+  "note": "no DCSS match; drawn in code"
+ },
+ "item:sock": {
+  "file": "sprites/items/sock.png",
+  "origin": "fill-in",
+  "source": [],
+  "licence": "original fill-in art for Crawl Live!, CC0 1.0",
+  "note": "no DCSS match; drawn in code"
+ },
+ "item:trophy": {
+  "file": "sprites/items/trophy.png",
+  "origin": "fill-in",
+  "source": [],
+  "licence": "original fill-in art for Crawl Live!, CC0 1.0",
+  "note": "no DCSS match; drawn in code"
+ },
+ "item:remote": {
+  "file": "sprites/items/remote.png",
+  "origin": "fill-in",
+  "source": [],
+  "licence": "original fill-in art for Crawl Live!, CC0 1.0",
+  "note": "no DCSS match; drawn in code"
+ },
+ "item:mug": {
+  "file": "sprites/items/mug.png",
+  "origin": "fill-in",
+  "source": [],
+  "licence": "original fill-in art for Crawl Live!, CC0 1.0",
+  "note": "no DCSS match; drawn in code"
+ },
+ "box:bronze": {
+  "file": "ui/boxes/bronze.png",
+  "origin": "fill-in",
+  "source": [],
+  "licence": "original fill-in art for Crawl Live!, CC0 1.0",
+  "note": "recoloured per tier"
+ },
+ "box_big:bronze": {
+  "file": "ui/boxes/bronze_big.png",
+  "origin": "fill-in",
+  "source": [],
+  "licence": "original fill-in art for Crawl Live!, CC0 1.0",
+  "note": "2x nearest of the 32 px box"
+ },
+ "box:silver": {
+  "file": "ui/boxes/silver.png",
+  "origin": "fill-in",
+  "source": [],
+  "licence": "original fill-in art for Crawl Live!, CC0 1.0",
+  "note": "recoloured per tier"
+ },
+ "box_big:silver": {
+  "file": "ui/boxes/silver_big.png",
+  "origin": "fill-in",
+  "source": [],
+  "licence": "original fill-in art for Crawl Live!, CC0 1.0",
+  "note": "2x nearest of the 32 px box"
+ },
+ "box:gold": {
+  "file": "ui/boxes/gold.png",
+  "origin": "fill-in",
+  "source": [],
+  "licence": "original fill-in art for Crawl Live!, CC0 1.0",
+  "note": "recoloured per tier"
+ },
+ "box_big:gold": {
+  "file": "ui/boxes/gold_big.png",
+  "origin": "fill-in",
+  "source": [],
+  "licence": "original fill-in art for Crawl Live!, CC0 1.0",
+  "note": "2x nearest of the 32 px box"
+ },
+ "box:platinum": {
+  "file": "ui/boxes/platinum.png",
+  "origin": "fill-in",
+  "source": [],
+  "licence": "original fill-in art for Crawl Live!, CC0 1.0",
+  "note": "recoloured per tier"
+ },
+ "box_big:platinum": {
+  "file": "ui/boxes/platinum_big.png",
+  "origin": "fill-in",
+  "source": [],
+  "licence": "original fill-in art for Crawl Live!, CC0 1.0",
+  "note": "2x nearest of the 32 px box"
+ },
+ "box:legendary": {
+  "file": "ui/boxes/legendary.png",
+  "origin": "fill-in",
+  "source": [],
+  "licence": "original fill-in art for Crawl Live!, CC0 1.0",
+  "note": "recoloured per tier"
+ },
+ "box_big:legendary": {
+  "file": "ui/boxes/legendary_big.png",
+  "origin": "fill-in",
+  "source": [],
+  "licence": "original fill-in art for Crawl Live!, CC0 1.0",
+  "note": "2x nearest of the 32 px box"
+ },
+ "furn:bed": {
+  "file": "sprites/furniture/bed.png",
+  "origin": "fill-in",
+  "source": [],
+  "licence": "original fill-in art for Crawl Live!, CC0 1.0",
+  "note": "no DCSS match; drawn in code"
+ },
+ "furn:bench": {
+  "file": "sprites/furniture/bench.png",
+  "origin": "fill-in",
+  "source": [],
+  "licence": "original fill-in art for Crawl Live!, CC0 1.0",
+  "note": "no DCSS match; drawn in code"
+ },
+ "furn:counter": {
+  "file": "sprites/furniture/counter.png",
+  "origin": "fill-in",
+  "source": [],
+  "licence": "original fill-in art for Crawl Live!, CC0 1.0",
+  "note": "no DCSS match; drawn in code"
+ },
+ "fx:stairs_open": {
+  "file": "sprites/fx/stairs_open.png",
+  "origin": "fill-in",
+  "source": [],
+  "licence": "original fill-in art for Crawl Live!, CC0 1.0"
+ },
+ "fx:stairs_locked": {
+  "file": "sprites/fx/stairs_locked.png",
+  "origin": "fill-in",
+  "source": [],
+  "licence": "original fill-in art for Crawl Live!, CC0 1.0",
+  "note": "red arrow with a padlock"
+ },
+ "fx:torch_0": {
+  "file": "sprites/fx/torch_0.png",
+  "origin": "fill-in",
+  "source": [],
+  "licence": "original fill-in art for Crawl Live!, CC0 1.0"
+ },
+ "fx:torch_1": {
+  "file": "sprites/fx/torch_1.png",
+  "origin": "fill-in",
+  "source": [],
+  "licence": "original fill-in art for Crawl Live!, CC0 1.0"
+ },
+ "tex:1:wall_0": {
+  "file": "textures/floor1/wall_0.png",
+  "origin": "dcss",
+  "source": [
+   "https://github.com/crawl/tiles/releases/Nov-2015/dngn/wall/brick_gray0.png"
+  ],
+  "licence": "CC0 1.0 (https://creativecommons.org/publicdomain/zero/1.0/)",
+  "note": "desaturated and levelled so the floor tint has something neutral to multiply"
+ },
+ "tile:1:wall_0": {
+  "file": "tiles/floor1/wall_0.png",
+  "origin": "dcss",
+  "source": [
+   "https://github.com/crawl/tiles/releases/Nov-2015/dngn/wall/brick_gray0.png"
+  ],
+  "licence": "CC0 1.0 (https://creativecommons.org/publicdomain/zero/1.0/)"
+ },
+ "tex:1:wall_1": {
+  "file": "textures/floor1/wall_1.png",
+  "origin": "dcss",
+  "source": [
+   "https://github.com/crawl/tiles/releases/Nov-2015/dngn/wall/brick_gray1.png"
+  ],
+  "licence": "CC0 1.0 (https://creativecommons.org/publicdomain/zero/1.0/)",
+  "note": "desaturated and levelled so the floor tint has something neutral to multiply"
+ },
+ "tile:1:wall_1": {
+  "file": "tiles/floor1/wall_1.png",
+  "origin": "dcss",
+  "source": [
+   "https://github.com/crawl/tiles/releases/Nov-2015/dngn/wall/brick_gray1.png"
+  ],
+  "licence": "CC0 1.0 (https://creativecommons.org/publicdomain/zero/1.0/)"
+ },
+ "tex:1:floor": {
+  "file": "textures/floor1/floor.png",
+  "origin": "dcss",
+  "source": [
+   "https://github.com/crawl/tiles/releases/Nov-2015/dngn/floor/rect_gray0.png"
+  ],
+  "licence": "CC0 1.0 (https://creativecommons.org/publicdomain/zero/1.0/)",
+  "note": "desaturated and levelled so the floor tint has something neutral to multiply"
+ },
+ "tile:1:floor": {
+  "file": "tiles/floor1/floor.png",
+  "origin": "dcss",
+  "source": [
+   "https://github.com/crawl/tiles/releases/Nov-2015/dngn/floor/rect_gray0.png"
+  ],
+  "licence": "CC0 1.0 (https://creativecommons.org/publicdomain/zero/1.0/)"
+ },
+ "tex:1:ceiling": {
+  "file": "textures/floor1/ceiling.png",
+  "origin": "fill-in",
+  "source": [],
+  "licence": "original fill-in art for Crawl Live!, CC0 1.0",
+  "note": "service tunnels and drains"
+ },
+ "tex:2:wall_0": {
+  "file": "textures/floor2/wall_0.png",
+  "origin": "dcss",
+  "source": [
+   "https://github.com/crawl/tiles/releases/Nov-2015/dngn/wall/brick_brown1.png"
+  ],
+  "licence": "CC0 1.0 (https://creativecommons.org/publicdomain/zero/1.0/)",
+  "note": "desaturated and levelled so the floor tint has something neutral to multiply"
+ },
+ "tile:2:wall_0": {
+  "file": "tiles/floor2/wall_0.png",
+  "origin": "dcss",
+  "source": [
+   "https://github.com/crawl/tiles/releases/Nov-2015/dngn/wall/brick_brown1.png"
+  ],
+  "licence": "CC0 1.0 (https://creativecommons.org/publicdomain/zero/1.0/)"
+ },
+ "tex:2:wall_1": {
+  "file": "textures/floor2/wall_1.png",
+  "origin": "dcss",
+  "source": [
+   "https://github.com/crawl/tiles/releases/Nov-2015/dngn/wall/relief_brown0.png"
+  ],
+  "licence": "CC0 1.0 (https://creativecommons.org/publicdomain/zero/1.0/)",
+  "note": "desaturated and levelled so the floor tint has something neutral to multiply"
+ },
+ "tile:2:wall_1": {
+  "file": "tiles/floor2/wall_1.png",
+  "origin": "dcss",
+  "source": [
+   "https://github.com/crawl/tiles/releases/Nov-2015/dngn/wall/relief_brown0.png"
+  ],
+  "licence": "CC0 1.0 (https://creativecommons.org/publicdomain/zero/1.0/)"
+ },
+ "tex:2:floor": {
+  "file": "textures/floor2/floor.png",
+  "origin": "dcss",
+  "source": [
+   "https://github.com/crawl/tiles/releases/Nov-2015/dngn/floor/limestone0.png"
+  ],
+  "licence": "CC0 1.0 (https://creativecommons.org/publicdomain/zero/1.0/)",
+  "note": "desaturated and levelled so the floor tint has something neutral to multiply"
+ },
+ "tile:2:floor": {
+  "file": "tiles/floor2/floor.png",
+  "origin": "dcss",
+  "source": [
+   "https://github.com/crawl/tiles/releases/Nov-2015/dngn/floor/limestone0.png"
+  ],
+  "licence": "CC0 1.0 (https://creativecommons.org/publicdomain/zero/1.0/)"
+ },
+ "tex:2:ceiling": {
+  "file": "textures/floor2/ceiling.png",
+  "origin": "fill-in",
+  "source": [],
+  "licence": "original fill-in art for Crawl Live!, CC0 1.0",
+  "note": "archive stacks"
+ },
+ "tex:3:wall_0": {
+  "file": "textures/floor3/wall_0.png",
+  "origin": "dcss",
+  "source": [
+   "https://github.com/crawl/tiles/releases/Nov-2015/dngn/wall/stone2_gray0.png"
+  ],
+  "licence": "CC0 1.0 (https://creativecommons.org/publicdomain/zero/1.0/)",
+  "note": "desaturated and levelled so the floor tint has something neutral to multiply"
+ },
+ "tile:3:wall_0": {
+  "file": "tiles/floor3/wall_0.png",
+  "origin": "dcss",
+  "source": [
+   "https://github.com/crawl/tiles/releases/Nov-2015/dngn/wall/stone2_gray0.png"
+  ],
+  "licence": "CC0 1.0 (https://creativecommons.org/publicdomain/zero/1.0/)"
+ },
+ "tex:3:wall_1": {
+  "file": "textures/floor3/wall_1.png",
+  "origin": "dcss+fill-in",
+  "source": [
+   "https://github.com/crawl/tiles/releases/Nov-2015/dngn/wall/lab-stone3.png"
+  ],
+  "licence": "CC0 1.0 (https://creativecommons.org/publicdomain/zero/1.0/)",
+  "note": "desaturated and levelled so the floor tint has something neutral to multiply"
+ },
+ "tile:3:wall_1": {
+  "file": "tiles/floor3/wall_1.png",
+  "origin": "dcss+fill-in",
+  "source": [
+   "https://github.com/crawl/tiles/releases/Nov-2015/dngn/wall/lab-stone3.png"
+  ],
+  "licence": "CC0 1.0 (https://creativecommons.org/publicdomain/zero/1.0/)"
+ },
+ "tex:3:floor": {
+  "file": "textures/floor3/floor.png",
+  "origin": "dcss",
+  "source": [
+   "https://github.com/crawl/tiles/releases/Nov-2015/dngn/floor/dirt0.png"
+  ],
+  "licence": "CC0 1.0 (https://creativecommons.org/publicdomain/zero/1.0/)",
+  "note": "desaturated and levelled so the floor tint has something neutral to multiply"
+ },
+ "tile:3:floor": {
+  "file": "tiles/floor3/floor.png",
+  "origin": "dcss",
+  "source": [
+   "https://github.com/crawl/tiles/releases/Nov-2015/dngn/floor/dirt0.png"
+  ],
+  "licence": "CC0 1.0 (https://creativecommons.org/publicdomain/zero/1.0/)"
+ },
+ "tex:3:ceiling": {
+  "file": "textures/floor3/ceiling.png",
+  "origin": "fill-in",
+  "source": [],
+  "licence": "original fill-in art for Crawl Live!, CC0 1.0",
+  "note": "half-built site, hazard tape"
+ },
+ "tex:4:wall_0": {
+  "file": "textures/floor4/wall_0.png",
+  "origin": "dcss",
+  "source": [
+   "https://github.com/crawl/tiles/releases/Nov-2015/dngn/wall/church0.png"
+  ],
+  "licence": "CC0 1.0 (https://creativecommons.org/publicdomain/zero/1.0/)",
+  "note": "desaturated and levelled so the floor tint has something neutral to multiply"
+ },
+ "tile:4:wall_0": {
+  "file": "tiles/floor4/wall_0.png",
+  "origin": "dcss",
+  "source": [
+   "https://github.com/crawl/tiles/releases/Nov-2015/dngn/wall/church0.png"
+  ],
+  "licence": "CC0 1.0 (https://creativecommons.org/publicdomain/zero/1.0/)"
+ },
+ "tex:4:wall_1": {
+  "file": "textures/floor4/wall_1.png",
+  "origin": "dcss",
+  "source": [
+   "https://github.com/crawl/tiles/releases/Nov-2015/dngn/wall/undead_brown0.png"
+  ],
+  "licence": "CC0 1.0 (https://creativecommons.org/publicdomain/zero/1.0/)",
+  "note": "desaturated and levelled so the floor tint has something neutral to multiply"
+ },
+ "tile:4:wall_1": {
+  "file": "tiles/floor4/wall_1.png",
+  "origin": "dcss",
+  "source": [
+   "https://github.com/crawl/tiles/releases/Nov-2015/dngn/wall/undead_brown0.png"
+  ],
+  "licence": "CC0 1.0 (https://creativecommons.org/publicdomain/zero/1.0/)"
+ },
+ "tex:4:floor": {
+  "file": "textures/floor4/floor.png",
+  "origin": "dcss",
+  "source": [
+   "https://github.com/crawl/tiles/releases/Nov-2015/dngn/floor/tomb0.png"
+  ],
+  "licence": "CC0 1.0 (https://creativecommons.org/publicdomain/zero/1.0/)",
+  "note": "desaturated and levelled so the floor tint has something neutral to multiply"
+ },
+ "tile:4:floor": {
+  "file": "tiles/floor4/floor.png",
+  "origin": "dcss",
+  "source": [
+   "https://github.com/crawl/tiles/releases/Nov-2015/dngn/floor/tomb0.png"
+  ],
+  "licence": "CC0 1.0 (https://creativecommons.org/publicdomain/zero/1.0/)"
+ },
+ "tex:4:ceiling": {
+  "file": "textures/floor4/ceiling.png",
+  "origin": "fill-in",
+  "source": [],
+  "licence": "original fill-in art for Crawl Live!, CC0 1.0",
+  "note": "cult chapel"
+ },
+ "tex:5:wall_0": {
+  "file": "textures/floor5/wall_0.png",
+  "origin": "dcss",
+  "source": [
+   "https://github.com/crawl/tiles/releases/Nov-2015/dngn/wall/lab-metal0.png"
+  ],
+  "licence": "CC0 1.0 (https://creativecommons.org/publicdomain/zero/1.0/)",
+  "note": "desaturated and levelled so the floor tint has something neutral to multiply"
+ },
+ "tile:5:wall_0": {
+  "file": "tiles/floor5/wall_0.png",
+  "origin": "dcss",
+  "source": [
+   "https://github.com/crawl/tiles/releases/Nov-2015/dngn/wall/lab-metal0.png"
+  ],
+  "licence": "CC0 1.0 (https://creativecommons.org/publicdomain/zero/1.0/)"
+ },
+ "tex:5:wall_1": {
+  "file": "textures/floor5/wall_1.png",
+  "origin": "dcss",
+  "source": [
+   "https://github.com/crawl/tiles/releases/Nov-2015/dngn/wall/metal_wall_white0.png"
+  ],
+  "licence": "CC0 1.0 (https://creativecommons.org/publicdomain/zero/1.0/)",
+  "note": "desaturated and levelled so the floor tint has something neutral to multiply"
+ },
+ "tile:5:wall_1": {
+  "file": "tiles/floor5/wall_1.png",
+  "origin": "dcss",
+  "source": [
+   "https://github.com/crawl/tiles/releases/Nov-2015/dngn/wall/metal_wall_white0.png"
+  ],
+  "licence": "CC0 1.0 (https://creativecommons.org/publicdomain/zero/1.0/)"
+ },
+ "tex:5:floor": {
+  "file": "textures/floor5/floor.png",
+  "origin": "dcss",
+  "source": [
+   "https://github.com/crawl/tiles/releases/Nov-2015/dngn/floor/mesh0.png"
+  ],
+  "licence": "CC0 1.0 (https://creativecommons.org/publicdomain/zero/1.0/)",
+  "note": "desaturated and levelled so the floor tint has something neutral to multiply"
+ },
+ "tile:5:floor": {
+  "file": "tiles/floor5/floor.png",
+  "origin": "dcss",
+  "source": [
+   "https://github.com/crawl/tiles/releases/Nov-2015/dngn/floor/mesh0.png"
+  ],
+  "licence": "CC0 1.0 (https://creativecommons.org/publicdomain/zero/1.0/)"
+ },
+ "tex:5:ceiling": {
+  "file": "textures/floor5/ceiling.png",
+  "origin": "fill-in",
+  "source": [],
+  "licence": "original fill-in art for Crawl Live!, CC0 1.0",
+  "note": "warehouse"
+ },
+ "tex:6:wall_0": {
+  "file": "textures/floor6/wall_0.png",
+  "origin": "dcss",
+  "source": [
+   "https://github.com/crawl/tiles/releases/Nov-2015/dngn/wall/relief0.png"
+  ],
+  "licence": "CC0 1.0 (https://creativecommons.org/publicdomain/zero/1.0/)",
+  "note": "desaturated and levelled so the floor tint has something neutral to multiply"
+ },
+ "tile:6:wall_0": {
+  "file": "tiles/floor6/wall_0.png",
+  "origin": "dcss",
+  "source": [
+   "https://github.com/crawl/tiles/releases/Nov-2015/dngn/wall/relief0.png"
+  ],
+  "licence": "CC0 1.0 (https://creativecommons.org/publicdomain/zero/1.0/)"
+ },
+ "tex:6:wall_1": {
+  "file": "textures/floor6/wall_1.png",
+  "origin": "dcss",
+  "source": [
+   "https://github.com/crawl/tiles/releases/Nov-2015/dngn/wall/silver_wall.png"
+  ],
+  "licence": "CC0 1.0 (https://creativecommons.org/publicdomain/zero/1.0/)",
+  "note": "desaturated and levelled so the floor tint has something neutral to multiply"
+ },
+ "tile:6:wall_1": {
+  "file": "tiles/floor6/wall_1.png",
+  "origin": "dcss",
+  "source": [
+   "https://github.com/crawl/tiles/releases/Nov-2015/dngn/wall/silver_wall.png"
+  ],
+  "licence": "CC0 1.0 (https://creativecommons.org/publicdomain/zero/1.0/)"
+ },
+ "tex:6:floor": {
+  "file": "textures/floor6/floor.png",
+  "origin": "dcss",
+  "source": [
+   "https://github.com/crawl/tiles/releases/Nov-2015/dngn/floor/white_marble3.png"
+  ],
+  "licence": "CC0 1.0 (https://creativecommons.org/publicdomain/zero/1.0/)",
+  "note": "desaturated and levelled so the floor tint has something neutral to multiply"
+ },
+ "tile:6:floor": {
+  "file": "tiles/floor6/floor.png",
+  "origin": "dcss",
+  "source": [
+   "https://github.com/crawl/tiles/releases/Nov-2015/dngn/floor/white_marble3.png"
+  ],
+  "licence": "CC0 1.0 (https://creativecommons.org/publicdomain/zero/1.0/)"
+ },
+ "tex:6:ceiling": {
+  "file": "textures/floor6/ceiling.png",
+  "origin": "fill-in",
+  "source": [],
+  "licence": "original fill-in art for Crawl Live!, CC0 1.0",
+  "note": "studio floor and executive suite"
+ },
+ "tex:safe_wall": {
+  "file": "textures/common/safe_wall.png",
+  "origin": "dcss+fill-in",
+  "source": [
+   "https://github.com/crawl/tiles/releases/Nov-2015/dngn/wall/marble_wall1.png"
+  ],
+  "licence": "CC0 1.0 (https://creativecommons.org/publicdomain/zero/1.0/)",
+  "note": "recoloured pale green, clean 16 px tile grid"
+ },
+ "tile:safe_wall": {
+  "file": "tiles/common/safe_wall.png",
+  "origin": "dcss+fill-in",
+  "source": [
+   "https://github.com/crawl/tiles/releases/Nov-2015/dngn/wall/marble_wall1.png"
+  ],
+  "licence": "CC0 1.0 (https://creativecommons.org/publicdomain/zero/1.0/)"
+ },
+ "tex:safe_floor": {
+  "file": "textures/common/safe_floor.png",
+  "origin": "dcss+fill-in",
+  "source": [
+   "https://github.com/crawl/tiles/releases/Nov-2015/dngn/floor/white_marble0.png"
+  ],
+  "licence": "CC0 1.0 (https://creativecommons.org/publicdomain/zero/1.0/)",
+  "note": "recoloured pale green, clean 16 px tile grid"
+ },
+ "tile:safe_floor": {
+  "file": "tiles/common/safe_floor.png",
+  "origin": "dcss+fill-in",
+  "source": [
+   "https://github.com/crawl/tiles/releases/Nov-2015/dngn/floor/white_marble0.png"
+  ],
+  "licence": "CC0 1.0 (https://creativecommons.org/publicdomain/zero/1.0/)"
+ },
+ "tex:stairs_open": {
+  "file": "textures/common/stairs_open.png",
+  "origin": "fill-in",
+  "source": [],
+  "licence": "original fill-in art for Crawl Live!, CC0 1.0",
+  "note": "gold grate"
+ },
+ "tile:stairs_open": {
+  "file": "tiles/common/stairs_open.png",
+  "origin": "fill-in",
+  "source": [],
+  "licence": "original fill-in art for Crawl Live!, CC0 1.0"
+ },
+ "tex:stairs_locked": {
+  "file": "textures/common/stairs_locked.png",
+  "origin": "fill-in",
+  "source": [],
+  "licence": "original fill-in art for Crawl Live!, CC0 1.0",
+  "note": "dimmed red grate"
+ },
+ "tile:stairs_locked": {
+  "file": "tiles/common/stairs_locked.png",
+  "origin": "fill-in",
+  "source": [],
+  "licence": "original fill-in art for Crawl Live!, CC0 1.0",
+  "note": "padlock on the locked tile"
+ }
+}
