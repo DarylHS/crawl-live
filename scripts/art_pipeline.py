@@ -194,8 +194,8 @@ def remove_background(arr: np.ndarray, tolerance: int = 40) -> np.ndarray:
 
 
 def keep_largest_blob(arr: np.ndarray) -> np.ndarray:
-    """Drop stray specks: keep only the biggest 8-connected opaque region (and anything touching it
-    within 2 pixels, so a floating hat or sparkle next to the body stays)."""
+    """Drop stray specks: keep the biggest 8-connected opaque region and any other region at least 4% as big
+    (a detached handle or a floating hat stays; a speck or a far-off sparkle goes)."""
     solid = arr[..., 3] > 0
     h, w = solid.shape
     label = np.zeros((h, w), dtype=int)
@@ -223,7 +223,7 @@ def keep_largest_blob(arr: np.ndarray) -> np.ndarray:
     big = max(sizes, key=lambda k: sizes[k])
     keep = np.zeros((h, w), dtype=bool)
     for k, c in sizes.items():
-        if k == big or c >= sizes[big] * 0.15:
+        if k == big or c >= sizes[big] * 0.04:
             keep |= label == k
     out = arr.copy()
     out[~keep] = 0

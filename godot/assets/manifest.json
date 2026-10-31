@@ -295,30 +295,30 @@
  },
  "item:tonic": {
   "file": "sprites/items/tonic.png",
-  "origin": "dcss",
+  "origin": "dcss+fill-in",
   "source": [
    "https://github.com/crawl/tiles/releases/Nov-2015/item/potion/ruby.png"
   ],
   "licence": "CC0 1.0 (https://creativecommons.org/publicdomain/zero/1.0/)",
-  "note": "recoloured to the item's colour"
+  "note": "recoloured to the item's colour; sponsor label drawn on"
  },
  "item:brew": {
   "file": "sprites/items/brew.png",
-  "origin": "dcss",
+  "origin": "dcss+fill-in",
   "source": [
    "https://github.com/crawl/tiles/releases/Nov-2015/item/potion/murky.png"
   ],
   "licence": "CC0 1.0 (https://creativecommons.org/publicdomain/zero/1.0/)",
-  "note": "recoloured to the item's colour"
+  "note": "recoloured to the item's colour; sponsor label drawn on"
  },
  "item:elixir": {
   "file": "sprites/items/elixir.png",
-  "origin": "dcss",
+  "origin": "dcss+fill-in",
   "source": [
    "https://github.com/crawl/tiles/releases/Nov-2015/item/potion/orange.png"
   ],
   "licence": "CC0 1.0 (https://creativecommons.org/publicdomain/zero/1.0/)",
-  "note": "recoloured to the item's colour"
+  "note": "recoloured to the item's colour; sponsor label drawn on"
  },
  "item:pan": {
   "file": "sprites/items/pan.png",

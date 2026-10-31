@@ -1,6 +1,6 @@
 # Crawl Live! art bible (draft)
 
-Status: draft for the deferred "Later: visual polish" phase in `PHASES.md`. Nothing here has been downloaded, made or wired in yet. All art work stays in `crawler/ui/` and `assets/`, so the rules never change.
+Status: draft for the deferred "Later: visual polish" phase in `PHASES.md`. Section 9 records what P9 built. All art work stays in `ui/art/` and `godot/assets/`, so the rules never change.
 
 ## 1. Visual identity
 
@@ -224,3 +224,23 @@ Effects are code, not drawn frames: flashes, floating numbers, shake, particles,
 | `fx:torch_0`, `fx:torch_1` | 32 x 32, the wall torch (bracket and flame) in two flicker frames | Drawn with the billboard shader, fog only. |
 
 The placeholders are drawn by `ui/art/weapon_art.gd` and `SpriteArt.torch`; register real PNGs under those keys (`SpriteArt.register` or the manifest) and nothing else changes. Palette: hands and sleeves use skin tones and a dark blue contestant sleeve with the near-black (20, 16, 24) outline; floating numbers use the accent colours (white hits, gold crits, red damage taken, green healing, blue pet).
+
+## 9. As built (P9)
+
+**Source and licence, rechecked at the source.** The tiles come from `github.com/crawl/tiles` (a repository of the Crawl Stone Soup tiles, snapshot `releases/Nov-2015`, commit `a6ea1655`). Its README says the artists listed in its `ARTISTS.md` signed their tiles over to CC0 1.0 and that tiles of unclear ownership are left out of the export and listed in `TILES_UNDER_UNKNOWN_LICENSE.md`; there is no separate LICENSE file, so CC0 rests on that statement and on the artists list. `scripts/art_build.py` refuses to use anything on the excluded list (it checks every tile it opens). Credit is given in `godot/assets/CREDITS.md` (per file: key, picture, origin, source tile path, licence) and on the title screen; the Kenney packs were not used (not rechecked: DCSS only, as recommended).
+
+**Cleaning.** Binary alpha, DCSS's black outline and ground shadow removed from creatures (the game draws its own outline and shadows), a one pixel transparent border, feet on the bottom row inside it (a sprite wider or taller than 30 px loses whole lines of its quietest rows rather than being resampled), snapped (CIE Lab nearest) to a 56 colour master palette built from the `config.py` anchors (`art_pipeline.PALETTE`; a little over the bible's "about 32" because fewer colours turned skin and stone to mush). Textures are desaturated to a quarter of their chroma, levelled to a mean luminance of 108 (walls) and 78 (floors), capped at 215 so the floor 5 and 6 tints do not clip, and snapped to the grey and grey-brown ramps only. Top-down tiles are the 64 px textures reduced by every second pixel, so both views match.
+
+**Coverage.**
+
+| Origin | Keys |
+|---|---|
+| DCSS direct (53: 19 sprites, 34 wall, floor and tile pictures) | gnawer (quokka), cultist (necromancer, hue matched), golem (flesh golem), cat, dog (jackal), mouse (lab rat, recoloured), the six race sprites and the pre-race crawler (paper dolls of base, clothes and hair; hobgoblin, bog troll (recoloured deep troll) and houseplant (thorn hunter) from monster tiles), cleaver (hand axe), katana (scimitar, recoloured), sledge (large mace), jersey (robe), vest (leather armour), plate; the two walls and the floor of each of six floors, as 64 px textures and 32 px tiles (floor themes below) |
+| DCSS plus fill-in (19: 13 sprites, 6 pictures) | goblin (green, logo tee), skeleton (clipboard), brute (ogre with a hard hat), stalker (shadow wraith with a lighter rim), the six Headliners (royal jelly with a crown; a librarian with glasses and books; an iron giant with a hard hat and hi-vis; a sorceress with horns and a staff; a guardian golem in cling film; a balrug with a tie and headset), tonic, brew and elixir (DCSS bottles recoloured, with sponsor labels), safe wall and floor (marble recoloured pale green on a clean 16 px grid), the floor 3 hazard-tape wall |
+| Fill-in drawn in code (39: 29 sprites, 10 pictures) | vacuum bot, budgie, Act badge and sash overlays, pan, extinguisher, popper, fireworks, sock, trophy, remote, mug, bed, bench, counter, the stairwell arrows (open, locked with padlock), torch frames, five loot boxes (32 and 64 px), six ceilings (pipes, beams, boards, vaulted ribs, corrugated roof, lighting grid), the gold and red stairwell gratings |
+| Still placeholders | the first-person weapon view models (`wpn:*`, DCSS has no first-person art), the reveal animation's gift box (`RevealCanvas`, drawn in code and animated), sounds |
+| Not done | 64 px Headliners (all 32 px, scaled by the code as before), a phase-two Glorm picture (no phase-two key exists), the sponsor-sign wall variant, the doorway tile, 2 to 3 wall variants per floor (two per floor, picked by hash), idle frames |
+
+**Floor themes (the stone keys).** 1 grey brick and flags (service tunnels, ceiling pipes); 2 brown brick and carved panels (archive stacks, ceiling beams); 3 bare stone, rough dirt and a hazard-tape wall (building site); 4 pale church stone, crypt wall and tomb flags (chapel, vaulted ribs); 5 metal and white metal panels over a mesh floor (warehouse, corrugated roof); 6 relief and silver walls over polished marble (studio, lighting grid). The tint rules are unchanged (safe rooms and stairs untinted), and the top-down view applies the same tints.
+
+**Open choices.** The race sprites show a doll, not the character's gear (art bible 7.2: one per race). Acts reuse the base body, so an Act on the cultist wears the cultist's hue. DCSS art is played straight; the comedy is in the props drawn over it (hard hats, clipboards, logos, labels, sponsor blankets).

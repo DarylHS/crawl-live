@@ -1,0 +1,82 @@
+{
+ "item:katana": {
+  "file": "items/katana.png",
+  "origin": "imported",
+  "source": [
+   "item__katana.png"
+  ],
+  "palette": "snap",
+  "licence": "CC0 (DCSS tiles and fill-in art, see assets/CREDITS.md)",
+  "note": "plumbing test: DCSS and hand-made pictures made messy on purpose, not AI art"
+ },
+ "item:mug": {
+  "file": "items/mug.png",
+  "origin": "imported",
+  "source": [
+   "item__mug.png"
+  ],
+  "palette": "snap",
+  "licence": "CC0 (DCSS tiles and fill-in art, see assets/CREDITS.md)",
+  "note": "plumbing test: DCSS and hand-made pictures made messy on purpose, not AI art"
+ },
+ "item:pan": {
+  "file": "items/pan.png",
+  "origin": "imported",
+  "source": [
+   "item__pan.jpg"
+  ],
+  "palette": "snap",
+  "licence": "CC0 (DCSS tiles and fill-in art, see assets/CREDITS.md)",
+  "note": "plumbing test: DCSS and hand-made pictures made messy on purpose, not AI art"
+ },
+ "item:plate": {
+  "file": "items/plate.png",
+  "origin": "imported",
+  "source": [
+   "item__plate.png"
+  ],
+  "palette": "snap",
+  "licence": "CC0 (DCSS tiles and fill-in art, see assets/CREDITS.md)",
+  "note": "plumbing test: DCSS and hand-made pictures made messy on purpose, not AI art"
+ },
+ "item:tonic": {
+  "file": "items/tonic.png",
+  "origin": "imported",
+  "source": [
+   "item__tonic.png"
+  ],
+  "palette": "snap",
+  "licence": "CC0 (DCSS tiles and fill-in art, see assets/CREDITS.md)",
+  "note": "plumbing test: DCSS and hand-made pictures made messy on purpose, not AI art"
+ },
+ "item:trophy": {
+  "file": "items/trophy.png",
+  "origin": "imported",
+  "source": [
+   "item__trophy.png"
+  ],
+  "palette": "snap",
+  "licence": "CC0 (DCSS tiles and fill-in art, see assets/CREDITS.md)",
+  "note": "plumbing test: DCSS and hand-made pictures made messy on purpose, not AI art"
+ },
+ "item:jersey": {
+  "file": "items/jersey.png",
+  "origin": "imported",
+  "source": [
+   "jersey.png"
+  ],
+  "palette": "snap",
+  "licence": "CC0 (DCSS tiles and fill-in art, see assets/CREDITS.md)",
+  "note": "plumbing test: DCSS and hand-made pictures made messy on purpose, not AI art"
+ },
+ "item:sock": {
+  "file": "items/sock.png",
+  "origin": "imported",
+  "source": [
+   "sock.png"
+  ],
+  "palette": "snap",
+  "licence": "CC0 (DCSS tiles and fill-in art, see assets/CREDITS.md)",
+  "note": "plumbing test: DCSS and hand-made pictures made messy on purpose, not AI art"
+ }
+}

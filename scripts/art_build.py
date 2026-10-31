@@ -370,8 +370,6 @@ def draw_badge() -> np.ndarray:
 def draw_sash() -> np.ndarray:
     """A diagonal gold sash with a star, 20 x 20; SpriteArt clips it to the body."""
     c = Canvas(20, 20)
-    for i in range(-3, 24):
-        c.line(i, 0, i - 14, 19, (255, 196, 64), 1) if False else None
     for k in range(4):
         c.line(2 + k, 0, 19, 17 - k, GOLD if k < 3 else GOLD_D)
     c.px(9, 8, (240, 240, 240))
@@ -527,7 +525,6 @@ def p_mug() -> np.ndarray:
     c.rect(22, 12, 5, 12, DARK)
     c.rect(23, 13, 3, 10, (240, 240, 240))
     c.rect(23, 15, 1, 6, (0, 0, 0, 0))
-    c.rect(24, 15, 1, 6, DARK) if False else None
     c.px(12, 5, (186, 182, 198)); c.px(14, 3, (186, 182, 198)); c.px(16, 6, (186, 182, 198))  # steam
     return c.a
 
@@ -567,8 +564,8 @@ def build_items() -> None:
         a = prep(src, hue=hue, light=light, item=True)
         if key in LABELS:                                  # a sponsor label on the bottle
             a = over(a, LABELS[key])
-        sprite("item:" + key, "sprites/items/%s.png" % key, a, "dcss", [src],
-               "recoloured to the item's colour" if hue else "")
+        sprite("item:" + key, "sprites/items/%s.png" % key, a, "dcss+fill-in" if key in LABELS else "dcss", [src],
+               ("recoloured to the item's colour" if hue else "") + ("; sponsor label drawn on" if key in LABELS else ""))
     for key, fn in fill.items():
         sprite("item:" + key, "sprites/items/%s.png" % key, ap.fit(fn(), 32), "fill-in", [], "no DCSS match; drawn in code")
     # loot boxes (menus and the reveal): the DCSS box recoloured per tier, with a ribbon
@@ -657,7 +654,6 @@ def draw_stairs_arrow(locked: bool) -> np.ndarray:
     if locked:
         c.rect(12, 13, 8, 7, DARK)
         c.rect(13, 14, 6, 5, (150, 166, 194))
-        c.rect(14, 9, 1, 5, DARK) if False else None
         c.rect(13, 10, 2, 4, DARK); c.rect(17, 10, 2, 4, DARK); c.rect(13, 9, 6, 2, DARK)
         c.px(16, 16, DARK)
     return c.a
@@ -734,7 +730,6 @@ def ceiling_texture(depth: int) -> np.ndarray:
             c.rect(0, y + 1, 64, max(1, w - 3), (74, 70, 82))
             c.rect(0, y + 1, 64, 1, (96, 92, 108))
         for x in (14, 40):
-            c.rect(x, 0, 3, 64, seam) if False else None
             for y in (8, 30, 48):
                 c.rect(x, y - 1, 3, 7, (58, 54, 70))
     elif depth == 2:                                       # archive: wooden beams
@@ -868,7 +863,7 @@ def build_terrain() -> None:
 
 # --- CREDITS -----------------------------------------------------------------------------------
 
-def write_credits(path: str, artists: str) -> None:
+def write_credits(path: str, artists: str, commit: str = "unknown") -> None:
     lines = [
         "# Art credits",
         "",
@@ -877,7 +872,7 @@ def write_credits(path: str, artists: str) -> None:
         "## Dungeon Crawl Stone Soup tiles",
         "",
         "Most of the pictures are tiles from **Dungeon Crawl Stone Soup** (DCSS), made by its many artists and",
-        "packaged by the `crawl/tiles` project: <%s>, snapshot `releases/Nov-2015`." % SOURCE_URL,
+        "packaged by the `crawl/tiles` project: <%s>, snapshot `releases/Nov-2015` (repository commit %s)." % (SOURCE_URL, commit),
         "The project's README states that the artists in its ARTISTS.md signed their tiles over to **CC0 1.0** (public",
         "domain), and that tiles of unclear ownership are excluded from the export and listed in",
         "TILES_UNDER_UNKNOWN_LICENSE.md. `scripts/art_build.py` refuses to use any tile on that list. Credit is given",
@@ -888,7 +883,9 @@ def write_credits(path: str, artists: str) -> None:
         "source path; the artists who gave approval are listed in the project's ARTISTS.md:",
         "",
     ]
-    lines += [ln for ln in artists.splitlines() if ln.strip().startswith("- ") or ln.strip().startswith("The following")]
+    for ln in artists.splitlines():
+        if ln.strip().startswith("- ") or ln.strip().startswith("The following"):
+            lines.append(re.sub(r"\s*\S+@\S+", "", ln).rstrip())            # names and handles only, no email addresses
     lines += [
         "",
         "Every DCSS tile was edited for Crawl Live!: trimmed, shrunk by whole lines where it was wider than the",
@@ -900,6 +897,12 @@ def write_credits(path: str, artists: str) -> None:
         "Entries marked `fill-in` (vacuum bot, frying pan, fire extinguisher, party popper, fireworks, sock, trophy,",
         "remote, mug, furniture, stairwell arrows and grates, loot boxes, ceilings, torch frames, Act badge and sash,",
         "and the props drawn over DCSS bodies) are original, drawn in code by `scripts/art_build.py`, and released as CC0 1.0.",
+        "",
+        "## Other art sets",
+        "",
+        "Folders under `sets/` are alternative art sets (see `scripts/artgen.py`); each has its own `manifest.json` recording the",
+        "source file and licence of every picture. `sets/ai_trial` is a plumbing test built from the pictures above, made messy on",
+        "purpose; it holds no AI-generated art yet. Record the source and licence of anything added before it ships.",
         "",
         "## Per file",
         "",
@@ -954,7 +957,16 @@ def main() -> None:
                   f, indent=1, sort_keys=False)
         f.write("\n")
     artists = open(os.path.join(SRC, "ARTISTS.md"), encoding="utf-8").read()
-    write_credits(os.path.join(OUT, "CREDITS.md"), artists)
+    head = os.path.join(SRC, ".git", "HEAD")                  # the commit of the tiles repository the art came from
+    commit = "unknown"
+    try:
+        ref = open(head).read().strip()
+        if ref.startswith("ref: "):
+            ref = open(os.path.join(SRC, ".git", ref[5:])).read().strip()
+        commit = ref or "unknown"
+    except OSError:
+        pass
+    write_credits(os.path.join(OUT, "CREDITS.md"), artists, commit)
     n = {}
     for e in MANIFEST.values():
         n[e["origin"]] = n.get(e["origin"], 0) + 1

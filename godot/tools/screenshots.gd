@@ -4,6 +4,9 @@ extends SceneTree
 ##   xvfb-run -a godot --path godot --rendering-driver opengl3 -s res://tools/screenshots.gd \
 ##       -- --screenshots=/some/dir [--seed 1] [--pet cat|dog|budgie|mouse|none] [--fps-frames 300]
 ##
+## P9: the pairing shots use the code-drawn placeholder pictures (pygame has no real art); `-- --with-art` keeps the
+## real art and the 32 px map tiles are not part of this tool (see tools/art_shots.gd for those).
+##
 ## Needs a display (Xvfb is fine; software GL works). For each shot it writes <name>.png (the
 ## 320 x 200 frame scaled to 1024 x 640 with hard pixels, the size of Python's MAP_RECT) and a
 ## record in shots.json: seed, pet, floors made, player tile, look angle, the exact camera
@@ -43,6 +46,8 @@ func _initialize() -> void:
 	pet = null if species == "none" else [species, ""]
 	fps_frames = int(args.get("fps-frames", "300"))
 	menus_only = args.has("menus-only")
+	if not args.has("with-art"):
+		SpriteArt.use_set(SpriteArt.PLACEHOLDER_SET)     # the pygame pairing: placeholder pictures, as in P4 to P8 (--with-art keeps the real art)
 	DirAccess.make_dir_recursive_absolute(out_dir)
 	_run.call_deferred()
 

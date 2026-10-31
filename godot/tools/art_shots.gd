@@ -60,6 +60,8 @@ func _run() -> void:
 		await _zoom_shots()
 	if _want("menus"):
 		await _menu_shots()
+	if only.has("perf"):
+		await _perf()
 	quit(0)
 
 
@@ -321,6 +323,57 @@ func _menu_shots() -> void:
 	app.set_view("top")
 	await _save("menu_help_top")
 	app.show_help = false
+
+
+# --- Timings -----------------------------------------------------------------------------------
+
+## Load times and frame rates with the art and with the placeholders (`--only perf`; software GL under Xvfb).
+func _perf() -> void:
+	var out := {}
+	for set_name in [SpriteArt.DEFAULT_SET, SpriteArt.PLACEHOLDER_SET]:
+		SpriteArt.use_set(set_name)
+		SpriteArt.reset()
+		var t0 := Time.get_ticks_usec()
+		for d in range(1, 7):
+			FpTextures.images_for_depth(d)
+		var tex_ms := (Time.get_ticks_usec() - t0) / 1000.0
+		t0 = Time.get_ticks_usec()
+		for k in SpriteArt.all_keys():
+			var kind := k.get_slice(":", 0)
+			var nm := k.get_slice(":", 1)
+			match kind:
+				"item":
+					SpriteArt.item(nm)
+				"furn":
+					SpriteArt.furniture(nm)
+				"fx":
+					SpriteArt.stairs(nm == "stairs_locked")
+				"player":
+					SpriteArt.player("" if nm == "crawler" else nm)
+				_:
+					SpriteArt.creature(k, [200, 200, 200])
+		var spr_ms := (Time.get_ticks_usec() - t0) / 1000.0
+		var st := _staged_world(3)
+		var w: World = st[0]
+		_populate(st, 3)
+		_explore(w, 14)
+		var fps := {}
+		for view in ["fp", "top_tiles", "top_glyphs"]:
+			_show(w, "top" if view != "fp" else "fp", float(int(st[2]) * 90) if view == "fp" else null,
+					"glyphs" if view == "top_glyphs" else "tiles")
+			await _frames(10)
+			var frames := 0
+			var t1 := Time.get_ticks_usec()
+			while Time.get_ticks_usec() - t1 < 3000000:
+				await process_frame
+				frames += 1
+			fps[view] = snappedf(frames / 3.0, 0.1)
+		out[set_name] = {"textures_6_floors_ms": snappedf(tex_ms, 0.1), "all_sprites_ms": snappedf(spr_ms, 0.1), "fps": fps}
+	SpriteArt.use_set(SpriteArt.DEFAULT_SET)
+	var f := FileAccess.open(out_dir.path_join("perf.json"), FileAccess.WRITE)
+	f.store_string(JSON.stringify(out, "  "))
+	f.close()
+	print(JSON.stringify(out))
 
 
 # --- Sprite sheets -----------------------------------------------------------------------------

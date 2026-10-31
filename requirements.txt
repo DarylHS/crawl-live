@@ -1,3 +1,4 @@
 pygame-ce>=2.5
 numpy>=1.26          # first-person view
 pytest>=8
+pillow>=10           # scripts/art_build.py and scripts/artgen.py only (art tools; the game does not need it)
