@@ -73,6 +73,7 @@ func _draw() -> void:
 ## Forget the cached pictures (another art set was chosen).
 func forget_textures() -> void:
 	_textures.clear()
+	queue_redraw()                  # the canvas still holds the old draw command: draw again with the new picture
 
 
 func _texture() -> Texture2D:

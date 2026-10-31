@@ -289,6 +289,9 @@ func _title_shot() -> void:
 	app.scene = AppState.TITLE
 	main._apply_scene()
 	await _save("menu_title")
+	app.show_credits = true
+	await _save("menu_credits")
+	app.show_credits = false
 	app.scene = AppState.GAME
 
 
@@ -304,6 +307,15 @@ func _menu_shots() -> void:
 	app.open_overlay("inventory")
 	main._apply_scene()
 	await _save("menu_inventory")
+	var keep := w.inventory.duplicate()
+	var keys: Array = Items.items().keys()
+	w.inventory.clear()
+	for i in 16:
+		w.inventory.append(keys[i % keys.size()])
+	app.cursor = 17
+	await _save("menu_inventory_full_pack")
+	w.inventory = keep
+	app.cursor = 0
 	app.overlay = ""
 	app.open_overlay("safe")
 	await _save("menu_safe_room")

@@ -14,8 +14,12 @@ Two stages, one script (needs Pillow and numpy: `pip install pillow numpy`).
      * The environment must be allowed to reach https://api.openai.com : the user has to add `api.openai.com`
        to the allowed hosts in the environment's network settings. The script checks the host first and exits
        with a clear message if it is blocked or unreachable.
-     * `--moodboard DIR` holds the style reference pictures (PNG or JPG, up to 8 are sent along with each prompt as
-       reference images through the /v1/images/edits endpoint; with no pictures it uses /v1/images/generations).
+     * `--moodboard DIR` holds style reference pictures (PNG or JPG, up to 8 are sent along with each prompt through
+       the /v1/images/edits endpoint; with no pictures it uses /v1/images/generations and text only).
+       CAUTION: /images/edits treats the references as images TO EDIT, so the result may copy their content (a goblin
+       from the moodboard turning up in a potion picture). Often better: describe the style in words with
+       `--style-text "chunky 16-bit dungeon sprites, warm browns and teal, thick dark outlines"` and no moodboard.
+     * `--opaque-bg` asks for a plain white background instead of a transparent one (the importer removes either).
      * `--keys item:tonic,item:pan` picks keys (default: every item in the catalogue, `--set-name all` for the
        furniture, stairs and loot boxes too; `artgen.py list` prints the catalogue and the prompts). Each result is
        saved as <out>/<key with ':' as '__'>.png (a 1024 px picture; the model is asked for a transparent
@@ -67,10 +71,9 @@ KEY_VAR = "OPENAI_API_KEY"
 DEFAULT_MODEL = "gpt-image-1"
 ASSETS = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "godot", "assets")
 
-STYLE = ("A single game sprite in pixel-art style, matching the style reference pictures: chunky readable shapes, a limited "
-         "palette of about a dozen colours, hard pixel edges with no anti-aliasing or blur, a thin dark outline, lit from "
-         "above. Front or three-quarter view, centred, the whole object visible and filling most of the picture, on a "
-         "plain white background with no ground shadow, no text and no border. ")
+STYLE = ("A single game sprite in pixel-art style: chunky readable shapes, a limited palette of about a dozen colours, "
+         "hard pixel edges with no anti-aliasing or blur, a thin dark outline, lit from above. Front or three-quarter view, "
+         "centred, the whole object visible and filling most of the picture, no ground shadow, no text and no border. ")
 
 # --- The catalogue: art-bible keys and what to ask for. Comedy lives in props (art bible section 1). ---------
 ITEMS = {
@@ -120,8 +123,16 @@ def unslug(name: str) -> str:
     return name.replace("__", ":")
 
 
-def prompt_for(key: str) -> str:
-    return STYLE + "Subject: " + CATALOGUE[key] + "."
+def prompt_for(key: str, refs: bool = False, transparent: bool = True, style_text: str = "") -> str:
+    """The prompt for a key. It only talks about style reference pictures when some are sent, and only asks for a
+    white background when the request is not asking the API for a transparent one."""
+    text = STYLE
+    if refs:
+        text += "Match the style of the reference pictures. "
+    if style_text:
+        text += "Style: " + style_text.strip().rstrip(".") + ". "
+    text += "On a transparent background. " if transparent else "On a plain white background. "
+    return text + "Subject: " + CATALOGUE[key] + "."
 
 
 # --- Stage 1: generate -------------------------------------------------------------------------
@@ -207,10 +218,12 @@ def moodboard_files(folder: str, limit: int = 8) -> list[tuple[str, str, bytes, 
     return out
 
 
-def request_for(key: str, model: str, size: str, quality: str, refs: list, n: int) -> tuple[str, bytes, str]:
+def request_for(key: str, model: str, size: str, quality: str, refs: list, n: int, transparent: bool = True,
+                style_text: str = "") -> tuple[str, bytes, str]:
     """(url, body, content type) for one key. With references: /images/edits (multipart); else /images/generations (JSON)."""
-    common = {"model": model, "prompt": prompt_for(key), "size": size, "quality": quality, "n": str(n),
-              "background": "transparent", "output_format": "png"}
+    common = {"model": model, "prompt": prompt_for(key, bool(refs), transparent, style_text), "size": size,
+              "quality": quality, "n": str(n), "background": "transparent" if transparent else "opaque",
+              "output_format": "png"}
     if refs:
         body, ctype = multipart(common, refs)
         return API_BASE + "/images/edits", body, ctype
@@ -229,8 +242,9 @@ def cmd_generate(args: argparse.Namespace) -> int:
         print("artgen: no pictures found in the moodboard folder %r; using text prompts only" % args.moodboard, file=sys.stderr)
     if args.dry_run:
         for k in keys:
-            url, body, ctype = request_for(k, args.model, args.size, args.quality, refs, args.n)
-            print("%s -> POST %s (%d bytes, %s, %d reference pictures)\n    prompt: %s" % (k, url, len(body), ctype.split(";")[0], len(refs), prompt_for(k)))
+            url, body, ctype = request_for(k, args.model, args.size, args.quality, refs, args.n, not args.opaque_bg, args.style_text)
+            print("%s -> POST %s (%d bytes, %s, %d reference pictures)\n    prompt: %s" % (
+                k, url, len(body), ctype.split(";")[0], len(refs), prompt_for(k, bool(refs), not args.opaque_bg, args.style_text)))
         print("dry run: %d requests, nothing sent" % len(keys))
         return 0
     key = os.environ.get(KEY_VAR, "")
@@ -247,7 +261,7 @@ def cmd_generate(args: argparse.Namespace) -> int:
     os.makedirs(args.out, exist_ok=True)
     done = 0
     for k in keys:
-        url, body, ctype = request_for(k, args.model, args.size, args.quality, refs, args.n)
+        url, body, ctype = request_for(k, args.model, args.size, args.quality, refs, args.n, not args.opaque_bg, args.style_text)
         req = urllib.request.Request(url, data=body, method="POST",
                                      headers={"Authorization": "Bearer " + key, "Content-Type": ctype})
         try:
@@ -329,6 +343,8 @@ def clean_sprite(im, size: int, palette: str, outline: bool, border: int = 1):
         arr = ap.snap(arr)
     if outline:
         arr = ap.outline_rect(arr)
+    if int((arr[..., 3] > 0).sum()) < 12:                 # a fully transparent (or all-speck) result is a failure, not a sprite
+        raise ValueError("the cleaned picture is empty")
     return arr
 
 
@@ -368,11 +384,17 @@ def cmd_import(args: argparse.Namespace) -> int:
             manifest = json.load(f)
     wanted = set(args.keys.split(",")) if args.keys else None
     done, skipped = [], []
+    taken: dict[str, str] = {}
     for fn in sorted(os.listdir(args.src)):
         if not fn.lower().endswith((".png", ".jpg", ".jpeg", ".webp", ".bmp")):
             continue
         key = key_for_file(fn, mp)
         if key is None or (wanted and key not in wanted):
+            skipped.append(fn)
+            continue
+        if key in taken:                                  # two files for one key: keep the first, say so
+            print("artgen: warning: %s and %s both map to %s; keeping %s, skipping %s (use --map to choose)"
+                  % (taken[key], fn, key, taken[key], fn), file=sys.stderr)
             skipped.append(fn)
             continue
         try:
@@ -396,6 +418,7 @@ def cmd_import(args: argparse.Namespace) -> int:
         Image.fromarray(arr, "RGBA").save(out, optimize=True)
         manifest[key] = {"file": rel, "origin": "imported", "source": [fn], "palette": args.palette,
                          "licence": args.licence, "note": args.note}
+        taken[key] = fn
         done.append((key, fn, out))
     with open(man_path, "w", encoding="utf-8") as f:
         json.dump(manifest, f, indent=1)
@@ -465,6 +488,8 @@ def main(argv: list[str] | None = None) -> int:
     g.add_argument("--quality", default="medium", choices=["low", "medium", "high", "auto"])
     g.add_argument("--n", type=int, default=1, help="pictures per key")
     g.add_argument("--delay", type=float, default=1.0, help="seconds between calls")
+    g.add_argument("--style-text", default="", help="describe the style in words (instead of, or as well as, a moodboard)")
+    g.add_argument("--opaque-bg", action="store_true", help="ask for a plain white background, not a transparent one")
     g.add_argument("--dry-run", action="store_true", help="print the requests and exit (no key, no network)")
     g.set_defaults(fn=cmd_generate)
     i = sub.add_parser("import", help="stage 2: clean pictures into an art set")

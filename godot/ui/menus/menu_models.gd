@@ -86,6 +86,12 @@ static func _percent(p: float) -> String:
 	return PyFmt.fixed(p * 100.0, 0) + "%"
 
 
+## Row height of the inventory with pictures: 34 px, squeezed down to 22 so a full pack (16 items and two
+## equipped) still ends above the footer at y 560.
+static func inventory_step(n: int) -> int:
+	return clampi(416 / maxi(n, 1), 22, 34)
+
+
 # --- Inventory ------------------------------------------------------------------------------
 
 static func build_inventory(st: HudStyle, world: World, cursor: int) -> HudList:
@@ -93,24 +99,26 @@ static func build_inventory(st: HudStyle, world: World, cursor: int) -> HudList:
 	MenuKit.frame(list, "INVENTORY")
 	var rows := inventory_rows(world)
 	var y := 140
-	var art := st.icons                       # P9: a 32 px picture instead of the glyph, taller rows
+	var art := st.icons                       # P9: a picture instead of the glyph, taller rows
+	var step := inventory_step(rows.size()) if art else 24
 	for i in rows.size():
 		var row: Array = rows[i]
 		var key: String = row[2]
 		var it: Dictionary = Items.items()[key]
-		var ty := y + 5 if art else y         # the text sits lower inside the taller row
+		var ty := y + (step - 24) / 2 if art else y         # the text sits in the middle of the taller row
 		if i == cursor:
-			list.fill(Rect2i(X0 + 10, y - 6, WIDTH - 20, 34) if art else Rect2i(X0 + 10, y - 2, WIDTH - 20, 22),
-					MenuKit.SEL_COLOUR)
+			list.fill(Rect2i(X0 + 10, y - 2, WIDTH - 20, step - 2) if art
+					else Rect2i(X0 + 10, y - 2, WIDTH - 20, 22), MenuKit.SEL_COLOUR)
 		var tag := "[%s]" % row[1] if row[0] == "equip" else ""
 		if art:
-			list.icon("item:" + key, Rect2i(X0 + 14, y - 5, 32, 32))
+			var sz := mini(32, step)
+			list.icon("item:" + key, Rect2i(X0 + 14, y - 2 + (step - sz) / 2, sz, sz))
 		else:
 			list.text(Items.glyph(key), X0 + 22, y, _item_colour(key))
 		list.text("%s %s" % [it["name"], tag], X0 + (54 if art else 46), ty, st.colour("TEXT"))
 		list.text(MenuKit.fit(st, Items.describe(key), WIDTH - INV_STATS_X - 14), X0 + INV_STATS_X, ty,
 				st.colour("TEXT_DIM"), "small")
-		y += 34 if art else 24
+		y += step
 	if rows.is_empty():
 		list.text("Nothing but lint.", X0 + 46, y, st.colour("TEXT_DIM"))
 	list.text("Pack %d/%d   Boxes %d" % [world.inventory.size(), GameConfig.INVENTORY_SIZE, world.boxes.size()],
@@ -135,10 +143,12 @@ static func build_safe_menu(st: HudStyle, world: World, cursor: int) -> HudList:
 			list.fill(Rect2i(X0 + 10, y - 2, WIDTH - 20, 26), MenuKit.SEL_COLOUR)
 		var colour := UiColours.of(Content.box(o[1])["colour"]) if o[1] != "" else st.colour("TEXT")
 		if st.icons:                             # P9: a loot box icon beside each box row, every row's text lined up
+			var step := clampi(270 / maxi(opts.size(), 1), 22, 32)       # the rows end above the hint at y 510
 			if o[1] != "":
-				list.icon("box:" + String(o[1]), Rect2i(X0 + 22, y - 6, 32, 32))
-			list.text(o[2], X0 + 66, y, colour)
-			y += 32
+				var sz := mini(32, step)
+				list.icon("box:" + String(o[1]), Rect2i(X0 + 22, y - 2 + (step - sz) / 2, sz, sz))
+			list.text(o[2], X0 + 66, y + (step - 22) / 2 + 1, colour)
+			y += step
 			continue
 		list.text(o[2], X0 + 30, y, colour)
 		y += 30

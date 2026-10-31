@@ -77,14 +77,6 @@
   ],
   "licence": "CC0 1.0 (https://creativecommons.org/publicdomain/zero/1.0/)"
  },
- "pet:mouse": {
-  "file": "sprites/pets/mouse.png",
-  "origin": "dcss",
-  "source": [
-   "https://github.com/crawl/tiles/releases/Nov-2015/UNUSED/monsters/labrat_unseen.png"
-  ],
-  "licence": "CC0 1.0 (https://creativecommons.org/publicdomain/zero/1.0/)"
- },
  "boss:boss_1": {
   "file": "sprites/headliners/boss_1.png",
   "origin": "dcss+fill-in",
@@ -125,7 +117,7 @@
   "file": "sprites/headliners/boss_5.png",
   "origin": "dcss+fill-in",
   "source": [
-   "https://github.com/crawl/tiles/releases/Nov-2015/mon/nonliving/guardian_golem.png"
+   "https://github.com/crawl/tiles/releases/Nov-2015/mon/nonliving/iron_golem.png"
   ],
   "licence": "CC0 1.0 (https://creativecommons.org/publicdomain/zero/1.0/)",
   "note": "comedy props drawn over the DCSS body"
@@ -139,6 +131,13 @@
   "licence": "CC0 1.0 (https://creativecommons.org/publicdomain/zero/1.0/)",
   "note": "comedy props drawn over the DCSS body"
  },
+ "pet:mouse": {
+  "file": "sprites/pets/mouse.png",
+  "origin": "fill-in",
+  "source": [],
+  "licence": "original fill-in art for Crawl Live!, CC0 1.0",
+  "note": "no good DCSS match; drawn in code with shifty eyes"
+ },
  "pet:budgie": {
   "file": "sprites/pets/budgie.png",
   "origin": "fill-in",
@@ -151,7 +150,15 @@
   "origin": "fill-in",
   "source": [],
   "licence": "original fill-in art for Crawl Live!, CC0 1.0",
-  "note": "no DCSS match; drawn in code"
+  "note": "no DCSS match; drawn in code",
+  "act_opening": [
+   2,
+   13
+  ],
+  "act_featured": [
+   4,
+   21
+  ]
  },
  "fx:badge_opening": {
   "file": "sprites/acts/badge_opening.png",
@@ -266,15 +273,6 @@
   ],
   "licence": "CC0 1.0 (https://creativecommons.org/publicdomain/zero/1.0/)"
  },
- "item:jersey": {
-  "file": "sprites/items/jersey.png",
-  "origin": "dcss",
-  "source": [
-   "https://github.com/crawl/tiles/releases/Nov-2015/item/armour/robe2.png"
-  ],
-  "licence": "CC0 1.0 (https://creativecommons.org/publicdomain/zero/1.0/)",
-  "note": "recoloured to the item's colour"
- },
  "item:vest": {
   "file": "sprites/items/vest.png",
   "origin": "dcss",
@@ -319,6 +317,13 @@
   ],
   "licence": "CC0 1.0 (https://creativecommons.org/publicdomain/zero/1.0/)",
   "note": "recoloured to the item's colour; sponsor label drawn on"
+ },
+ "item:jersey": {
+  "file": "sprites/items/jersey.png",
+  "origin": "fill-in",
+  "source": [],
+  "licence": "original fill-in art for Crawl Live!, CC0 1.0",
+  "note": "no DCSS match; drawn in code"
  },
  "item:pan": {
   "file": "sprites/items/pan.png",

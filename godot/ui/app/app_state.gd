@@ -34,6 +34,7 @@ const GAME := "game"
 var scene: String = TITLE
 var world: World = null
 var show_help: bool = false
+var show_credits: bool = false     # the art credits screen (C on the title)
 var overlay: String = ""           ## "" | inventory | safe | reveal | box | shop | craft | class | contract | report | skills | attributes
 var cursor: int = 0
 var pet_idx: int = 0
@@ -291,6 +292,10 @@ func handle_key(ev: InputEventKey) -> void:
 		if ev.is_action(&"back"):
 			show_help = false
 		return
+	if show_credits:
+		if ev.is_action(&"back") or ev.is_action(&"credits") or ev.is_action(&"confirm"):
+			show_credits = false
+		return
 	if ev.is_action(&"cycle_render_scale"):
 		if not is_blocked():
 			render_scale_requested.emit()
@@ -318,7 +323,9 @@ func handle_key(ev: InputEventKey) -> void:
 
 
 func _title_key(ev: InputEventKey) -> void:
-	if ev.is_action(&"confirm"):
+	if ev.is_action(&"credits"):
+		show_credits = true
+	elif ev.is_action(&"confirm"):
 		scene = IDENTITY
 	elif ev.is_action(&"attributes") and SaveGame.has_save(save_path):
 		request_load()

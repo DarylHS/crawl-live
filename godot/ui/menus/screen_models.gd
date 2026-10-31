@@ -111,9 +111,42 @@ static func build_title(st: HudStyle, can_load: bool, loading: bool = false) -> 
 	elif can_load:
 		list.centred("L to continue your saved run", cx, 562, st.colour("INFO"))
 	if st.icons:                                 # P9: credit the tile artists on the title (assets/CREDITS.md lists every file)
-		list.centred("Art: tiles from Dungeon Crawl Stone Soup, CC0, thanks to its artists.   Full credits: assets/CREDITS.md",
+		list.centred("Art: Dungeon Crawl Stone Soup tiles (CC0), github.com/crawl/tiles   C for credits",
 				cx, 728, st.colour("TEXT_DIM"), "small")
 	return list
+
+
+## The art credits screen (P9): the tile source and licence and the artists who signed their tiles over to CC0.
+## Data from res://assets/credits.json (written by scripts/art_build.py), so an exported build needs no CREDITS.md.
+static func build_credits(st: HudStyle) -> HudList:
+	var list := HudList.new(st)
+	MenuKit.background(list)
+	var cx := HudPlace.SCREEN_W / 2
+	var data := credits_data()
+	list.centred("ART CREDITS", cx, 70, st.colour("ACCENT"), "big")
+	var lines: Array = data.get("intro", [])
+	for i in lines.size():
+		list.centred(lines[i], cx, 112 + i * 20, st.colour("TEXT"), "small")
+	var y0 := 112 + lines.size() * 20 + 22
+	list.centred("The artists (Dungeon Crawl Stone Soup and RLTiles)", cx, y0, st.colour("ACCENT"))
+	var names: Array = data.get("artists", [])
+	var cols := 3
+	var per := ceili(names.size() / float(cols))
+	for i in names.size():
+		list.text(names[i], 120 + (i / maxi(per, 1)) * 370, y0 + 28 + (i % maxi(per, 1)) * 19, st.colour("TEXT_DIM"), "small")
+	list.centred("Fill-in art drawn for Crawl Live!, also CC0. Every picture's source: assets/CREDITS.md", cx, 708,
+			st.colour("TEXT_DIM"), "small")
+	list.centred("Esc to close", cx, 736, st.colour("GOOD"), "small")
+	return list
+
+
+static func credits_data() -> Dictionary:
+	var path := "res://assets/credits.json"
+	if FileAccess.file_exists(path):
+		var parsed: Variant = JSON.parse_string(FileAccess.get_file_as_string(path))
+		if parsed is Dictionary:
+			return parsed
+	return {"intro": ["Art from Dungeon Crawl Stone Soup (CC0), github.com/crawl/tiles."], "artists": []}
 
 
 static func build_identity(st: HudStyle, hero_name: String, gender_idx: int) -> HudList:

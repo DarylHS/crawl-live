@@ -137,7 +137,8 @@ func _sync_menus(app: AppState, w: World) -> void:
 	if app != null:
 		match app.scene:
 			AppState.TITLE:
-				list = ScreenModels.build_title(style, SaveGame.has_save(app.save_path), app.loading)
+				list = ScreenModels.build_credits(style) if app.show_credits \
+						else ScreenModels.build_title(style, SaveGame.has_save(app.save_path), app.loading)
 			AppState.IDENTITY:
 				list = ScreenModels.build_identity(style, app.hero_name, app.gender_idx)
 			AppState.BACKSTORY:

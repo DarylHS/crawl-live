@@ -157,12 +157,16 @@ def p_crown(c: Canvas, b) -> None:
 
 
 def p_glasses(c: Canvas, b) -> None:
+    """Big round-ish spectacles: dark frames round bright lenses, arms to the ears."""
     cx = head_cx(c.a, b)
-    y = b[1] + 4
-    for dx in (-3, 1):
-        c.rect(cx + dx, y, 3, 3, DARK)
-        c.px(cx + dx + 1, y + 1, (170, 210, 255))
-    c.px(cx, y + 1, DARK)
+    y = b[1] + 3
+    for dx in (-5, 0):
+        c.rect(cx + dx, y, 5, 5, DARK)
+        c.rect(cx + dx + 1, y + 1, 3, 3, (200, 214, 236))
+        c.px(cx + dx + 1, y + 1, (240, 240, 240))
+    c.rect(cx, y + 1, 1, 1, DARK)
+    c.px(cx - 6, y + 1, DARK)
+    c.px(cx + 5, y + 1, DARK)
 
 
 def p_books(c: Canvas, b) -> None:
@@ -206,17 +210,23 @@ def p_staff(c: Canvas, b) -> None:
 
 
 def p_wrap(c: Canvas, b) -> None:
-    """Cling film: pale diagonal streaks, only over the body."""
+    """Cling film: the whole body washed pale blue, with thick bright diagonal creases and a glint."""
     body = c.a.copy()
     h = b[3] - b[1]
-    for k in range(-h, 40, 6):
-        for i in range(h + 2):
-            x, y = b[0] + k + i, b[3] - i
-            if 0 <= x < 32 and 0 <= y < 32 and body[y, x, 3]:
-                c.px(x, y, (200, 214, 236) if i % 5 else (240, 240, 240))
-    for y in range(b[1] + 1, b[1] + 4):
-        for x in range(b[0] + 2, b[0] + 6):
+    for y in range(32):
+        for x in range(32):
             if body[y, x, 3]:
+                old = body[y, x, :3].astype(int)
+                c.px(x, y, tuple(int(0.62 * old[i] + 0.38 * (170, 210, 255)[i]) for i in range(3)))
+    for k in range(-h, 44, 5):
+        for i in range(h + 3):
+            x, y = b[0] + k + i, b[3] - i
+            for w in (0, 1):
+                if 0 <= x + w < 32 and 0 <= y < 32 and body[y, x + w, 3]:
+                    c.px(x + w, y, (240, 240, 240) if w == 0 else (200, 214, 236))
+    for y in range(b[1] + 2, b[1] + 6):
+        for x in range(b[0] + 2, b[0] + 7):
+            if body[y, x, 3] and (x + y) % 2 == 0:
                 c.px(x, y, (255, 255, 255))
 
 
@@ -280,12 +290,11 @@ def build_creatures() -> None:
         ("mon:stalker", "sprites/monsters/stalker.png", "mon/undead/shadow_wraith.png", {"light": 1.35}, "rim"),
         ("pet:cat", "sprites/pets/cat.png", "player/felids/cat9.png", {}, []),
         ("pet:dog", "sprites/pets/dog.png", "mon/animals/jackal.png", {}, []),
-                ("pet:mouse", "sprites/pets/mouse.png", "UNUSED/monsters/labrat_unseen.png", {"hue": (190, 180, 200), "desat": 0.45}, []),
-        ("boss:boss_1", "sprites/headliners/boss_1.png", "mon/unique/royal_jelly.png", {}, [p_crown]),
+                        ("boss:boss_1", "sprites/headliners/boss_1.png", "mon/unique/royal_jelly.png", {}, [p_crown]),
         ("boss:boss_2", "sprites/headliners/boss_2.png", "mon/unique/jessica.png", {}, [p_glasses, p_books]),
         ("boss:boss_3", "sprites/headliners/boss_3.png", "mon/unique/iron_giant.png", {"light": 1.15}, [p_hard_hat, p_hivis]),
         ("boss:boss_4", "sprites/headliners/boss_4.png", "mon/unique/erica.png", {}, [p_horns, p_staff]),
-        ("boss:boss_5", "sprites/headliners/boss_5.png", "mon/nonliving/guardian_golem.png", {}, [p_wrap]),
+        ("boss:boss_5", "sprites/headliners/boss_5.png", "mon/nonliving/iron_golem.png", {}, [p_wrap]),
         ("boss:boss_6", "sprites/headliners/boss_6.png", "mon/demons/balrug.png", {}, [p_tie_headset]),
     ]
     for key, rel, src, kw, painters in specs:
@@ -305,11 +314,16 @@ def build_creatures() -> None:
             a = ap.fit(a, 32)                          # props may stick out: shift and trim back inside the border
             origin, note = "dcss+fill-in", "comedy props drawn over the DCSS body"
         sprite(key, rel, a, origin, [src], note)
+    sprite("pet:mouse", "sprites/pets/mouse.png", ap.fit(draw_mouse(), 32), "fill-in", [],
+           "no good DCSS match; drawn in code with shifty eyes")
     sprite("pet:budgie", "sprites/pets/budgie.png", ap.fit(draw_budgie(), 32), "fill-in", [],
            "no DCSS match; drawn in code")
     # the vacuum bot has no DCSS match at all: full fill-in
     sprite("mon:vacbot", "sprites/monsters/vacbot.png", ap.fit(draw_vacbot(), 32), "fill-in", [],
            "no DCSS match; drawn in code")
+    # where the Act badge and sash sit on the vacuum bot (top-left of the overlay picture): clear of its eyes
+    MANIFEST["mon:vacbot"]["act_opening"] = [2, 13]
+    MANIFEST["mon:vacbot"]["act_featured"] = [4, 21]
     # Act overlays (composited over the base monster by SpriteArt, clipped to the body)
     sprite("fx:badge_opening", "sprites/acts/badge_opening.png", draw_badge(), "fill-in", [])
     sprite("fx:sash_featured", "sprites/acts/sash_featured.png", draw_sash(), "fill-in", [])
@@ -332,6 +346,31 @@ def draw_vacbot() -> np.ndarray:
     c.rect(20, 18, 2, 2, DARK)
     c.rect(15, 24, 3, 2, (235, 80, 80))              # angry status light
     c.line(3, 24, 1, 27, (150, 100, 60))             # side brush
+    return c.a
+
+
+def draw_mouse() -> np.ndarray:
+    c = Canvas()
+    grey, belly, pink, dk = (152, 148, 166), (186, 182, 198), (255, 176, 196), (96, 92, 108)
+    c.line(9, 23, 4, 24, pink, 2)                          # tail, curling up on the left
+    c.line(4, 24, 2, 20, pink, 2)
+    c.line(2, 20, 4, 16, pink, 1)
+    c.ellipse(7, 13, 17, 13, dk)                           # body
+    c.ellipse(8, 13, 15, 12, grey)
+    c.ellipse(10, 19, 11, 6, belly)
+    c.ellipse(18, 10, 11, 10, grey)                        # head
+    c.polygon([(27, 12), (31, 16), (27, 19)], grey)
+    c.px(31, 16, (235, 80, 80))                            # nose
+    c.ellipse(17, 5, 7, 7, dk)                             # big round ears
+    c.ellipse(18, 6, 5, 5, pink)
+    c.ellipse(22, 4, 7, 7, dk)
+    c.ellipse(23, 5, 5, 5, pink)
+    c.rect(22, 12, 4, 4, WHITE)                            # shifty eye: the pupil is in the corner
+    c.rect(22, 14, 2, 2, DARK)
+    c.rect(11, 25, 4, 3, pink)
+    c.rect(19, 25, 4, 3, pink)
+    for dy in (-1, 1):                                     # whiskers
+        c.line(28, 17 + dy, 31, 17 + dy * 2, (225, 222, 235))
     return c.a
 
 
@@ -424,15 +463,34 @@ def build_players() -> None:
 # --- Items -------------------------------------------------------------------------------------
 
 def p_pan() -> np.ndarray:
+    """A frying pan seen from above with a fried egg in it, so it cannot be mistaken for a magnifying glass."""
     c = Canvas()
-    c.ellipse(4, 4, 18, 18, DARK)
-    c.ellipse(5, 5, 16, 16, (100, 114, 140))
-    c.ellipse(7, 7, 12, 12, (60, 70, 92))
-    c.rect(8, 8, 3, 2, (150, 166, 194))
-    c.line(20, 20, 29, 28, DARK, 3)
-    c.line(20, 20, 28, 27, (150, 100, 60), 1)
-    c.px(28, 28, (150, 100, 60))
+    c.line(19, 19, 30, 29, DARK, 5)                        # a thick handle
+    c.line(19, 19, 29, 28, (118, 102, 86), 3)
+    c.px(29, 29, (24, 22, 30)); c.px(30, 30, DARK)
+    c.ellipse(1, 1, 22, 22, DARK)                          # the pan: black iron, pale rim
+    c.ellipse(2, 2, 20, 20, (122, 116, 134))
+    c.ellipse(4, 4, 16, 16, (40, 37, 52))
+    c.ellipse(6, 7, 12, 10, (240, 240, 240))               # egg white
+    c.rect(8, 6, 4, 3, (240, 240, 240)); c.rect(14, 15, 3, 3, (240, 240, 240))
+    c.ellipse(10, 9, 5, 5, (255, 196, 64))                 # yolk
+    c.px(10, 9, (255, 232, 150))
     return c.a
+
+
+def p_jersey() -> np.ndarray:
+    """A short-sleeved gym jersey: light blue, white side stripes, a number on the chest."""
+    c = Canvas()
+    blue, shade, white = (110, 170, 240), (66, 104, 186), (240, 240, 240)
+    c.polygon([(10, 5), (22, 5), (29, 9), (26, 15), (23, 13), (23, 28), (9, 28), (9, 13), (6, 15), (3, 9)], blue)
+    c.rect(18, 8, 5, 20, shade)                            # shading down the right side
+    c.polygon([(23, 13), (26, 15), (29, 9), (22, 6)], shade)
+    c.polygon([(13, 5), (19, 5), (16, 11)], (36, 52, 110))   # V collar
+    c.rect(9, 14, 2, 14, white); c.rect(22, 14, 1, 14, white)    # side stripes
+    c.rect(13, 14, 1, 6, white); c.rect(14, 14, 4, 1, white)     # a white 7
+    c.rect(17, 15, 1, 2, white); c.rect(16, 17, 1, 2, white); c.rect(15, 19, 1, 3, white)
+    c.rect(9, 27, 14, 1, white)
+    return ap.outline_rect(c.a)
 
 
 def p_extinguisher() -> np.ndarray:
@@ -551,14 +609,13 @@ def build_items() -> None:
         "cleaver": ("item/weapon/hand_axe1.png", None, 1.0),
         "katana": ("item/weapon/scimitar1.png", (150, 220, 255), 1.15),
         "sledge": ("item/weapon/mace_large1.png", None, 1.0),
-        "jersey": ("item/armour/robe2.png", (140, 170, 220), 1.0),
         "vest": ("item/armour/leather_armour1.png", (120, 150, 200), 1.0),
         "plate": ("item/armour/plate1.png", (170, 190, 230), 1.55),
         "tonic": ("item/potion/ruby.png", (240, 120, 150), 1.35),
         "brew": ("item/potion/murky.png", (240, 90, 130), 1.0),
         "elixir": ("item/potion/orange.png", (255, 70, 120), 1.1),
     }
-    fill = {"pan": p_pan, "extinguisher": p_extinguisher, "popper": p_popper, "fireworks": p_fireworks,
+    fill = {"jersey": p_jersey, "pan": p_pan, "extinguisher": p_extinguisher, "popper": p_popper, "fireworks": p_fireworks,
             "sock": p_sock, "trophy": p_trophy, "remote": p_remote, "mug": p_mug}
     for key, (src, hue, light) in dc.items():
         a = prep(src, hue=hue, light=light, item=True)
@@ -569,16 +626,18 @@ def build_items() -> None:
     for key, fn in fill.items():
         sprite("item:" + key, "sprites/items/%s.png" % key, ap.fit(fn(), 32), "fill-in", [], "no DCSS match; drawn in code")
     # loot boxes (menus and the reveal): the DCSS box recoloured per tier, with a ribbon
-    boxes = {"bronze": (205, 140, 80), "silver": (200, 205, 215), "gold": (255, 196, 64),
-             "platinum": (150, 225, 235), "legendary": (235, 110, 255)}
-    for tier, col in boxes.items():
-        save_box(tier, col)
+    boxes = {  # tier: (body, shade, lid), all master palette colours so the tiers stay different after snapping
+        "bronze": ((190, 136, 86), (110, 70, 42), (224, 178, 128)),
+        "silver": ((152, 148, 166), (96, 92, 108), (225, 222, 235)),
+        "gold": ((255, 196, 64), (190, 130, 40), (255, 232, 150)),
+        "platinum": ((110, 170, 240), (66, 104, 186), (200, 214, 236)),
+        "legendary": ((225, 110, 235), (120, 60, 150), (255, 176, 196))}
+    for tier, cols in boxes.items():
+        save_box(tier, *cols)
 
 
-def save_box(tier: str, col: tuple[int, int, int]) -> None:
+def save_box(tier: str, col: tuple[int, int, int], dark: tuple[int, int, int], lite: tuple[int, int, int]) -> None:
     c = Canvas()
-    dark = tuple(int(v * 0.55) for v in col)
-    lite = tuple(min(255, int(v * 1.3)) for v in col)
     c.rect(4, 12, 24, 17, DARK)
     c.rect(5, 13, 22, 15, col)
     c.rect(5, 24, 22, 4, dark)
@@ -709,7 +768,7 @@ def hazard_band(t: np.ndarray, y0: int, h: int) -> np.ndarray:
     t = t.copy()
     for y in range(y0, y0 + h):
         for x in range(64):
-            t[y, x, :3] = (190, 160, 90) if ((x + y) // 4) % 2 == 0 else (46, 44, 54)
+            t[y, x, :3] = (190, 130, 40) if ((x + y) // 4) % 2 == 0 else (40, 37, 52)   # master palette amber and near-black
     t[y0, :, :3] = (24, 22, 30)
     t[y0 + h - 1, :, :3] = (24, 22, 30)
     return t
@@ -826,7 +885,7 @@ def build_terrain() -> None:
             t32 = finish_tex(t32)
             t64 = tile2(t32)
             if depth == 3 and slot == "wall_1":
-                t64 = hazard_band(t64, 40, 8)
+                t64 = ap.snap(hazard_band(t64, 40, 8))      # set dressing: the one place stone textures carry saturated colour
             outs[slot] = (t32, t64, srcs)
         ceil = ceiling_texture(depth)
         for slot, (t32, t64, srcs) in outs.items():
@@ -834,8 +893,9 @@ def build_terrain() -> None:
             note_s = "desaturated and levelled so the floor tint has something neutral to multiply"
             save("textures/floor%d/%s.png" % (depth, slot), t64)
             register("tex:%d:%s" % (depth, slot), "textures/floor%d/%s.png" % (depth, slot), origin, srcs, note_s)
-            # the top-down tile is the same texture reduced (every second pixel), so both views match
-            top = t64[::2, ::2].copy()
+            # the top-down tile is the original 32 px DCSS tile (the 64 px texture is that tile twice over); floor 3's
+            # hazard wall takes the half with the tape. A reduction by every second pixel aliased the brick into static.
+            top = (t64[32:, :32] if (depth == 3 and slot == "wall_1") else t64[:32, :32]).copy()
             save("tiles/floor%d/%s.png" % (depth, slot), top)
             register("tile:%d:%s" % (depth, slot), "tiles/floor%d/%s.png" % (depth, slot), origin, srcs, "")
         save("textures/floor%d/ceiling.png" % depth, ceil)
@@ -844,7 +904,7 @@ def build_terrain() -> None:
     for name, t, s in (("safe_wall", sw, [srcs[0]]), ("safe_floor", sf, [srcs[1]])):
         save("textures/common/%s.png" % name, t)
         register("tex:" + name, "textures/common/%s.png" % name, "dcss+fill-in", s, "recoloured pale green, clean 16 px tile grid")
-        save("tiles/common/%s.png" % name, t[::2, ::2].copy())
+        save("tiles/common/%s.png" % name, t[:32, :32].copy())
         register("tile:" + name, "tiles/common/%s.png" % name, "dcss+fill-in", s, "")
     for locked in (False, True):
         name = "stairs_locked" if locked else "stairs_open"
@@ -862,6 +922,27 @@ def build_terrain() -> None:
 
 
 # --- CREDITS -----------------------------------------------------------------------------------
+
+def clean_artist(ln: str) -> str:
+    """One ARTISTS.md bullet without email addresses and the leftovers they leave behind."""
+    t = re.sub(r"[\w.+-]+@[\w.-]*\w", "", ln)                  # the address only, not a closing bracket after it
+    t = re.sub(r"\s+-\s*\)", ")", t)                       # "Steve Melenchuk - )" -> "Steve Melenchuk)"
+    t = re.sub(r"\(\s*\)", "", t)
+    t = re.sub(r"^(\s*-)\s*-\s*", r"\1 ", t)
+    t = re.sub(r"^(\s*-)\s*\((.+)\)\s*$", r"\1 \2", t)      # "- (Curio)" -> "- Curio"
+    t = re.sub(r"\((?:\S+ )+(\S+ \S+)\)", r"(\1)", t)                   # a long alias list keeps the real name at its end
+    t = re.sub(r"\s+-\s+\(", " (", t)                         # "Name - (handle)" -> "Name (handle)"
+    t = re.sub(r"\s+-\s*$", "", t)                           # a dash left hanging at the end
+    return re.sub(r"\s{2,}", " ", t).rstrip()
+
+
+def artist_names(artists: str) -> list[str]:
+    out = []
+    for ln in artists.splitlines():
+        if ln.strip().startswith("- "):
+            out.append(clean_artist(ln).strip()[2:].strip())
+    return [n for n in out if n]
+
 
 def write_credits(path: str, artists: str, commit: str = "unknown") -> None:
     lines = [
@@ -885,7 +966,7 @@ def write_credits(path: str, artists: str, commit: str = "unknown") -> None:
     ]
     for ln in artists.splitlines():
         if ln.strip().startswith("- ") or ln.strip().startswith("The following"):
-            lines.append(re.sub(r"\s*\S+@\S+", "", ln).rstrip())            # names and handles only, no email addresses
+            lines.append(clean_artist(ln))
     lines += [
         "",
         "Every DCSS tile was edited for Crawl Live!: trimmed, shrunk by whole lines where it was wider than the",
@@ -967,6 +1048,14 @@ def main() -> None:
     except OSError:
         pass
     write_credits(os.path.join(OUT, "CREDITS.md"), artists, commit)
+    with open(os.path.join(OUT, "credits.json"), "w", encoding="utf-8") as f:       # the in-game credits screen reads this
+        json.dump({"intro": [
+            "Most of the pictures are tiles from Dungeon Crawl Stone Soup, packaged by the " + SOURCE_URL.split("//")[1] + " project",
+            "(snapshot Nov 2015) and released by their artists under CC0 1.0. Thank you to the Crawl Stone Soup",
+            "artists and developers (crawl.develz.org) and to the RLTiles project they started from.",
+            "The tiles were trimmed, recoloured to a shared palette and given props for this game."],
+            "artists": artist_names(artists), "commit": commit}, f, indent=1)
+        f.write("\n")
     n = {}
     for e in MANIFEST.values():
         n[e["origin"]] = n.get(e["origin"], 0) + 1

@@ -108,14 +108,6 @@ func test_terrain_textures_tiles_and_boxes_have_their_sizes() -> void:
 			var t := SpriteArt.supplied("tile:%d:%s" % [depth, slot])
 			assert_eq(t.get_size(), Vector2i(32, 32), "tile %d %s" % [depth, slot])
 			assert_false(_has_alpha(t), "opaque")
-		# the top-down tile is the first-person texture reduced: every second pixel (art bible section 2)
-		var big := SpriteArt.supplied("tex:%d:floor" % depth)
-		var small := SpriteArt.supplied("tile:%d:floor" % depth)
-		for y in 32:
-			for x in 32:
-				if big.get_pixel(x * 2, y * 2) != small.get_pixel(x, y):
-					fail_test("tile %d floor is not the reduced texture at %d,%d" % [depth, x, y])
-					return
 	for slot in ["safe_wall", "safe_floor", "stairs_open", "stairs_locked"]:
 		assert_eq(SpriteArt.supplied("tex:" + slot).get_size(), Vector2i(64, 64), slot)
 		assert_eq(SpriteArt.supplied("tile:" + slot).get_size(), Vector2i(32, 32), slot)

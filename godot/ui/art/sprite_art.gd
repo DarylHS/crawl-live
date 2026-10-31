@@ -176,7 +176,7 @@ static func creature(key: String, colour: Array, tier: String = "") -> Image:
 	if base == null and _base_key(key) != key:
 		base = _supplied(_base_key(key))        # an Act without its own art uses its monster's, with a badge or sash
 		if base != null:
-			base = _with_act_overlay(base, key.get_slice(":", 1).get_slice("_", 0))
+			base = _with_act_overlay(base, key.get_slice(":", 1).get_slice("_", 0), _base_key(key))
 	if base == null and key.begins_with("player:") and key != "player:crawler":
 		base = _supplied("player:crawler")
 	if base == null:
@@ -332,6 +332,15 @@ static func read_image(path: String) -> Image:
 	return img
 
 
+## The manifest entry (a Dictionary, possibly empty) for a key in the active sets.
+static func _entry(key: String) -> Dictionary:
+	for src: Dictionary in _sources():
+		var e: Variant = (src["entries"] as Dictionary).get(key)
+		if e is Dictionary:
+			return e
+	return {}
+
+
 ## The manifests in priority order: the active set's own, then the default one ("placeholder": none).
 static func _sources() -> Array:
 	if _sources_cache != null:
@@ -357,7 +366,7 @@ static func _add_source(out: Array, dir: String) -> void:
 ## An Act's look: the base monster's picture with the tier's overlay (`fx:badge_opening` lanyard badge,
 ## `fx:sash_featured` star sash) laid over its body, only where the base has pixels. Without the overlay
 ## picture the base is used as it is.
-static func _with_act_overlay(base: Image, tier: String) -> Image:
+static func _with_act_overlay(base: Image, tier: String, base_key: String = "") -> Image:
 	var over := _supplied("fx:badge_opening" if tier == "opening" else "fx:sash_featured")
 	if over == null:
 		return base
@@ -369,12 +378,26 @@ static func _with_act_overlay(base: Image, tier: String) -> Image:
 		return base
 	var ow := over.get_width()
 	var oh := over.get_height()
-	var ox := used.position.x + used.size.x / 2 - ow / 2
+	# the middle of the body's pixels (not of its bounding box, which sits off the body for a quadruped's tail)
+	var sx := 0
+	var sy := 0
+	var n := 0
+	for y in base.get_height():
+		for x in base.get_width():
+			if base.get_pixel(x, y).a > 0.5:
+				sx += x
+				sy += y
+				n += 1
+	var ox := sx / maxi(n, 1) - ow / 2
 	var oy: int
 	if tier == "opening":                           # the badge hangs from the neck, about a third of the way down
 		oy = used.position.y + int(used.size.y * 0.28) - 1
 	else:                                           # the sash crosses the middle of the body
-		oy = used.position.y + used.size.y / 2 - oh / 2
+		oy = sy / maxi(n, 1) - oh / 2
+	var at: Variant = _entry(base_key).get("act_" + ("opening" if tier == "opening" else "featured"))
+	if at is Array and (at as Array).size() == 2:   # a base picture can say where its overlay goes (the vacuum bot's eyes)
+		ox = int(at[0])
+		oy = int(at[1])
 	for y in oh:
 		for x in ow:
 			var p := over.get_pixel(x, y)

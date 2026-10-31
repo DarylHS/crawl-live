@@ -49,13 +49,13 @@ The following artists have given explicit approval that past and future artwork 
 - CanOfWorms
 - minmay
 - gammafunk
-- Grunt (sgrunt hypergrunt deathgrunt Steve Melenchuk -
-- (Curio)
+- Grunt (Steve Melenchuk)
+- Curio
 - Raphael Langella
-- Brendan Hickey -
-- Nicholas Feinberg - (PleasingFungus)
-- shmuale (wheals Shmuale Mark -
-- Edgar A. Bering IV -
+- Brendan Hickey
+- Nicholas Feinberg (PleasingFungus)
+- shmuale (Shmuale Mark)
+- Edgar A. Bering IV
 - Florian Diebold
 - dolphin
 - cjo
@@ -69,11 +69,11 @@ The following artists have given explicit approval that past and future artwork 
 - Eronarn
 - xnmojo
 - fusentrap
-- frogbotherer -
+- frogbotherer
 - pubby
 - Corin Buchanan-Howland
 - Raumkraut
-- roctavian -
+- roctavian
 - Marbit
 - theTower
 
@@ -106,13 +106,13 @@ purpose; it holds no AI-generated art yet. Record the source and licence of anyt
 | `mon:stalker` | `sprites/monsters/stalker.png` | dcss+fill-in | `mon/undead/shadow_wraith.png` | CC0 1.0 |
 | `pet:cat` | `sprites/pets/cat.png` | dcss | `player/felids/cat9.png` | CC0 1.0 |
 | `pet:dog` | `sprites/pets/dog.png` | dcss | `mon/animals/jackal.png` | CC0 1.0 |
-| `pet:mouse` | `sprites/pets/mouse.png` | dcss | `UNUSED/monsters/labrat_unseen.png` | CC0 1.0 |
 | `boss:boss_1` | `sprites/headliners/boss_1.png` | dcss+fill-in | `mon/unique/royal_jelly.png` | CC0 1.0 |
 | `boss:boss_2` | `sprites/headliners/boss_2.png` | dcss+fill-in | `mon/unique/jessica.png` | CC0 1.0 |
 | `boss:boss_3` | `sprites/headliners/boss_3.png` | dcss+fill-in | `mon/unique/iron_giant.png` | CC0 1.0 |
 | `boss:boss_4` | `sprites/headliners/boss_4.png` | dcss+fill-in | `mon/unique/erica.png` | CC0 1.0 |
-| `boss:boss_5` | `sprites/headliners/boss_5.png` | dcss+fill-in | `mon/nonliving/guardian_golem.png` | CC0 1.0 |
+| `boss:boss_5` | `sprites/headliners/boss_5.png` | dcss+fill-in | `mon/nonliving/iron_golem.png` | CC0 1.0 |
 | `boss:boss_6` | `sprites/headliners/boss_6.png` | dcss+fill-in | `mon/demons/balrug.png` | CC0 1.0 |
+| `pet:mouse` | `sprites/pets/mouse.png` | fill-in | (original) | CC0 1.0 |
 | `pet:budgie` | `sprites/pets/budgie.png` | fill-in | (original) | CC0 1.0 |
 | `mon:vacbot` | `sprites/monsters/vacbot.png` | fill-in | (original) | CC0 1.0 |
 | `fx:badge_opening` | `sprites/acts/badge_opening.png` | fill-in | (original) | CC0 1.0 |
@@ -127,12 +127,12 @@ purpose; it holds no AI-generated art yet. Record the source and licence of anyt
 | `item:cleaver` | `sprites/items/cleaver.png` | dcss | `item/weapon/hand_axe1.png` | CC0 1.0 |
 | `item:katana` | `sprites/items/katana.png` | dcss | `item/weapon/scimitar1.png` | CC0 1.0 |
 | `item:sledge` | `sprites/items/sledge.png` | dcss | `item/weapon/mace_large1.png` | CC0 1.0 |
-| `item:jersey` | `sprites/items/jersey.png` | dcss | `item/armour/robe2.png` | CC0 1.0 |
 | `item:vest` | `sprites/items/vest.png` | dcss | `item/armour/leather_armour1.png` | CC0 1.0 |
 | `item:plate` | `sprites/items/plate.png` | dcss | `item/armour/plate1.png` | CC0 1.0 |
 | `item:tonic` | `sprites/items/tonic.png` | dcss+fill-in | `item/potion/ruby.png` | CC0 1.0 |
 | `item:brew` | `sprites/items/brew.png` | dcss+fill-in | `item/potion/murky.png` | CC0 1.0 |
 | `item:elixir` | `sprites/items/elixir.png` | dcss+fill-in | `item/potion/orange.png` | CC0 1.0 |
+| `item:jersey` | `sprites/items/jersey.png` | fill-in | (original) | CC0 1.0 |
 | `item:pan` | `sprites/items/pan.png` | fill-in | (original) | CC0 1.0 |
 | `item:extinguisher` | `sprites/items/extinguisher.png` | fill-in | (original) | CC0 1.0 |
 | `item:popper` | `sprites/items/popper.png` | fill-in | (original) | CC0 1.0 |

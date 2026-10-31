@@ -60,6 +60,7 @@ const ACTIONS := {
 	# Effects and sound (P8)
 	"cycle_effects": [KEY_F3],
 	"cycle_volume": [KEY_F4],
+	"credits": [KEY_C],                  # P9: art credits screen, from the title
 	"cycle_art_set": [KEY_F5],           # P9 dev key: next art set (default, sets/*, placeholder)
 }
 
