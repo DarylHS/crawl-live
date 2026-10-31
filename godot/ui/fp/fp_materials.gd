@@ -17,10 +17,14 @@ const LOCKED_TINT := Color(1.0, 0.38, 0.34)
 const KEEP := 2                      ## floors kept in the cache (the current one and the last)
 
 var _cache: Dictionary = {}          ## depth -> {slot: StandardMaterial3D}
+var generation: int = SpriteArt.generation   ## the art the cache was made from; `for_depth` starts over when it changes
 
 
 ## Every slot's material for a floor, plus "stairs_locked".
 func for_depth(depth: int) -> Dictionary:
+	if generation != SpriteArt.generation:
+		_cache.clear()
+		generation = SpriteArt.generation
 	if _cache.has(depth):
 		return _cache[depth]
 	var images := FpTextures.images_for_depth(depth)
@@ -29,7 +33,11 @@ func for_depth(depth: int) -> Dictionary:
 	for slot in FpTextures.SLOTS:
 		var tex := ImageTexture.create_from_image(images[slot])
 		out[slot] = _make(tex, tint if slot in TINTED else Color.WHITE)
-	out["stairs_locked"] = _make(out["stairs"].albedo_texture, LOCKED_TINT)
+	var locked_art := FpTextures.art_image("tex:stairs_locked")      # a red grate of its own, else the open one tinted
+	if locked_art != null:
+		out["stairs_locked"] = _make(ImageTexture.create_from_image(locked_art), Color.WHITE)
+	else:
+		out["stairs_locked"] = _make(out["stairs"].albedo_texture, LOCKED_TINT)
 	while _cache.size() >= KEEP:
 		_cache.erase(_cache.keys()[0])
 	_cache[depth] = out

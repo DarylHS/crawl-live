@@ -1,7 +1,10 @@
 class_name FpTextures
 extends RefCounted
-## Placeholder 64 x 64 textures for the first-person view, drawn in code (P4; real art is P9).
+## The 64 x 64 textures for the first-person view: the art from the manifest (P9: DCSS-based, per floor
+## theme, `tex:<depth>:wall_0` and so on, see SpriteArt) or, for any slot the art does not have, a
+## placeholder drawn in code (P4).
 ##
+## The placeholders:
 ## A GDScript port of the procedural textures in crawler/ui/firstperson.py (`_bricks`, `_tiles`,
 ## `_flagstones`, `_stairs`, `_ceiling`). Python draws with numpy's generator, so the noise differs
 ## pixel for pixel; the shapes, sizes and colours are the same. Textures are made untinted: the
@@ -20,15 +23,54 @@ const SLOTS: Array[String] = ["wall_a", "wall_b", "safe_wall", "floor", "safe_fl
 static func images_for_depth(depth: int) -> Dictionary:
 	var rng := RandomNumberGenerator.new()
 	rng.seed = 1000 + depth
-	return {
-		"wall_a": _bricks(rng, Color8(112, 104, 120)),
-		"wall_b": _bricks(rng, Color8(104, 100, 112)),
-		"safe_wall": _tiles(rng, Color8(178, 214, 188), Color8(160, 200, 174), 16, Color8(90, 120, 100)),
-		"floor": _flagstones(rng, Color8(74, 70, 82)),
-		"safe_floor": _tiles(rng, Color8(58, 110, 80), Color8(42, 84, 62), 16, Color8(28, 52, 40)),
-		"stairs": _stairs(),
-		"ceiling": _ceiling(rng),
-	}
+	var out := {}
+	for slot in SLOTS:
+		var art := art_image(art_key(slot, depth))
+		if art != null:
+			out[slot] = art
+			continue
+		match slot:
+			"wall_a":
+				out[slot] = _bricks(rng, Color8(112, 104, 120))
+			"wall_b":
+				out[slot] = _bricks(rng, Color8(104, 100, 112))
+			"safe_wall":
+				out[slot] = _tiles(rng, Color8(178, 214, 188), Color8(160, 200, 174), 16, Color8(90, 120, 100))
+			"floor":
+				out[slot] = _flagstones(rng, Color8(74, 70, 82))
+			"safe_floor":
+				out[slot] = _tiles(rng, Color8(58, 110, 80), Color8(42, 84, 62), 16, Color8(28, 52, 40))
+			"stairs":
+				out[slot] = _stairs()
+			_:
+				out[slot] = _ceiling(rng)
+	return out
+
+
+## The art key (docs/art-bible.md section 6) of a slot on a floor: tex:<depth>:wall_0, tex:safe_wall, ...
+static func art_key(slot: String, depth: int) -> String:
+	match slot:
+		"wall_a":
+			return "tex:%d:wall_0" % depth
+		"wall_b":
+			return "tex:%d:wall_1" % depth
+		"floor", "ceiling":
+			return "tex:%d:%s" % [depth, slot]
+		"stairs":
+			return "tex:stairs_open"
+	return "tex:" + slot
+
+
+## The picture for an art key as a 64 x 64 RGB8 image (other sizes are scaled with nearest filtering), or null.
+static func art_image(key: String) -> Image:
+	var src := SpriteArt.supplied(key)
+	if src == null:
+		return null
+	var img := src.duplicate() as Image
+	if img.get_width() != TEX or img.get_height() != TEX:
+		img.resize(TEX, TEX, Image.INTERPOLATE_NEAREST)
+	img.convert(Image.FORMAT_RGB8)
+	return img
 
 
 static func _new_image() -> Image:

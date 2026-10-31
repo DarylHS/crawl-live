@@ -7,7 +7,8 @@ extends RefCounted
 ##
 ## Items are Dictionaries: {k: "t", x, y, s, c, f} text, {k: "r", r, c} filled rectangle,
 ## {k: "f", r, c, w} frame drawn inside r, {k: "p", pts, c} polygon, {k: "pl", pts, c, w} polyline
-## (the report's chart lines).
+## (the report's chart lines), {k: "i", key, r} a SpriteArt picture (art key such as "item:tonic") scaled into r
+## with hard pixels (P9; only added when `style.icons` is on).
 
 var style: HudStyle
 var items: Array = []
@@ -33,6 +34,11 @@ func centred(s: String, cx: int, cy: int, colour: Color, face: String = "font") 
 func midtop(s: String, cx: int, y: int, colour: Color, face: String = "font") -> Rect2i:
 	var m := style.measure(face, s)
 	return text(s, cx - m.x / 2, y, colour, face)
+
+
+## A picture from SpriteArt in rectangle r (drawn by HudCanvas with nearest filtering).
+func icon(key: String, r: Rect2i) -> void:
+	items.append({"k": "i", "key": key, "r": r})
 
 
 func fill(r: Rect2i, colour: Color) -> void:

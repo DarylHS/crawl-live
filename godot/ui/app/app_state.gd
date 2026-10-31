@@ -22,6 +22,7 @@ extends RefCounted
 signal world_started(world: World)       ## a new or loaded run is ready (GameView shows it)
 signal view_changed(view: String)        ## Tab or `set_view` changed first-person / map
 signal render_scale_requested            ## F2 (GameView cycles the 3D resolution)
+signal map_zoom_changed(zoom: String)    ## Z: the map view switched between 32 px "tiles" and the 16 px "glyphs" overview
 signal setting_changed(note: String)     ## F3 or F4 changed the effects or sound setting: the note to show ("Effects: reduced")
 
 const TITLE := "title"
@@ -52,6 +53,7 @@ var runs_dir: String = "user://runs"      ## "" turns off logging your runs
 var settings_path: String = UserSettings.DEFAULT_PATH   ## "" turns off remembering settings
 var settings: Dictionary = UserSettings.DEFAULTS.duplicate()
 var view: String = "fp"            ## "fp" (first-person) | "top" (map)
+var map_zoom: String = "glyphs"    ## the map's zoom: "tiles" (32 px art, 32 x 20 tiles) | "glyphs" (the 16 px overview, the pygame picture). Main starts the game on "tiles". Not saved.
 var blocked: bool = false          ## something outside (a test, a window dialog) covers the view
 var fp := FpController.new()
 var top := TopController.new()
@@ -109,6 +111,29 @@ func cycle_volume() -> Dictionary:
 	save_settings()
 	setting_changed.emit(FxSettings.describe_sound(nxt["volume"], nxt["muted"]))
 	return nxt
+
+
+## Z: switch the map view between 32 px art tiles and the 16 px glyph overview. Only in play, in the map view,
+## with no menu open. Returns true when it changed.
+func toggle_zoom() -> bool:
+	if scene != GAME or view != "top" or is_blocked() or world == null or world.state != "playing":
+		return false
+	set_map_zoom("glyphs" if map_zoom == "tiles" else "tiles")
+	return true
+
+
+## Choose the map zoom ("tiles" or "glyphs") and tell the views.
+func set_map_zoom(zoom: String) -> void:
+	map_zoom = zoom if zoom == "glyphs" else "tiles"
+	map_zoom_changed.emit(map_zoom)
+
+
+## F5 (a dev key): switch to the next art set (default, any set under assets/sets/, placeholder). Not saved:
+## the CRAWL_ART_SET environment variable or `--art-set NAME` picks the set at start. Works on any screen.
+func cycle_art_set() -> String:
+	var name := SpriteArt.cycle_set()
+	setting_changed.emit("Art set: %s" % name)
+	return name
 
 
 # --- Starting, loading, the view -------------------------------------------------------------------
@@ -223,6 +248,11 @@ func press(action: StringName) -> bool:
 	elif action == &"cycle_volume":
 		cycle_volume()
 		used = true
+	elif action == &"cycle_art_set":
+		cycle_art_set()
+		used = true
+	elif action == &"zoom_map":
+		used = toggle_zoom()
 	elif action == &"cycle_render_scale":
 		if not is_blocked():                                   # menus swallow F2 as they do Tab
 			render_scale_requested.emit()
@@ -270,6 +300,9 @@ func handle_key(ev: InputEventKey) -> void:
 		return
 	if ev.is_action(&"cycle_volume"):
 		cycle_volume()
+		return
+	if ev.is_action(&"cycle_art_set"):
+		cycle_art_set()
 		return
 	match scene:
 		TITLE:
@@ -350,6 +383,8 @@ func _game_key(ev: InputEventKey, ch: String) -> void:
 			open_overlay("report")
 	elif ev.is_action(&"toggle_view"):
 		toggle_view()
+	elif ev.is_action(&"zoom_map"):
+		toggle_zoom()
 	elif ch == ">" or ev.is_action(&"confirm"):
 		w.descend()
 	elif _move_key(ev):

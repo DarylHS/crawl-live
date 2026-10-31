@@ -59,7 +59,7 @@ func specs(world: World) -> Array:
 			var keys: Array = world.floor_items[tile]
 			var k: String = keys[keys.size() - 1]
 			out.append({"tile": tile, "tex": _tex("item:" + k, func() -> Image: return SpriteArt.item(k)),
-					"scale": 0.32, "lift": 0.0, "shadow": true})
+					"scale": SpriteArt.item_scale(k), "lift": 0.0, "shadow": true})
 	var locked := world.stairs_locked or world.exit_sealed
 	for s in world.floor.stairs:
 		if vis.has(s):
@@ -202,6 +202,11 @@ func _material(fogged: bool, shader: Shader = null) -> ShaderMaterial:
 	mat.set_shader_parameter("min_bright", MIN_BRIGHT)
 	mat.set_shader_parameter("fogged", fogged)
 	return mat
+
+
+## Forget every cached picture (another art set was chosen).
+func forget_textures() -> void:
+	_textures.clear()
 
 
 func _tex(key: String, make: Callable) -> Texture2D:

@@ -30,6 +30,9 @@ var fx_director := FxDirector.new()
 ## screenshot tool); Main keys it by calling `app.handle_key`.
 var app := AppState.new({"settings_path": "", "runs_dir": ""})
 var _plain: bool = false
+var plain: bool:                   ## the pygame-comparable look is on (set_plain)
+	get:
+		return _plain
 var input_enabled: bool = true     ## read the keyboard itself (off for Main, tests and the screenshot tool)
 
 
@@ -84,6 +87,8 @@ func _ready() -> void:
 	top_view.new_run_requested.connect(func() -> void: new_run_requested.emit())
 	top_view.acted.connect(_after_top_action)
 	app.world_started.connect(_on_world_started)
+	app.map_zoom_changed.connect(func(z: String) -> void: top_view.set_zoom(z))
+	top_view.set_zoom(app.map_zoom)
 	app.view_changed.connect(_on_view_changed)
 	app.render_scale_requested.connect(cycle_render_scale)
 	add_child(fx_director)
@@ -130,8 +135,12 @@ func set_shown(on: bool) -> void:
 func set_plain(on: bool) -> void:
 	_plain = on
 	app.settings["effects"] = "off" if on else "on"
+	if on:
+		app.map_zoom = "glyphs"                  # pygame's map is the 16 px glyph grid
 	if fp_view != null:
 		fp_view.show_view_model = not on
+	if top_view != null:
+		top_view.set_zoom(app.map_zoom)
 
 
 ## Turn the keyboard on or off for both views.
@@ -149,6 +158,12 @@ func _unhandled_input(event: InputEvent) -> void:
 			get_viewport().set_input_as_handled()
 	elif event.is_action_pressed(&"cycle_render_scale") and not (event as InputEventKey).echo and not blocked:
 		cycle_render_scale()
+		get_viewport().set_input_as_handled()
+	elif event.is_action_pressed(&"zoom_map") and not (event as InputEventKey).echo:
+		if app.toggle_zoom():
+			get_viewport().set_input_as_handled()
+	elif event.is_action_pressed(&"cycle_art_set") and not (event as InputEventKey).echo:
+		app.cycle_art_set()
 		get_viewport().set_input_as_handled()
 
 

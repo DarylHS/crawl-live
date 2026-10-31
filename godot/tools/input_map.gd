@@ -55,10 +55,12 @@ const ACTIONS := {
 	"trade_up": [KEY_T],
 	# Views (P5)
 	"toggle_view": [KEY_TAB],
+	"zoom_map": [KEY_Z],                 # P9: map view, 32 px tiles <-> 16 px glyph overview
 	"cycle_render_scale": [KEY_F2],
 	# Effects and sound (P8)
 	"cycle_effects": [KEY_F3],
 	"cycle_volume": [KEY_F4],
+	"cycle_art_set": [KEY_F5],           # P9 dev key: next art set (default, sets/*, placeholder)
 }
 
 

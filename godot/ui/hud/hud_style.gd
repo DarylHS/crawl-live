@@ -16,6 +16,11 @@ const OVERHANG := {"font": "wRW_", "big": "wKRWY#%&_"}
 
 var theme: Theme = load(THEME_PATH)
 
+## P9: draw item and loot box pictures in the menus where pygame draws a glyph (inventory rows, the box reveal, the
+## safe-room box list) and show the art credit on the title. Off by default so the models stay pygame's layout
+## exactly; the Hud turns it on when real art is active (and not in the pygame pairing tools' plain mode).
+var icons: bool = false
+
 
 ## The Font for a face name ("font", "small", "big", "huge").
 func font(face: String) -> Font:

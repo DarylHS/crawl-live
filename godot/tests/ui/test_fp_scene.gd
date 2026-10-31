@@ -67,7 +67,11 @@ func test_materials_tint_stone_but_never_safe_rooms_or_stairs() -> void:
 			assert_eq((m[slot] as StandardMaterial3D).albedo_color, tint, "floor %d %s" % [depth, slot])
 		for slot in ["safe_wall", "safe_floor", "stairs"]:
 			assert_eq((m[slot] as StandardMaterial3D).albedo_color, Color.WHITE, "floor %d %s" % [depth, slot])
-		assert_ne((m["stairs_locked"] as StandardMaterial3D).albedo_color, Color.WHITE)
+		var locked := m["stairs_locked"] as StandardMaterial3D
+		if FpTextures.art_image("tex:stairs_locked") != null:         # real art: a red grate of its own
+			assert_true(locked.albedo_texture != (m["stairs"] as StandardMaterial3D).albedo_texture)
+		else:                                                           # the open grate, tinted red
+			assert_eq(locked.albedo_color, FpMaterials.LOCKED_TINT)
 		for slot in m:
 			var sm: StandardMaterial3D = m[slot]
 			assert_eq(sm.texture_filter, BaseMaterial3D.TEXTURE_FILTER_NEAREST)
@@ -76,16 +80,45 @@ func test_materials_tint_stone_but_never_safe_rooms_or_stairs() -> void:
 
 
 func test_textures_are_64_px_without_mipmaps() -> void:
-	var images := FpTextures.images_for_depth(3)
-	assert_eq(images.keys(), Array(FpTextures.SLOTS))
-	for slot in images:
-		var img: Image = images[slot]
-		assert_eq(img.get_size(), Vector2i(64, 64), slot)
-		assert_false(img.has_mipmaps(), slot)
-	# Mortar lines are darker than the bricks, the stairs grate has gold rings.
-	var brick: Image = images["wall_a"]
-	assert_lt(brick.get_pixel(5, 0).get_luminance(), brick.get_pixel(5, 8).get_luminance())
-	assert_gt(images["stairs"].get_pixel(7, 31).r, 0.3)
+	for set_name in [SpriteArt.DEFAULT_SET, SpriteArt.PLACEHOLDER_SET]:         # the real art, then the code-drawn placeholders
+		SpriteArt.use_set(set_name)
+		for depth in range(1, 7):
+			var images := FpTextures.images_for_depth(depth)
+			assert_eq(images.keys(), Array(FpTextures.SLOTS))
+			for slot in images:
+				var img: Image = images[slot]
+				assert_eq(img.get_size(), Vector2i(64, 64), "%s %d %s" % [set_name, depth, slot])
+				assert_false(img.has_mipmaps(), slot)
+		var images := FpTextures.images_for_depth(3)
+		assert_gt(images["stairs"].get_pixel(7, 31).r, 0.3, set_name)           # the stairs grate has gold rings
+		if set_name == SpriteArt.PLACEHOLDER_SET:
+			# Mortar lines are darker than the bricks.
+			var brick: Image = images["wall_a"]
+			assert_lt(brick.get_pixel(5, 0).get_luminance(), brick.get_pixel(5, 8).get_luminance())
+	SpriteArt.use_set(SpriteArt.DEFAULT_SET)
+
+
+func test_the_real_textures_are_near_neutral_and_never_brighter_than_the_tint_allows() -> void:
+	# Art bible section 3: stone is authored near-neutral and mid-value (no pure white: it would clip under the
+	# 1.05 tint of floor 5 and 6, no strong hue: it would fight the tint). Safe rooms and the stairs are exempt.
+	SpriteArt.use_set(SpriteArt.DEFAULT_SET)
+	for depth in range(1, 7):
+		var images := FpTextures.images_for_depth(depth)
+		for slot in FpMaterials.TINTED:
+			var img: Image = images[slot]
+			var sum := 0.0
+			var chroma := 0.0
+			var peak := 0.0
+			for y in 64:
+				for x in 64:
+					var c := img.get_pixel(x, y)
+					sum += c.get_luminance()
+					chroma += maxf(c.r, maxf(c.g, c.b)) - minf(c.r, minf(c.g, c.b))
+					peak = maxf(peak, maxf(c.r, maxf(c.g, c.b)))
+			var label := "floor %d %s" % [depth, slot]
+			assert_between(sum / 4096.0, 0.1, 0.5, label + " mean luminance")
+			assert_lt(chroma / 4096.0, 0.16, label + " mean chroma")
+			assert_lt(peak, 0.88, label + " brightest channel")
 
 
 func _view() -> FpView:
@@ -127,7 +160,7 @@ func test_stairs_swap_to_the_locked_grate_and_back() -> void:
 	assert_true(w.stairs_locked)
 	var locked := v.floor_mesh.get_surface_override_material(i) as StandardMaterial3D
 	assert_not_null(locked)
-	assert_eq(locked.albedo_color, FpMaterials.LOCKED_TINT)
+	assert_true(locked.albedo_color == FpMaterials.LOCKED_TINT or FpTextures.art_image("tex:stairs_locked") != null)
 	w.has_key = true                                    # the Headliner's key opens them
 	v.refresh(0.0)
 	assert_null(v.floor_mesh.get_surface_override_material(i))

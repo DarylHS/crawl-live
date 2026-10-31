@@ -11,8 +11,24 @@ var list: HudList = null
 var _shown: Array = []
 
 
+var _icons: Dictionary = {}         ## art key -> ImageTexture
+var _icon_gen: int = -1
+
+
 func _init() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
+	texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+
+
+## The picture for an art key (cached; forgotten when the art set changes), or null.
+func _icon_texture(key: String) -> Texture2D:
+	if _icon_gen != SpriteArt.generation:
+		_icons.clear()
+		_icon_gen = SpriteArt.generation
+	if not _icons.has(key):
+		var img := SpriteArt.supplied(key)
+		_icons[key] = ImageTexture.create_from_image(img) if img != null else null
+	return _icons[key]
 
 
 ## Show `new_list` (null or empty hides everything). Redraws only when the items changed.
@@ -41,6 +57,10 @@ func _draw() -> void:
 				for i in s.length():                  # one character at a time, at pygame's whole-pixel advance
 					if s[i] != " ":
 						draw_char(font, Vector2(it["x"] + i * adv, base), s[i], sz, it["c"])
+			"i":
+				var tex := _icon_texture(it["key"])
+				if tex != null:
+					draw_texture_rect(tex, Rect2(it["r"]), false)
 			"r":
 				draw_rect(Rect2(it["r"]), it["c"])
 			"f":

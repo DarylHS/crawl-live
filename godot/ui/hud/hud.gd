@@ -38,6 +38,7 @@ extends Control
 
 var style := HudStyle.new()
 var game_view: GameView = null
+var icons_auto: bool = false       ## P9: switch the menu pictures on while real art is active (Main sets it; tests and pairing tools leave it off)
 var covered: bool = false          ## force the map-area overlays hidden (an open menu or help does so too)
 var tracker_over_menu: bool = false   ## force the tracker over the menu (the open inventory does so too)
 var menu_texts: PackedStringArray = PackedStringArray()   ## every string the menu canvas shows (tests)
@@ -68,6 +69,8 @@ func on_key() -> void:
 
 ## Bring every canvas up to date with the world and the view that is showing.
 func sync() -> void:
+	if icons_auto:
+		style.icons = SpriteArt.has_art("item:tonic") and not game_view.plain
 	var app := game_view.app if game_view != null else null
 	var w: World = null if game_view == null else game_view.world
 	var in_game := w != null and (app == null or app.scene == AppState.GAME)
@@ -207,8 +210,9 @@ func actor_rects(w: World) -> Array:
 		var out: Array = [Rect2i(-100000, -100000, 0, 0)]       # avoid[0] is "you" in the map view: nobody here
 		out.append_array(game_view.fp_view.actor_rects())
 		return out
-	var tile := TopView.TILE
-	var cam := TopView.camera(w)
+	var top := game_view.top_view
+	var tile := top.tile_px
+	var cam := TopView.camera(w, top.view_w, top.view_h)
 	var ents: Array = [w.player]
 	if w.active_pet != null:
 		ents.append(w.active_pet)

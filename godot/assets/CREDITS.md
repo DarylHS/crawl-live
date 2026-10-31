@@ -102,7 +102,7 @@ and the props drawn over DCSS bodies) are original, drawn in code by `scripts/ar
 | `pet:dog` | `sprites/pets/dog.png` | dcss | `mon/animals/jackal.png` | CC0 1.0 |
 | `pet:mouse` | `sprites/pets/mouse.png` | dcss | `UNUSED/monsters/labrat_unseen.png` | CC0 1.0 |
 | `boss:boss_1` | `sprites/headliners/boss_1.png` | dcss+fill-in | `mon/unique/royal_jelly.png` | CC0 1.0 |
-| `boss:boss_2` | `sprites/headliners/boss_2.png` | dcss+fill-in | `mon/unique/josephine.png` | CC0 1.0 |
+| `boss:boss_2` | `sprites/headliners/boss_2.png` | dcss+fill-in | `mon/unique/jessica.png` | CC0 1.0 |
 | `boss:boss_3` | `sprites/headliners/boss_3.png` | dcss+fill-in | `mon/unique/iron_giant.png` | CC0 1.0 |
 | `boss:boss_4` | `sprites/headliners/boss_4.png` | dcss+fill-in | `mon/unique/erica.png` | CC0 1.0 |
 | `boss:boss_5` | `sprites/headliners/boss_5.png` | dcss+fill-in | `mon/nonliving/guardian_golem.png` | CC0 1.0 |

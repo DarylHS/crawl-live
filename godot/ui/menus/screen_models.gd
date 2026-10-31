@@ -110,6 +110,9 @@ static func build_title(st: HudStyle, can_load: bool, loading: bool = false) -> 
 		list.centred("Loading your saved run...", cx, 562, st.colour("INFO"))
 	elif can_load:
 		list.centred("L to continue your saved run", cx, 562, st.colour("INFO"))
+	if st.icons:                                 # P9: credit the tile artists on the title (assets/CREDITS.md lists every file)
+		list.centred("Art: tiles from Dungeon Crawl Stone Soup, CC0, thanks to its artists.   Full credits: assets/CREDITS.md",
+				cx, 728, st.colour("TEXT_DIM"), "small")
 	return list
 
 

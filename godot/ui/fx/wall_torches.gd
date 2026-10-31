@@ -108,6 +108,11 @@ func _hide_from(n: int) -> void:
 		(_pool[i]["embers"] as CPUParticles3D).emitting = false
 
 
+## Forget the flame pictures (another art set was chosen).
+func forget_textures() -> void:
+	_textures.clear()
+
+
 func _tex(frame: int) -> Texture2D:
 	return ImageTexture.create_from_image(SpriteArt.torch(frame))
 

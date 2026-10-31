@@ -10,11 +10,20 @@ extends RefCounted
 ##   wpn:<item>  wpn:blade  wpn:blunt  wpn:unarmed   (P8: the first-person weapon view model, 80 x 80,
 ##                           hands included; an item's own picture wins over its style's, then the placeholder)
 ##
-## Today every key is answered by a placeholder drawn in code, ported from the pygame "body plan"
-## sprites in crawler/ui/firstperson.py (creatures), with simple per-kind shapes for items. P9 drops
-## real art in without touching the views: `register(key, image)` (or a `res://assets/manifest.json`
-## entry, {"mon:goblin": {"file": "sprites/monsters/goblin.png"}}) wins over the placeholder, and
-## missing keys keep falling back to the placeholder, so nothing ever crashes on a missing PNG.
+##   player:<race>  player:crawler       (P9: the top-down player, one per race; crawler before a race is chosen)
+##   fx:badge_opening  fx:sash_featured   (P9: Act overlays, laid over the base monster's body)
+##   tex:<depth>:wall_0|wall_1|floor|ceiling  tex:safe_wall|safe_floor|stairs_open|stairs_locked  (64 x 64)
+##   tile:<depth>:wall_0|wall_1|floor  tile:safe_wall|safe_floor|stairs_open|stairs_locked  (32 x 32 top-down)
+##   box:<tier>  box_big:<tier>           (loot box icons, 32 and 64 px)
+##
+## Real art (P9): the keys are answered from `res://assets/manifest.json` (written by scripts/art_build.py,
+## {"mon:goblin": {"file": "sprites/monsters/goblin.png", ...}}, paths relative to res://assets/). An art
+## set is a folder `res://assets/sets/<name>/` with its own manifest.json (scripts/artgen.py import writes
+## one); the active set answers first and the default set fills what it lacks. The set called "placeholder"
+## skips every manifest, so each key is answered by the placeholder drawn in code, ported from the pygame
+## "body plan" sprites in crawler/ui/firstperson.py (creatures), with simple per-kind shapes for items. The
+## placeholders are also the fallback for any key no manifest has, so nothing ever crashes on a missing PNG.
+## `register(key, image)` wins over everything (tests). Views notice a switch through `generation`.
 ##
 ## Creatures get the same finishing as Python's `creature_sprite`, whatever their source: light from
 ## above (the lower half darker, 1.1 to 0.75 down the rows) and a one pixel outline drawn from the
@@ -23,24 +32,92 @@ extends RefCounted
 
 const SIZE := 32
 const OUTLINE := Color8(14, 12, 18)
+const ASSETS := "res://assets/"
 const MANIFEST := "res://assets/manifest.json"
+const SETS_DIR := "res://assets/sets/"
+const DEFAULT_SET := "default"
+const PLACEHOLDER_SET := "placeholder"
+
+static var generation: int = 0           ## bumped whenever the art changes (a set switch, register, reset): views rebuild
+static var sets_dir: String = SETS_DIR  ## where the art sets live (tests point it at a temporary folder)
+static var art_set: String = DEFAULT_SET ## the active set: "default", a folder under assets/sets/, or "placeholder"
 
 static var _cache: Dictionary = {}       ## cache key -> Image (finished)
 static var _overrides: Dictionary = {}   ## asset key -> Image supplied by register()
-static var _manifest: Variant = null     ## Dictionary once read, false when there is none
+static var _loaded: Dictionary = {}      ## asset key -> Image read from a manifest's file (false: none)
+static var _sources_cache: Variant = null   ## [{dir, entries}] in priority order, null until read
+static var _env_read: bool = false
 
 
 ## Use `image` for `key` from now on (what the art loader of P9 calls).
 static func register(key: String, image: Image) -> void:
 	_overrides[key] = image
 	_cache.clear()
+	generation += 1
 
 
-## Forget registered images, the manifest and every cached sprite (tests).
+## Forget registered images, the manifests and every cached sprite (tests). The chosen set stays.
 static func reset() -> void:
 	_overrides.clear()
 	_cache.clear()
-	_manifest = null
+	_loaded.clear()
+	_sources_cache = null
+	generation += 1
+
+
+# --- Art sets ---------------------------------------------------------------------------------
+
+## The sets that can be switched to: "default" (res://assets/manifest.json), every folder in
+## res://assets/sets/ with a manifest.json (the AI trial, hand-made packs), and "placeholder".
+static func available_sets() -> Array[String]:
+	var out: Array[String] = [DEFAULT_SET]
+	var dir := DirAccess.open(sets_dir)
+	if dir != null:
+		var names := dir.get_directories()
+		names.sort()
+		for n in names:
+			if FileAccess.file_exists(sets_dir.path_join(n).path_join("manifest.json")):
+				out.append(n)
+	out.append(PLACEHOLDER_SET)
+	return out
+
+
+## Use art set `name` from now on (unknown names fall back to "default"). Returns the set in use.
+static func use_set(name: String) -> String:
+	_env_read = true
+	var all := available_sets()
+	art_set = name if all.has(name) else DEFAULT_SET
+	_cache.clear()
+	_loaded.clear()
+	_sources_cache = null
+	generation += 1
+	return art_set
+
+
+## The next set in `available_sets()` after the current one (the dev key).
+static func cycle_set() -> String:
+	var all := available_sets()
+	return use_set(all[(all.find(art_set) + 1) % all.size()])
+
+
+## Take the set from the CRAWL_ART_SET environment variable the first time art is asked for.
+static func _read_env() -> void:
+	if _env_read:
+		return
+	_env_read = true
+	var want := OS.get_environment("CRAWL_ART_SET")
+	if want != "" and want != art_set:
+		art_set = want if available_sets().has(want) else art_set
+
+
+## True when some manifest supplies a picture for `key` (not just the placeholder).
+static func has_art(key: String) -> bool:
+	return _supplied(key) != null
+
+
+## The raw picture for `key` from the registered images or the active manifests, or null (textures, tiles, icons).
+static func supplied(key: String) -> Image:
+	return _supplied(key)
 
 
 # --- Asset keys -------------------------------------------------------------------------
@@ -74,7 +151,9 @@ static func all_keys() -> Array[String]:
 		out.append("item:" + k)
 	for k: String in Content.table("ui_config")["hud"]["FURNITURE_GLYPHS"]:
 		out.append("furn:" + k)
-	out.append_array(["fx:stairs_open", "fx:stairs_locked"])
+	out.append_array(["fx:stairs_open", "fx:stairs_locked", "player:crawler"])
+	for r: String in Content.table("races"):
+		out.append("player:" + r)
 	return out
 
 
@@ -88,12 +167,18 @@ static func creature(key: String, colour: Array, tier: String = "") -> Image:
 	if tiers.has(tier):
 		var t: Array = tiers[tier]
 		outline = Color8(t[0], t[1], t[2])
+	elif tier == "player":
+		outline = UiColours.c("PLAYER_COLOUR")      # white: you stand out on the map
 	var ck := "%s|%s|%s" % [key, str(colour), outline.to_html()]
 	if _cache.has(ck):
 		return _cache[ck]
 	var base := _supplied(key)
-	if base == null:
-		base = _supplied(_base_key(key))        # an Act without its own art uses its monster's
+	if base == null and _base_key(key) != key:
+		base = _supplied(_base_key(key))        # an Act without its own art uses its monster's, with a badge or sash
+		if base != null:
+			base = _with_act_overlay(base, key.get_slice(":", 1).get_slice("_", 0))
+	if base == null and key.begins_with("player:") and key != "player:crawler":
+		base = _supplied("player:crawler")
 	if base == null:
 		var c := PixelCanvas.new(SIZE)
 		_body(c, _plan_name(key), Color8(colour[0], colour[1], colour[2]))
@@ -101,6 +186,16 @@ static func creature(key: String, colour: Array, tier: String = "") -> Image:
 	var out := finish_creature(base, outline)
 	_cache[ck] = out
 	return out
+
+
+## The top-down player for `race` ("" before a race is chosen): white outline, one picture per race.
+static func player(race: String) -> Image:
+	return creature("player:" + (race if race != "" else "crawler"), [255, 255, 255], "player")
+
+
+## The size of an item billboard in wall heights: 0.32 for the placeholder glyph shapes, 0.4 for real art (art bible 6).
+static func item_scale(item_key: String) -> float:
+	return 0.4 if has_art("item:" + item_key) else 0.32
 
 
 ## A finished item sprite (lying on the floor, shapes by kind: weapons diagonal, armour a torso,
@@ -192,25 +287,103 @@ static func _plain(key: String, painter: Callable) -> Image:
 	return img
 
 
-## An image from register() or the manifest, or null.
+## An image from register() or the active manifests, or null.
 static func _supplied(key: String) -> Image:
 	if _overrides.has(key):
 		return _overrides[key]
-	if _manifest == null:
-		_manifest = false
-		if FileAccess.file_exists(MANIFEST):
-			var parsed: Variant = JSON.parse_string(FileAccess.get_file_as_string(MANIFEST))
-			if parsed is Dictionary:
-				_manifest = parsed
-	if _manifest is Dictionary and (_manifest as Dictionary).has(key):
-		var entry: Dictionary = _manifest[key]
-		var path := "res://assets/".path_join(str(entry.get("file", "")))
+	_read_env()
+	if _loaded.has(key):
+		var got: Variant = _loaded[key]
+		return got if got is Image else null
+	var found: Image = null
+	for src: Dictionary in _sources():
+		var entries: Dictionary = src["entries"]
+		if not entries.has(key):
+			continue
+		var entry: Variant = entries[key]
+		if not entry is Dictionary:
+			continue
+		var path: String = String(src["dir"]) + String((entry as Dictionary).get("file", ""))
 		if FileAccess.file_exists(path):
-			var img := Image.load_from_file(path)
-			if img != null and not img.is_empty():
-				_overrides[key] = img
-				return img
-	return null
+			var img := read_image(path)
+			if img != null:
+				found = img
+				break
+	_loaded[key] = found if found != null else false
+	return found
+
+
+## A PNG as an RGBA8 Image, or null. Imported pictures load as resources (the way that survives an export);
+## one the editor has not imported yet (a fresh artgen set, a new checkout before `godot --import`) is read
+## from disk instead.
+static func read_image(path: String) -> Image:
+	var img: Image = null
+	if ResourceLoader.exists(path):
+		var tex := load(path) as Texture2D
+		if tex != null:
+			img = tex.get_image()
+	if img == null:
+		img = Image.load_from_file(ProjectSettings.globalize_path(path))
+	if img == null or img.is_empty():
+		return null
+	if img.is_compressed():
+		img.decompress()
+	img.convert(Image.FORMAT_RGBA8)
+	return img
+
+
+## The manifests in priority order: the active set's own, then the default one ("placeholder": none).
+static func _sources() -> Array:
+	if _sources_cache != null:
+		return _sources_cache
+	var out: Array = []
+	if art_set != PLACEHOLDER_SET:
+		if art_set != DEFAULT_SET:
+			_add_source(out, sets_dir.path_join(art_set) + "/")
+		_add_source(out, ASSETS)
+	_sources_cache = out
+	return out
+
+
+static func _add_source(out: Array, dir: String) -> void:
+	var path := dir + "manifest.json"
+	if not FileAccess.file_exists(path):
+		return
+	var parsed: Variant = JSON.parse_string(FileAccess.get_file_as_string(path))
+	if parsed is Dictionary:
+		out.append({"dir": dir, "entries": parsed})
+
+
+## An Act's look: the base monster's picture with the tier's overlay (`fx:badge_opening` lanyard badge,
+## `fx:sash_featured` star sash) laid over its body, only where the base has pixels. Without the overlay
+## picture the base is used as it is.
+static func _with_act_overlay(base: Image, tier: String) -> Image:
+	var over := _supplied("fx:badge_opening" if tier == "opening" else "fx:sash_featured")
+	if over == null:
+		return base
+	var out := base.duplicate() as Image
+	if out.get_format() != Image.FORMAT_RGBA8:
+		out.convert(Image.FORMAT_RGBA8)
+	var used := base.get_used_rect()
+	if used.size.x <= 0:
+		return base
+	var ow := over.get_width()
+	var oh := over.get_height()
+	var ox := used.position.x + used.size.x / 2 - ow / 2
+	var oy: int
+	if tier == "opening":                           # the badge hangs from the neck, about a third of the way down
+		oy = used.position.y + int(used.size.y * 0.28) - 1
+	else:                                           # the sash crosses the middle of the body
+		oy = used.position.y + used.size.y / 2 - oh / 2
+	for y in oh:
+		for x in ow:
+			var p := over.get_pixel(x, y)
+			var tx := ox + x
+			var ty := oy + y
+			if p.a > 0.5 and tx >= 0 and ty >= 0 and tx < out.get_width() and ty < out.get_height() \
+					and out.get_pixel(tx, ty).a > 0.5:
+				out.set_pixel(tx, ty, Color(p.r, p.g, p.b, 1.0))
+	return out
 
 
 ## mon:opening_goblin -> mon:goblin; other keys unchanged.

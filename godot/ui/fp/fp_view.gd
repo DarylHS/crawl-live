@@ -55,6 +55,7 @@ const FLASH_ALPHA := 110.0 / 255.0   ## Python: red at alpha 110 times the flash
 
 var controller := FpController.new()
 var materials := FpMaterials.new()
+var _art_gen: int = SpriteArt.generation   ## the SpriteArt.generation the pictures were made from
 var input_enabled: bool = true     ## read the keyboard (off for the screenshot tool and tests)
 var hud: bool = true               ## false while a menu or end screen covers the view
 var floor_mesh: MeshInstance3D = null
@@ -183,7 +184,13 @@ func refresh(dt: float) -> void:
 		return
 	controller.view.follow_floor(w)
 	controller.sync_combat()
-	if logic.prepare_floor(w) or floor_mesh == null:
+	var art_changed := _art_gen != SpriteArt.generation       # another art set: rebuild every picture
+	if art_changed:
+		_art_gen = SpriteArt.generation
+		billboards.forget_textures()
+		torches.forget_textures()
+		view_model.forget_textures()
+	if logic.prepare_floor(w) or floor_mesh == null or art_changed:
 		_build_floor(w)
 	if logic.cam.is_empty():
 		logic.update_camera(w)          # snap, as Python's render does with no camera yet

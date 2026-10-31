@@ -224,13 +224,13 @@ def p_tie_headset(c: Canvas, b) -> None:
     cx = head_cx(c.a, b)
     h = b[3] - b[1]
     y0 = b[1] + max(5, int(h * 0.3))
-    for i in range(5):
-        c.px(cx, y0 + i, (235, 80, 80))
-    c.px(cx - 1, y0, (235, 80, 80))
-    c.px(cx + 1, y0, (235, 80, 80))
-    c.px(cx, y0 + 5, (148, 40, 48))
-    c.px(cx - 1, y0 + 4, (148, 40, 48))
-    c.px(cx + 1, y0 + 4, (148, 40, 48))
+    for i in range(5):                                       # a gold tie shows on Glorm's red
+        c.px(cx, y0 + i, (255, 196, 64))
+    c.px(cx - 1, y0, (255, 232, 150))
+    c.px(cx + 1, y0, (255, 232, 150))
+    c.px(cx, y0 + 5, (190, 130, 40))
+    c.px(cx - 1, y0 + 4, (190, 130, 40))
+    c.px(cx + 1, y0 + 4, (190, 130, 40))
     top = b[1]
     for dx in range(-5, 6):                                  # headset band over the head
         c.px(cx + dx, top + (1 if abs(dx) < 4 else 3), DARK)
@@ -282,7 +282,7 @@ def build_creatures() -> None:
         ("pet:dog", "sprites/pets/dog.png", "mon/animals/jackal.png", {}, []),
                 ("pet:mouse", "sprites/pets/mouse.png", "UNUSED/monsters/labrat_unseen.png", {"hue": (190, 180, 200), "desat": 0.45}, []),
         ("boss:boss_1", "sprites/headliners/boss_1.png", "mon/unique/royal_jelly.png", {}, [p_crown]),
-        ("boss:boss_2", "sprites/headliners/boss_2.png", "mon/unique/josephine.png", {}, [p_glasses, p_books]),
+        ("boss:boss_2", "sprites/headliners/boss_2.png", "mon/unique/jessica.png", {}, [p_glasses, p_books]),
         ("boss:boss_3", "sprites/headliners/boss_3.png", "mon/unique/iron_giant.png", {"light": 1.15}, [p_hard_hat, p_hivis]),
         ("boss:boss_4", "sprites/headliners/boss_4.png", "mon/unique/erica.png", {}, [p_horns, p_staff]),
         ("boss:boss_5", "sprites/headliners/boss_5.png", "mon/nonliving/guardian_golem.png", {}, [p_wrap]),
@@ -302,12 +302,13 @@ def build_creatures() -> None:
         elif painters:
             for p in painters:
                 a = over(a, p)
+            a = ap.fit(a, 32)                          # props may stick out: shift and trim back inside the border
             origin, note = "dcss+fill-in", "comedy props drawn over the DCSS body"
         sprite(key, rel, a, origin, [src], note)
     sprite("pet:budgie", "sprites/pets/budgie.png", ap.fit(draw_budgie(), 32), "fill-in", [],
            "no DCSS match; drawn in code")
     # the vacuum bot has no DCSS match at all: full fill-in
-    sprite("mon:vacbot", "sprites/monsters/vacbot.png", draw_vacbot(), "fill-in", [],
+    sprite("mon:vacbot", "sprites/monsters/vacbot.png", ap.fit(draw_vacbot(), 32), "fill-in", [],
            "no DCSS match; drawn in code")
     # Act overlays (composited over the base monster by SpriteArt, clipped to the body)
     sprite("fx:badge_opening", "sprites/acts/badge_opening.png", draw_badge(), "fill-in", [])
@@ -390,7 +391,10 @@ def build_players() -> None:
         used = [base]
         c = Canvas(base=a)
         for l in layers:
-            c.paste(ap.binary_alpha(dcss(l)))
+            layer = ap.binary_alpha(dcss(l))
+            if "shirt_blue" in l:                             # the contestant's blue, not the palette's nearest purple
+                layer = ap.hue_match(layer, (66, 104, 186), min_sat=0.05)
+            c.paste(layer)
             used.append(l)
         a = ap.desaturate(c.a, 0.7)
         if hue:
@@ -727,12 +731,12 @@ def ceiling_texture(depth: int) -> np.ndarray:
     if depth == 1:                                         # service tunnel: pipes along the ceiling
         for y, w in ((8, 5), (30, 4), (48, 6)):
             c.rect(0, y, 64, w, seam)
-            c.rect(0, y + 1, 64, max(1, w - 3), (96, 92, 108))
-            c.rect(0, y + 1, 64, 1, (122, 116, 134))
+            c.rect(0, y + 1, 64, max(1, w - 3), (74, 70, 82))
+            c.rect(0, y + 1, 64, 1, (96, 92, 108))
         for x in (14, 40):
             c.rect(x, 0, 3, 64, seam) if False else None
             for y in (8, 30, 48):
-                c.rect(x, y - 1, 3, 7, hi)
+                c.rect(x, y - 1, 3, 7, (58, 54, 70))
     elif depth == 2:                                       # archive: wooden beams
         for y in (0, 21, 42):
             c.rect(0, y, 64, 8, (84, 72, 62))
@@ -959,9 +963,9 @@ def main() -> None:
         os.makedirs(args.sheet, exist_ok=True)
         for group in ("monsters", "headliners", "pets", "items", "furniture", "player", "fx", "acts"):
             d = os.path.join(OUT, "sprites", group)
-            files = sorted("sprites/%s/%s" % (group, f) for f in os.listdir(d))
+            files = sorted("sprites/%s/%s" % (group, f) for f in os.listdir(d) if f.endswith(".png"))
             contact_sheet(os.path.join(args.sheet, "sprites_%s.png" % group), files)
-        contact_sheet(os.path.join(args.sheet, "boxes.png"), sorted("ui/boxes/" + f for f in os.listdir(os.path.join(OUT, "ui/boxes"))), 2)
+        contact_sheet(os.path.join(args.sheet, "boxes.png"), sorted("ui/boxes/" + f for f in os.listdir(os.path.join(OUT, "ui/boxes")) if f.endswith(".png")), 2)
 
 
 if __name__ == "__main__":

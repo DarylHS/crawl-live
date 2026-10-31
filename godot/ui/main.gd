@@ -6,6 +6,8 @@ extends Control
 ##   godot --path godot -- --seed 1234 --pet dog           # a fixed seed for the first run; dog preselected
 ##   godot --path godot -- --quick --seed 1 --pet dog      # skip the title and creation: straight into a run
 ##   godot --path godot -- --save-dir DIR --runs-dir DIR   # where the save, settings and run logs go
+##   godot --path godot -- --glyphs                        # no art: placeholder pictures and the 16 px glyph map, as P5 to P8
+##   godot --path godot -- --art-set ai_trial              # an art set under assets/sets/ (or CRAWL_ART_SET=ai_trial); F5 cycles them
 ##
 ## Scene tree:
 ##   Main (Control, this script)
@@ -39,8 +41,11 @@ func _ready() -> void:
 	app = game_view.app
 	configure(app, args)
 	app.load_settings()
+	app.map_zoom = "glyphs" if args.has("glyphs") else "tiles"   # the real game's map view is the 32 px tiles; Z zooms out
+	game_view.top_view.set_zoom(app.map_zoom)
 	game_view.set_input_enabled(false)       # Main takes the keys and routes them through the AppState
 	game_view.fp_view.set_render_scale(app.settings["render_scale"])
+	hud.icons_auto = true                    # menu pictures and the art credit while real art is active
 	hud.bind(game_view)
 	get_tree().auto_accept_quit = false       # the window close button goes through quit_game (sounds stopped first)
 	_make_note()
@@ -66,6 +71,10 @@ static func configure(target: AppState, args: Dictionary) -> void:
 		target.settings_path = UserSettings.settings_path(dir)
 	if args.has("runs-dir"):
 		target.runs_dir = args["runs-dir"]
+	if args.has("glyphs"):                                  # the art bible's --glyphs: no art at all, the 16 px glyph map
+		SpriteArt.use_set(SpriteArt.PLACEHOLDER_SET)
+	elif args.has("art-set"):
+		SpriteArt.use_set(String(args["art-set"]))          # P9: an art set under assets/sets/, "default" or "placeholder"
 	if args.has("pet"):
 		var idx: int = Content.table("pets").keys().find(args["pet"])
 		if idx >= 0:

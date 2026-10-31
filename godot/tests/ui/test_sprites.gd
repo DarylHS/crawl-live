@@ -8,6 +8,7 @@ const SCENE := preload("res://scenes/fp_view.tscn")
 
 
 func after_each() -> void:
+	SpriteArt.use_set(SpriteArt.DEFAULT_SET)
 	SpriteArt.reset()
 
 
@@ -20,6 +21,7 @@ func _alpha_is_binary(img: Image) -> bool:
 	return true
 
 
+## The real art first, then the code-drawn placeholders: both answer every key at the art bible's size.
 func test_every_creature_has_a_sprite() -> void:
 	var keys: Array[String] = []
 	for k: String in Content.table("monsters"):
@@ -29,11 +31,14 @@ func test_every_creature_has_a_sprite() -> void:
 	for k: String in Content.table("pets"):
 		keys.append("pet:" + k)
 	assert_gt(keys.size(), 14)
-	for k in keys:
-		var s := SpriteArt.creature(k, [200, 100, 50])
-		assert_eq(s.get_size(), Vector2i(32, 32), k)
-		assert_gt(SpriteArt.bounds(s).size.x, 8, k)
-		assert_true(_alpha_is_binary(s), k)
+	for set_name in [SpriteArt.DEFAULT_SET, SpriteArt.PLACEHOLDER_SET]:
+		SpriteArt.use_set(set_name)
+		for k in keys:
+			var s := SpriteArt.creature(k, [200, 100, 50])
+			assert_eq(s.get_size(), Vector2i(32, 32), "%s %s" % [set_name, k])
+			assert_gt(SpriteArt.bounds(s).size.x, 8, "%s %s" % [set_name, k])
+			assert_true(_alpha_is_binary(s), "%s %s" % [set_name, k])
+			assert_gte(SpriteArt.bounds(s).end.y, 30, "%s %s: feet on the bottom rows" % [set_name, k])
 
 
 func test_every_asset_key_has_an_image() -> void:
@@ -41,23 +46,27 @@ func test_every_asset_key_has_an_image() -> void:
 	assert_gt(keys.size(), 50)
 	assert_true(keys.has("mon:goblin") and keys.has("mon:opening_goblin") and keys.has("mon:featured_golem"))
 	assert_true(keys.has("boss:boss_3") and keys.has("pet:budgie") and keys.has("item:pan"))
-	assert_true(keys.has("furn:counter") and keys.has("fx:stairs_locked"))
-	for k in keys:
-		var kind := k.get_slice(":", 0)
-		var nm := k.get_slice(":", 1)
-		var img: Image
-		match kind:
-			"item":
-				img = SpriteArt.item(nm)
-			"furn":
-				img = SpriteArt.furniture(nm)
-			"fx":
-				img = SpriteArt.stairs(nm == "stairs_locked")
-			_:
-				img = SpriteArt.creature(k, [180, 180, 180])
-		assert_eq(img.get_size(), Vector2i(32, 32), k)
-		assert_gt(SpriteArt.bounds(img).size.x, 4, k)
-		assert_true(_alpha_is_binary(img), k)
+	assert_true(keys.has("furn:counter") and keys.has("fx:stairs_locked") and keys.has("player:elf"))
+	for set_name in [SpriteArt.DEFAULT_SET, SpriteArt.PLACEHOLDER_SET]:
+		SpriteArt.use_set(set_name)
+		for k in keys:
+			var kind := k.get_slice(":", 0)
+			var nm := k.get_slice(":", 1)
+			var img: Image
+			match kind:
+				"item":
+					img = SpriteArt.item(nm)
+				"furn":
+					img = SpriteArt.furniture(nm)
+				"fx":
+					img = SpriteArt.stairs(nm == "stairs_locked")
+				"player":
+					img = SpriteArt.player("" if nm == "crawler" else nm)
+				_:
+					img = SpriteArt.creature(k, [180, 180, 180])
+			assert_eq(img.get_size(), Vector2i(32, 32), "%s %s" % [set_name, k])
+			assert_gt(SpriteArt.bounds(img).size.x, 4, "%s %s" % [set_name, k])
+			assert_true(_alpha_is_binary(img), "%s %s" % [set_name, k])
 
 
 func test_monster_keys_follow_the_art_bible() -> void:
@@ -172,7 +181,7 @@ func test_billboard_sizes_and_feet() -> void:
 		assert_almost_eq(height, float(c[1]) * wall, 1e-5, (c[0] as Monster).name)
 		assert_almost_eq(sprite.position.y - height / 2.0, 0.0, 1e-5)    # feet on the floor
 		assert_eq(sprite.texture.get_width(), 32)
-	# pet 0.5, items 0.32, furniture 0.75, the stairs arrow floats
+	# pet 0.5, items 0.4 with real art (0.32 for the placeholder shapes), furniture 0.75, the stairs arrow floats
 	w.monsters.clear()
 	w.pet.x = p.x + f.x
 	w.pet.y = p.y + f.y
@@ -182,7 +191,16 @@ func test_billboard_sizes_and_feet() -> void:
 	var heights: Array = []
 	for s in _shown(v.billboards):
 		heights.append(snappedf(s.pixel_size * s.texture.get_height() / wall, 0.001))
+	assert_eq(SpriteArt.item_scale("tonic"), 0.4)
+	assert_true(heights.has(0.5) and heights.has(0.4), str(heights))
+	SpriteArt.use_set(SpriteArt.PLACEHOLDER_SET)               # the placeholder shapes keep the old size
+	assert_eq(SpriteArt.item_scale("tonic"), 0.32)
+	v.refresh(0.0)
+	heights.clear()
+	for s in _shown(v.billboards):
+		heights.append(snappedf(s.pixel_size * s.texture.get_height() / wall, 0.001))
 	assert_true(heights.has(0.5) and heights.has(0.32), str(heights))
+	SpriteArt.use_set(SpriteArt.DEFAULT_SET)
 
 
 func test_damaged_monsters_get_a_health_bar_and_healthy_ones_do_not() -> void:

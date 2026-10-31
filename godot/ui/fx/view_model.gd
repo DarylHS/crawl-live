@@ -70,6 +70,11 @@ func _draw() -> void:
 	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
 
+## Forget the cached pictures (another art set was chosen).
+func forget_textures() -> void:
+	_textures.clear()
+
+
 func _texture() -> Texture2D:
 	var key := "%s|%s" % [item_key, style]
 	if not _textures.has(key):

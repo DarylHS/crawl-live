@@ -93,18 +93,24 @@ static func build_inventory(st: HudStyle, world: World, cursor: int) -> HudList:
 	MenuKit.frame(list, "INVENTORY")
 	var rows := inventory_rows(world)
 	var y := 140
+	var art := st.icons                       # P9: a 32 px picture instead of the glyph, taller rows
 	for i in rows.size():
 		var row: Array = rows[i]
 		var key: String = row[2]
 		var it: Dictionary = Items.items()[key]
+		var ty := y + 5 if art else y         # the text sits lower inside the taller row
 		if i == cursor:
-			list.fill(Rect2i(X0 + 10, y - 2, WIDTH - 20, 22), MenuKit.SEL_COLOUR)
+			list.fill(Rect2i(X0 + 10, y - 6, WIDTH - 20, 34) if art else Rect2i(X0 + 10, y - 2, WIDTH - 20, 22),
+					MenuKit.SEL_COLOUR)
 		var tag := "[%s]" % row[1] if row[0] == "equip" else ""
-		list.text(Items.glyph(key), X0 + 22, y, _item_colour(key))
-		list.text("%s %s" % [it["name"], tag], X0 + 46, y, st.colour("TEXT"))
-		list.text(MenuKit.fit(st, Items.describe(key), WIDTH - INV_STATS_X - 14), X0 + INV_STATS_X, y,
+		if art:
+			list.icon("item:" + key, Rect2i(X0 + 14, y - 5, 32, 32))
+		else:
+			list.text(Items.glyph(key), X0 + 22, y, _item_colour(key))
+		list.text("%s %s" % [it["name"], tag], X0 + (54 if art else 46), ty, st.colour("TEXT"))
+		list.text(MenuKit.fit(st, Items.describe(key), WIDTH - INV_STATS_X - 14), X0 + INV_STATS_X, ty,
 				st.colour("TEXT_DIM"), "small")
-		y += 24
+		y += 34 if art else 24
 	if rows.is_empty():
 		list.text("Nothing but lint.", X0 + 46, y, st.colour("TEXT_DIM"))
 	list.text("Pack %d/%d   Boxes %d" % [world.inventory.size(), GameConfig.INVENTORY_SIZE, world.boxes.size()],
@@ -128,6 +134,12 @@ static func build_safe_menu(st: HudStyle, world: World, cursor: int) -> HudList:
 		if i == cursor:
 			list.fill(Rect2i(X0 + 10, y - 2, WIDTH - 20, 26), MenuKit.SEL_COLOUR)
 		var colour := UiColours.of(Content.box(o[1])["colour"]) if o[1] != "" else st.colour("TEXT")
+		if st.icons:                             # P9: a loot box icon beside each box row, every row's text lined up
+			if o[1] != "":
+				list.icon("box:" + String(o[1]), Rect2i(X0 + 22, y - 6, 32, 32))
+			list.text(o[2], X0 + 66, y, colour)
+			y += 32
+			continue
 		list.text(o[2], X0 + 30, y, colour)
 		y += 30
 	list.centred("Up/Down select   Enter choose   Esc close", X0 + WIDTH / 2, 510, st.colour("TEXT_DIM"), "small")
@@ -151,7 +163,10 @@ static func build_reveal(st: HudStyle, world: World, hide_item: bool = false) ->
 		for i in mini(2, lines.size()):
 			list.centred(lines[i], cx, 232 + 17 * i, box_colour, "small")
 	if not hide_item:
-		list.centred(Items.glyph(key), cx, 305, _item_colour(key), "huge")
+		if st.icons:                             # P9: the item's picture at 2x
+			list.icon("item:" + key, Rect2i(cx - 32, 268, 64, 64))
+		else:
+			list.centred(Items.glyph(key), cx, 305, _item_colour(key), "huge")
 		list.centred(it["name"], cx, 365, _item_colour(key), "big")
 		list.centred(Items.describe(key), cx, 397, st.colour("TEXT"))
 		list.centred(it["desc"], cx, 423, st.colour("TEXT_DIM"), "small")
